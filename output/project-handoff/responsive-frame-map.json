@@ -1,0 +1,1350 @@
+{
+  "meta": {
+    "name": "Responsive Frame Map",
+    "generatedAt": "2026-06-02T16:09:45.965Z",
+    "breakpoints": [
+      {
+        "key": "desktop",
+        "label": "Desktop",
+        "width": 1440,
+        "height": 1000,
+        "deviceScaleFactor": 2,
+        "media": "screen",
+        "note": "Primary stakeholder review canvas."
+      },
+      {
+        "key": "tablet",
+        "label": "Tablet",
+        "width": 834,
+        "height": 1112,
+        "deviceScaleFactor": 2,
+        "media": "screen",
+        "note": "Mid-size layout check for navigation, grids, forms, and admin tables."
+      },
+      {
+        "key": "mobile",
+        "label": "Mobile",
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 2,
+        "media": "screen",
+        "isMobile": true,
+        "note": "Phone viewport for stacked content, mobile menu, forms, and admin mobile nav."
+      }
+    ]
+  },
+  "framesByScreen": [
+    {
+      "screenId": "public-home-vi",
+      "name": "Public Home VI",
+      "route": "/vi",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-home-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-home-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-home-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-home-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-home-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-home-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-home-en",
+      "name": "Public Home EN",
+      "route": "/en",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-home-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-home-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-home-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-home-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-home-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-home-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-about-vi",
+      "name": "About VI",
+      "route": "/vi/about",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-about-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-about-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-about-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-about-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-about-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-about-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-products-vi",
+      "name": "Products VI",
+      "route": "/vi/products",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-products-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-products-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-products-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-products-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-products-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-products-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-products-filtered-vi",
+      "name": "Products Filtered VI",
+      "route": "/vi/products?category=wood&material=walnut&room=living",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-products-filtered-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-products-filtered-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-products-filtered-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-products-filtered-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-products-filtered-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-products-filtered-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-products-en",
+      "name": "Products EN",
+      "route": "/en/products",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-products-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-products-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-products-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-products-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-products-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-products-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-product-detail-vi",
+      "name": "Product Detail VI",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-product-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-product-detail-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-product-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-product-detail-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-product-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-product-detail-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-product-detail-en",
+      "name": "Product Detail EN",
+      "route": "/en/products/sofa-curve-velour",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-product-detail-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-product-detail-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-product-detail-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-product-detail-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-product-detail-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-product-detail-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-blog-vi",
+      "name": "Blog Listing VI",
+      "route": "/vi/blog",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-blog-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-blog-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-blog-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-blog-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-blog-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-blog-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-blog-en",
+      "name": "Blog Listing EN",
+      "route": "/en/blog",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-blog-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-blog-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-blog-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-blog-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-blog-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-blog-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-blog-detail-vi",
+      "name": "Blog Detail VI",
+      "route": "/vi/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-blog-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-blog-detail-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-blog-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-blog-detail-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-blog-detail-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-blog-detail-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-blog-detail-en",
+      "name": "Blog Detail EN",
+      "route": "/en/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-blog-detail-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-blog-detail-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-blog-detail-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-blog-detail-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-blog-detail-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-blog-detail-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-showrooms-vi",
+      "name": "Showrooms VI",
+      "route": "/vi/showrooms",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-showrooms-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-showrooms-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-showrooms-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-showrooms-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-showrooms-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-showrooms-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-contact-vi",
+      "name": "Contact VI",
+      "route": "/vi/contact",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-contact-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-contact-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-contact-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-contact-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-contact-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-contact-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-contact-en",
+      "name": "Contact EN",
+      "route": "/en/contact",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-contact-en.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-contact-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-contact-en.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-contact-en.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-contact-en.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-contact-en.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-contact-success-vi",
+      "name": "Contact Success VI",
+      "route": "/vi/contact/success",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-contact-success-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-contact-success-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-contact-success-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-contact-success-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-contact-success-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-contact-success-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-contact-error-vi",
+      "name": "Contact Error VI",
+      "route": "/vi/contact/error",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-contact-error-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-contact-error-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-contact-error-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-contact-error-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-contact-error-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-contact-error-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "public-not-found-vi",
+      "name": "Not Found VI",
+      "route": "/vi/not-found-demo",
+      "area": "public",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/public-not-found-vi.png",
+          "figmaScreen": "figma-ready/screens/desktop/public-not-found-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/public-not-found-vi.png",
+          "figmaScreen": "figma-ready/screens/tablet/public-not-found-vi.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/public-not-found-vi.png",
+          "figmaScreen": "figma-ready/screens/mobile/public-not-found-vi.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-dashboard",
+      "name": "Admin Dashboard",
+      "route": "/admin",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-dashboard.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-dashboard.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-dashboard.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-dashboard.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-dashboard.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-dashboard.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-products",
+      "name": "Admin Products",
+      "route": "/admin/products",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-products.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-products.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-products.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-products.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-products.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-products.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-product-create",
+      "name": "Admin Product Create",
+      "route": "/admin/products?new=1",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-product-create.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-product-create.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-product-create.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-product-create.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-product-create.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-product-create.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-categories",
+      "name": "Admin Categories",
+      "route": "/admin/categories",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-categories.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-categories.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-categories.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-categories.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-categories.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-categories.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-category-create",
+      "name": "Admin Category Create",
+      "route": "/admin/categories?new=1",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-category-create.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-category-create.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-category-create.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-category-create.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-category-create.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-category-create.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-blog-editor",
+      "name": "Admin Blog Editor",
+      "route": "/admin/blog",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-blog-editor.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-blog-editor.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-blog-editor.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-blog-editor.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-blog-editor.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-blog-editor.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-showrooms",
+      "name": "Admin Showrooms",
+      "route": "/admin/showrooms",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-showrooms.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-showrooms.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-showrooms.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-showrooms.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-showrooms.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-showrooms.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-media",
+      "name": "Admin Media",
+      "route": "/admin/media",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-media.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-media.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-media.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-media.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-media.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-media.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-quotes",
+      "name": "Admin Quotes",
+      "route": "/admin/quotes",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-quotes.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-quotes.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-quotes.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-quotes.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-quotes.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-quotes.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-users",
+      "name": "Admin Users",
+      "route": "/admin/users",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-users.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-users.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-users.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-users.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-users.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-users.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-settings",
+      "name": "Admin Settings",
+      "route": "/admin/settings",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-settings.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-settings.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-settings.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-settings.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-settings.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-settings.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-ai-assistant",
+      "name": "Admin AI Assistant",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-ai-assistant.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-ai-assistant.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-ai-assistant.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-ai-assistant.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-ai-assistant.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-ai-assistant.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-login",
+      "name": "Admin Login",
+      "route": "/admin/login",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-login.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-login.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-login.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-login.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-login.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-login.png",
+          "horizontalOverflow": false
+        }
+      ]
+    },
+    {
+      "screenId": "admin-access-denied",
+      "name": "Admin Access Denied",
+      "route": "/admin/access-denied",
+      "area": "admin",
+      "frames": [
+        {
+          "breakpoint": "desktop",
+          "label": "Desktop",
+          "size": {
+            "width": 1440,
+            "height": 1000
+          },
+          "screenshot": "screenshots/desktop/admin-access-denied.png",
+          "figmaScreen": "figma-ready/screens/desktop/admin-access-denied.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "tablet",
+          "label": "Tablet",
+          "size": {
+            "width": 834,
+            "height": 1112
+          },
+          "screenshot": "screenshots/tablet/admin-access-denied.png",
+          "figmaScreen": "figma-ready/screens/tablet/admin-access-denied.png",
+          "horizontalOverflow": false
+        },
+        {
+          "breakpoint": "mobile",
+          "label": "Mobile",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "screenshot": "screenshots/mobile/admin-access-denied.png",
+          "figmaScreen": "figma-ready/screens/mobile/admin-access-denied.png",
+          "horizontalOverflow": false
+        }
+      ]
+    }
+  ]
+}

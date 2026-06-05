@@ -1,0 +1,822 @@
+{
+  "name": "Phuong Dong Admin Handoff Frames",
+  "generatedAt": "2026-06-02T15:19:52.570Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "importNotes": "Create Figma frames at 1440x1000, place PNG screenshots as locked background references, then reconstruct components from sections/componentStructure/tokens.",
+  "frames": [
+    {
+      "name": "Admin / Dashboard / default",
+      "route": "/admin",
+      "state": "default",
+      "image": "screens/dashboard.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Products / default",
+      "route": "/admin/products",
+      "state": "default",
+      "image": "screens/products.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Blog Editor / default",
+      "route": "/admin/blog",
+      "state": "default",
+      "image": "screens/blog-editor.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Showrooms / default",
+      "route": "/admin/showrooms",
+      "state": "default",
+      "image": "screens/showrooms.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Media / default",
+      "route": "/admin/media",
+      "state": "default",
+      "image": "screens/media.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Quotes / default",
+      "route": "/admin/quotes",
+      "state": "default",
+      "image": "screens/quotes.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Users / default",
+      "route": "/admin/users",
+      "state": "default",
+      "image": "screens/users.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Settings / default",
+      "route": "/admin/settings",
+      "state": "default",
+      "image": "screens/settings.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / AI Assistant / default",
+      "route": "/admin/ai-assistant",
+      "state": "default",
+      "image": "screens/ai-assistant.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Calendar Open / open calendar",
+      "route": "/admin",
+      "state": "open calendar",
+      "image": "screens/calendar-open.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Selected Date State / selected date",
+      "route": "/admin",
+      "state": "selected date",
+      "image": "screens/selected-date-state.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Products Select Open / open select",
+      "route": "/admin/products",
+      "state": "open select",
+      "image": "screens/products-select-open.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Admin Hover State / hover",
+      "route": "/admin/products",
+      "state": "hover",
+      "image": "screens/admin-hover-state.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Admin Focus State / focus",
+      "route": "/admin/products",
+      "state": "focus",
+      "image": "screens/admin-focus-state.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    },
+    {
+      "name": "Admin / Fixed Background Visible / fixed background visible",
+      "route": "/admin/settings",
+      "state": "fixed background visible",
+      "image": "screens/fixed-background-visible-state.png",
+      "dimensions": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sections": [
+        "sidebar",
+        "topbar",
+        "main content",
+        "utility rail"
+      ],
+      "componentStructure": [
+        {
+          "name": "AdminShell",
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 1000
+        },
+        {
+          "name": "Sidebar",
+          "x": 0,
+          "y": 0,
+          "width": 240,
+          "height": 1000
+        },
+        {
+          "name": "Topbar",
+          "x": 240,
+          "y": 0,
+          "width": 1200,
+          "height": 68
+        },
+        {
+          "name": "Main content",
+          "x": 240,
+          "y": 68,
+          "width": 914,
+          "height": 932
+        },
+        {
+          "name": "Utility rail",
+          "x": 1154,
+          "y": 68,
+          "width": 286,
+          "height": 932
+        }
+      ],
+      "tokenSet": "design-tokens.json"
+    }
+  ]
+}

@@ -1,0 +1,1172 @@
+{
+  "meta": {
+    "name": "Public Screen Map",
+    "generatedAt": "2026-06-02T16:09:45.965Z"
+  },
+  "screens": [
+    {
+      "id": "public-home-vi",
+      "name": "Public Home VI",
+      "route": "/vi",
+      "area": "public",
+      "locale": "vi",
+      "template": "home",
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "Hero carousel, sticky header, catalog bar, homepage content bands, footer newsletter."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-home-vi.png",
+        "tablet": "screenshots/tablet/public-home-vi.png",
+        "mobile": "screenshots/mobile/public-home-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Kiến tạo không gian sống đẳng cấp và bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 14,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Kiến tạo không gian sống đẳng cấp và bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Kiến tạo không gian sống đẳng cấp và bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-home-en",
+      "name": "Public Home EN",
+      "route": "/en",
+      "area": "public",
+      "locale": "en",
+      "template": "home",
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "English locale parity for homepage route and language switch behavior."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-home-en.png",
+        "tablet": "screenshots/tablet/public-home-en.png",
+        "mobile": "screenshots/mobile/public-home-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Phuong Dong Interior Showroom | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Crafting extraordinary and sustainable living spaces",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 14,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Phuong Dong Interior Showroom | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Crafting extraordinary and sustainable living spaces",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Phuong Dong Interior Showroom | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Crafting extraordinary and sustainable living spaces",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-about-vi",
+      "name": "About VI",
+      "route": "/vi/about",
+      "area": "public",
+      "locale": "vi",
+      "template": "content",
+      "components": [
+        "PublicShell",
+        "RemoteImage",
+        "ValueCard",
+        "Timeline"
+      ],
+      "notes": [
+        "Company story, trust statements, visual background treatment."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-about-vi.png",
+        "tablet": "screenshots/tablet/public-about-vi.png",
+        "mobile": "screenshots/mobile/public-about-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "firstHeading": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 4,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "firstHeading": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 4,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "firstHeading": "Hành trình kiến tạo không gian sống đẳng cấp",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 4,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-products-vi",
+      "name": "Products VI",
+      "route": "/vi/products",
+      "area": "public",
+      "locale": "vi",
+      "template": "listing",
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Product listing, filters, sort control, cards, pagination."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-products-vi.png",
+        "tablet": "screenshots/tablet/public-products-vi.png",
+        "mobile": "screenshots/mobile/public-products-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 11,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 11,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-products-filtered-vi",
+      "name": "Products Filtered VI",
+      "route": "/vi/products?category=wood&material=walnut&room=living",
+      "area": "public",
+      "locale": "vi",
+      "template": "listing-filtered",
+      "components": [
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Query-driven filtered list state for client review."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-products-filtered-vi.png",
+        "tablet": "screenshots/tablet/public-products-filtered-vi.png",
+        "mobile": "screenshots/mobile/public-products-filtered-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 1,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 9,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 1,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Danh mục sản phẩm",
+          "firstHeading": "Đồ gỗ nội thất phòng khách",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 6,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 1,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-products-en",
+      "name": "Products EN",
+      "route": "/en/products",
+      "area": "public",
+      "locale": "en",
+      "template": "listing",
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "English listing route and filter labels."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-products-en.png",
+        "tablet": "screenshots/tablet/public-products-en.png",
+        "mobile": "screenshots/mobile/public-products-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Product catalog",
+          "firstHeading": "Living room wooden furniture",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 11,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Product catalog",
+          "firstHeading": "Living room wooden furniture",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 11,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Product catalog",
+          "firstHeading": "Living room wooden furniture",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-product-detail-vi",
+      "name": "Product Detail VI",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "vi",
+      "template": "product-detail",
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "Gallery, modal trigger, detail tabs, selected thumbnail, quote CTA/form."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-product-detail-vi.png",
+        "tablet": "screenshots/tablet/public-product-detail-vi.png",
+        "mobile": "screenshots/mobile/public-product-detail-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-product-detail-en",
+      "name": "Product Detail EN",
+      "route": "/en/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "en",
+      "template": "product-detail",
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "English product detail parity."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-product-detail-en.png",
+        "tablet": "screenshots/tablet/public-product-detail-en.png",
+        "mobile": "screenshots/mobile/public-product-detail-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 7,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Sofa Curve Velour",
+          "firstHeading": "Sofa Curve Velour",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 2
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-blog-vi",
+      "name": "Blog Listing VI",
+      "route": "/vi/blog",
+      "area": "public",
+      "locale": "vi",
+      "template": "listing-editorial",
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Blog index with editorial cards and localized metadata."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-blog-vi.png",
+        "tablet": "screenshots/tablet/public-blog-vi.png",
+        "mobile": "screenshots/mobile/public-blog-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Khám phá không gian và cảm hứng thiết kế",
+          "firstHeading": "Khám phá không gian và cảm hứng thiết kế",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Khám phá không gian và cảm hứng thiết kế",
+          "firstHeading": "Khám phá không gian và cảm hứng thiết kế",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Khám phá không gian và cảm hứng thiết kế",
+          "firstHeading": "Khám phá không gian và cảm hứng thiết kế",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-blog-en",
+      "name": "Blog Listing EN",
+      "route": "/en/blog",
+      "area": "public",
+      "locale": "en",
+      "template": "listing-editorial",
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English blog listing route."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-blog-en.png",
+        "tablet": "screenshots/tablet/public-blog-en.png",
+        "mobile": "screenshots/mobile/public-blog-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Explore spaces and design inspiration",
+          "firstHeading": "Explore spaces and design inspiration",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Explore spaces and design inspiration",
+          "firstHeading": "Explore spaces and design inspiration",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Explore spaces and design inspiration",
+          "firstHeading": "Explore spaces and design inspiration",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-blog-detail-vi",
+      "name": "Blog Detail VI",
+      "route": "/vi/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "vi",
+      "template": "article",
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Long-form article, table of contents, share controls, related content."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-blog-detail-vi.png",
+        "tablet": "screenshots/tablet/public-blog-detail-vi.png",
+        "mobile": "screenshots/mobile/public-blog-detail-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "firstHeading": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "firstHeading": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "firstHeading": "Bí quyết chọn gỗ óc chó cho nội thất bền vững",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-blog-detail-en",
+      "name": "Blog Detail EN",
+      "route": "/en/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "en",
+      "template": "article",
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English article detail route."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-blog-detail-en.png",
+        "tablet": "screenshots/tablet/public-blog-detail-en.png",
+        "mobile": "screenshots/mobile/public-blog-detail-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "How to choose walnut wood for lasting interiors",
+          "firstHeading": "How to choose walnut wood for lasting interiors",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "How to choose walnut wood for lasting interiors",
+          "firstHeading": "How to choose walnut wood for lasting interiors",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "How to choose walnut wood for lasting interiors",
+          "firstHeading": "How to choose walnut wood for lasting interiors",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-showrooms-vi",
+      "name": "Showrooms VI",
+      "route": "/vi/showrooms",
+      "area": "public",
+      "locale": "vi",
+      "template": "showrooms",
+      "components": [
+        "PublicShell",
+        "ShowroomCard",
+        "RemoteImage",
+        "GoogleMapEmbed"
+      ],
+      "notes": [
+        "Showroom cards, address/hotline content, map embed area."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-showrooms-vi.png",
+        "tablet": "screenshots/tablet/public-showrooms-vi.png",
+        "mobile": "screenshots/mobile/public-showrooms-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Hệ thống showroom",
+          "firstHeading": "Hệ thống showroom",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Hệ thống showroom",
+          "firstHeading": "Hệ thống showroom",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Hệ thống showroom",
+          "firstHeading": "Hệ thống showroom",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-contact-vi",
+      "name": "Contact VI",
+      "route": "/vi/contact",
+      "area": "public",
+      "locale": "vi",
+      "template": "contact",
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "Lead capture form, service select, validation, response-time note."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-contact-vi.png",
+        "tablet": "screenshots/tablet/public-contact-vi.png",
+        "mobile": "screenshots/mobile/public-contact-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Liên hệ và yêu cầu báo giá",
+          "firstHeading": "Liên hệ và yêu cầu báo giá",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Liên hệ và yêu cầu báo giá",
+          "firstHeading": "Liên hệ và yêu cầu báo giá",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Liên hệ và yêu cầu báo giá",
+          "firstHeading": "Liên hệ và yêu cầu báo giá",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-contact-en",
+      "name": "Contact EN",
+      "route": "/en/contact",
+      "area": "public",
+      "locale": "en",
+      "template": "contact",
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "English contact and quote route."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-contact-en.png",
+        "tablet": "screenshots/tablet/public-contact-en.png",
+        "mobile": "screenshots/mobile/public-contact-en.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Contact and quote request",
+          "firstHeading": "Contact and quote request",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Contact and quote request",
+          "firstHeading": "Contact and quote request",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Contact and quote request",
+          "firstHeading": "Contact and quote request",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-contact-success-vi",
+      "name": "Contact Success VI",
+      "route": "/vi/contact/success",
+      "area": "public",
+      "locale": "vi",
+      "template": "feedback",
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Successful quote submission confirmation state."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-contact-success-vi.png",
+        "tablet": "screenshots/tablet/public-contact-success-vi.png",
+        "mobile": "screenshots/mobile/public-contact-success-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu đã được ghi nhận",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu đã được ghi nhận",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu đã được ghi nhận",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-contact-error-vi",
+      "name": "Contact Error VI",
+      "route": "/vi/contact/error",
+      "area": "public",
+      "locale": "vi",
+      "template": "feedback",
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Server-side quote submission error route."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-contact-error-vi.png",
+        "tablet": "screenshots/tablet/public-contact-error-vi.png",
+        "mobile": "screenshots/mobile/public-contact-error-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Chưa gửi được yêu cầu",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Chưa gửi được yêu cầu",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+          "firstHeading": "Chưa gửi được yêu cầu",
+          "appClass": "public-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "public-not-found-vi",
+      "name": "Not Found VI",
+      "route": "/vi/not-found-demo",
+      "area": "public",
+      "locale": "vi",
+      "template": "feedback",
+      "components": [
+        "PublicShell",
+        "NotFoundState"
+      ],
+      "notes": [
+        "Localized 404 fallback for unknown public routes."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/public-not-found-vi.png",
+        "tablet": "screenshots/tablet/public-not-found-vi.png",
+        "mobile": "screenshots/mobile/public-not-found-vi.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 404,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Không tìm thấy trang",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 404,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Không tìm thấy trang",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 404,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Không tìm thấy trang",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    }
+  ]
+}

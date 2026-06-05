@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-06-02T15:19:52.570Z",
+  "components": [
+    {
+      "name": "AdminShell",
+      "file": "components/showroom/admin-shell.tsx",
+      "role": "Full-bleed admin layout with sticky sidebar/topbar/mobile nav",
+      "states": [
+        "active nav",
+        "sidebar collapsed",
+        "header collapsed",
+        "fixed background"
+      ]
+    },
+    {
+      "name": "AdminDateProvider",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "role": "Shared selected date state for dashboard and utility rail",
+      "states": [
+        "selected date",
+        "today",
+        "synced route target"
+      ]
+    },
+    {
+      "name": "AdminDatePicker",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "role": "Radix popover calendar for chart and utility rail",
+      "states": [
+        "closed",
+        "open",
+        "selected date",
+        "disabled dates",
+        "escape/outside close"
+      ]
+    },
+    {
+      "name": "DashboardInsightChart",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "role": "Metric toggle chart with date controls",
+      "states": [
+        "quotes",
+        "SEO",
+        "drafts",
+        "selected bar/day"
+      ]
+    },
+    {
+      "name": "AdminUtilityRail",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "role": "Sticky contextual rail with calendar, readiness, queue, and selected work link",
+      "states": [
+        "selected day",
+        "today",
+        "active work target"
+      ]
+    },
+    {
+      "name": "PremiumSelect",
+      "file": "components/showroom/premium-select.tsx",
+      "role": "Radix Select wrapper with admin tone",
+      "states": [
+        "closed",
+        "open",
+        "selected item",
+        "focus"
+      ]
+    },
+    {
+      "name": "EditorLocaleTabs",
+      "file": "components/showroom/admin-interactions.tsx",
+      "role": "VI/EN content tabs",
+      "states": [
+        "selected locale",
+        "hover",
+        "focus"
+      ]
+    },
+    {
+      "name": "RichTextEditorMock",
+      "file": "components/showroom/admin-interactions.tsx",
+      "role": "Admin editor toolbar and draft textarea",
+      "states": [
+        "bold active",
+        "italic active",
+        "image inserted",
+        "focus"
+      ]
+    },
+    {
+      "name": "PublishWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "role": "Publish/archive/save flow with confirmation dialog",
+      "states": [
+        "draft",
+        "published",
+        "archived",
+        "dialog open",
+        "feedback"
+      ]
+    },
+    {
+      "name": "AiDraftWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "role": "Draft-only AI content workflow",
+      "states": [
+        "idle",
+        "loading",
+        "result",
+        "accepted",
+        "error"
+      ]
+    },
+    {
+      "name": "MediaUploadPanel",
+      "file": "components/showroom/admin-interactions.tsx",
+      "role": "Upload selection state for media governance prototype",
+      "states": [
+        "idle",
+        "selected"
+      ]
+    },
+    {
+      "name": "AdminSectionPage",
+      "file": "components/showroom/admin-pages.tsx",
+      "role": "Routes admin sections to workspace screens",
+      "states": [
+        "list",
+        "create mode",
+        "editor mode"
+      ]
+    }
+  ]
+}

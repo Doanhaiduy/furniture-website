@@ -1,0 +1,1925 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Full Project Handoff Review Board</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #15172b;
+      --muted: #686d82;
+      --line: #dfe6f1;
+      --paper: #ffffff;
+      --canvas: #f5f7fb;
+      --accent: #8b5cf6;
+      --public: #5d4037;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f7f9fc, #edf3f9);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(16px);
+    }
+    .wrap { width: min(1480px, calc(100vw - 40px)); margin: 0 auto; }
+    .top { display: grid; gap: 8px; padding: 22px 0; }
+    h1 { margin: 0; font-size: clamp(24px, 3vw, 42px); letter-spacing: 0; }
+    .summary { display: flex; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 14px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 5px 10px;
+      font-weight: 700;
+    }
+    main { padding: 28px 0 60px; }
+    section { margin-top: 34px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
+    h2 { margin: 0; font-size: 22px; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+    }
+    .shot-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      box-shadow: 0 16px 42px rgba(21, 23, 43, .06);
+    }
+    .shot-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      object-position: top center;
+      border-bottom: 1px solid var(--line);
+      background: #edf0f7;
+    }
+    .shot-meta { display: grid; gap: 12px; padding: 12px; }
+    .shot-meta h3 { margin: 0; font-size: 15px; }
+    .shot-meta p { margin: 3px 0 7px; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    code {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #3b3f55;
+      background: #f4f6fb;
+      border: 1px solid #e5e9f1;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 12px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tags span {
+      border: 1px solid #e2e7f0;
+      border-radius: 999px;
+      color: #51576e;
+      background: #f8fafc;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .swatch {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+    .swatch span { width: 38px; height: 38px; border-radius: 7px; border: 1px solid rgba(0,0,0,.08); }
+    .swatch strong { display:block; font-size:13px; }
+    .swatch code { margin-top: 4px; }
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 14px 0 0;
+    }
+    .toc a {
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 8px 11px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 24px, 1480px); }
+      .grid { grid-template-columns: 1fr; }
+      .section-head { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap top">
+      <h1>Full Project Handoff Review Board</h1>
+      <div class="summary">
+        <span class="pill">32 route screens</span>
+        <span class="pill">3 breakpoints</span>
+        <span class="pill">23 interaction states</span>
+        <span class="pill">Generated 2026-06-02T16:09:45.965Z</span>
+        <span class="pill">Figma-ready package, no .fig file</span>
+      </div>
+      <nav class="toc">
+        <a href="#tokens">Color Tokens</a>
+        <a href="#desktop-screens">Desktop Screens</a><a href="#tablet-screens">Tablet Screens</a><a href="#mobile-screens">Mobile Screens</a>
+        <a href="#states">Interaction States</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    <section id="tokens">
+      <div class="section-head">
+        <div>
+          <h2>Color Tokens</h2>
+          <p>Primary public/admin palette exported to design-tokens.json.</p>
+        </div>
+      </div>
+      <div class="swatches">
+        <div class="swatch">
+          <span style="background:#442a22"></span>
+          <strong>Public Primary</strong>
+          <code>#442a22</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#f3faff"></span>
+          <strong>Public Surface</strong>
+          <code>#f3faff</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#dbf1fe"></span>
+          <strong>Public Container</strong>
+          <code>#dbf1fe</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#15172b"></span>
+          <strong>Admin Ink</strong>
+          <code>#15172b</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#f7f9fc"></span>
+          <strong>Admin Canvas</strong>
+          <code>#f7f9fc</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#8b5cf6"></span>
+          <strong>Admin Accent</strong>
+          <code>#8b5cf6</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#fff8e6"></span>
+          <strong>Warning</strong>
+          <code>#fff8e6</code>
+        </div>
+      
+        <div class="swatch">
+          <span style="background:#047857"></span>
+          <strong>Success</strong>
+          <code>#047857</code>
+        </div>
+      </div>
+    </section>
+    
+        <section id="desktop-screens">
+          <div class="section-head">
+            <div>
+              <h2>Desktop Screens</h2>
+              <p>1440 x 1000</p>
+            </div>
+          </div>
+          <div class="grid">
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-home-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-home-vi.png" alt="Public Home VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home VI</h3>
+          <p>public / vi</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-home-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-home-en.png" alt="Public Home EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home EN</h3>
+          <p>public / en</p>
+          <code>/en</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-about-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-about-vi.png" alt="About VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>About VI</h3>
+          <p>public / vi</p>
+          <code>/vi/about</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>content</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-products-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-products-vi.png" alt="Products VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-products-filtered-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-products-filtered-vi.png" alt="Products Filtered VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products Filtered VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products?category=wood&amp;material=walnut&amp;room=living</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>listing-filtered</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-products-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-products-en.png" alt="Products EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products EN</h3>
+          <p>public / en</p>
+          <code>/en/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-product-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-product-detail-vi.png" alt="Product Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-product-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-product-detail-en.png" alt="Product Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-blog-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-blog-vi.png" alt="Blog Listing VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-blog-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-blog-en.png" alt="Blog Listing EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing EN</h3>
+          <p>public / en</p>
+          <code>/en/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-blog-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-blog-detail-vi.png" alt="Blog Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-blog-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-blog-detail-en.png" alt="Blog Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-showrooms-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-showrooms-vi.png" alt="Showrooms VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Showrooms VI</h3>
+          <p>public / vi</p>
+          <code>/vi/showrooms</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>showrooms</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-contact-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-contact-vi.png" alt="Contact VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-contact-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-contact-en.png" alt="Contact EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact EN</h3>
+          <p>public / en</p>
+          <code>/en/contact</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-contact-success-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-contact-success-vi.png" alt="Contact Success VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Success VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/success</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-contact-error-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-contact-error-vi.png" alt="Contact Error VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Error VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/error</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/public-not-found-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/public-not-found-vi.png" alt="Not Found VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Not Found VI</h3>
+          <p>public / vi</p>
+          <code>/vi/not-found-demo</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-dashboard.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-dashboard.png" alt="Admin Dashboard" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Dashboard</h3>
+          <p>admin / vi</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-dashboard</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-products.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-products.png" alt="Admin Products" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Products</h3>
+          <p>admin / vi</p>
+          <code>/admin/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-product-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-product-create.png" alt="Admin Product Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Product Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/products?new=1</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-categories.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-categories.png" alt="Admin Categories" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Categories</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-category-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-category-create.png" alt="Admin Category Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Category Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories?new=1</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-blog-editor.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-blog-editor.png" alt="Admin Blog Editor" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Blog Editor</h3>
+          <p>admin / vi</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-showrooms.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-showrooms.png" alt="Admin Showrooms" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Showrooms</h3>
+          <p>admin / vi</p>
+          <code>/admin/showrooms</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-media.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-media.png" alt="Admin Media" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Media</h3>
+          <p>admin / vi</p>
+          <code>/admin/media</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-media</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-quotes.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-quotes.png" alt="Admin Quotes" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Quotes</h3>
+          <p>admin / vi</p>
+          <code>/admin/quotes</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-users.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-users.png" alt="Admin Users" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Users</h3>
+          <p>admin / vi</p>
+          <code>/admin/users</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-settings.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-settings.png" alt="Admin Settings" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Settings</h3>
+          <p>admin / vi</p>
+          <code>/admin/settings</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-settings</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-ai-assistant.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-ai-assistant.png" alt="Admin AI Assistant" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin AI Assistant</h3>
+          <p>admin / vi</p>
+          <code>/admin/ai-assistant</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>admin-ai</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-login.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-login.png" alt="Admin Login" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Login</h3>
+          <p>admin / vi</p>
+          <code>/admin/login</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>auth</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/desktop/admin-access-denied.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/desktop/admin-access-denied.png" alt="Admin Access Denied" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Access Denied</h3>
+          <p>admin / vi</p>
+          <code>/admin/access-denied</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>feedback</span><span>admin</span></div>
+      </div>
+    </article>
+  </div>
+        </section>
+      
+        <section id="tablet-screens">
+          <div class="section-head">
+            <div>
+              <h2>Tablet Screens</h2>
+              <p>834 x 1112</p>
+            </div>
+          </div>
+          <div class="grid">
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-home-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-home-vi.png" alt="Public Home VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home VI</h3>
+          <p>public / vi</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-home-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-home-en.png" alt="Public Home EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home EN</h3>
+          <p>public / en</p>
+          <code>/en</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-about-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-about-vi.png" alt="About VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>About VI</h3>
+          <p>public / vi</p>
+          <code>/vi/about</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>content</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-products-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-products-vi.png" alt="Products VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-products-filtered-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-products-filtered-vi.png" alt="Products Filtered VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products Filtered VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products?category=wood&amp;material=walnut&amp;room=living</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>listing-filtered</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-products-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-products-en.png" alt="Products EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products EN</h3>
+          <p>public / en</p>
+          <code>/en/products</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-product-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-product-detail-vi.png" alt="Product Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-product-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-product-detail-en.png" alt="Product Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-blog-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-blog-vi.png" alt="Blog Listing VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-blog-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-blog-en.png" alt="Blog Listing EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing EN</h3>
+          <p>public / en</p>
+          <code>/en/blog</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-blog-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-blog-detail-vi.png" alt="Blog Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-blog-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-blog-detail-en.png" alt="Blog Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-showrooms-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-showrooms-vi.png" alt="Showrooms VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Showrooms VI</h3>
+          <p>public / vi</p>
+          <code>/vi/showrooms</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>showrooms</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-contact-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-contact-vi.png" alt="Contact VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-contact-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-contact-en.png" alt="Contact EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact EN</h3>
+          <p>public / en</p>
+          <code>/en/contact</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-contact-success-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-contact-success-vi.png" alt="Contact Success VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Success VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/success</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-contact-error-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-contact-error-vi.png" alt="Contact Error VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Error VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/error</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/public-not-found-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/public-not-found-vi.png" alt="Not Found VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Not Found VI</h3>
+          <p>public / vi</p>
+          <code>/vi/not-found-demo</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-dashboard.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-dashboard.png" alt="Admin Dashboard" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Dashboard</h3>
+          <p>admin / vi</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-dashboard</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-products.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-products.png" alt="Admin Products" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Products</h3>
+          <p>admin / vi</p>
+          <code>/admin/products</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-product-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-product-create.png" alt="Admin Product Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Product Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/products?new=1</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-categories.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-categories.png" alt="Admin Categories" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Categories</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-category-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-category-create.png" alt="Admin Category Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Category Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories?new=1</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-blog-editor.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-blog-editor.png" alt="Admin Blog Editor" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Blog Editor</h3>
+          <p>admin / vi</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-showrooms.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-showrooms.png" alt="Admin Showrooms" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Showrooms</h3>
+          <p>admin / vi</p>
+          <code>/admin/showrooms</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-media.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-media.png" alt="Admin Media" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Media</h3>
+          <p>admin / vi</p>
+          <code>/admin/media</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-media</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-quotes.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-quotes.png" alt="Admin Quotes" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Quotes</h3>
+          <p>admin / vi</p>
+          <code>/admin/quotes</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-users.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-users.png" alt="Admin Users" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Users</h3>
+          <p>admin / vi</p>
+          <code>/admin/users</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-settings.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-settings.png" alt="Admin Settings" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Settings</h3>
+          <p>admin / vi</p>
+          <code>/admin/settings</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-settings</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-ai-assistant.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-ai-assistant.png" alt="Admin AI Assistant" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin AI Assistant</h3>
+          <p>admin / vi</p>
+          <code>/admin/ai-assistant</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>admin-ai</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-login.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-login.png" alt="Admin Login" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Login</h3>
+          <p>admin / vi</p>
+          <code>/admin/login</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>auth</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/tablet/admin-access-denied.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/tablet/admin-access-denied.png" alt="Admin Access Denied" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Access Denied</h3>
+          <p>admin / vi</p>
+          <code>/admin/access-denied</code>
+        </div>
+        <div class="tags"><span>tablet</span><span>feedback</span><span>admin</span></div>
+      </div>
+    </article>
+  </div>
+        </section>
+      
+        <section id="mobile-screens">
+          <div class="section-head">
+            <div>
+              <h2>Mobile Screens</h2>
+              <p>390 x 844</p>
+            </div>
+          </div>
+          <div class="grid">
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-home-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-home-vi.png" alt="Public Home VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home VI</h3>
+          <p>public / vi</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-home-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-home-en.png" alt="Public Home EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Home EN</h3>
+          <p>public / en</p>
+          <code>/en</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>home</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-about-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-about-vi.png" alt="About VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>About VI</h3>
+          <p>public / vi</p>
+          <code>/vi/about</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>content</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-products-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-products-vi.png" alt="Products VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-products-filtered-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-products-filtered-vi.png" alt="Products Filtered VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products Filtered VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products?category=wood&amp;material=walnut&amp;room=living</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>listing-filtered</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-products-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-products-en.png" alt="Products EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products EN</h3>
+          <p>public / en</p>
+          <code>/en/products</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>listing</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-product-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-product-detail-vi.png" alt="Product Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-product-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-product-detail-en.png" alt="Product Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>product-detail</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-blog-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-blog-vi.png" alt="Blog Listing VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-blog-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-blog-en.png" alt="Blog Listing EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Listing EN</h3>
+          <p>public / en</p>
+          <code>/en/blog</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>listing-editorial</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-blog-detail-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-blog-detail-vi.png" alt="Blog Detail VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail VI</h3>
+          <p>public / vi</p>
+          <code>/vi/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-blog-detail-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-blog-detail-en.png" alt="Blog Detail EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Blog Detail EN</h3>
+          <p>public / en</p>
+          <code>/en/blog/bi-quyet-chon-go-oc-cho</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>article</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-showrooms-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-showrooms-vi.png" alt="Showrooms VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Showrooms VI</h3>
+          <p>public / vi</p>
+          <code>/vi/showrooms</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>showrooms</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-contact-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-contact-vi.png" alt="Contact VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-contact-en.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-contact-en.png" alt="Contact EN" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact EN</h3>
+          <p>public / en</p>
+          <code>/en/contact</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>contact</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-contact-success-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-contact-success-vi.png" alt="Contact Success VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Success VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/success</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-contact-error-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-contact-error-vi.png" alt="Contact Error VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Error VI</h3>
+          <p>public / vi</p>
+          <code>/vi/contact/error</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/public-not-found-vi.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/public-not-found-vi.png" alt="Not Found VI" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Not Found VI</h3>
+          <p>public / vi</p>
+          <code>/vi/not-found-demo</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>feedback</span><span>public</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-dashboard.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-dashboard.png" alt="Admin Dashboard" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Dashboard</h3>
+          <p>admin / vi</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-dashboard</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-products.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-products.png" alt="Admin Products" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Products</h3>
+          <p>admin / vi</p>
+          <code>/admin/products</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-product-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-product-create.png" alt="Admin Product Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Product Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/products?new=1</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-categories.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-categories.png" alt="Admin Categories" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Categories</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-category-create.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-category-create.png" alt="Admin Category Create" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Category Create</h3>
+          <p>admin / vi</p>
+          <code>/admin/categories?new=1</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-blog-editor.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-blog-editor.png" alt="Admin Blog Editor" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Blog Editor</h3>
+          <p>admin / vi</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-editor</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-showrooms.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-showrooms.png" alt="Admin Showrooms" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Showrooms</h3>
+          <p>admin / vi</p>
+          <code>/admin/showrooms</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-cards</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-media.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-media.png" alt="Admin Media" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Media</h3>
+          <p>admin / vi</p>
+          <code>/admin/media</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-media</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-quotes.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-quotes.png" alt="Admin Quotes" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Quotes</h3>
+          <p>admin / vi</p>
+          <code>/admin/quotes</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-users.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-users.png" alt="Admin Users" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Users</h3>
+          <p>admin / vi</p>
+          <code>/admin/users</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-table</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-settings.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-settings.png" alt="Admin Settings" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Settings</h3>
+          <p>admin / vi</p>
+          <code>/admin/settings</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-settings</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-ai-assistant.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-ai-assistant.png" alt="Admin AI Assistant" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin AI Assistant</h3>
+          <p>admin / vi</p>
+          <code>/admin/ai-assistant</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>admin-ai</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-login.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-login.png" alt="Admin Login" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Login</h3>
+          <p>admin / vi</p>
+          <code>/admin/login</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>auth</span><span>admin</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/mobile/admin-access-denied.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/mobile/admin-access-denied.png" alt="Admin Access Denied" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Access Denied</h3>
+          <p>admin / vi</p>
+          <code>/admin/access-denied</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>feedback</span><span>admin</span></div>
+      </div>
+    </article>
+  </div>
+        </section>
+      
+    <section id="states">
+      <div class="section-head">
+        <div>
+          <h2>Interaction States</h2>
+          <p>Real opened/selected/hover/validation/modal states captured from the running app.</p>
+        </div>
+      </div>
+      <div class="grid">
+    <article class="shot-card">
+      <a href="screenshots/states/public-catalog-brands-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-catalog-brands-open.png" alt="Public Catalog Brands Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Catalog Brands Open</h3>
+          <p>public / open</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>open</span><span>PublicShell</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-catalog-type-hover.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-catalog-type-hover.png" alt="Public Catalog Type Hover" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Catalog Type Hover</h3>
+          <p>public / hover-open</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>hover-open</span><span>PublicShell</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-mobile-menu-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-mobile-menu-open.png" alt="Public Mobile Menu Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Mobile Menu Open</h3>
+          <p>public / open</p>
+          <code>/vi</code>
+        </div>
+        <div class="tags"><span>mobile</span><span>open</span><span>PublicShell</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-product-image-modal-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-product-image-modal-open.png" alt="Product Image Modal Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Image Modal Open</h3>
+          <p>public / modal-open</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>modal-open</span><span>ProductGallery</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-product-selected-thumbnail.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-product-selected-thumbnail.png" alt="Product Selected Thumbnail" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Selected Thumbnail</h3>
+          <p>public / selected</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>selected</span><span>ProductGallery</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-product-tabs-specifications.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-product-tabs-specifications.png" alt="Product Specifications Tab" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Specifications Tab</h3>
+          <p>public / selected-tab</p>
+          <code>/vi/products/sofa-curve-velour</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>selected-tab</span><span>ProductInformationTabs</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-products-filters-expanded.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-products-filters-expanded.png" alt="Products Filters Expanded" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products Filters Expanded</h3>
+          <p>public / expanded</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>expanded</span><span>ProductFilterPanel</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-products-filter-select-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-products-filter-select-open.png" alt="Products Filter Select Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Products Filter Select Open</h3>
+          <p>public / select-open</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>select-open</span><span>ProductFilterPanel</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-contact-service-select-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-contact-service-select-open.png" alt="Contact Service Select Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Service Select Open</h3>
+          <p>public / select-open</p>
+          <code>/vi/contact</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>select-open</span><span>QuoteForm</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-contact-validation-errors.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-contact-validation-errors.png" alt="Contact Validation Errors" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Contact Validation Errors</h3>
+          <p>public / error</p>
+          <code>/vi/contact</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>error</span><span>QuoteForm</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-product-card-hover.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-product-card-hover.png" alt="Product Card Hover" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Product Card Hover</h3>
+          <p>public / hover</p>
+          <code>/vi/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>hover</span><span>ProductCard</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/public-fixed-background-visible.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/public-fixed-background-visible.png" alt="Public Fixed Background Visible" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Public Fixed Background Visible</h3>
+          <p>public / scrolled</p>
+          <code>/vi/about</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>scrolled</span><span>PublicShell</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-calendar-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-calendar-open.png" alt="Admin Calendar Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Calendar Open</h3>
+          <p>admin / calendar-open</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>calendar-open</span><span>AdminDatePicker</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-calendar-selected-date.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-calendar-selected-date.png" alt="Admin Calendar Selected Date" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Calendar Selected Date</h3>
+          <p>admin / selected-date</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>selected-date</span><span>AdminDateProvider</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-products-select-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-products-select-open.png" alt="Admin Products Select Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Products Select Open</h3>
+          <p>admin / select-open</p>
+          <code>/admin/products</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>select-open</span><span>FilterCard</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-notifications-open.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-notifications-open.png" alt="Admin Notifications Open" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Notifications Open</h3>
+          <p>admin / popover-open</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>popover-open</span><span>NotificationButton</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-publish-confirmation-modal.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-publish-confirmation-modal.png" alt="Admin Publish Confirmation Modal" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Publish Confirmation Modal</h3>
+          <p>admin / modal-open</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>modal-open</span><span>PublishWorkflow</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-rich-text-active-controls.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-rich-text-active-controls.png" alt="Admin Rich Text Active Controls" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Rich Text Active Controls</h3>
+          <p>admin / active</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>active</span><span>RichTextEditorMock</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-locale-tab-selected.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-locale-tab-selected.png" alt="Admin Locale Tab Selected" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Locale Tab Selected</h3>
+          <p>admin / selected-tab</p>
+          <code>/admin/blog</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>selected-tab</span><span>EditorLocaleTabs</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-ai-draft-accepted.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-ai-draft-accepted.png" alt="Admin AI Draft Accepted" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin AI Draft Accepted</h3>
+          <p>admin / result-accepted</p>
+          <code>/admin/ai-assistant</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>result-accepted</span><span>AiDraftWorkflow</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-media-selected-file.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-media-selected-file.png" alt="Admin Media Selected File" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Media Selected File</h3>
+          <p>admin / selected</p>
+          <code>/admin/media</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>selected</span><span>MediaUploadPanel</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-fixed-background-visible.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-fixed-background-visible.png" alt="Admin Fixed Background Visible" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Fixed Background Visible</h3>
+          <p>admin / scrolled</p>
+          <code>/admin/settings</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>scrolled</span><span>AdminShell</span></div>
+      </div>
+    </article>
+  
+    <article class="shot-card">
+      <a href="screenshots/states/admin-sidebar-collapsed.png" target="_blank" rel="noreferrer">
+        <img src="screenshots/states/admin-sidebar-collapsed.png" alt="Admin Sidebar Collapsed" loading="lazy">
+      </a>
+      <div class="shot-meta">
+        <div>
+          <h3>Admin Sidebar Collapsed</h3>
+          <p>admin / collapsed</p>
+          <code>/admin</code>
+        </div>
+        <div class="tags"><span>desktop</span><span>collapsed</span><span>AdminShell</span></div>
+      </div>
+    </article>
+  </div>
+    </section>
+  </main>
+</body>
+</html>

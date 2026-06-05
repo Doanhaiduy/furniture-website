@@ -1,0 +1,710 @@
+{
+  "meta": {
+    "name": "Interaction State Map",
+    "generatedAt": "2026-06-02T16:09:45.965Z",
+    "note": "State screenshots were captured after performing the real UI action in the running Next.js app."
+  },
+  "states": [
+    {
+      "id": "public-catalog-brands-open",
+      "name": "Public Catalog Brands Open",
+      "route": "/vi",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "open",
+      "components": [
+        "PublicShell",
+        "CatalogMegaMenu"
+      ],
+      "notes": [
+        "Catalog trigger exposes aria-expanded and renders the brand mega menu."
+      ],
+      "screenshot": "screenshots/states/public-catalog-brands-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-catalog-brands-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+        "firstHeading": "Kiến tạo không gian sống đẳng cấp và bền vững",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 14,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-catalog-type-hover",
+      "name": "Public Catalog Type Hover",
+      "route": "/vi",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "hover-open",
+      "components": [
+        "PublicShell",
+        "CatalogMegaMenu"
+      ],
+      "notes": [
+        "Type catalog opens from hover/focus and shows category columns."
+      ],
+      "screenshot": "screenshots/states/public-catalog-type-hover.png",
+      "figmaScreen": "figma-ready/screens/states/public-catalog-type-hover.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+        "firstHeading": "Nội thất & đồ gỗ",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 15,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-mobile-menu-open",
+      "name": "Public Mobile Menu Open",
+      "route": "/vi",
+      "area": "public",
+      "breakpoint": "mobile",
+      "state": "open",
+      "components": [
+        "PublicShell",
+        "MobileNav"
+      ],
+      "notes": [
+        "Mobile menu expands below the sticky header with nav, catalog, locale, and quote CTA."
+      ],
+      "screenshot": "screenshots/states/public-mobile-menu-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-mobile-menu-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông | Showroom Nội Thất Phương Đông",
+        "firstHeading": "Kiến tạo không gian sống đẳng cấp và bền vững",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 9,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-product-image-modal-open",
+      "name": "Product Image Modal Open",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "modal-open",
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Image dialog opens from a real gallery trigger and is portaled above the page."
+      ],
+      "screenshot": "screenshots/states/public-product-image-modal-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-image-modal-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Sofa Curve Velour",
+        "firstHeading": "Sofa Curve Velour",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 8,
+        "dialogCount": 1,
+        "dialogPreview": [
+          "Sofa Curve VelourChọn ảnh thu nhỏ để thay đổi ảnh chính, hoặc mở ảnh lớn để quan sát chi tiết.Close"
+        ],
+        "openControls": 1,
+        "selectedControls": 2
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-product-selected-thumbnail",
+      "name": "Product Selected Thumbnail",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "selected",
+      "components": [
+        "ProductGallery"
+      ],
+      "notes": [
+        "Thumbnail button aria-pressed and visual selected bar update with active image."
+      ],
+      "screenshot": "screenshots/states/public-product-selected-thumbnail.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-selected-thumbnail.png",
+      "metadata": {
+        "status": 200,
+        "title": "Sofa Curve Velour",
+        "firstHeading": "Sofa Curve Velour",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 7,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 2
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-product-tabs-specifications",
+      "name": "Product Specifications Tab",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "selected-tab",
+      "components": [
+        "ProductInformationTabs",
+        "Tabs"
+      ],
+      "notes": [
+        "Radix tab selected state changes content and tab treatment."
+      ],
+      "screenshot": "screenshots/states/public-product-tabs-specifications.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-tabs-specifications.png",
+      "metadata": {
+        "status": 200,
+        "title": "Sofa Curve Velour",
+        "firstHeading": "Sofa Curve Velour",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 7,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 2
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-products-filters-expanded",
+      "name": "Products Filters Expanded",
+      "route": "/vi/products",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "expanded",
+      "components": [
+        "ProductFilterPanel",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Advanced filter region expands from the filter trigger."
+      ],
+      "screenshot": "screenshots/states/public-products-filters-expanded.png",
+      "figmaScreen": "figma-ready/screens/states/public-products-filters-expanded.png",
+      "metadata": {
+        "status": 200,
+        "title": "Danh mục sản phẩm",
+        "firstHeading": "Đồ gỗ nội thất phòng khách",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 11,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 1,
+        "selectedControls": 1
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-products-filter-select-open",
+      "name": "Products Filter Select Open",
+      "route": "/vi/products",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "select-open",
+      "components": [
+        "ProductFilterPanel",
+        "PremiumSelect",
+        "SelectContent"
+      ],
+      "notes": [
+        "Radix select content renders above the filter panel without clipping."
+      ],
+      "screenshot": "screenshots/states/public-products-filter-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-products-filter-select-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Danh mục sản phẩm",
+        "firstHeading": "Đồ gỗ nội thất phòng khách",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 11,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 1,
+        "selectedControls": 1
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-contact-service-select-open",
+      "name": "Contact Service Select Open",
+      "route": "/vi/contact",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "select-open",
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "SelectContent"
+      ],
+      "notes": [
+        "Service select popover opens in the quote form."
+      ],
+      "screenshot": "screenshots/states/public-contact-service-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-contact-service-select-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Liên hệ và yêu cầu báo giá",
+        "firstHeading": "Liên hệ và yêu cầu báo giá",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 1,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 1,
+        "selectedControls": 1
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-contact-validation-errors",
+      "name": "Contact Validation Errors",
+      "route": "/vi/contact",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "error",
+      "components": [
+        "QuoteForm",
+        "ReactHookForm",
+        "Zod"
+      ],
+      "notes": [
+        "Client validation errors display without submitting invalid lead data."
+      ],
+      "screenshot": "screenshots/states/public-contact-validation-errors.png",
+      "figmaScreen": "figma-ready/screens/states/public-contact-validation-errors.png",
+      "metadata": {
+        "status": 200,
+        "title": "Liên hệ và yêu cầu báo giá",
+        "firstHeading": "Liên hệ và yêu cầu báo giá",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 1,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-product-card-hover",
+      "name": "Product Card Hover",
+      "route": "/vi/products",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "hover",
+      "components": [
+        "ProductCard",
+        "InteractiveCard"
+      ],
+      "notes": [
+        "Card hover uses lift, border, shadow, and image motion treatment."
+      ],
+      "screenshot": "screenshots/states/public-product-card-hover.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-card-hover.png",
+      "metadata": {
+        "status": 200,
+        "title": "Danh mục sản phẩm",
+        "firstHeading": "Đồ gỗ nội thất phòng khách",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 11,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "public-fixed-background-visible",
+      "name": "Public Fixed Background Visible",
+      "route": "/vi/about",
+      "area": "public",
+      "breakpoint": "desktop",
+      "state": "scrolled",
+      "components": [
+        "PublicShell",
+        "FixedBackground"
+      ],
+      "notes": [
+        "Public fixed background layer remains stable behind scrolled content."
+      ],
+      "screenshot": "screenshots/states/public-fixed-background-visible.png",
+      "figmaScreen": "figma-ready/screens/states/public-fixed-background-visible.png",
+      "metadata": {
+        "status": 200,
+        "title": "Hành trình kiến tạo không gian sống đẳng cấp",
+        "firstHeading": "Hành trình kiến tạo không gian sống đẳng cấp",
+        "appClass": "public-app",
+        "horizontalOverflow": false,
+        "loadedImages": 4,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 0
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-calendar-open",
+      "name": "Admin Calendar Open",
+      "route": "/admin",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "calendar-open",
+      "components": [
+        "AdminDatePicker",
+        "Popover",
+        "DashboardInsightChart"
+      ],
+      "notes": [
+        "Calendar trigger opens a real dialog popover with selected date and scheduled cells."
+      ],
+      "screenshot": "screenshots/states/admin-calendar-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-calendar-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Tổng quan",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 1,
+        "dialogPreview": [
+          "CalendarJune 202602 JunMTWTFSS123456789101112131415161718192021222324252627282930Quote leads7SEO readiness84%TodayOpen w"
+        ],
+        "openControls": 1,
+        "selectedControls": 7
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-calendar-selected-date",
+      "name": "Admin Calendar Selected Date",
+      "route": "/admin",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "selected-date",
+      "components": [
+        "AdminDateProvider",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "AdminUtilityRail"
+      ],
+      "notes": [
+        "Selecting 04 Jun updates chart, calendar state, rail metrics, and work link context."
+      ],
+      "screenshot": "screenshots/states/admin-calendar-selected-date.png",
+      "figmaScreen": "figma-ready/screens/states/admin-calendar-selected-date.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Tổng quan",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 4
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-products-select-open",
+      "name": "Admin Products Select Open",
+      "route": "/admin/products",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "select-open",
+      "components": [
+        "FilterCard",
+        "PremiumSelect",
+        "SelectContent"
+      ],
+      "notes": [
+        "Admin select trigger uses visible open state and portal layering."
+      ],
+      "screenshot": "screenshots/states/admin-products-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-products-select-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Sản phẩm",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 5,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 1,
+        "selectedControls": 4
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-notifications-open",
+      "name": "Admin Notifications Open",
+      "route": "/admin",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "popover-open",
+      "components": [
+        "NotificationButton",
+        "Popover"
+      ],
+      "notes": [
+        "Notification popover opens above the sticky header without clipping."
+      ],
+      "screenshot": "screenshots/states/admin-notifications-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-notifications-open.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Tổng quan",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 1,
+        "dialogPreview": [
+          "Notifications3 quote requests need review2 products are missing EN metadata"
+        ],
+        "openControls": 1,
+        "selectedControls": 5
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-publish-confirmation-modal",
+      "name": "Admin Publish Confirmation Modal",
+      "route": "/admin/blog",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "modal-open",
+      "components": [
+        "PublishWorkflow",
+        "DialogState"
+      ],
+      "notes": [
+        "Publish action opens real confirmation modal with backdrop and dialog semantics."
+      ],
+      "screenshot": "screenshots/states/admin-publish-confirmation-modal.png",
+      "figmaScreen": "figma-ready/screens/states/admin-publish-confirmation-modal.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Bài viết",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 1,
+        "dialogPreview": [
+          "Xác nhận xuất bảnNội dung sẽ hiển thị công khai nếu đủ dữ liệu song ngữ và SEO.HủyXác nhận"
+        ],
+        "openControls": 0,
+        "selectedControls": 4
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-rich-text-active-controls",
+      "name": "Admin Rich Text Active Controls",
+      "route": "/admin/blog",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "active",
+      "components": [
+        "RichTextEditorMock"
+      ],
+      "notes": [
+        "Bold, italic, and image buttons expose aria-pressed and active treatment."
+      ],
+      "screenshot": "screenshots/states/admin-rich-text-active-controls.png",
+      "figmaScreen": "figma-ready/screens/states/admin-rich-text-active-controls.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Bài viết",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 6
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-locale-tab-selected",
+      "name": "Admin Locale Tab Selected",
+      "route": "/admin/blog",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "selected-tab",
+      "components": [
+        "EditorLocaleTabs"
+      ],
+      "notes": [
+        "Editor locale tab changes selected visual state and context text."
+      ],
+      "screenshot": "screenshots/states/admin-locale-tab-selected.png",
+      "figmaScreen": "figma-ready/screens/states/admin-locale-tab-selected.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Bài viết",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 4
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-ai-draft-accepted",
+      "name": "Admin AI Draft Accepted",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "result-accepted",
+      "components": [
+        "AiDraftWorkflow"
+      ],
+      "notes": [
+        "AI creates draft-only result; accepted state is explicit and still human-reviewed."
+      ],
+      "screenshot": "screenshots/states/admin-ai-draft-accepted.png",
+      "figmaScreen": "figma-ready/screens/states/admin-ai-draft-accepted.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "AI Assistant",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 3
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-media-selected-file",
+      "name": "Admin Media Selected File",
+      "route": "/admin/media",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "selected",
+      "components": [
+        "MediaUploadPanel"
+      ],
+      "notes": [
+        "Media panel selected-file state updates visible feedback."
+      ],
+      "screenshot": "screenshots/states/admin-media-selected-file.png",
+      "figmaScreen": "figma-ready/screens/states/admin-media-selected-file.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Media",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 3
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-fixed-background-visible",
+      "name": "Admin Fixed Background Visible",
+      "route": "/admin/settings",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "scrolled",
+      "components": [
+        "AdminShell",
+        "FixedBackground"
+      ],
+      "notes": [
+        "Admin fixed background layer stays behind panels and sticky shell while scrolled."
+      ],
+      "screenshot": "screenshots/states/admin-fixed-background-visible.png",
+      "figmaScreen": "figma-ready/screens/states/admin-fixed-background-visible.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Cài đặt",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 3
+      },
+      "warnings": []
+    },
+    {
+      "id": "admin-sidebar-collapsed",
+      "name": "Admin Sidebar Collapsed",
+      "route": "/admin",
+      "area": "admin",
+      "breakpoint": "desktop",
+      "state": "collapsed",
+      "components": [
+        "AdminShell",
+        "SidebarNav"
+      ],
+      "notes": [
+        "Sidebar collapse uses aria-pressed and stable width transition."
+      ],
+      "screenshot": "screenshots/states/admin-sidebar-collapsed.png",
+      "figmaScreen": "figma-ready/screens/states/admin-sidebar-collapsed.png",
+      "metadata": {
+        "status": 200,
+        "title": "Showroom Nội Thất Phương Đông",
+        "firstHeading": "Tổng quan",
+        "appClass": "admin-app",
+        "horizontalOverflow": false,
+        "loadedImages": 0,
+        "dialogCount": 0,
+        "dialogPreview": [],
+        "openControls": 0,
+        "selectedControls": 6
+      },
+      "warnings": []
+    }
+  ]
+}

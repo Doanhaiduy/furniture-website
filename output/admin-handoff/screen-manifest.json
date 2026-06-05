@@ -1,0 +1,107 @@
+[
+  {
+    "id": "dashboard",
+    "title": "Dashboard",
+    "route": "/admin",
+    "state": "default",
+    "file": "dashboard.png"
+  },
+  {
+    "id": "products",
+    "title": "Products",
+    "route": "/admin/products",
+    "state": "default",
+    "file": "products.png"
+  },
+  {
+    "id": "blog-editor",
+    "title": "Blog Editor",
+    "route": "/admin/blog",
+    "state": "default",
+    "file": "blog-editor.png"
+  },
+  {
+    "id": "showrooms",
+    "title": "Showrooms",
+    "route": "/admin/showrooms",
+    "state": "default",
+    "file": "showrooms.png"
+  },
+  {
+    "id": "media",
+    "title": "Media",
+    "route": "/admin/media",
+    "state": "default",
+    "file": "media.png"
+  },
+  {
+    "id": "quotes",
+    "title": "Quotes",
+    "route": "/admin/quotes",
+    "state": "default",
+    "file": "quotes.png"
+  },
+  {
+    "id": "users",
+    "title": "Users",
+    "route": "/admin/users",
+    "state": "default",
+    "file": "users.png"
+  },
+  {
+    "id": "settings",
+    "title": "Settings",
+    "route": "/admin/settings",
+    "state": "default",
+    "file": "settings.png"
+  },
+  {
+    "id": "ai-assistant",
+    "title": "AI Assistant",
+    "route": "/admin/ai-assistant",
+    "state": "default",
+    "file": "ai-assistant.png"
+  },
+  {
+    "id": "calendar-open",
+    "title": "Calendar Open",
+    "route": "/admin",
+    "state": "open calendar",
+    "file": "calendar-open.png"
+  },
+  {
+    "id": "selected-date-state",
+    "title": "Selected Date State",
+    "route": "/admin",
+    "state": "selected date",
+    "file": "selected-date-state.png"
+  },
+  {
+    "id": "products-select-open",
+    "title": "Products Select Open",
+    "route": "/admin/products",
+    "state": "open select",
+    "file": "products-select-open.png"
+  },
+  {
+    "id": "admin-hover-state",
+    "title": "Admin Hover State",
+    "route": "/admin/products",
+    "state": "hover",
+    "file": "admin-hover-state.png"
+  },
+  {
+    "id": "admin-focus-state",
+    "title": "Admin Focus State",
+    "route": "/admin/products",
+    "state": "focus",
+    "file": "admin-focus-state.png"
+  },
+  {
+    "id": "fixed-background-visible-state",
+    "title": "Fixed Background Visible",
+    "route": "/admin/settings",
+    "state": "fixed background visible",
+    "file": "fixed-background-visible-state.png"
+  }
+]

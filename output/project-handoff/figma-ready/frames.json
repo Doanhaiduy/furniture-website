@@ -1,0 +1,4299 @@
+{
+  "meta": {
+    "name": "Project Figma-ready Frames",
+    "generatedAt": "2026-06-02T16:09:45.965Z",
+    "source": "Live Next.js app rendered with Playwright",
+    "trueFigFileCreated": false,
+    "importRecommendation": "Use screenshots as image fills, then rebuild components using tokens and component inventory."
+  },
+  "breakpoints": [
+    {
+      "key": "desktop",
+      "label": "Desktop",
+      "width": 1440,
+      "height": 1000,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "note": "Primary stakeholder review canvas."
+    },
+    {
+      "key": "tablet",
+      "label": "Tablet",
+      "width": 834,
+      "height": 1112,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "note": "Mid-size layout check for navigation, grids, forms, and admin tables."
+    },
+    {
+      "key": "mobile",
+      "label": "Mobile",
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "isMobile": true,
+      "note": "Phone viewport for stacked content, mobile menu, forms, and admin mobile nav."
+    }
+  ],
+  "frames": [
+    {
+      "id": "public-home-vi-desktop",
+      "name": "Desktop / Public Home VI",
+      "route": "/vi",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-home-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-home-vi.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "Hero carousel, sticky header, catalog bar, homepage content bands, footer newsletter."
+      ]
+    },
+    {
+      "id": "public-home-vi-tablet",
+      "name": "Tablet / Public Home VI",
+      "route": "/vi",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-home-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-home-vi.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "Hero carousel, sticky header, catalog bar, homepage content bands, footer newsletter."
+      ]
+    },
+    {
+      "id": "public-home-vi-mobile",
+      "name": "Mobile / Public Home VI",
+      "route": "/vi",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-home-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-home-vi.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "Hero carousel, sticky header, catalog bar, homepage content bands, footer newsletter."
+      ]
+    },
+    {
+      "id": "public-home-en-desktop",
+      "name": "Desktop / Public Home EN",
+      "route": "/en",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-home-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-home-en.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "English locale parity for homepage route and language switch behavior."
+      ]
+    },
+    {
+      "id": "public-home-en-tablet",
+      "name": "Tablet / Public Home EN",
+      "route": "/en",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-home-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-home-en.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "English locale parity for homepage route and language switch behavior."
+      ]
+    },
+    {
+      "id": "public-home-en-mobile",
+      "name": "Mobile / Public Home EN",
+      "route": "/en",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-home-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-home-en.png",
+      "layout": {
+        "template": "home",
+        "sections": [
+          "Sticky public header",
+          "Hero carousel",
+          "Featured product/category bands",
+          "Marketing content",
+          "Footer newsletter"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "HeroShowcase",
+        "ProductCard",
+        "RemoteImage",
+        "Newsletter"
+      ],
+      "notes": [
+        "English locale parity for homepage route and language switch behavior."
+      ]
+    },
+    {
+      "id": "public-about-vi-desktop",
+      "name": "Desktop / About VI",
+      "route": "/vi/about",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-about-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-about-vi.png",
+      "layout": {
+        "template": "content",
+        "sections": [
+          "Sticky public header",
+          "Hero/content intro",
+          "Image-led content bands",
+          "Trust/value cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "RemoteImage",
+        "ValueCard",
+        "Timeline"
+      ],
+      "notes": [
+        "Company story, trust statements, visual background treatment."
+      ]
+    },
+    {
+      "id": "public-about-vi-tablet",
+      "name": "Tablet / About VI",
+      "route": "/vi/about",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-about-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-about-vi.png",
+      "layout": {
+        "template": "content",
+        "sections": [
+          "Sticky public header",
+          "Hero/content intro",
+          "Image-led content bands",
+          "Trust/value cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "RemoteImage",
+        "ValueCard",
+        "Timeline"
+      ],
+      "notes": [
+        "Company story, trust statements, visual background treatment."
+      ]
+    },
+    {
+      "id": "public-about-vi-mobile",
+      "name": "Mobile / About VI",
+      "route": "/vi/about",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-about-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-about-vi.png",
+      "layout": {
+        "template": "content",
+        "sections": [
+          "Sticky public header",
+          "Hero/content intro",
+          "Image-led content bands",
+          "Trust/value cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "RemoteImage",
+        "ValueCard",
+        "Timeline"
+      ],
+      "notes": [
+        "Company story, trust statements, visual background treatment."
+      ]
+    },
+    {
+      "id": "public-products-vi-desktop",
+      "name": "Desktop / Products VI",
+      "route": "/vi/products",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-products-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-products-vi.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Product listing, filters, sort control, cards, pagination."
+      ]
+    },
+    {
+      "id": "public-products-vi-tablet",
+      "name": "Tablet / Products VI",
+      "route": "/vi/products",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-products-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-products-vi.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Product listing, filters, sort control, cards, pagination."
+      ]
+    },
+    {
+      "id": "public-products-vi-mobile",
+      "name": "Mobile / Products VI",
+      "route": "/vi/products",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-products-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-products-vi.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Product listing, filters, sort control, cards, pagination."
+      ]
+    },
+    {
+      "id": "public-products-filtered-vi-desktop",
+      "name": "Desktop / Products Filtered VI",
+      "route": "/vi/products?category=wood&material=walnut&room=living",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-products-filtered-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-products-filtered-vi.png",
+      "layout": {
+        "template": "listing-filtered",
+        "sections": [
+          "Sticky public header",
+          "Applied filters",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Query-driven filtered list state for client review."
+      ]
+    },
+    {
+      "id": "public-products-filtered-vi-tablet",
+      "name": "Tablet / Products Filtered VI",
+      "route": "/vi/products?category=wood&material=walnut&room=living",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-products-filtered-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-products-filtered-vi.png",
+      "layout": {
+        "template": "listing-filtered",
+        "sections": [
+          "Sticky public header",
+          "Applied filters",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Query-driven filtered list state for client review."
+      ]
+    },
+    {
+      "id": "public-products-filtered-vi-mobile",
+      "name": "Mobile / Products Filtered VI",
+      "route": "/vi/products?category=wood&material=walnut&room=living",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-products-filtered-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-products-filtered-vi.png",
+      "layout": {
+        "template": "listing-filtered",
+        "sections": [
+          "Sticky public header",
+          "Applied filters",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Query-driven filtered list state for client review."
+      ]
+    },
+    {
+      "id": "public-products-en-desktop",
+      "name": "Desktop / Products EN",
+      "route": "/en/products",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-products-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-products-en.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "English listing route and filter labels."
+      ]
+    },
+    {
+      "id": "public-products-en-tablet",
+      "name": "Tablet / Products EN",
+      "route": "/en/products",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-products-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-products-en.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "English listing route and filter labels."
+      ]
+    },
+    {
+      "id": "public-products-en-mobile",
+      "name": "Mobile / Products EN",
+      "route": "/en/products",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-products-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-products-en.png",
+      "layout": {
+        "template": "listing",
+        "sections": [
+          "Sticky public header",
+          "Listing hero",
+          "Filter/sort toolbar",
+          "Product grid",
+          "Pagination",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ProductFilterPanel",
+        "ProductSortSelect",
+        "ProductCard",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "English listing route and filter labels."
+      ]
+    },
+    {
+      "id": "public-product-detail-vi-desktop",
+      "name": "Desktop / Product Detail VI",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-product-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-product-detail-vi.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "Gallery, modal trigger, detail tabs, selected thumbnail, quote CTA/form."
+      ]
+    },
+    {
+      "id": "public-product-detail-vi-tablet",
+      "name": "Tablet / Product Detail VI",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-product-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-product-detail-vi.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "Gallery, modal trigger, detail tabs, selected thumbnail, quote CTA/form."
+      ]
+    },
+    {
+      "id": "public-product-detail-vi-mobile",
+      "name": "Mobile / Product Detail VI",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-product-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-product-detail-vi.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "Gallery, modal trigger, detail tabs, selected thumbnail, quote CTA/form."
+      ]
+    },
+    {
+      "id": "public-product-detail-en-desktop",
+      "name": "Desktop / Product Detail EN",
+      "route": "/en/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-product-detail-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-product-detail-en.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "English product detail parity."
+      ]
+    },
+    {
+      "id": "public-product-detail-en-tablet",
+      "name": "Tablet / Product Detail EN",
+      "route": "/en/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-product-detail-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-product-detail-en.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "English product detail parity."
+      ]
+    },
+    {
+      "id": "public-product-detail-en-mobile",
+      "name": "Mobile / Product Detail EN",
+      "route": "/en/products/sofa-curve-velour",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-product-detail-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-product-detail-en.png",
+      "layout": {
+        "template": "product-detail",
+        "sections": [
+          "Sticky public header",
+          "Gallery",
+          "Product summary",
+          "Tabs",
+          "Quote form/CTA",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "Tabs",
+        "SaveSelectionButton",
+        "QuoteForm"
+      ],
+      "notes": [
+        "English product detail parity."
+      ]
+    },
+    {
+      "id": "public-blog-vi-desktop",
+      "name": "Desktop / Blog Listing VI",
+      "route": "/vi/blog",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-blog-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-blog-vi.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Blog index with editorial cards and localized metadata."
+      ]
+    },
+    {
+      "id": "public-blog-vi-tablet",
+      "name": "Tablet / Blog Listing VI",
+      "route": "/vi/blog",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-blog-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-blog-vi.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Blog index with editorial cards and localized metadata."
+      ]
+    },
+    {
+      "id": "public-blog-vi-mobile",
+      "name": "Mobile / Blog Listing VI",
+      "route": "/vi/blog",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-blog-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-blog-vi.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Blog index with editorial cards and localized metadata."
+      ]
+    },
+    {
+      "id": "public-blog-en-desktop",
+      "name": "Desktop / Blog Listing EN",
+      "route": "/en/blog",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-blog-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-blog-en.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English blog listing route."
+      ]
+    },
+    {
+      "id": "public-blog-en-tablet",
+      "name": "Tablet / Blog Listing EN",
+      "route": "/en/blog",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-blog-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-blog-en.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English blog listing route."
+      ]
+    },
+    {
+      "id": "public-blog-en-mobile",
+      "name": "Mobile / Blog Listing EN",
+      "route": "/en/blog",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-blog-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-blog-en.png",
+      "layout": {
+        "template": "listing-editorial",
+        "sections": [
+          "Sticky public header",
+          "Editorial listing header",
+          "Article cards",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ArticleCard",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English blog listing route."
+      ]
+    },
+    {
+      "id": "public-blog-detail-vi-desktop",
+      "name": "Desktop / Blog Detail VI",
+      "route": "/vi/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-blog-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-blog-detail-vi.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Long-form article, table of contents, share controls, related content."
+      ]
+    },
+    {
+      "id": "public-blog-detail-vi-tablet",
+      "name": "Tablet / Blog Detail VI",
+      "route": "/vi/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-blog-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-blog-detail-vi.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Long-form article, table of contents, share controls, related content."
+      ]
+    },
+    {
+      "id": "public-blog-detail-vi-mobile",
+      "name": "Mobile / Blog Detail VI",
+      "route": "/vi/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-blog-detail-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-blog-detail-vi.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "Long-form article, table of contents, share controls, related content."
+      ]
+    },
+    {
+      "id": "public-blog-detail-en-desktop",
+      "name": "Desktop / Blog Detail EN",
+      "route": "/en/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-blog-detail-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-blog-detail-en.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English article detail route."
+      ]
+    },
+    {
+      "id": "public-blog-detail-en-tablet",
+      "name": "Tablet / Blog Detail EN",
+      "route": "/en/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-blog-detail-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-blog-detail-en.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English article detail route."
+      ]
+    },
+    {
+      "id": "public-blog-detail-en-mobile",
+      "name": "Mobile / Blog Detail EN",
+      "route": "/en/blog/bi-quyet-chon-go-oc-cho",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-blog-detail-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-blog-detail-en.png",
+      "layout": {
+        "template": "article",
+        "sections": [
+          "Sticky public header",
+          "Article hero",
+          "Table of contents",
+          "Article body",
+          "Share/related content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "ArticleToc",
+        "SocialShare",
+        "RemoteImage"
+      ],
+      "notes": [
+        "English article detail route."
+      ]
+    },
+    {
+      "id": "public-showrooms-vi-desktop",
+      "name": "Desktop / Showrooms VI",
+      "route": "/vi/showrooms",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-showrooms-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-showrooms-vi.png",
+      "layout": {
+        "template": "showrooms",
+        "sections": [
+          "Sticky public header",
+          "Showroom intro",
+          "Showroom cards",
+          "Map/contact content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ShowroomCard",
+        "RemoteImage",
+        "GoogleMapEmbed"
+      ],
+      "notes": [
+        "Showroom cards, address/hotline content, map embed area."
+      ]
+    },
+    {
+      "id": "public-showrooms-vi-tablet",
+      "name": "Tablet / Showrooms VI",
+      "route": "/vi/showrooms",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-showrooms-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-showrooms-vi.png",
+      "layout": {
+        "template": "showrooms",
+        "sections": [
+          "Sticky public header",
+          "Showroom intro",
+          "Showroom cards",
+          "Map/contact content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ShowroomCard",
+        "RemoteImage",
+        "GoogleMapEmbed"
+      ],
+      "notes": [
+        "Showroom cards, address/hotline content, map embed area."
+      ]
+    },
+    {
+      "id": "public-showrooms-vi-mobile",
+      "name": "Mobile / Showrooms VI",
+      "route": "/vi/showrooms",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-showrooms-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-showrooms-vi.png",
+      "layout": {
+        "template": "showrooms",
+        "sections": [
+          "Sticky public header",
+          "Showroom intro",
+          "Showroom cards",
+          "Map/contact content",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "ShowroomCard",
+        "RemoteImage",
+        "GoogleMapEmbed"
+      ],
+      "notes": [
+        "Showroom cards, address/hotline content, map embed area."
+      ]
+    },
+    {
+      "id": "public-contact-vi-desktop",
+      "name": "Desktop / Contact VI",
+      "route": "/vi/contact",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-contact-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-contact-vi.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "Lead capture form, service select, validation, response-time note."
+      ]
+    },
+    {
+      "id": "public-contact-vi-tablet",
+      "name": "Tablet / Contact VI",
+      "route": "/vi/contact",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-contact-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-contact-vi.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "Lead capture form, service select, validation, response-time note."
+      ]
+    },
+    {
+      "id": "public-contact-vi-mobile",
+      "name": "Mobile / Contact VI",
+      "route": "/vi/contact",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-contact-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-contact-vi.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "Lead capture form, service select, validation, response-time note."
+      ]
+    },
+    {
+      "id": "public-contact-en-desktop",
+      "name": "Desktop / Contact EN",
+      "route": "/en/contact",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-contact-en.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-contact-en.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "English contact and quote route."
+      ]
+    },
+    {
+      "id": "public-contact-en-tablet",
+      "name": "Tablet / Contact EN",
+      "route": "/en/contact",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-contact-en.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-contact-en.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "English contact and quote route."
+      ]
+    },
+    {
+      "id": "public-contact-en-mobile",
+      "name": "Mobile / Contact EN",
+      "route": "/en/contact",
+      "area": "public",
+      "locale": "en",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-contact-en.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-contact-en.png",
+      "layout": {
+        "template": "contact",
+        "sections": [
+          "Sticky public header",
+          "Contact intro",
+          "Quote form",
+          "Contact/support panels",
+          "Footer"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "PublicShell"
+      ],
+      "notes": [
+        "English contact and quote route."
+      ]
+    },
+    {
+      "id": "public-contact-success-vi-desktop",
+      "name": "Desktop / Contact Success VI",
+      "route": "/vi/contact/success",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-contact-success-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-contact-success-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Successful quote submission confirmation state."
+      ]
+    },
+    {
+      "id": "public-contact-success-vi-tablet",
+      "name": "Tablet / Contact Success VI",
+      "route": "/vi/contact/success",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-contact-success-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-contact-success-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Successful quote submission confirmation state."
+      ]
+    },
+    {
+      "id": "public-contact-success-vi-mobile",
+      "name": "Mobile / Contact Success VI",
+      "route": "/vi/contact/success",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-contact-success-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-contact-success-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Successful quote submission confirmation state."
+      ]
+    },
+    {
+      "id": "public-contact-error-vi-desktop",
+      "name": "Desktop / Contact Error VI",
+      "route": "/vi/contact/error",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-contact-error-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-contact-error-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Server-side quote submission error route."
+      ]
+    },
+    {
+      "id": "public-contact-error-vi-tablet",
+      "name": "Tablet / Contact Error VI",
+      "route": "/vi/contact/error",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-contact-error-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-contact-error-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Server-side quote submission error route."
+      ]
+    },
+    {
+      "id": "public-contact-error-vi-mobile",
+      "name": "Mobile / Contact Error VI",
+      "route": "/vi/contact/error",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-contact-error-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-contact-error-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Server-side quote submission error route."
+      ]
+    },
+    {
+      "id": "public-not-found-vi-desktop",
+      "name": "Desktop / Not Found VI",
+      "route": "/vi/not-found-demo",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/public-not-found-vi.png",
+      "figmaScreen": "figma-ready/screens/desktop/public-not-found-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "NotFoundState"
+      ],
+      "notes": [
+        "Localized 404 fallback for unknown public routes."
+      ]
+    },
+    {
+      "id": "public-not-found-vi-tablet",
+      "name": "Tablet / Not Found VI",
+      "route": "/vi/not-found-demo",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/public-not-found-vi.png",
+      "figmaScreen": "figma-ready/screens/tablet/public-not-found-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "NotFoundState"
+      ],
+      "notes": [
+        "Localized 404 fallback for unknown public routes."
+      ]
+    },
+    {
+      "id": "public-not-found-vi-mobile",
+      "name": "Mobile / Not Found VI",
+      "route": "/vi/not-found-demo",
+      "area": "public",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/public-not-found-vi.png",
+      "figmaScreen": "figma-ready/screens/mobile/public-not-found-vi.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "container-pd max 1280px",
+        "spacingToken": "spacing.density.publicSectionY"
+      },
+      "typography": "typography.body + typography.heading",
+      "colorTokens": [
+        "color.public",
+        "color.status"
+      ],
+      "components": [
+        "PublicShell",
+        "NotFoundState"
+      ],
+      "notes": [
+        "Localized 404 fallback for unknown public routes."
+      ]
+    },
+    {
+      "id": "admin-dashboard-desktop",
+      "name": "Desktop / Admin Dashboard",
+      "route": "/admin",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-dashboard.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-dashboard.png",
+      "layout": {
+        "template": "admin-dashboard",
+        "sections": [
+          "Admin shell",
+          "KPI cards",
+          "Dashboard chart",
+          "Warnings/actions",
+          "Quote table",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "QuoteTable",
+        "WarningPanel"
+      ],
+      "notes": [
+        "KPI cards, shared date selection, utility rail, fixed admin background."
+      ]
+    },
+    {
+      "id": "admin-dashboard-tablet",
+      "name": "Tablet / Admin Dashboard",
+      "route": "/admin",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-dashboard.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-dashboard.png",
+      "layout": {
+        "template": "admin-dashboard",
+        "sections": [
+          "Admin shell",
+          "KPI cards",
+          "Dashboard chart",
+          "Warnings/actions",
+          "Quote table",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "QuoteTable",
+        "WarningPanel"
+      ],
+      "notes": [
+        "KPI cards, shared date selection, utility rail, fixed admin background."
+      ]
+    },
+    {
+      "id": "admin-dashboard-mobile",
+      "name": "Mobile / Admin Dashboard",
+      "route": "/admin",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-dashboard.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-dashboard.png",
+      "layout": {
+        "template": "admin-dashboard",
+        "sections": [
+          "Admin shell",
+          "KPI cards",
+          "Dashboard chart",
+          "Warnings/actions",
+          "Quote table",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "QuoteTable",
+        "WarningPanel"
+      ],
+      "notes": [
+        "KPI cards, shared date selection, utility rail, fixed admin background."
+      ]
+    },
+    {
+      "id": "admin-products-desktop",
+      "name": "Desktop / Admin Products",
+      "route": "/admin/products",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-products.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-products.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "FilterCard",
+        "PremiumSelect",
+        "StatusPill",
+        "ProductTable"
+      ],
+      "notes": [
+        "Admin filters, table rows, status pills, active selected nav state."
+      ]
+    },
+    {
+      "id": "admin-products-tablet",
+      "name": "Tablet / Admin Products",
+      "route": "/admin/products",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-products.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-products.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "FilterCard",
+        "PremiumSelect",
+        "StatusPill",
+        "ProductTable"
+      ],
+      "notes": [
+        "Admin filters, table rows, status pills, active selected nav state."
+      ]
+    },
+    {
+      "id": "admin-products-mobile",
+      "name": "Mobile / Admin Products",
+      "route": "/admin/products",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-products.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-products.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "FilterCard",
+        "PremiumSelect",
+        "StatusPill",
+        "ProductTable"
+      ],
+      "notes": [
+        "Admin filters, table rows, status pills, active selected nav state."
+      ]
+    },
+    {
+      "id": "admin-product-create-desktop",
+      "name": "Desktop / Admin Product Create",
+      "route": "/admin/products?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-product-create.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-product-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Product editor state with unsaved changes, AI draft, publish workflow."
+      ]
+    },
+    {
+      "id": "admin-product-create-tablet",
+      "name": "Tablet / Admin Product Create",
+      "route": "/admin/products?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-product-create.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-product-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Product editor state with unsaved changes, AI draft, publish workflow."
+      ]
+    },
+    {
+      "id": "admin-product-create-mobile",
+      "name": "Mobile / Admin Product Create",
+      "route": "/admin/products?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-product-create.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-product-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Product editor state with unsaved changes, AI draft, publish workflow."
+      ]
+    },
+    {
+      "id": "admin-categories-desktop",
+      "name": "Desktop / Admin Categories",
+      "route": "/admin/categories",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-categories.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-categories.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category cards and publish controls."
+      ]
+    },
+    {
+      "id": "admin-categories-tablet",
+      "name": "Tablet / Admin Categories",
+      "route": "/admin/categories",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-categories.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-categories.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category cards and publish controls."
+      ]
+    },
+    {
+      "id": "admin-categories-mobile",
+      "name": "Mobile / Admin Categories",
+      "route": "/admin/categories",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-categories.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-categories.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category cards and publish controls."
+      ]
+    },
+    {
+      "id": "admin-category-create-desktop",
+      "name": "Desktop / Admin Category Create",
+      "route": "/admin/categories?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-category-create.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-category-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "PremiumSelect",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category create/edit fields, parent category select, warnings."
+      ]
+    },
+    {
+      "id": "admin-category-create-tablet",
+      "name": "Tablet / Admin Category Create",
+      "route": "/admin/categories?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-category-create.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-category-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "PremiumSelect",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category create/edit fields, parent category select, warnings."
+      ]
+    },
+    {
+      "id": "admin-category-create-mobile",
+      "name": "Mobile / Admin Category Create",
+      "route": "/admin/categories?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-category-create.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-category-create.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "PremiumSelect",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category create/edit fields, parent category select, warnings."
+      ]
+    },
+    {
+      "id": "admin-blog-editor-desktop",
+      "name": "Desktop / Admin Blog Editor",
+      "route": "/admin/blog",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-blog-editor.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-blog-editor.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Bilingual editor, slug conflict, AI draft, publish modal trigger."
+      ]
+    },
+    {
+      "id": "admin-blog-editor-tablet",
+      "name": "Tablet / Admin Blog Editor",
+      "route": "/admin/blog",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-blog-editor.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-blog-editor.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Bilingual editor, slug conflict, AI draft, publish modal trigger."
+      ]
+    },
+    {
+      "id": "admin-blog-editor-mobile",
+      "name": "Mobile / Admin Blog Editor",
+      "route": "/admin/blog",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-blog-editor.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-blog-editor.png",
+      "layout": {
+        "template": "admin-editor",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Unsaved changes",
+          "Editor form",
+          "AI/publish side panels",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Bilingual editor, slug conflict, AI draft, publish modal trigger."
+      ]
+    },
+    {
+      "id": "admin-showrooms-desktop",
+      "name": "Desktop / Admin Showrooms",
+      "route": "/admin/showrooms",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-showrooms.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-showrooms.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "ShowroomCard",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Showroom cards with image lift and publish controls."
+      ]
+    },
+    {
+      "id": "admin-showrooms-tablet",
+      "name": "Tablet / Admin Showrooms",
+      "route": "/admin/showrooms",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-showrooms.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-showrooms.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "ShowroomCard",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Showroom cards with image lift and publish controls."
+      ]
+    },
+    {
+      "id": "admin-showrooms-mobile",
+      "name": "Mobile / Admin Showrooms",
+      "route": "/admin/showrooms",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-showrooms.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-showrooms.png",
+      "layout": {
+        "template": "admin-cards",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Card grid",
+          "Publish controls",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "ShowroomCard",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Showroom cards with image lift and publish controls."
+      ]
+    },
+    {
+      "id": "admin-media-desktop",
+      "name": "Desktop / Admin Media",
+      "route": "/admin/media",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-media.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-media.png",
+      "layout": {
+        "template": "admin-media",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Upload panel",
+          "Error/validation panel",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "MediaUploadPanel",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Media upload panel, error state, owner/context governance note."
+      ]
+    },
+    {
+      "id": "admin-media-tablet",
+      "name": "Tablet / Admin Media",
+      "route": "/admin/media",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-media.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-media.png",
+      "layout": {
+        "template": "admin-media",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Upload panel",
+          "Error/validation panel",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "MediaUploadPanel",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Media upload panel, error state, owner/context governance note."
+      ]
+    },
+    {
+      "id": "admin-media-mobile",
+      "name": "Mobile / Admin Media",
+      "route": "/admin/media",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-media.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-media.png",
+      "layout": {
+        "template": "admin-media",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Upload panel",
+          "Error/validation panel",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "MediaUploadPanel",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Media upload panel, error state, owner/context governance note."
+      ]
+    },
+    {
+      "id": "admin-quotes-desktop",
+      "name": "Desktop / Admin Quotes",
+      "route": "/admin/quotes",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-quotes.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-quotes.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "QuoteTable",
+        "QuoteStatusUpdater",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Admin-only quote table and status updater."
+      ]
+    },
+    {
+      "id": "admin-quotes-tablet",
+      "name": "Tablet / Admin Quotes",
+      "route": "/admin/quotes",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-quotes.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-quotes.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "QuoteTable",
+        "QuoteStatusUpdater",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Admin-only quote table and status updater."
+      ]
+    },
+    {
+      "id": "admin-quotes-mobile",
+      "name": "Mobile / Admin Quotes",
+      "route": "/admin/quotes",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-quotes.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-quotes.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "QuoteTable",
+        "QuoteStatusUpdater",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Admin-only quote table and status updater."
+      ]
+    },
+    {
+      "id": "admin-users-desktop",
+      "name": "Desktop / Admin Users",
+      "route": "/admin/users",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-users.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-users.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "RoleList"
+      ],
+      "notes": [
+        "Admin-only user list and role model display."
+      ]
+    },
+    {
+      "id": "admin-users-tablet",
+      "name": "Tablet / Admin Users",
+      "route": "/admin/users",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-users.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-users.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "RoleList"
+      ],
+      "notes": [
+        "Admin-only user list and role model display."
+      ]
+    },
+    {
+      "id": "admin-users-mobile",
+      "name": "Mobile / Admin Users",
+      "route": "/admin/users",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-users.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-users.png",
+      "layout": {
+        "template": "admin-table",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Filters/status updater",
+          "Table/list",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "RoleList"
+      ],
+      "notes": [
+        "Admin-only user list and role model display."
+      ]
+    },
+    {
+      "id": "admin-settings-desktop",
+      "name": "Desktop / Admin Settings",
+      "route": "/admin/settings",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-settings.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-settings.png",
+      "layout": {
+        "template": "admin-settings",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Settings card grid",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "SettingsCard",
+        "WarningPanel"
+      ],
+      "notes": [
+        "Brand, SEO, social, integration settings cards."
+      ]
+    },
+    {
+      "id": "admin-settings-tablet",
+      "name": "Tablet / Admin Settings",
+      "route": "/admin/settings",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-settings.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-settings.png",
+      "layout": {
+        "template": "admin-settings",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Settings card grid",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "SettingsCard",
+        "WarningPanel"
+      ],
+      "notes": [
+        "Brand, SEO, social, integration settings cards."
+      ]
+    },
+    {
+      "id": "admin-settings-mobile",
+      "name": "Mobile / Admin Settings",
+      "route": "/admin/settings",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-settings.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-settings.png",
+      "layout": {
+        "template": "admin-settings",
+        "sections": [
+          "Admin shell",
+          "Page header",
+          "Settings card grid",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "SettingsCard",
+        "WarningPanel"
+      ],
+      "notes": [
+        "Brand, SEO, social, integration settings cards."
+      ]
+    },
+    {
+      "id": "admin-ai-assistant-desktop",
+      "name": "Desktop / Admin AI Assistant",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-ai-assistant.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-ai-assistant.png",
+      "layout": {
+        "template": "admin-ai",
+        "sections": [
+          "Admin shell",
+          "AI assistant workspace",
+          "Human review queue",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AiDraftWorkflow",
+        "AdminUtilityRail"
+      ],
+      "notes": [
+        "Draft-only AI workflow with human review queue."
+      ]
+    },
+    {
+      "id": "admin-ai-assistant-tablet",
+      "name": "Tablet / Admin AI Assistant",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-ai-assistant.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-ai-assistant.png",
+      "layout": {
+        "template": "admin-ai",
+        "sections": [
+          "Admin shell",
+          "AI assistant workspace",
+          "Human review queue",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AiDraftWorkflow",
+        "AdminUtilityRail"
+      ],
+      "notes": [
+        "Draft-only AI workflow with human review queue."
+      ]
+    },
+    {
+      "id": "admin-ai-assistant-mobile",
+      "name": "Mobile / Admin AI Assistant",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-ai-assistant.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-ai-assistant.png",
+      "layout": {
+        "template": "admin-ai",
+        "sections": [
+          "Admin shell",
+          "AI assistant workspace",
+          "Human review queue",
+          "Utility rail"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminShell",
+        "AiDraftWorkflow",
+        "AdminUtilityRail"
+      ],
+      "notes": [
+        "Draft-only AI workflow with human review queue."
+      ]
+    },
+    {
+      "id": "admin-login-desktop",
+      "name": "Desktop / Admin Login",
+      "route": "/admin/login",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-login.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-login.png",
+      "layout": {
+        "template": "auth",
+        "sections": [
+          "Auth hero",
+          "Login panel",
+          "Demo route CTA"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminLoginPage",
+        "RemoteImage",
+        "LoginForm"
+      ],
+      "notes": [
+        "Demo admin login route."
+      ]
+    },
+    {
+      "id": "admin-login-tablet",
+      "name": "Tablet / Admin Login",
+      "route": "/admin/login",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-login.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-login.png",
+      "layout": {
+        "template": "auth",
+        "sections": [
+          "Auth hero",
+          "Login panel",
+          "Demo route CTA"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminLoginPage",
+        "RemoteImage",
+        "LoginForm"
+      ],
+      "notes": [
+        "Demo admin login route."
+      ]
+    },
+    {
+      "id": "admin-login-mobile",
+      "name": "Mobile / Admin Login",
+      "route": "/admin/login",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-login.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-login.png",
+      "layout": {
+        "template": "auth",
+        "sections": [
+          "Auth hero",
+          "Login panel",
+          "Demo route CTA"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AdminLoginPage",
+        "RemoteImage",
+        "LoginForm"
+      ],
+      "notes": [
+        "Demo admin login route."
+      ]
+    },
+    {
+      "id": "admin-access-denied-desktop",
+      "name": "Desktop / Admin Access Denied",
+      "route": "/admin/access-denied",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/desktop/admin-access-denied.png",
+      "figmaScreen": "figma-ready/screens/desktop/admin-access-denied.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AccessDeniedPage",
+        "AdminShell"
+      ],
+      "notes": [
+        "Role Model Option A restricted-access state."
+      ]
+    },
+    {
+      "id": "admin-access-denied-tablet",
+      "name": "Tablet / Admin Access Denied",
+      "route": "/admin/access-denied",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "tablet",
+      "width": 834,
+      "height": 1112,
+      "screenshot": "screenshots/tablet/admin-access-denied.png",
+      "figmaScreen": "figma-ready/screens/tablet/admin-access-denied.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AccessDeniedPage",
+        "AdminShell"
+      ],
+      "notes": [
+        "Role Model Option A restricted-access state."
+      ]
+    },
+    {
+      "id": "admin-access-denied-mobile",
+      "name": "Mobile / Admin Access Denied",
+      "route": "/admin/access-denied",
+      "area": "admin",
+      "locale": "vi",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/mobile/admin-access-denied.png",
+      "figmaScreen": "figma-ready/screens/mobile/admin-access-denied.png",
+      "layout": {
+        "template": "feedback",
+        "sections": [
+          "Shell/header if applicable",
+          "Feedback state",
+          "Primary return action"
+        ],
+        "container": "admin content area",
+        "spacingToken": "spacing.density.adminPanelGap"
+      },
+      "typography": "typography.body.adminSize + typography.heading",
+      "colorTokens": [
+        "color.admin",
+        "color.status"
+      ],
+      "components": [
+        "AccessDeniedPage",
+        "AdminShell"
+      ],
+      "notes": [
+        "Role Model Option A restricted-access state."
+      ]
+    },
+    {
+      "id": "public-catalog-brands-open",
+      "name": "State / Public Catalog Brands Open",
+      "route": "/vi",
+      "area": "public",
+      "state": "open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-catalog-brands-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-catalog-brands-open.png",
+      "interactionNotes": [
+        "Catalog trigger exposes aria-expanded and renders the brand mega menu."
+      ],
+      "components": [
+        "PublicShell",
+        "CatalogMegaMenu"
+      ]
+    },
+    {
+      "id": "public-catalog-type-hover",
+      "name": "State / Public Catalog Type Hover",
+      "route": "/vi",
+      "area": "public",
+      "state": "hover-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-catalog-type-hover.png",
+      "figmaScreen": "figma-ready/screens/states/public-catalog-type-hover.png",
+      "interactionNotes": [
+        "Type catalog opens from hover/focus and shows category columns."
+      ],
+      "components": [
+        "PublicShell",
+        "CatalogMegaMenu"
+      ]
+    },
+    {
+      "id": "public-mobile-menu-open",
+      "name": "State / Public Mobile Menu Open",
+      "route": "/vi",
+      "area": "public",
+      "state": "open",
+      "breakpoint": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": "screenshots/states/public-mobile-menu-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-mobile-menu-open.png",
+      "interactionNotes": [
+        "Mobile menu expands below the sticky header with nav, catalog, locale, and quote CTA."
+      ],
+      "components": [
+        "PublicShell",
+        "MobileNav"
+      ]
+    },
+    {
+      "id": "public-product-image-modal-open",
+      "name": "State / Product Image Modal Open",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "state": "modal-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-product-image-modal-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-image-modal-open.png",
+      "interactionNotes": [
+        "Image dialog opens from a real gallery trigger and is portaled above the page."
+      ],
+      "components": [
+        "ProductGallery",
+        "Dialog",
+        "RemoteImage"
+      ]
+    },
+    {
+      "id": "public-product-selected-thumbnail",
+      "name": "State / Product Selected Thumbnail",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "state": "selected",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-product-selected-thumbnail.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-selected-thumbnail.png",
+      "interactionNotes": [
+        "Thumbnail button aria-pressed and visual selected bar update with active image."
+      ],
+      "components": [
+        "ProductGallery"
+      ]
+    },
+    {
+      "id": "public-product-tabs-specifications",
+      "name": "State / Product Specifications Tab",
+      "route": "/vi/products/sofa-curve-velour",
+      "area": "public",
+      "state": "selected-tab",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-product-tabs-specifications.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-tabs-specifications.png",
+      "interactionNotes": [
+        "Radix tab selected state changes content and tab treatment."
+      ],
+      "components": [
+        "ProductInformationTabs",
+        "Tabs"
+      ]
+    },
+    {
+      "id": "public-products-filters-expanded",
+      "name": "State / Products Filters Expanded",
+      "route": "/vi/products",
+      "area": "public",
+      "state": "expanded",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-products-filters-expanded.png",
+      "figmaScreen": "figma-ready/screens/states/public-products-filters-expanded.png",
+      "interactionNotes": [
+        "Advanced filter region expands from the filter trigger."
+      ],
+      "components": [
+        "ProductFilterPanel",
+        "PremiumSelect"
+      ]
+    },
+    {
+      "id": "public-products-filter-select-open",
+      "name": "State / Products Filter Select Open",
+      "route": "/vi/products",
+      "area": "public",
+      "state": "select-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-products-filter-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-products-filter-select-open.png",
+      "interactionNotes": [
+        "Radix select content renders above the filter panel without clipping."
+      ],
+      "components": [
+        "ProductFilterPanel",
+        "PremiumSelect",
+        "SelectContent"
+      ]
+    },
+    {
+      "id": "public-contact-service-select-open",
+      "name": "State / Contact Service Select Open",
+      "route": "/vi/contact",
+      "area": "public",
+      "state": "select-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-contact-service-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/public-contact-service-select-open.png",
+      "interactionNotes": [
+        "Service select popover opens in the quote form."
+      ],
+      "components": [
+        "QuoteForm",
+        "PremiumSelect",
+        "SelectContent"
+      ]
+    },
+    {
+      "id": "public-contact-validation-errors",
+      "name": "State / Contact Validation Errors",
+      "route": "/vi/contact",
+      "area": "public",
+      "state": "error",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-contact-validation-errors.png",
+      "figmaScreen": "figma-ready/screens/states/public-contact-validation-errors.png",
+      "interactionNotes": [
+        "Client validation errors display without submitting invalid lead data."
+      ],
+      "components": [
+        "QuoteForm",
+        "ReactHookForm",
+        "Zod"
+      ]
+    },
+    {
+      "id": "public-product-card-hover",
+      "name": "State / Product Card Hover",
+      "route": "/vi/products",
+      "area": "public",
+      "state": "hover",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-product-card-hover.png",
+      "figmaScreen": "figma-ready/screens/states/public-product-card-hover.png",
+      "interactionNotes": [
+        "Card hover uses lift, border, shadow, and image motion treatment."
+      ],
+      "components": [
+        "ProductCard",
+        "InteractiveCard"
+      ]
+    },
+    {
+      "id": "public-fixed-background-visible",
+      "name": "State / Public Fixed Background Visible",
+      "route": "/vi/about",
+      "area": "public",
+      "state": "scrolled",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/public-fixed-background-visible.png",
+      "figmaScreen": "figma-ready/screens/states/public-fixed-background-visible.png",
+      "interactionNotes": [
+        "Public fixed background layer remains stable behind scrolled content."
+      ],
+      "components": [
+        "PublicShell",
+        "FixedBackground"
+      ]
+    },
+    {
+      "id": "admin-calendar-open",
+      "name": "State / Admin Calendar Open",
+      "route": "/admin",
+      "area": "admin",
+      "state": "calendar-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-calendar-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-calendar-open.png",
+      "interactionNotes": [
+        "Calendar trigger opens a real dialog popover with selected date and scheduled cells."
+      ],
+      "components": [
+        "AdminDatePicker",
+        "Popover",
+        "DashboardInsightChart"
+      ]
+    },
+    {
+      "id": "admin-calendar-selected-date",
+      "name": "State / Admin Calendar Selected Date",
+      "route": "/admin",
+      "area": "admin",
+      "state": "selected-date",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-calendar-selected-date.png",
+      "figmaScreen": "figma-ready/screens/states/admin-calendar-selected-date.png",
+      "interactionNotes": [
+        "Selecting 04 Jun updates chart, calendar state, rail metrics, and work link context."
+      ],
+      "components": [
+        "AdminDateProvider",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "AdminUtilityRail"
+      ]
+    },
+    {
+      "id": "admin-products-select-open",
+      "name": "State / Admin Products Select Open",
+      "route": "/admin/products",
+      "area": "admin",
+      "state": "select-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-products-select-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-products-select-open.png",
+      "interactionNotes": [
+        "Admin select trigger uses visible open state and portal layering."
+      ],
+      "components": [
+        "FilterCard",
+        "PremiumSelect",
+        "SelectContent"
+      ]
+    },
+    {
+      "id": "admin-notifications-open",
+      "name": "State / Admin Notifications Open",
+      "route": "/admin",
+      "area": "admin",
+      "state": "popover-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-notifications-open.png",
+      "figmaScreen": "figma-ready/screens/states/admin-notifications-open.png",
+      "interactionNotes": [
+        "Notification popover opens above the sticky header without clipping."
+      ],
+      "components": [
+        "NotificationButton",
+        "Popover"
+      ]
+    },
+    {
+      "id": "admin-publish-confirmation-modal",
+      "name": "State / Admin Publish Confirmation Modal",
+      "route": "/admin/blog",
+      "area": "admin",
+      "state": "modal-open",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-publish-confirmation-modal.png",
+      "figmaScreen": "figma-ready/screens/states/admin-publish-confirmation-modal.png",
+      "interactionNotes": [
+        "Publish action opens real confirmation modal with backdrop and dialog semantics."
+      ],
+      "components": [
+        "PublishWorkflow",
+        "DialogState"
+      ]
+    },
+    {
+      "id": "admin-rich-text-active-controls",
+      "name": "State / Admin Rich Text Active Controls",
+      "route": "/admin/blog",
+      "area": "admin",
+      "state": "active",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-rich-text-active-controls.png",
+      "figmaScreen": "figma-ready/screens/states/admin-rich-text-active-controls.png",
+      "interactionNotes": [
+        "Bold, italic, and image buttons expose aria-pressed and active treatment."
+      ],
+      "components": [
+        "RichTextEditorMock"
+      ]
+    },
+    {
+      "id": "admin-locale-tab-selected",
+      "name": "State / Admin Locale Tab Selected",
+      "route": "/admin/blog",
+      "area": "admin",
+      "state": "selected-tab",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-locale-tab-selected.png",
+      "figmaScreen": "figma-ready/screens/states/admin-locale-tab-selected.png",
+      "interactionNotes": [
+        "Editor locale tab changes selected visual state and context text."
+      ],
+      "components": [
+        "EditorLocaleTabs"
+      ]
+    },
+    {
+      "id": "admin-ai-draft-accepted",
+      "name": "State / Admin AI Draft Accepted",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "state": "result-accepted",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-ai-draft-accepted.png",
+      "figmaScreen": "figma-ready/screens/states/admin-ai-draft-accepted.png",
+      "interactionNotes": [
+        "AI creates draft-only result; accepted state is explicit and still human-reviewed."
+      ],
+      "components": [
+        "AiDraftWorkflow"
+      ]
+    },
+    {
+      "id": "admin-media-selected-file",
+      "name": "State / Admin Media Selected File",
+      "route": "/admin/media",
+      "area": "admin",
+      "state": "selected",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-media-selected-file.png",
+      "figmaScreen": "figma-ready/screens/states/admin-media-selected-file.png",
+      "interactionNotes": [
+        "Media panel selected-file state updates visible feedback."
+      ],
+      "components": [
+        "MediaUploadPanel"
+      ]
+    },
+    {
+      "id": "admin-fixed-background-visible",
+      "name": "State / Admin Fixed Background Visible",
+      "route": "/admin/settings",
+      "area": "admin",
+      "state": "scrolled",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-fixed-background-visible.png",
+      "figmaScreen": "figma-ready/screens/states/admin-fixed-background-visible.png",
+      "interactionNotes": [
+        "Admin fixed background layer stays behind panels and sticky shell while scrolled."
+      ],
+      "components": [
+        "AdminShell",
+        "FixedBackground"
+      ]
+    },
+    {
+      "id": "admin-sidebar-collapsed",
+      "name": "State / Admin Sidebar Collapsed",
+      "route": "/admin",
+      "area": "admin",
+      "state": "collapsed",
+      "breakpoint": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": "screenshots/states/admin-sidebar-collapsed.png",
+      "figmaScreen": "figma-ready/screens/states/admin-sidebar-collapsed.png",
+      "interactionNotes": [
+        "Sidebar collapse uses aria-pressed and stable width transition."
+      ],
+      "components": [
+        "AdminShell",
+        "SidebarNav"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "name": "PublicShell",
+      "file": "components/showroom/public-shell.tsx",
+      "area": "public",
+      "states": [
+        "active route",
+        "catalog open",
+        "catalog hover",
+        "mobile menu open",
+        "newsletter submitted",
+        "focus"
+      ]
+    },
+    {
+      "name": "HeroShowcase",
+      "file": "components/showroom/hero-showcase.tsx",
+      "area": "public",
+      "states": [
+        "active slide",
+        "previous/next",
+        "paused",
+        "dot selected",
+        "hover/focus controls"
+      ]
+    },
+    {
+      "name": "ProductFilterPanel",
+      "file": "components/showroom/product-filter-panel.tsx",
+      "area": "public",
+      "states": [
+        "collapsed",
+        "expanded",
+        "select open",
+        "query applied",
+        "reset"
+      ]
+    },
+    {
+      "name": "PremiumSelect",
+      "file": "components/showroom/premium-select.tsx",
+      "area": "shared",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "open",
+        "selected"
+      ]
+    },
+    {
+      "name": "ProductCard",
+      "file": "components/showroom/product-card.tsx",
+      "area": "public",
+      "states": [
+        "default",
+        "hover",
+        "focus"
+      ]
+    },
+    {
+      "name": "ProductGallery",
+      "file": "components/showroom/product-detail-experience.tsx",
+      "area": "public",
+      "states": [
+        "selected thumbnail",
+        "image modal open",
+        "hover image",
+        "focus"
+      ]
+    },
+    {
+      "name": "ProductInformationTabs",
+      "file": "components/showroom/product-detail-experience.tsx",
+      "area": "public",
+      "states": [
+        "selected tab",
+        "focus",
+        "content transition"
+      ]
+    },
+    {
+      "name": "QuoteForm",
+      "file": "components/showroom/quote-form.tsx",
+      "area": "public",
+      "states": [
+        "default",
+        "select open",
+        "validation errors",
+        "submitting",
+        "server error",
+        "success route"
+      ]
+    },
+    {
+      "name": "ArticleToc",
+      "file": "components/showroom/article-toc.tsx",
+      "area": "public",
+      "states": [
+        "default",
+        "link hover/focus"
+      ]
+    },
+    {
+      "name": "SocialShare",
+      "file": "components/showroom/social-share.tsx",
+      "area": "public",
+      "states": [
+        "default",
+        "hover",
+        "focus"
+      ]
+    },
+    {
+      "name": "AdminShell",
+      "file": "components/showroom/admin-shell.tsx",
+      "area": "admin",
+      "states": [
+        "active nav",
+        "sidebar collapsed",
+        "header collapsed",
+        "notification open",
+        "mobile nav"
+      ]
+    },
+    {
+      "name": "AdminDatePicker",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "states": [
+        "default",
+        "open",
+        "selected date",
+        "today selected",
+        "work link"
+      ]
+    },
+    {
+      "name": "DashboardInsightChart",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "states": [
+        "metric selected",
+        "date selected",
+        "bar selected"
+      ]
+    },
+    {
+      "name": "NotificationButton",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "states": [
+        "unread",
+        "open",
+        "read",
+        "hover/focus"
+      ]
+    },
+    {
+      "name": "PublishWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "states": [
+        "draft",
+        "publish modal",
+        "published",
+        "archive modal",
+        "archived",
+        "feedback"
+      ]
+    },
+    {
+      "name": "AiDraftWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "states": [
+        "idle",
+        "loading",
+        "result",
+        "accepted",
+        "error"
+      ]
+    },
+    {
+      "name": "RichTextEditorMock",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "states": [
+        "bold active",
+        "italic active",
+        "image inserted",
+        "focus"
+      ]
+    },
+    {
+      "name": "MediaUploadPanel",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "states": [
+        "idle",
+        "selected",
+        "error companion state"
+      ]
+    },
+    {
+      "name": "AdminSectionPage",
+      "file": "app/admin/[section]/page.tsx",
+      "area": "admin",
+      "states": [
+        "valid section",
+        "create mode",
+        "not found"
+      ]
+    }
+  ]
+}

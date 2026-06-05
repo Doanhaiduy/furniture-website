@@ -1,0 +1,913 @@
+{
+  "meta": {
+    "name": "Admin Screen Map",
+    "generatedAt": "2026-06-02T16:09:45.965Z"
+  },
+  "screens": [
+    {
+      "id": "admin-dashboard",
+      "name": "Admin Dashboard",
+      "route": "/admin",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-dashboard",
+      "components": [
+        "AdminShell",
+        "AdminDatePicker",
+        "DashboardInsightChart",
+        "QuoteTable",
+        "WarningPanel"
+      ],
+      "notes": [
+        "KPI cards, shared date selection, utility rail, fixed admin background."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-dashboard.png",
+        "tablet": "screenshots/tablet/admin-dashboard.png",
+        "mobile": "screenshots/mobile/admin-dashboard.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Tổng quan",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 5
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Tổng quan",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 5
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Tổng quan",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 5
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-products",
+      "name": "Admin Products",
+      "route": "/admin/products",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-table",
+      "components": [
+        "AdminShell",
+        "FilterCard",
+        "PremiumSelect",
+        "StatusPill",
+        "ProductTable"
+      ],
+      "notes": [
+        "Admin filters, table rows, status pills, active selected nav state."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-products.png",
+        "tablet": "screenshots/tablet/admin-products.png",
+        "mobile": "screenshots/mobile/admin-products.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 5,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-product-create",
+      "name": "Admin Product Create",
+      "route": "/admin/products?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-editor",
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Product editor state with unsaved changes, AI draft, publish workflow."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-product-create.png",
+        "tablet": "screenshots/tablet/admin-product-create.png",
+        "mobile": "screenshots/mobile/admin-product-create.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Sản phẩm",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-categories",
+      "name": "Admin Categories",
+      "route": "/admin/categories",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-cards",
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category cards and publish controls."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-categories.png",
+        "tablet": "screenshots/tablet/admin-categories.png",
+        "mobile": "screenshots/mobile/admin-categories.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-category-create",
+      "name": "Admin Category Create",
+      "route": "/admin/categories?new=1",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-editor",
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "PremiumSelect",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Category create/edit fields, parent category select, warnings."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-category-create.png",
+        "tablet": "screenshots/tablet/admin-category-create.png",
+        "mobile": "screenshots/mobile/admin-category-create.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Danh mục",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-blog-editor",
+      "name": "Admin Blog Editor",
+      "route": "/admin/blog",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-editor",
+      "components": [
+        "AdminShell",
+        "EditorLocaleTabs",
+        "RichTextEditorMock",
+        "AiDraftWorkflow",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Bilingual editor, slug conflict, AI draft, publish modal trigger."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-blog-editor.png",
+        "tablet": "screenshots/tablet/admin-blog-editor.png",
+        "mobile": "screenshots/mobile/admin-blog-editor.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Bài viết",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Bài viết",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Bài viết",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 4
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-showrooms",
+      "name": "Admin Showrooms",
+      "route": "/admin/showrooms",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-cards",
+      "components": [
+        "AdminShell",
+        "ShowroomCard",
+        "PublishWorkflow"
+      ],
+      "notes": [
+        "Showroom cards with image lift and publish controls."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-showrooms.png",
+        "tablet": "screenshots/tablet/admin-showrooms.png",
+        "mobile": "screenshots/mobile/admin-showrooms.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Showroom",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Showroom",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Showroom",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 3,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-media",
+      "name": "Admin Media",
+      "route": "/admin/media",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-media",
+      "components": [
+        "AdminShell",
+        "MediaUploadPanel",
+        "FeedbackState"
+      ],
+      "notes": [
+        "Media upload panel, error state, owner/context governance note."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-media.png",
+        "tablet": "screenshots/tablet/admin-media.png",
+        "mobile": "screenshots/mobile/admin-media.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Media",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Media",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Media",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-quotes",
+      "name": "Admin Quotes",
+      "route": "/admin/quotes",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-table",
+      "components": [
+        "AdminShell",
+        "QuoteTable",
+        "QuoteStatusUpdater",
+        "PremiumSelect"
+      ],
+      "notes": [
+        "Admin-only quote table and status updater."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-quotes.png",
+        "tablet": "screenshots/tablet/admin-quotes.png",
+        "mobile": "screenshots/mobile/admin-quotes.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-users",
+      "name": "Admin Users",
+      "route": "/admin/users",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-table",
+      "components": [
+        "AdminShell",
+        "StatusPill",
+        "RoleList"
+      ],
+      "notes": [
+        "Admin-only user list and role model display."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-users.png",
+        "tablet": "screenshots/tablet/admin-users.png",
+        "mobile": "screenshots/mobile/admin-users.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Người dùng",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Người dùng",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Người dùng",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-settings",
+      "name": "Admin Settings",
+      "route": "/admin/settings",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-settings",
+      "components": [
+        "AdminShell",
+        "SettingsCard",
+        "WarningPanel"
+      ],
+      "notes": [
+        "Brand, SEO, social, integration settings cards."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-settings.png",
+        "tablet": "screenshots/tablet/admin-settings.png",
+        "mobile": "screenshots/mobile/admin-settings.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Cài đặt",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Cài đặt",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Cài đặt",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-ai-assistant",
+      "name": "Admin AI Assistant",
+      "route": "/admin/ai-assistant",
+      "area": "admin",
+      "locale": "vi",
+      "template": "admin-ai",
+      "components": [
+        "AdminShell",
+        "AiDraftWorkflow",
+        "AdminUtilityRail"
+      ],
+      "notes": [
+        "Draft-only AI workflow with human review queue."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-ai-assistant.png",
+        "tablet": "screenshots/tablet/admin-ai-assistant.png",
+        "mobile": "screenshots/mobile/admin-ai-assistant.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "AI Assistant",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "AI Assistant",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "AI Assistant",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-login",
+      "name": "Admin Login",
+      "route": "/admin/login",
+      "area": "admin",
+      "locale": "vi",
+      "template": "auth",
+      "components": [
+        "AdminLoginPage",
+        "RemoteImage",
+        "LoginForm"
+      ],
+      "notes": [
+        "Demo admin login route."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-login.png",
+        "tablet": "screenshots/tablet/admin-login.png",
+        "mobile": "screenshots/mobile/admin-login.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Quản trị nội dung showroom như một phòng điều hành.",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 1,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Quản trị nội dung showroom như một phòng điều hành.",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Quản trị nội dung showroom như một phòng điều hành.",
+          "appClass": "standalone",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 0
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    },
+    {
+      "id": "admin-access-denied",
+      "name": "Admin Access Denied",
+      "route": "/admin/access-denied",
+      "area": "admin",
+      "locale": "vi",
+      "template": "feedback",
+      "components": [
+        "AccessDeniedPage",
+        "AdminShell"
+      ],
+      "notes": [
+        "Role Model Option A restricted-access state."
+      ],
+      "screenshots": {
+        "desktop": "screenshots/desktop/admin-access-denied.png",
+        "tablet": "screenshots/tablet/admin-access-denied.png",
+        "mobile": "screenshots/mobile/admin-access-denied.png"
+      },
+      "metadata": {
+        "desktop": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "tablet": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        },
+        "mobile": {
+          "status": 200,
+          "title": "Showroom Nội Thất Phương Đông",
+          "firstHeading": "Yêu cầu báo giá",
+          "appClass": "admin-app",
+          "horizontalOverflow": false,
+          "loadedImages": 0,
+          "dialogCount": 0,
+          "dialogPreview": [],
+          "openControls": 0,
+          "selectedControls": 3
+        }
+      },
+      "warnings": {
+        "desktop": [],
+        "tablet": [],
+        "mobile": []
+      }
+    }
+  ]
+}

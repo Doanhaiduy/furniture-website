@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-06-02T15:19:52.570Z",
+  "states": [
+    {
+      "component": "AdminDatePicker",
+      "state": "open",
+      "trigger": "Calendar button click",
+      "visual": "Purple border/ring, rotated chevron, portal calendar above shell",
+      "behavior": "Popover opens as dialog and closes on Escape, outside click, Today, Open work, or date selection"
+    },
+    {
+      "component": "AdminDatePicker",
+      "state": "selected date",
+      "trigger": "Date gridcell click",
+      "visual": "Dark selected cell with aria-selected=true and selected chart/rail buttons",
+      "behavior": "Updates shared selected date for chart, rail date label, and Open work link"
+    },
+    {
+      "component": "PremiumSelect",
+      "state": "open",
+      "trigger": "Combobox click",
+      "visual": "Purple focus ring and white admin popover",
+      "behavior": "Radix Select portal with selected option check indicator"
+    },
+    {
+      "component": "AdminShell",
+      "state": "active route",
+      "trigger": "Route match",
+      "visual": "Purple sidebar item and mobile tab",
+      "behavior": "Dynamic /admin/[section] routes render in admin shell"
+    },
+    {
+      "component": "AdminShell",
+      "state": "fixed background",
+      "trigger": "Admin route mount",
+      "visual": "Layered fixed grid/diagonal background behind transparent shell",
+      "behavior": "Fixed desktop background with absolute mobile/reduced-motion fallback"
+    },
+    {
+      "component": "EditorLocaleTabs",
+      "state": "selected",
+      "trigger": "VI/EN tab click",
+      "visual": "Purple selected tab with aria-selected=true",
+      "behavior": "Updates local editing locale text"
+    },
+    {
+      "component": "RichTextEditorMock",
+      "state": "toolbar active",
+      "trigger": "B/I/image button click",
+      "visual": "Purple active button with aria-pressed=true",
+      "behavior": "Toggles draft styling or inserted image message"
+    },
+    {
+      "component": "PublishWorkflow",
+      "state": "dialog open",
+      "trigger": "Publish/archive click",
+      "visual": "Centered modal with backdrop",
+      "behavior": "Requires confirmation before status feedback changes"
+    },
+    {
+      "component": "AiDraftWorkflow",
+      "state": "result accepted",
+      "trigger": "Write draft then insert",
+      "visual": "Accepted button label changes",
+      "behavior": "Draft-only state, no publish action"
+    },
+    {
+      "component": "MediaUploadPanel",
+      "state": "selected",
+      "trigger": "Choose file click",
+      "visual": "Selected filename feedback",
+      "behavior": "Demo metadata-ready state"
+    }
+  ]
+}

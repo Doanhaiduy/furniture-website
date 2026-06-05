@@ -1,0 +1,100 @@
+{
+  "name": "Phuong Dong Admin UI Tokens",
+  "generatedAt": "2026-06-02T15:19:52.570Z",
+  "sourceFiles": [
+    "app/globals.css",
+    "components/showroom/admin-shell.tsx",
+    "components/showroom/admin-dashboard-widgets.tsx",
+    "components/showroom/premium-select.tsx"
+  ],
+  "colors": {
+    "canvas": "#f7f9fc",
+    "surface": "#ffffff",
+    "surfaceMuted": "#f3f6fb",
+    "textPrimary": "#15172b",
+    "textSecondary": "#686d82",
+    "textMuted": "#8a8ea3",
+    "border": "#dfe6f1",
+    "sidebarTop": "#0c0d27",
+    "sidebarBottom": "#070819",
+    "accent": "#8b5cf6",
+    "accentHover": "#7d4df0",
+    "accentSoft": "#f5f2ff",
+    "warningBg": "#fff8e6",
+    "warningText": "#7a4a00",
+    "successBg": "#ecfdf5",
+    "successText": "#047857",
+    "dangerBg": "#ffdad6",
+    "dangerText": "#93000a",
+    "highlight": "#ffe45e",
+    "orange": "#ff8a00"
+  },
+  "typography": {
+    "body": {
+      "family": "Inter, system-ui, sans-serif",
+      "size": 15,
+      "lineHeight": 1.55
+    },
+    "heading": {
+      "family": "Montserrat, Inter, system-ui, sans-serif",
+      "weight": 600,
+      "letterSpacing": 0
+    },
+    "label": {
+      "size": 11.5,
+      "weight": 700,
+      "transform": "uppercase",
+      "letterSpacing": "0.14em"
+    },
+    "adminH1": {
+      "size": 18,
+      "weight": 600
+    },
+    "pageTitle": {
+      "size": 24,
+      "weight": 600
+    }
+  },
+  "radius": {
+    "control": 12,
+    "card": 15,
+    "panel": 15,
+    "modal": 16,
+    "pill": 999
+  },
+  "spacing": {
+    "shellSidebarExpanded": 240,
+    "shellSidebarCollapsed": 76,
+    "headerHeight": 68,
+    "headerCollapsedHeight": 52,
+    "pagePaddingX": 24,
+    "pagePaddingY": 16,
+    "cardGap": 20
+  },
+  "shadows": {
+    "card": "0 12px 32px rgba(21,23,43,0.045)",
+    "cardHover": "0 18px 46px rgba(21,23,43,0.085)",
+    "accentButton": "0 10px 22px rgba(139,92,246,0.20)",
+    "popover": "0 22px 58px rgba(21,23,43,0.16)",
+    "focus": "0 0 0 3px rgba(139,92,246,0.12)"
+  },
+  "motion": {
+    "fast": "160ms",
+    "normal": "260ms",
+    "slow": "560ms",
+    "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
+    "reducedMotion": "supported"
+  },
+  "zIndex": {
+    "fixedBackground": 0,
+    "shell": 1,
+    "stickyHeader": 40,
+    "modal": 50,
+    "popover": 90
+  },
+  "breakpoints": {
+    "mobileFallbackBackgroundMax": 767,
+    "sidebarMin": 1024,
+    "utilityRailMin": 1280
+  }
+}

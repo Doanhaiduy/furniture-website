@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "name": "Showroom Noi That Phuong Dong Project Design Tokens",
+    "generatedAt": "2026-06-02T16:09:45.965Z",
+    "sourceFiles": [
+      "app/globals.css",
+      "components/showroom/*",
+      "messages/*.json"
+    ],
+    "trueFigmaFileCreated": false
+  },
+  "color": {
+    "public": {
+      "surface": "#f3faff",
+      "surfaceDim": "#c7dde9",
+      "surfaceContainerLowest": "#ffffff",
+      "surfaceContainerLow": "#e6f6ff",
+      "surfaceContainer": "#dbf1fe",
+      "surfaceContainerHigh": "#d5ecf8",
+      "surfaceContainerHighest": "#cfe6f2",
+      "onSurface": "#071e27",
+      "onSurfaceVariant": "#504441",
+      "primary": "#442a22",
+      "primaryContainer": "#5d4037",
+      "onPrimaryContainer": "#ffdbd0",
+      "secondary": "#546067",
+      "outline": "#827470",
+      "outlineVariant": "#d4c3be",
+      "error": "#ba1a1a",
+      "errorContainer": "#ffdad6"
+    },
+    "admin": {
+      "canvas": "#f7f9fc",
+      "ink": "#15172b",
+      "mutedInk": "#686d82",
+      "outline": "#8a8ea3",
+      "border": "#dfe6f1",
+      "panel": "#ffffff",
+      "sidebarTop": "#0c0d27",
+      "sidebarBottom": "#070819",
+      "accent": "#8b5cf6",
+      "accentSoft": "#f5f2ff",
+      "warning": "#fff8e6",
+      "warningInk": "#7a4a00",
+      "success": "#047857",
+      "notification": "#ff8a00",
+      "highlight": "#ffe45e"
+    },
+    "status": {
+      "draftBg": "#fffbeb",
+      "draftInk": "#b45309",
+      "publishedBg": "#ecfdf5",
+      "publishedInk": "#047857",
+      "archivedBg": "#f1f5f9",
+      "archivedInk": "#475569",
+      "quoteNewBg": "#f5f3ff",
+      "quoteNewInk": "#6d28d9",
+      "quoteContactedBg": "#f0f9ff",
+      "quoteContactedInk": "#0369a1"
+    }
+  },
+  "typography": {
+    "body": {
+      "family": "Inter, ui-sans-serif, system-ui, Segoe UI, sans-serif",
+      "defaultSize": "16px",
+      "adminSize": "15px",
+      "lineHeight": "1.55"
+    },
+    "heading": {
+      "family": "Montserrat, Inter, ui-sans-serif, system-ui",
+      "letterSpacing": "0",
+      "weights": [
+        600,
+        700
+      ]
+    },
+    "labels": {
+      "size": "11.5px",
+      "weight": 700,
+      "transform": "uppercase",
+      "tracking": "0.14em"
+    }
+  },
+  "spacing": {
+    "container": {
+      "maxWidth": "1280px",
+      "publicPaddingMobile": "20px",
+      "publicPaddingTablet": "32px",
+      "publicPaddingDesktop": "40px",
+      "adminPaddingMobile": "16px",
+      "adminPaddingDesktop": "24px"
+    },
+    "density": {
+      "publicSectionY": "64-96px",
+      "adminPanelGap": "20px",
+      "formGap": "16-20px",
+      "toolbarGap": "8-12px"
+    }
+  },
+  "radius": {
+    "base": "8px",
+    "md": "6.4px",
+    "lg": "8px",
+    "xl": "11.2px",
+    "adminPanel": "15.2px",
+    "pill": "999px"
+  },
+  "shadow": {
+    "card": "0 18px 48px rgb(68 42 34 / 0.07)",
+    "cardHover": "0 26px 70px rgb(68 42 34 / 0.12)",
+    "panel": "0 18px 42px rgb(7 30 39 / 0.08)",
+    "adminPanel": "0 12px 32px rgb(21 23 43 / 0.045)",
+    "adminPopover": "0 20px 60px rgb(21 23 43 / 0.16)"
+  },
+  "motion": {
+    "fast": "160ms",
+    "normal": "260ms",
+    "slow": "560ms",
+    "premiumEase": "cubic-bezier(0.22, 1, 0.36, 1)",
+    "standardEase": "cubic-bezier(0.2, 0, 0, 1)",
+    "reducedMotion": "All major transforms/animations collapse to near-zero duration."
+  },
+  "breakpoints": [
+    {
+      "key": "desktop",
+      "label": "Desktop",
+      "width": 1440,
+      "height": 1000,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "note": "Primary stakeholder review canvas."
+    },
+    {
+      "key": "tablet",
+      "label": "Tablet",
+      "width": 834,
+      "height": 1112,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "note": "Mid-size layout check for navigation, grids, forms, and admin tables."
+    },
+    {
+      "key": "mobile",
+      "label": "Mobile",
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 2,
+      "media": "screen",
+      "isMobile": true,
+      "note": "Phone viewport for stacked content, mobile menu, forms, and admin mobile nav."
+    }
+  ],
+  "extractedFromBrowser": {
+    "publicCssVariables": {
+      "--surface": "#f3faff",
+      "--surface-dim": "#c7dde9",
+      "--surface-container-lowest": "#fff",
+      "--surface-container-low": "#e6f6ff",
+      "--surface-container": "#dbf1fe",
+      "--surface-container-high": "#d5ecf8",
+      "--surface-container-highest": "#cfe6f2",
+      "--on-surface": "#071e27",
+      "--on-surface-variant": "#504441",
+      "--primary": "#442a22",
+      "--primary-container": "#5d4037",
+      "--on-primary-container": "#ffdbd0",
+      "--secondary": "#546067",
+      "--outline": "#827470",
+      "--outline-variant": "#d4c3be",
+      "--error": "#ba1a1a",
+      "--error-container": "#ffdad6",
+      "--radius": ".5rem",
+      "--motion-fast": ".16s",
+      "--motion-normal": ".26s",
+      "--motion-slow": ".56s",
+      "--ease-premium": "cubic-bezier(.22, 1, .36, 1)",
+      "--ease-standard": "cubic-bezier(.2, 0, 0, 1)"
+    },
+    "adminComputed": {
+      "appBackground": "rgb(247, 249, 252) none repeat scroll 0% 0% / auto padding-box border-box",
+      "appColor": "rgb(21, 23, 43)",
+      "panelBackground": "rgba(0, 0, 0, 0) linear-gradient(rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.94)) repeat scroll 0% 0% / auto padding-box border-box",
+      "panelBorder": "rgb(223, 230, 241)",
+      "panelRadius": "15.2px",
+      "primaryButtonBackground": "rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(117, 89, 247), rgb(139, 92, 246) 58%, rgb(161, 108, 255)) repeat scroll 0% 0% / auto padding-box border-box",
+      "primaryButtonRadius": "12.48px"
+    }
+  }
+}

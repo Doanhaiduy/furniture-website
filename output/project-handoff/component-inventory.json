@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "generatedAt": "2026-06-02T16:09:45.965Z",
+    "count": 19
+  },
+  "components": [
+    {
+      "name": "PublicShell",
+      "file": "components/showroom/public-shell.tsx",
+      "area": "public",
+      "purpose": "Localized site shell with sticky header, desktop catalog mega menu, mobile navigation, footer, newsletter.",
+      "states": [
+        "active route",
+        "catalog open",
+        "catalog hover",
+        "mobile menu open",
+        "newsletter submitted",
+        "focus"
+      ],
+      "responsive": "Desktop has primary nav + catalog bar; tablet/phone collapse to mobile menu."
+    },
+    {
+      "name": "HeroShowcase",
+      "file": "components/showroom/hero-showcase.tsx",
+      "area": "public",
+      "purpose": "Homepage carousel with active, adjacent, paused, and reduced-motion behavior.",
+      "states": [
+        "active slide",
+        "previous/next",
+        "paused",
+        "dot selected",
+        "hover/focus controls"
+      ],
+      "responsive": "Center crop full-bleed experience with constrained carousel height."
+    },
+    {
+      "name": "ProductFilterPanel",
+      "file": "components/showroom/product-filter-panel.tsx",
+      "area": "public",
+      "purpose": "Query-driven product filtering with expandable advanced fields.",
+      "states": [
+        "collapsed",
+        "expanded",
+        "select open",
+        "query applied",
+        "reset"
+      ],
+      "responsive": "Four-column desktop; stacked controls on mobile."
+    },
+    {
+      "name": "PremiumSelect",
+      "file": "components/showroom/premium-select.tsx",
+      "area": "shared",
+      "purpose": "Radix select wrapper with public/admin tones and portal content.",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "open",
+        "selected"
+      ],
+      "responsive": "Popover width follows trigger/content and uses collision handling."
+    },
+    {
+      "name": "ProductCard",
+      "file": "components/showroom/product-card.tsx",
+      "area": "public",
+      "purpose": "Product list card with image, category, tags, price/quote copy, hover lift.",
+      "states": [
+        "default",
+        "hover",
+        "focus"
+      ],
+      "responsive": "Grid item; image ratio and text hierarchy remain stable across columns."
+    },
+    {
+      "name": "ProductGallery",
+      "file": "components/showroom/product-detail-experience.tsx",
+      "area": "public",
+      "purpose": "Product detail media gallery with selected thumbnails and image modal.",
+      "states": [
+        "selected thumbnail",
+        "image modal open",
+        "hover image",
+        "focus"
+      ],
+      "responsive": "Large image stacks with thumbnails; modal uses viewport max sizing."
+    },
+    {
+      "name": "ProductInformationTabs",
+      "file": "components/showroom/product-detail-experience.tsx",
+      "area": "public",
+      "purpose": "Tabbed product content for overview, specs, materials, care, delivery.",
+      "states": [
+        "selected tab",
+        "focus",
+        "content transition"
+      ],
+      "responsive": "Five-column desktop tab list; two-column tab list on smaller screens."
+    },
+    {
+      "name": "QuoteForm",
+      "file": "components/showroom/quote-form.tsx",
+      "area": "public",
+      "purpose": "Lead capture form with Zod/RHF validation and service select.",
+      "states": [
+        "default",
+        "select open",
+        "validation errors",
+        "submitting",
+        "server error",
+        "success route"
+      ],
+      "responsive": "Two-column fields on desktop; single-column stacked mobile."
+    },
+    {
+      "name": "ArticleToc",
+      "file": "components/showroom/article-toc.tsx",
+      "area": "public",
+      "purpose": "Article navigation and scan support for blog detail.",
+      "states": [
+        "default",
+        "link hover/focus"
+      ],
+      "responsive": "Inline/stacked behavior follows article layout."
+    },
+    {
+      "name": "SocialShare",
+      "file": "components/showroom/social-share.tsx",
+      "area": "public",
+      "purpose": "Share actions for article pages.",
+      "states": [
+        "default",
+        "hover",
+        "focus"
+      ],
+      "responsive": "Compact button group."
+    },
+    {
+      "name": "AdminShell",
+      "file": "components/showroom/admin-shell.tsx",
+      "area": "admin",
+      "purpose": "Admin layout with sidebar, sticky header, mobile admin nav, utility rail, locale toggle.",
+      "states": [
+        "active nav",
+        "sidebar collapsed",
+        "header collapsed",
+        "notification open",
+        "mobile nav"
+      ],
+      "responsive": "Desktop has sidebar + utility rail; tablet/mobile uses horizontal admin nav and stacked content."
+    },
+    {
+      "name": "AdminDatePicker",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "purpose": "Shared admin date picker using real popover/calendar state.",
+      "states": [
+        "default",
+        "open",
+        "selected date",
+        "today selected",
+        "work link"
+      ],
+      "responsive": "Portaled content with collision padding and fixed z-index."
+    },
+    {
+      "name": "DashboardInsightChart",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "purpose": "Admin performance chart linked to shared date selection.",
+      "states": [
+        "metric selected",
+        "date selected",
+        "bar selected"
+      ],
+      "responsive": "Chart + KPI side rail collapse into stacked layout."
+    },
+    {
+      "name": "NotificationButton",
+      "file": "components/showroom/admin-dashboard-widgets.tsx",
+      "area": "admin",
+      "purpose": "Header notification popover and unread indicator.",
+      "states": [
+        "unread",
+        "open",
+        "read",
+        "hover/focus"
+      ],
+      "responsive": "Hidden below md where admin mobile nav takes priority."
+    },
+    {
+      "name": "PublishWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "purpose": "Draft/publish/archive status controls with confirmation modal.",
+      "states": [
+        "draft",
+        "publish modal",
+        "published",
+        "archive modal",
+        "archived",
+        "feedback"
+      ],
+      "responsive": "Modal is fixed viewport overlay with compact confirmation panel."
+    },
+    {
+      "name": "AiDraftWorkflow",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "purpose": "Draft-only AI assistance with loading, result, accept, and error states.",
+      "states": [
+        "idle",
+        "loading",
+        "result",
+        "accepted",
+        "error"
+      ],
+      "responsive": "Panel stacks inside editor sidebar or AI assistant layout."
+    },
+    {
+      "name": "RichTextEditorMock",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "purpose": "Editor toolbar demo with active formatting and image placeholder feedback.",
+      "states": [
+        "bold active",
+        "italic active",
+        "image inserted",
+        "focus"
+      ],
+      "responsive": "Toolbar remains compact; textarea fills editor card."
+    },
+    {
+      "name": "MediaUploadPanel",
+      "file": "components/showroom/admin-interactions.tsx",
+      "area": "admin",
+      "purpose": "Cloudinary-ready upload state mock with selected-file feedback.",
+      "states": [
+        "idle",
+        "selected",
+        "error companion state"
+      ],
+      "responsive": "Centered drop area within admin content grid."
+    },
+    {
+      "name": "AdminSectionPage",
+      "file": "app/admin/[section]/page.tsx",
+      "area": "admin",
+      "purpose": "Validated admin dynamic section router for all supported admin sections.",
+      "states": [
+        "valid section",
+        "create mode",
+        "not found"
+      ],
+      "responsive": "Delegates responsive behavior to AdminShell and child sections."
+    }
+  ]
+}

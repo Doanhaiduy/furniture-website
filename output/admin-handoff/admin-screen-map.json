@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-06-02T15:19:52.570Z",
+  "routes": [
+    {
+      "route": "/admin",
+      "screen": "Dashboard",
+      "screenshot": "screenshots/dashboard.png",
+      "requirements": [
+        "FR-10",
+        "FR-12-ADM",
+        "NFR-03",
+        "NFR-07"
+      ]
+    },
+    {
+      "route": "/admin/products",
+      "screen": "Products",
+      "screenshot": "screenshots/products.png",
+      "requirements": [
+        "FR-03",
+        "FR-12-ADM",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/blog",
+      "screen": "Blog Editor",
+      "screenshot": "screenshots/blog-editor.png",
+      "requirements": [
+        "FR-06",
+        "FR-12-ADM",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/showrooms",
+      "screen": "Showrooms",
+      "screenshot": "screenshots/showrooms.png",
+      "requirements": [
+        "FR-08-ADM",
+        "FR-12-ADM",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/media",
+      "screen": "Media",
+      "screenshot": "screenshots/media.png",
+      "requirements": [
+        "FR-10",
+        "NFR-05",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/quotes",
+      "screen": "Quotes",
+      "screenshot": "screenshots/quotes.png",
+      "requirements": [
+        "FR-07-ADM",
+        "FR-10",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/users",
+      "screen": "Users",
+      "screenshot": "screenshots/users.png",
+      "requirements": [
+        "FR-10",
+        "NFR-05",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/settings",
+      "screen": "Settings",
+      "screenshot": "screenshots/settings.png",
+      "requirements": [
+        "FR-10",
+        "NFR-05",
+        "NFR-03"
+      ]
+    },
+    {
+      "route": "/admin/ai-assistant",
+      "screen": "AI Assistant",
+      "screenshot": "screenshots/ai-assistant.png",
+      "requirements": [
+        "FR-11",
+        "FR-12-ADM",
+        "NFR-03"
+      ]
+    }
+  ],
+  "interactionScreens": [
+    {
+      "route": "/admin",
+      "screen": "Calendar Open",
+      "state": "open calendar",
+      "screenshot": "screenshots/calendar-open.png"
+    },
+    {
+      "route": "/admin",
+      "screen": "Selected Date State",
+      "state": "selected date",
+      "screenshot": "screenshots/selected-date-state.png"
+    },
+    {
+      "route": "/admin/products",
+      "screen": "Products Select Open",
+      "state": "open select",
+      "screenshot": "screenshots/products-select-open.png"
+    },
+    {
+      "route": "/admin/products",
+      "screen": "Admin Hover State",
+      "state": "hover",
+      "screenshot": "screenshots/admin-hover-state.png"
+    },
+    {
+      "route": "/admin/products",
+      "screen": "Admin Focus State",
+      "state": "focus",
+      "screenshot": "screenshots/admin-focus-state.png"
+    },
+    {
+      "route": "/admin/settings",
+      "screen": "Fixed Background Visible",
+      "state": "fixed background visible",
+      "screenshot": "screenshots/fixed-background-visible-state.png"
+    }
+  ]
+}
