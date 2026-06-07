@@ -55,11 +55,8 @@ export function ArticleToc({
             <li key={item.id}>
               <a
                 href={`#${item.id}`}
-                className={`grid grid-cols-[2rem_1fr] rounded-xl border px-3 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container/25 ${
-                  active
-                    ? "border-outline-variant/35 bg-surface-container-low text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
-                    : "border-transparent text-secondary hover:border-outline-variant/35 hover:bg-white/70 hover:text-primary"
-                }`}
+                aria-current={active ? "location" : undefined}
+                className="public-toc-link"
               >
                 <span className="text-xs text-outline">0{index + 1}</span>
                 <span>{item.title}</span>

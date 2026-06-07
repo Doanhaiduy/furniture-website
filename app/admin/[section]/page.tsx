@@ -1,13 +1,25 @@
 import { notFound } from "next/navigation";
 import {
   AdminSectionPage,
-  adminSections,
-  type AdminSection,
 } from "@/components/showroom/admin-pages";
 import { AdminShell } from "@/components/showroom/admin-shell";
 
+const adminSections = [
+  "products",
+  "categories",
+  "blog",
+  "showrooms",
+  "media",
+  "quotes",
+  "users",
+  "settings",
+  "ai-assistant",
+] as const;
+
+type AdminSection = typeof adminSections[number];
+
 function isAdminSection(section: string): section is AdminSection {
-  return adminSections.includes(section as AdminSection);
+  return (adminSections as readonly string[]).includes(section);
 }
 
 export default async function AdminDynamicPage({
@@ -15,7 +27,7 @@ export default async function AdminDynamicPage({
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{ create?: string; new?: string; upload?: string }>;
 }) {
   const { section: rawSection } = await params;
   const query = await searchParams;
@@ -24,7 +36,7 @@ export default async function AdminDynamicPage({
 
   return (
     <AdminShell active={section}>
-      <AdminSectionPage section={section} createMode={query.new === "1"} />
+      <AdminSectionPage section={section} createMode={query.create === "1" || query.new === "1"} uploadMode={query.upload === "1"} />
     </AdminShell>
   );
 }

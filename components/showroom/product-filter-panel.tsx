@@ -61,7 +61,7 @@ export function ProductFilterPanel({
   const advancedId = useId();
 
   return (
-    <form method="get" className="surface-soft mb-8 p-5">
+    <form method="get" className="surface-panel mb-8 p-5">
       <div className="grid gap-5 lg:grid-cols-[1fr_1.05fr_0.9fr_0.9fr] lg:items-end">
         <div className="lg:self-center">
           <p className="label-pd">{labels.filters}</p>
@@ -69,7 +69,7 @@ export function ProductFilterPanel({
         </div>
 
         <label className="grid gap-2">
-          <span className="text-sm font-semibold">{labels.search}</span>
+          <span className="field-label-pd">{labels.search}</span>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-outline" />
             <input className="input-pd pl-9" name="q" defaultValue={query.q} />
@@ -77,7 +77,7 @@ export function ProductFilterPanel({
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-semibold">{labels.category}</span>
+          <span className="field-label-pd">{labels.category}</span>
           <PremiumSelect
             name="category"
             defaultValue={query.category || "all"}
@@ -88,7 +88,7 @@ export function ProductFilterPanel({
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-semibold">{labels.material}</span>
+          <span className="field-label-pd">{labels.material}</span>
           <PremiumSelect
             name="material"
             defaultValue={query.material || "all"}
@@ -105,7 +105,7 @@ export function ProductFilterPanel({
           className="animate-in fade-in slide-in-from-top-2 mt-5 grid gap-5 duration-300 motion-reduce:animate-none lg:grid-cols-4"
         >
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.room}</span>
+            <span className="field-label-pd">{labels.room}</span>
             <PremiumSelect
               name="room"
               defaultValue={query.room || "all"}
@@ -115,7 +115,7 @@ export function ProductFilterPanel({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.style}</span>
+            <span className="field-label-pd">{labels.style}</span>
             <PremiumSelect
               name="style"
               defaultValue={query.style || "all"}
@@ -125,7 +125,7 @@ export function ProductFilterPanel({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.collection}</span>
+            <span className="field-label-pd">{labels.collection}</span>
             <PremiumSelect
               name="collection"
               defaultValue={query.collection || "all"}
@@ -135,7 +135,7 @@ export function ProductFilterPanel({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.tone}</span>
+            <span className="field-label-pd">{labels.tone}</span>
             <PremiumSelect
               name="tone"
               defaultValue={query.tone || "all"}
@@ -145,7 +145,7 @@ export function ProductFilterPanel({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.availability}</span>
+            <span className="field-label-pd">{labels.availability}</span>
             <PremiumSelect
               name="availability"
               defaultValue={query.availability || "all"}
@@ -155,7 +155,7 @@ export function ProductFilterPanel({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-sm font-semibold">{labels.featuredOnly}</span>
+            <span className="field-label-pd">{labels.featuredOnly}</span>
             <PremiumSelect
               name="featured"
               defaultValue={query.featured || "all"}

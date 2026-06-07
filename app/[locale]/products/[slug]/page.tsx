@@ -44,7 +44,7 @@ export default async function ProductDetailPage({
 
   return (
     <main>
-      <section className="container-pd grid gap-10 py-10 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="container-pd public-page-header grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <ProductGallery
           product={product}
           locale={locale}
@@ -54,9 +54,9 @@ export default async function ProductDetailPage({
             galleryHelp: t("galleryHelp"),
           }}
         />
-        <div className="reveal-soft lg:pt-8">
+        <div className="surface-panel reveal-soft p-5 md:p-6 lg:p-8">
           <p className="label-pd">{t("collectionLabel")}</p>
-          <h1 className="mt-3 font-heading text-5xl font-bold text-primary">
+          <h1 className="type-page-title mt-3 text-primary">
             {localized(product.name, locale)}
           </h1>
           <p className="mt-2 text-sm text-secondary">
@@ -71,11 +71,11 @@ export default async function ProductDetailPage({
           <p className="mt-5 text-lg leading-8 text-secondary">{localized(product.summary, locale)}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {product.specs.slice(0, 4).map((spec) => (
-              <div key={localized(spec.label, locale)} className="rounded-lg border border-outline-variant/20 bg-surface-container-low p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+              <div key={localized(spec.label, locale)} className="surface-card p-3">
                 <div className="flex gap-3">
                   <Ruler className="size-5 text-primary" />
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.14em] text-outline">
+                    <p className="type-label text-outline">
                       {localized(spec.label, locale)}
                     </p>
                     <p className="font-semibold">{localized(spec.value, locale)}</p>
@@ -133,8 +133,8 @@ export default async function ProductDetailPage({
       </section>
 
       <section className="container-pd grid gap-8 py-16 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-xl bg-primary p-8 text-white shadow-[0_22px_54px_rgba(68,42,34,0.16)]">
-          <h2 className="font-heading text-3xl font-semibold">{contact("formTitle")}</h2>
+        <div className="surface-inverse p-8">
+          <h2 className="type-section-title text-white">{contact("formTitle")}</h2>
           <p className="mt-4 text-white/75">{contact("lead")}</p>
         </div>
         <QuoteForm
@@ -158,7 +158,7 @@ export default async function ProductDetailPage({
       </section>
 
       <section className="container-pd pb-20">
-        <h2 className="font-heading text-3xl font-semibold text-primary">{t("related")}</h2>
+        <h2 className="type-section-title text-primary">{t("related")}</h2>
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {related.map((item) => (
             <ProductCard key={item.slug} product={item} locale={locale} detailsLabel={common("explore")} compact />

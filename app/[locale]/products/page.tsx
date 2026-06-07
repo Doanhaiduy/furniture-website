@@ -135,16 +135,16 @@ export default async function ProductsPage({
 
   return (
     <main>
-      <section className="container-pd grid gap-8 py-16 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+      <section className="container-pd public-page-header grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
         <div>
           <p className="text-sm text-secondary">{t("breadcrumb")}</p>
-          <h1 className="mt-6 font-heading text-5xl font-bold leading-tight text-primary md:text-6xl">
+          <h1 className="type-page-title mt-6 text-primary">
             {t("title")}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-secondary">{t("lead")}</p>
         </div>
-        <div className="relative overflow-hidden rounded-2xl shadow-[0_22px_58px_rgba(68,42,34,0.12)]">
-          <RemoteImage src={imageAssets.woodWall} alt="" className="h-72 w-full object-cover lg:h-80" priority />
+        <div className="public-image-panel relative">
+          <RemoteImage src={imageAssets.woodWall} alt={t("title")} className="h-72 w-full object-cover lg:h-80" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         </div>
       </section>
@@ -155,11 +155,11 @@ export default async function ProductsPage({
             <Link
               key={group.key}
               href={withLocale(locale, group.href)}
-              className="interactive-card group grid grid-cols-[92px_1fr] gap-4 rounded-2xl border border-outline-variant/35 bg-white p-3 shadow-[0_12px_30px_rgba(68,42,34,0.05)]"
+              className="interactive-card surface-card group grid grid-cols-[92px_1fr] gap-4 p-3"
             >
-              <RemoteImage src={group.image} alt="" className="h-24 w-full rounded-xl object-cover" sizes="92px" />
+              <RemoteImage src={group.image} alt={localized(group.title, locale)} className="public-media-thumb h-24 w-full object-cover" sizes="92px" />
               <span className="self-center">
-                <span className="font-heading text-xl font-semibold text-primary">{localized(group.title, locale)}</span>
+                <span className="type-card-title text-xl text-primary">{localized(group.title, locale)}</span>
                 <span className="mt-1 block text-sm leading-6 text-secondary">{localized(group.summary, locale)}</span>
               </span>
             </Link>
@@ -205,7 +205,7 @@ export default async function ProductsPage({
             {activeFilters.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {activeFilters.map((filter) => (
-                  <span key={filter.key} className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-bold text-primary">
+                  <span key={filter.key} className="filter-chip text-primary">
                     {filter.label}
                   </span>
                 ))}
@@ -238,7 +238,7 @@ export default async function ProductsPage({
                   aria-disabled={page.currentPage === 1}
                   tabIndex={page.currentPage === 1 ? -1 : undefined}
                   href={page.currentPage === 1 ? makeProductHref({ page: page.currentPage }) : makeProductHref({ page: page.currentPage - 1 })}
-                  className={`button-pd-outline min-w-11 px-3 ${page.currentPage === 1 ? "pointer-events-none opacity-50" : ""}`}
+                  className="button-pd-outline public-pagination-control min-w-11 px-3"
                 >
                   <ArrowLeft className="size-4" />
                   {t("previousPage")}
@@ -248,11 +248,7 @@ export default async function ProductsPage({
                     key={pageNumber}
                     href={makeProductHref({ page: pageNumber })}
                     aria-current={page.currentPage === pageNumber ? "page" : undefined}
-                    className={`inline-flex size-10 items-center justify-center rounded-md border text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container/25 ${
-                      page.currentPage === pageNumber
-                        ? "border-primary bg-primary text-white shadow-[0_12px_24px_rgba(68,42,34,0.14)]"
-                        : "border-outline-variant/45 bg-white text-primary hover:border-primary/45 hover:bg-surface-container"
-                    }`}
+                    className="public-pagination-link"
                   >
                     {pageNumber}
                   </Link>
@@ -261,7 +257,7 @@ export default async function ProductsPage({
                   aria-disabled={page.currentPage === page.totalPages}
                   tabIndex={page.currentPage === page.totalPages ? -1 : undefined}
                   href={page.currentPage === page.totalPages ? makeProductHref({ page: page.currentPage }) : makeProductHref({ page: page.currentPage + 1 })}
-                  className={`button-pd-outline min-w-11 px-3 ${page.currentPage === page.totalPages ? "pointer-events-none opacity-50" : ""}`}
+                  className="button-pd-outline public-pagination-control min-w-11 px-3"
                 >
                   {t("nextPage")}
                   <ArrowRight className="size-4" />
@@ -272,7 +268,7 @@ export default async function ProductsPage({
           ) : (
             <div className="card-pd state-card grid min-h-80 place-items-center p-8 text-center">
               <div>
-                <h2 className="font-heading text-3xl font-semibold text-primary">
+                <h2 className="type-section-title text-primary">
                   {common("emptyTitle")}
                 </h2>
                 <p className="mx-auto mt-3 max-w-md text-secondary">
@@ -290,7 +286,7 @@ export default async function ProductsPage({
         <div className="container-pd">
           <div className="mb-7 max-w-2xl">
             <p className="label-pd">{t("otherCategories")}</p>
-            <h2 className="mt-3 font-heading text-3xl font-semibold text-primary">{t("taxonomyTitle")}</h2>
+            <h2 className="type-section-title mt-3 text-primary">{t("taxonomyTitle")}</h2>
             <p className="mt-3 text-sm leading-6 text-secondary">{t("otherCategoriesLead")}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -300,14 +296,14 @@ export default async function ProductsPage({
               <Link
                 key={group.key}
                 href={withLocale(locale, group.href)}
-                className="interactive-card group grid min-h-52 overflow-hidden rounded-2xl border border-outline-variant/35 bg-white shadow-[0_12px_30px_rgba(68,42,34,0.05)]"
+                className="interactive-card surface-card group grid min-h-52 overflow-hidden"
               >
                 <span className="relative h-28 overflow-hidden">
-                  <RemoteImage src={group.image} alt="" className="image-lift h-full w-full object-cover" sizes="(min-width: 1280px) 25vw, 50vw" />
+                  <RemoteImage src={group.image} alt={localized(group.title, locale)} className="image-lift h-full w-full object-cover" sizes="(min-width: 1280px) 25vw, 50vw" />
                   <span className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 </span>
                 <span className="grid gap-2 p-4">
-                  <span className="font-heading text-xl font-semibold text-primary">{localized(group.title, locale)}</span>
+                  <span className="type-card-title text-xl text-primary">{localized(group.title, locale)}</span>
                   <span className="text-sm leading-6 text-secondary">{localized(group.summary, locale)}</span>
                   <span className="mt-1 inline-flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.12em] text-outline">
                     {t("productsCount", { count })}

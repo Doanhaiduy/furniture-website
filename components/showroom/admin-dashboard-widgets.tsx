@@ -10,34 +10,39 @@ import {
 import Link from "next/link";
 import { Popover as PopoverPrimitive } from "radix-ui";
 import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  ArrowUpRight,
   Bell,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
+  Info,
   Sparkles,
 } from "lucide-react";
 
 const weekData = [
-  { day: "M", date: "01 Jun", iso: "2026-06-01", dayNumber: 1, quotes: 4, seo: 82, drafts: 3, href: "/admin/quotes" },
-  { day: "T", date: "02 Jun", iso: "2026-06-02", dayNumber: 2, quotes: 7, seo: 84, drafts: 4, href: "/admin/blog" },
-  { day: "W", date: "03 Jun", iso: "2026-06-03", dayNumber: 3, quotes: 5, seo: 80, drafts: 2, href: "/admin/products" },
-  { day: "T", date: "04 Jun", iso: "2026-06-04", dayNumber: 4, quotes: 9, seo: 87, drafts: 5, href: "/admin/quotes" },
-  { day: "F", date: "05 Jun", iso: "2026-06-05", dayNumber: 5, quotes: 6, seo: 85, drafts: 3, href: "/admin/media" },
-  { day: "S", date: "06 Jun", iso: "2026-06-06", dayNumber: 6, quotes: 10, seo: 88, drafts: 6, href: "/admin/blog" },
-  { day: "S", date: "07 Jun", iso: "2026-06-07", dayNumber: 7, quotes: 5, seo: 83, drafts: 2, href: "/admin/settings" },
+  { day: "T2", date: "01/06", iso: "2026-06-01", dayNumber: 1, quotes: 4, seo: 82, drafts: 3, href: "/admin/quotes" },
+  { day: "T3", date: "02/06", iso: "2026-06-02", dayNumber: 2, quotes: 7, seo: 84, drafts: 4, href: "/admin/blog" },
+  { day: "T4", date: "03/06", iso: "2026-06-03", dayNumber: 3, quotes: 5, seo: 80, drafts: 2, href: "/admin/products" },
+  { day: "T5", date: "04/06", iso: "2026-06-04", dayNumber: 4, quotes: 9, seo: 87, drafts: 5, href: "/admin/quotes" },
+  { day: "T6", date: "05/06", iso: "2026-06-05", dayNumber: 5, quotes: 6, seo: 85, drafts: 3, href: "/admin/media" },
+  { day: "T7", date: "06/06", iso: "2026-06-06", dayNumber: 6, quotes: 10, seo: 88, drafts: 6, href: "/admin/blog" },
+  { day: "CN", date: "07/06", iso: "2026-06-07", dayNumber: 7, quotes: 5, seo: 83, drafts: 2, href: "/admin/settings" },
 ] as const;
 
 const metricOptions = [
-  { key: "quotes", label: "Quotes" },
+  { key: "quotes", label: "Yêu cầu báo giá" },
   { key: "seo", label: "SEO" },
-  { key: "drafts", label: "Drafts" },
+  { key: "drafts", label: "Bản nháp" },
 ] as const;
 
 type Metric = (typeof metricOptions)[number]["key"];
 type WeekIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const todayIndex: WeekIndex = 1;
-const calendarWeekdays = ["M", "T", "W", "T", "F", "S", "S"] as const;
+const calendarWeekdays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"] as const;
 const june2026Cells = Array.from({ length: 35 }, (_, index) => {
   const dayNumber = index + 1;
   return dayNumber <= 30 ? dayNumber : null;
@@ -63,7 +68,7 @@ export function AdminDateProvider({ children }: { children: ReactNode }) {
 function useAdminDateSelection() {
   const context = useContext(AdminDateSelectionContext);
   if (!context) {
-    throw new Error("useAdminDateSelection must be used inside AdminDateProvider");
+    throw new Error("useAdminDateSelection phải được dùng trong AdminDateProvider");
   }
 
   return context;
@@ -84,7 +89,7 @@ function AdminDatePicker({
   const scheduledByDay = new Map<number, { item: (typeof weekData)[number]; index: WeekIndex }>(
     weekData.map((item, index) => [item.dayNumber, { item, index: index as WeekIndex }])
   );
-  const triggerLabel = variant === "rail-icon" ? "Open calendar" : `Open calendar for ${selected.date}`;
+  const triggerLabel = variant === "rail-icon" ? "Mở lịch" : `Mở lịch cho ngày ${selected.date}`;
   const triggerClassName =
     variant === "chart"
       ? `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
@@ -134,13 +139,13 @@ function AdminDatePicker({
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Calendar</p>
-              <h3 id={calendarTitleId} className="mt-1 font-heading text-lg font-semibold">June 2026</h3>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Lịch</p>
+              <h3 id={calendarTitleId} className="mt-1 font-heading text-lg font-semibold">Tháng 6/2026</h3>
             </div>
             <p className="rounded-full bg-[#f5f2ff] px-3 py-1 text-xs font-bold text-[#8b5cf6]">{selected.date}</p>
           </div>
 
-          <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[#8a8ea3]" role="grid" aria-label="June 2026 admin schedule calendar">
+          <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[#8a8ea3]" role="grid" aria-label="Lịch xử lý quản trị tháng 6/2026">
             {calendarWeekdays.map((weekday, index) => (
               <span key={`${weekday}-${index}`} role="columnheader" className="py-1">
                 {weekday}
@@ -157,7 +162,7 @@ function AdminDatePicker({
                   type="button"
                   role="gridcell"
                   aria-selected={isSelected}
-                  aria-label={`${scheduled.item.date}, ${scheduled.item.quotes} quote leads`}
+                  aria-label={`${scheduled.item.date}, ${scheduled.item.quotes} yêu cầu báo giá`}
                   data-selected={isSelected ? "true" : "false"}
                   className={`grid size-9 place-items-center rounded-lg text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
                     isSelected
@@ -188,11 +193,11 @@ function AdminDatePicker({
 
           <div className="mt-4 grid gap-2 rounded-xl bg-[#f4f6fb] p-3">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="font-semibold text-[#686d82]">Quote leads</span>
+              <span className="font-semibold text-[#686d82]">Yêu cầu báo giá</span>
               <strong>{selected.quotes}</strong>
             </div>
             <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="font-semibold text-[#686d82]">SEO readiness</span>
+              <span className="font-semibold text-[#686d82]">Mức độ sẵn sàng SEO</span>
               <strong>{selected.seo}%</strong>
             </div>
           </div>
@@ -209,14 +214,14 @@ function AdminDatePicker({
                 setOpen(false);
               }}
             >
-              Today
+              Hôm nay
             </button>
             <Link
               href={selected.href}
               className="rounded-lg bg-[#8b5cf6] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#7d4df0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25"
               onClick={() => setOpen(false)}
             >
-              Open work
+              Mở việc
             </Link>
           </div>
           <PopoverPrimitive.Arrow className="fill-white" />
@@ -242,15 +247,13 @@ export function NotificationButton() {
         <PopoverPrimitive.Trigger asChild>
           <button
             type="button"
-            aria-label="Notifications"
+            aria-label="Thông báo"
             aria-haspopup="menu"
             aria-expanded={open}
-            className={`grid size-10 place-items-center rounded-xl border bg-white shadow-[0_10px_22px_rgba(21,23,43,0.05)] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 active:scale-[0.98] ${
-              open ? "border-[#8b5cf6]/45 text-[#8b5cf6]" : "border-[#dbe2ec] text-[#6b7086] hover:border-[#8b5cf6]/35 hover:text-[#8b5cf6]"
-            }`}
+            className={`admin-icon-button-pd relative ${open ? "text-[var(--admin-accent)]" : ""}`}
           >
             <Bell className="size-[17px]" />
-            {!read ? <span className="absolute right-2 top-2 size-2 rounded-full bg-[#ff8a00]" /> : null}
+            {!read ? <span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--state-warning)]" /> : null}
           </button>
         </PopoverPrimitive.Trigger>
         <PopoverPrimitive.Portal>
@@ -258,15 +261,15 @@ export function NotificationButton() {
             align="end"
             sideOffset={10}
             collisionPadding={16}
-            className="z-[90] w-72 rounded-xl border border-[#e0e6ef] bg-white p-3 text-[#15172b] shadow-[0_20px_60px_rgba(21,23,43,0.16)] outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:transition-none"
+            className="surface-elevated z-[90] w-72 p-3 text-[var(--admin-text)] outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:transition-none"
           >
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8a8ea3]">Notifications</p>
+          <p className="type-label text-[var(--admin-text-subtle)]">Thông báo</p>
           <div className="mt-3 grid gap-2 text-sm">
-            <Link href="/admin/quotes" className="rounded-lg bg-[#f4f6fb] p-3 font-semibold text-[#15172b] transition hover:bg-[#eef0ff]">
-              3 quote requests need review
+            <Link href="/admin/quotes" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
+              3 yêu cầu báo giá cần kiểm duyệt
             </Link>
-            <Link href="/admin/products" className="rounded-lg bg-[#f4f6fb] p-3 font-semibold text-[#15172b] transition hover:bg-[#eef0ff]">
-              2 products are missing EN metadata
+            <Link href="/admin/products" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
+              2 sản phẩm thiếu siêu dữ liệu tiếng Anh
             </Link>
           </div>
             <PopoverPrimitive.Arrow className="fill-white" />
@@ -277,34 +280,13 @@ export function NotificationButton() {
   );
 }
 
-export function AdminLocaleToggle() {
-  const [locale, setLocale] = useState<"VI" | "EN">("VI");
-
-  return (
-    <div className="hidden rounded-full border border-[#dbe2ec] bg-white p-1 text-xs font-bold text-[#15172b] shadow-[0_10px_22px_rgba(21,23,43,0.05)] sm:inline-flex">
-      {(["VI", "EN"] as const).map((item) => (
-        <button
-          key={item}
-          type="button"
-          aria-pressed={locale === item}
-          className={`rounded-full px-2.5 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
-            locale === item ? "bg-[#090a23] text-white" : "text-[#686d82] hover:bg-[#f4f6fb] hover:text-[#15172b]"
-          }`}
-          onClick={() => setLocale(item)}
-        >
-          {item}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export function DashboardInsightChart() {
   const [metric, setMetric] = useState<Metric>("quotes");
   const { selectedIndex: activeIndex, setSelectedIndex: setActiveIndex } = useAdminDateSelection();
   const values = weekData.map((item) => item[metric]);
   const max = Math.max(...values);
   const active = weekData[activeIndex];
+  const metricLabel = metricOptions.find((option) => option.key === metric)?.label ?? "chỉ số";
 
   const bars = useMemo(
     () =>
@@ -338,7 +320,7 @@ export function DashboardInsightChart() {
           <AdminDatePicker selectedIndex={activeIndex} onSelectIndex={setActiveIndex} variant="chart" />
         </div>
 
-        <svg className="mt-4 h-52 w-full" viewBox="0 0 404 190" role="img" aria-label={`Weekly ${metric} chart`}>
+        <svg className="mt-4 h-52 w-full" viewBox="0 0 404 190" role="img" aria-label={`Biểu đồ tuần: ${metricLabel}`}>
           <line x1="12" y1="166" x2="392" y2="166" stroke="#dfe5ef" strokeWidth="2" />
           {bars.map((bar) => (
             <g key={`${metric}-${bar.item.date}`}>
@@ -363,7 +345,7 @@ export function DashboardInsightChart() {
               key={item.date}
               type="button"
               aria-pressed={activeIndex === index}
-              aria-label={`${item.date}: ${item[metric]} ${metric}`}
+              aria-label={`${item.date}: ${item[metric]} ${metricLabel}`}
               data-selected={activeIndex === index ? "true" : "false"}
               className={`rounded-lg py-2 text-[10px] font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
                 activeIndex === index ? "bg-[#090a23] text-white" : "bg-white text-[#8a8ea3] hover:text-[#15172b]"
@@ -378,9 +360,9 @@ export function DashboardInsightChart() {
 
       <div className="grid gap-3">
         {[
-          ["Selected day", active.date],
-          ["Quote leads", String(active.quotes)],
-          ["SEO ready", `${active.seo}%`],
+          ["Ngày đang chọn", active.date],
+          ["Yêu cầu báo giá", String(active.quotes)],
+          ["SEO sẵn sàng", `${active.seo}%`],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-[#e0e6ef] bg-white p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a8ea3]">{label}</p>
@@ -395,90 +377,176 @@ export function DashboardInsightChart() {
 export function AdminUtilityRail({ active }: { active: string }) {
   const { selectedIndex, setSelectedIndex } = useAdminDateSelection();
   const selected = weekData[selectedIndex];
-  const context =
-    active === "ai-assistant"
-      ? "AI drafts require human review"
-      : active === "quotes"
-        ? "Admin-only lead workflow"
-        : "Publishing readiness";
+  const [showCalendar, setShowCalendar] = useState(true);
+
+  // We calculate dynamic progress and issues based on the active route
+  const pageData = useMemo(() => {
+    switch (active) {
+      case "products":
+        return {
+          title: "Độ sẵn sàng sản phẩm",
+          score: 82,
+          metricLabel: "Sản phẩm",
+          description: "Các sản phẩm đã đạt chuẩn nội dung tiếng Việt và cấu hình giá.",
+          issues: [
+            { id: "i1", text: "Sofa Curve Velour: Thiếu mô tả tiếng Anh", type: "warning", href: "/admin/products?edit=sofa-curve-velour" },
+            { id: "i2", text: "Gạch Calacatta: Chưa tối ưu SEO", type: "info", href: "/admin/products?edit=gach-calacatta" },
+          ]
+        };
+      case "blog":
+        return {
+          title: "Độ sẵn sàng bài viết",
+          score: 75,
+          metricLabel: "Bài viết",
+          description: "Các tin tức và cẩm nang sẵn sàng hiển thị trên trang chủ.",
+          issues: [
+            { id: "i3", text: "Cẩm nang chọn sofa: Thiếu trích dẫn bài viết", type: "warning", href: "/admin/blog?edit=cam-nang-chon-sofa" },
+          ]
+        };
+      case "quotes":
+        return {
+          title: "Hiệu suất CRM",
+          score: 90,
+          metricLabel: "Báo giá",
+          description: "Tỷ lệ phản hồi yêu cầu báo giá của khách hàng trong 24h.",
+          issues: [
+            { id: "i4", text: "QR-2406-001 (Lê Minh Tuấn) chưa phân công", type: "error", href: "/admin/quotes?id=QR-2406-001" },
+          ]
+        };
+      default:
+        return {
+          title: "Độ sẵn sàng hệ thống",
+          score: 85,
+          metricLabel: "Tổng quát",
+          description: "Điểm chất lượng dữ liệu và tốc độ phản hồi chung.",
+          issues: [
+            { id: "i1", text: "Sofa Curve Velour: Thiếu mô tả tiếng Anh", type: "warning", href: "/admin/products?edit=sofa-curve-velour" },
+            { id: "i3", text: "Cẩm nang chọn sofa: Thiếu trích dẫn bài viết", type: "warning", href: "/admin/blog?edit=cam-nang-chon-sofa" },
+            { id: "i4", text: "QR-2406-001 (Lê Minh Tuấn) chưa phân công", type: "error", href: "/admin/quotes?id=QR-2406-001" },
+          ]
+        };
+    }
+  }, [active]);
 
   return (
     <aside className="hidden w-[286px] shrink-0 border-l border-[#e3e8f0] bg-white/55 p-4 xl:block">
       <div className="sticky top-[84px] space-y-4">
-        <section className="rounded-2xl border border-[#e0e6ef] bg-white p-4 shadow-[0_14px_34px_rgba(21,23,43,0.06)]">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <button
-                type="button"
-                aria-pressed={selectedIndex === todayIndex}
-                data-selected={selectedIndex === todayIndex ? "true" : "false"}
-                className={`rounded-md text-left text-[11px] font-bold uppercase tracking-[0.16em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
-                  selectedIndex === todayIndex ? "text-[#8b5cf6]" : "text-[#8a8ea3] hover:text-[#8b5cf6]"
-                }`}
-                onClick={() => setSelectedIndex(todayIndex)}
-              >
-                Today
-              </button>
-              <AdminDatePicker selectedIndex={selectedIndex} onSelectIndex={setSelectedIndex} variant="rail-date" />
+        {/* Quote Lead Notification Alert if there are urgent CRM items */}
+        <section className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="size-5 shrink-0 text-rose-600 mt-0.5" />
+            <div className="space-y-1">
+              <h4 className="font-semibold text-xs text-rose-900">Yêu cầu báo giá mới</h4>
+              <p className="text-xs text-rose-700">Có <strong>1 yêu cầu báo giá chưa phân công</strong> cần xử lý ngay.</p>
+              <Link href="/admin/quotes?id=QR-2406-001" className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 hover:text-rose-950 underline mt-1 transition">
+                Phân công xử lý <ArrowUpRight className="size-3" />
+              </Link>
             </div>
-            <AdminDatePicker selectedIndex={selectedIndex} onSelectIndex={setSelectedIndex} variant="rail-icon" />
-          </div>
-          <div className="mt-5 grid grid-cols-7 gap-1 text-center text-[10px] font-bold">
-            {weekData.map((day, index) => (
-              <button
-                key={`${day.day}-${index}`}
-                type="button"
-                aria-pressed={selectedIndex === index}
-                aria-label={`${day.date} ${day.quotes} quote leads`}
-                data-selected={selectedIndex === index ? "true" : "false"}
-                className={`rounded-lg py-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
-                  selectedIndex === index ? "bg-[#090a23] text-white" : "bg-[#f1f4f9] text-[#8a8ea3] hover:bg-[#eef0ff] hover:text-[#15172b]"
-                }`}
-                onClick={() => setSelectedIndex(index as WeekIndex)}
-              >
-                <span>{day.day}</span>
-                <span className="mt-0.5 block text-[9px] opacity-70">{day.dayNumber.toString().padStart(2, "0")}</span>
-              </button>
-            ))}
           </div>
         </section>
 
+        {/* Readiness progress wheel */}
         <section className="rounded-2xl border border-[#e0e6ef] bg-white p-4 shadow-[0_14px_34px_rgba(21,23,43,0.06)]">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Readiness</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">{pageData.title}</p>
             <Sparkles className="size-4 text-[#ff8a00]" />
           </div>
-          <div className="mx-auto mt-5 grid size-30 place-items-center rounded-full bg-[conic-gradient(#8b5cf6_0_82%,#edf0f7_82%_100%)]">
+          <div className="mx-auto mt-5 grid size-30 place-items-center rounded-full" style={{
+            background: `conic-gradient(#8b5cf6 0% ${pageData.score}%, #edf0f7 ${pageData.score}% 100%)`
+          }}>
             <div className="grid size-22 place-items-center rounded-full bg-white text-center">
-              <strong className="font-heading text-lg text-[#15172b]">82%</strong>
-              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a8ea3]">SEO</span>
+              <strong className="font-heading text-lg text-[#15172b]">{pageData.score}%</strong>
+              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a8ea3]">{pageData.metricLabel}</span>
             </div>
           </div>
-          <p className="mt-4 rounded-xl bg-[#f4f6fb] p-3 text-sm font-semibold leading-6 text-[#686d82]">
-            {context}
+          <p className="mt-4 rounded-xl bg-[#f4f6fb] p-3 text-xs font-semibold leading-5 text-[#686d82]">
+            {pageData.description}
           </p>
         </section>
 
-        <section className="rounded-2xl bg-[#090a23] p-4 text-white shadow-[0_18px_44px_rgba(9,10,35,0.16)]">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">Queue</p>
-          <div className="mt-4 space-y-3">
-            {[
-              ["09:00", "Review quote requests", "/admin/quotes"],
-              ["10:30", "Approve EN metadata", "/admin/blog"],
-              ["14:00", "Media alt audit", "/admin/media"],
-            ].map(([time, label, href]) => (
-              <Link key={label} href={href} className="block rounded-xl bg-white/8 p-3 transition hover:bg-white/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-                <p className="text-xs font-bold text-[#ffe45e]">{time}</p>
-                <p className="mt-1 text-sm font-semibold text-white/82">{label}</p>
-              </Link>
+        {/* Operations Checklist widget */}
+        <section className="rounded-2xl border border-[#e0e6ef] bg-white p-4 shadow-[0_14px_34px_rgba(21,23,43,0.06)]">
+          <div className="flex items-center justify-between border-b border-slate-50 pb-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Checklist vận hành</p>
+            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+              {pageData.issues.length} việc cần làm
+            </span>
+          </div>
+          <div className="mt-3.5 space-y-3">
+            {pageData.issues.map((issue) => (
+              <div key={issue.id} className="group flex items-start gap-2.5 rounded-xl border border-slate-50 bg-slate-50/50 p-2.5 transition hover:border-[#8b5cf6]/20 hover:bg-violet-50/10">
+                {issue.type === "error" ? (
+                  <AlertCircle className="size-4 shrink-0 text-rose-500 mt-0.5" />
+                ) : issue.type === "warning" ? (
+                  <AlertTriangle className="size-4 shrink-0 text-amber-500 mt-0.5" />
+                ) : (
+                  <Info className="size-4 shrink-0 text-blue-400 mt-0.5" />
+                )}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-700 leading-relaxed group-hover:text-slate-900 transition break-words">{issue.text}</p>
+                  <Link href={issue.href} className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8b5cf6] hover:text-[#7c3aed] transition">
+                    Sửa ngay <ArrowRight className="size-3" />
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         </section>
 
-        <Link href={selected.href} className="flex items-center gap-2 rounded-xl border border-[#e0e6ef] bg-white p-3 text-sm font-bold text-[#15172b] shadow-[0_12px_28px_rgba(21,23,43,0.05)] transition hover:border-[#8b5cf6]/35 hover:text-[#8b5cf6]">
-          <CheckCircle2 className="size-4 text-emerald-600" />
-          Open {selected.date} work
-        </Link>
+        {/* Scheduler Compact & Collapsible Toggle */}
+        <section className="rounded-2xl border border-[#e0e6ef] bg-white p-3 shadow-[0_14px_34px_rgba(21,23,43,0.06)]">
+          <button 
+            type="button"
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="flex w-full items-center justify-between text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3] hover:text-[#8b5cf6] transition focus:outline-none"
+          >
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="size-3.5" />
+              Lịch làm việc ({selected.date})
+            </span>
+            <ChevronDown className={`size-3.5 transition-transform duration-200 ${showCalendar ? "rotate-180" : ""}`} />
+          </button>
+          
+          {showCalendar && (
+            <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-[10px] font-bold text-[#8a8ea3]">Chọn ngày xử lý:</span>
+                <button 
+                  type="button"
+                  onClick={() => setSelectedIndex(todayIndex)}
+                  className="text-[9px] font-bold text-[#8b5cf6] hover:underline focus:outline-none"
+                >
+                  Hôm nay
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold">
+                {weekData.map((day, index) => (
+                  <button
+                    key={`${day.day}-${index}`}
+                    type="button"
+                    aria-pressed={selectedIndex === index}
+                    aria-label={`${day.date} ${day.quotes} yêu cầu báo giá`}
+                    data-selected={selectedIndex === index ? "true" : "false"}
+                    className={`rounded-lg py-1.5 transition ${
+                      selectedIndex === index ? "bg-[#090a23] text-white" : "bg-[#f1f4f9] text-[#8a8ea3] hover:bg-[#eef0ff] hover:text-[#15172b]"
+                    }`}
+                    onClick={() => setSelectedIndex(index as WeekIndex)}
+                  >
+                    <span>{day.day}</span>
+                    <span className="mt-0.5 block text-[8px] opacity-70">{day.dayNumber}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="rounded-lg bg-slate-50 p-2 text-[10px] font-semibold text-slate-500 leading-normal">
+                Ngày {selected.date} có <strong>{selected.quotes} yêu cầu</strong> & <strong>{selected.drafts} bản nháp</strong>.
+              </div>
+              <Link href={selected.href} className="flex items-center gap-2 rounded-xl border border-[#e0e6ef] bg-white p-3 text-sm font-bold text-[#15172b] shadow-[0_12px_28px_rgba(21,23,43,0.05)] transition hover:border-[#8b5cf6]/35 hover:text-[#8b5cf6]">
+                <CheckCircle2 className="size-4 text-emerald-600" />
+                Mở việc ngày {selected.date}
+              </Link>
+            </div>
+          )}
+        </section>
       </div>
     </aside>
   );

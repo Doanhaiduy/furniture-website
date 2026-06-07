@@ -48,9 +48,10 @@ export function PremiumSelect({
       <SelectTrigger
         aria-label={ariaLabel}
         className={cn(
+          "select-pd px-3 text-sm transition",
           tone === "admin"
-            ? "h-10 w-full rounded-xl border-[#d9e0eb] bg-white px-3 text-[13px] text-[#15172b] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] transition hover:border-[#8b5cf6]/35 focus:ring-[#8b5cf6]/20 data-[state=open]:border-[#8b5cf6]/45 data-[state=open]:bg-white data-[state=open]:ring-2 data-[state=open]:ring-[#8b5cf6]/20"
-            : "h-11 w-full rounded-md border-outline-variant/45 bg-white/85 px-3 text-on-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] transition hover:border-primary/35 focus:ring-primary-container/20 data-[state=open]:border-primary/45 data-[state=open]:bg-white data-[state=open]:ring-2 data-[state=open]:ring-primary-container/20",
+            ? "h-10 w-full text-[13px] text-[var(--admin-text)] hover:border-[var(--admin-accent)] data-[state=open]:border-[var(--admin-accent)] data-[state=open]:bg-white"
+            : "h-11 w-full text-on-surface hover:border-primary/35 focus:ring-primary-container/20 data-[state=open]:border-primary/45 data-[state=open]:bg-white data-[state=open]:ring-2 data-[state=open]:ring-primary-container/20",
           className
         )}
       >
@@ -59,10 +60,10 @@ export function PremiumSelect({
       <SelectContent
         position="popper"
         className={cn(
-          "rounded-xl p-1",
+          "surface-elevated rounded-[var(--radius-panel)] p-1",
           tone === "admin"
-            ? "border border-[#dfe6f1] bg-white shadow-[0_18px_48px_rgba(21,23,43,0.13)]"
-            : "border border-outline-variant/35 bg-surface-container-lowest shadow-[0_18px_48px_rgba(68,42,34,0.14)]"
+            ? "border-[var(--admin-border)] bg-white text-[var(--admin-text)]"
+            : "border-outline-variant/35 bg-surface-container-lowest"
         )}
       >
         {options.map((option) => (
@@ -70,9 +71,9 @@ export function PremiumSelect({
             key={option.value}
             value={option.value}
             className={cn(
-              "rounded-lg px-2 py-2 text-sm",
+              "rounded-[var(--radius-control)] px-2 py-2 text-sm",
               tone === "admin"
-                ? "text-[#15172b] focus:bg-[#f4f6fb] focus:text-[#8b5cf6]"
+                ? "text-[var(--admin-text)] focus:bg-[var(--admin-bg-soft)] focus:text-[var(--admin-accent)]"
                 : "text-on-surface focus:bg-surface-container focus:text-primary"
             )}
           >

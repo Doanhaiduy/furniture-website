@@ -53,7 +53,7 @@ export function ProductGallery({
 
   return (
     <div className="grid gap-4">
-      <div className="group relative overflow-hidden rounded-2xl bg-surface-container-low shadow-[0_22px_58px_rgba(68,42,34,0.12)]">
+      <div className="public-image-panel group relative">
         <button
           type="button"
           className="block w-full cursor-zoom-in text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container/35"
@@ -71,13 +71,13 @@ export function ProductGallery({
           <DialogTrigger asChild>
             <button
               type="button"
-              className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-md bg-white/92 px-3 py-2 text-xs font-bold text-primary shadow-[0_14px_34px_rgba(0,0,0,0.16)] backdrop-blur transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container/35"
+              className="public-inverse-button absolute right-4 top-4 min-h-9 px-3 py-2 text-xs"
             >
               <Maximize2 className="size-4" />
               {labels.enlargeImage}
             </button>
           </DialogTrigger>
-          <DialogContent className="max-w-5xl gap-3 rounded-2xl bg-surface-container-lowest p-3 sm:max-w-5xl">
+          <DialogContent className="surface-elevated max-w-5xl gap-3 p-3 sm:max-w-5xl">
             <DialogTitle className="sr-only">{localized(product.name, locale)}</DialogTitle>
             <DialogDescription className="sr-only">{labels.galleryHelp}</DialogDescription>
             <RemoteImage
@@ -99,17 +99,17 @@ export function ProductGallery({
               type="button"
               aria-label={`${labels.galleryLabel} ${index + 1}`}
               aria-pressed={selected}
-              className={`group overflow-hidden rounded-xl border bg-surface-container-lowest p-1 transition ${
-                selected
-                  ? "border-primary shadow-[0_16px_34px_rgba(68,42,34,0.14)]"
-                  : "border-outline-variant/35 hover:-translate-y-0.5 hover:border-primary/35"
+                className={`surface-card group overflow-hidden p-1 transition ${
+                  selected
+                  ? "border-primary shadow-[var(--shadow-card)]"
+                  : "border-outline-variant/35 hover:border-primary/35"
               }`}
               onClick={() => setActiveImage(image)}
             >
               <RemoteImage
                 src={image}
-                alt=""
-                className="h-24 w-full rounded-lg object-cover transition duration-300 group-hover:scale-[1.03]"
+                alt={`${localized(product.name, locale)} ${index + 1}`}
+                className="public-media-thumb h-24 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                 sizes="160px"
               />
               <span
@@ -152,7 +152,7 @@ export function ProductInformationTabs({
 }) {
   return (
     <Tabs defaultValue="overview" className="surface-soft overflow-hidden p-2">
-      <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-xl bg-surface-container-low p-2 md:grid-cols-5">
+      <TabsList className="surface-panel grid h-auto w-full grid-cols-2 gap-2 p-2 md:grid-cols-5">
         {[
           ["overview", labels.tabsOverview],
           ["specifications", labels.tabsSpecifications],
@@ -163,7 +163,7 @@ export function ProductInformationTabs({
           <TabsTrigger
             key={value}
             value={value}
-            className="min-h-11 rounded-lg px-3 py-2 text-xs font-bold data-active:bg-white data-active:text-primary data-active:shadow-[0_12px_28px_rgba(68,42,34,0.08)]"
+            className="public-tab-pd"
           >
             {label}
           </TabsTrigger>
@@ -185,7 +185,7 @@ export function ProductInformationTabs({
             {product.tags.map((tag) => (
               <div
                 key={tag}
-                className="rounded-xl border border-outline-variant/25 bg-white/72 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
+                className="surface-card p-4"
               >
                 <CheckCircle2 className="size-5 text-primary" />
                 <p className="mt-2 font-semibold">{tag}</p>
@@ -200,7 +200,7 @@ export function ProductInformationTabs({
         <h2 className="mt-3 font-heading text-3xl font-semibold text-primary">
           {labels.specificationsTitle}
         </h2>
-        <div className="mt-6 overflow-hidden rounded-xl border border-outline-variant/30 bg-white/78">
+        <div className="surface-card mt-6 overflow-hidden">
           {product.specs.map((spec) => (
             <div
               key={localized(spec.label, locale)}
@@ -222,7 +222,7 @@ export function ProductInformationTabs({
             </h2>
             <p className="mt-5 text-base leading-8 text-secondary">{labels.materialsLead}</p>
           </div>
-          <div className="rounded-2xl bg-primary p-6 text-white shadow-[0_20px_54px_rgba(68,42,34,0.16)]">
+          <div className="surface-inverse p-6">
             <Wrench className="size-8 text-white/82" />
             <p className="mt-5 text-lg leading-8 text-white/78">{labels.craftsmanshipNote}</p>
           </div>
@@ -238,7 +238,7 @@ export function ProductInformationTabs({
             </h2>
             <p className="mt-5 text-base leading-8 text-secondary">{labels.dimensionsCareLead}</p>
           </div>
-          <div className="rounded-2xl border border-outline-variant/25 bg-white/78 p-6">
+          <div className="surface-card p-6">
             <ShieldCheck className="size-8 text-primary" />
             <p className="mt-5 text-base leading-8 text-secondary">{labels.careNote}</p>
           </div>
@@ -247,14 +247,14 @@ export function ProductInformationTabs({
 
       <TabsContent value="delivery" className="p-5 md:p-8">
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-outline-variant/25 bg-white/78 p-6">
+          <div className="surface-card p-6">
             <Truck className="size-8 text-primary" />
             <h3 className="mt-5 font-heading text-2xl font-semibold text-primary">
               {labels.deliveryWarrantyTitle}
             </h3>
             <p className="mt-4 text-base leading-8 text-secondary">{labels.deliveryWarrantyLead}</p>
           </div>
-          <div className="rounded-2xl border border-outline-variant/25 bg-white/78 p-6">
+          <div className="surface-card p-6">
             <ShieldCheck className="size-8 text-primary" />
             <p className="mt-5 text-base leading-8 text-secondary">{labels.warrantyNote}</p>
             <p className="mt-4 text-sm leading-6 text-outline">{labels.deliveryNote}</p>

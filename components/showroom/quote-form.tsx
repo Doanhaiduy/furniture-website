@@ -84,7 +84,7 @@ export function QuoteForm({
       onSubmit={handleSubmit(submit)}
       noValidate
     >
-      <h2 className="font-heading text-2xl font-semibold text-primary">
+      <h2 className="type-section-title text-primary">
         {labels.formTitle}
       </h2>
       <input type="hidden" {...register("locale")} />
@@ -166,7 +166,7 @@ function Field({
 }) {
   return (
     <label className="group grid gap-2">
-      <span className="text-sm font-semibold text-on-surface">{label}</span>
+        <span className="field-label-pd">{label}</span>
       {children}
       {error ? <span role="alert" className="field-feedback text-xs text-error">{error}</span> : null}
     </label>

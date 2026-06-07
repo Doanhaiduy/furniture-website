@@ -30,11 +30,11 @@ export function ProductCard({
       : "relative aspect-[4/5] overflow-hidden";
   const bodyClass = compact || isCatalog ? "grid gap-3 p-4" : "grid gap-4 p-5";
   const titleClass = compact || isCatalog
-    ? "mt-1.5 line-clamp-2 font-heading text-lg font-semibold leading-tight text-on-surface transition group-hover:text-primary"
-    : "mt-2 font-heading text-2xl font-semibold leading-tight text-on-surface transition group-hover:text-primary";
+    ? "type-card-title mt-1.5 line-clamp-2 text-lg transition group-hover:text-primary"
+    : "type-card-title mt-2 text-2xl transition group-hover:text-primary";
   const summaryClass = isCatalog
-    ? "mt-2 line-clamp-2 text-xs leading-5 text-secondary"
-    : "mt-3 line-clamp-2 text-sm leading-6 text-secondary";
+    ? "type-caption mt-2 line-clamp-2"
+    : "type-body mt-3 line-clamp-2 text-sm";
   const specClass = isCatalog ? "grid gap-1.5 text-xs text-secondary" : "grid gap-2 text-xs text-secondary";
   const iconClass = isCatalog ? "size-3.5 shrink-0 text-primary" : "size-4 shrink-0 text-primary";
 
@@ -47,12 +47,12 @@ export function ProductCard({
       <div className={imageClass}>
         <RemoteImage
           src={product.image}
-          alt=""
+          alt={localized(product.name, locale)}
           className="image-lift h-full w-full object-cover"
           sizes={isCatalog ? "(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" : undefined}
         />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent opacity-80" />
-        <div className={isCatalog ? "absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-0.5 text-[0.68rem] font-bold text-primary shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur" : "absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-primary shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur"}>
+        <div className={isCatalog ? "reference-chip-pd absolute left-3 top-3 px-2.5 py-0.5 text-[0.68rem]" : "reference-chip-pd absolute left-4 top-4"}>
           {product.referenceCode}
         </div>
         {product.featured ? <div className={isCatalog ? "absolute bottom-3 left-3 h-1 w-10 rounded-full bg-white/85" : "absolute bottom-4 left-4 h-1 w-14 rounded-full bg-white/85"} /> : null}

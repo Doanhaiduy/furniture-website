@@ -34,8 +34,8 @@ export default async function ContactPage({
 
   return (
     <main>
-      <section className="container-pd py-16 text-center">
-        <h1 className="font-heading text-5xl font-bold text-primary md:text-6xl">{t("title")}</h1>
+      <section className="container-pd public-page-header text-center">
+        <h1 className="type-page-title text-primary">{t("title")}</h1>
         <p className="mx-auto mt-5 max-w-3xl text-lg leading-8 text-secondary">{t("lead")}</p>
       </section>
 
@@ -60,7 +60,7 @@ export default async function ContactPage({
         />
         <aside className="space-y-6">
           <div className="surface-soft p-6">
-            <h2 className="font-heading text-3xl font-semibold text-primary">
+            <h2 className="type-section-title text-primary">
               {locale === "vi" ? "Thông tin liên hệ" : "Contact information"}
             </h2>
             <div className="mt-6 space-y-5">
@@ -85,12 +85,12 @@ export default async function ContactPage({
               </div>
             </div>
           </div>
-          <Link href={`/${locale}/showrooms`} className="interactive-card group relative block overflow-hidden rounded-xl">
-            <RemoteImage src={imageAssets.showroom} alt="" className="image-lift h-72 w-full object-cover" />
+          <Link href={`/${locale}/showrooms`} className="interactive-card public-image-panel group relative block">
+            <RemoteImage src={imageAssets.showroom} alt={localized(showrooms[0].name, locale)} className="image-lift h-72 w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
             <div className="absolute bottom-0 p-6 text-white">
               <p className="label-pd text-white/75">{locale === "vi" ? "Ghé thăm chúng tôi" : "Visit us"}</p>
-              <h3 className="font-heading text-3xl font-semibold">{locale === "vi" ? "Trải nghiệm thực tế" : "Real showroom experience"}</h3>
+              <h3 className="type-section-title text-white">{locale === "vi" ? "Trải nghiệm thực tế" : "Real showroom experience"}</h3>
             </div>
           </Link>
         </aside>

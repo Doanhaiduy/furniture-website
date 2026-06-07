@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { RemoteImage } from "./remote-image";
@@ -12,12 +13,22 @@ export type HeroSlide = {
   meta: string;
 };
 
+export type HeroGroupLink = {
+  href: string;
+  image: string;
+  title: string;
+  summary: string;
+  ctaLabel: string;
+};
+
 export function HeroShowcase({
   slides,
+  groups = [],
   pauseLabel,
   playLabel,
 }: {
   slides: HeroSlide[];
+  groups?: HeroGroupLink[];
   pauseLabel: string;
   playLabel: string;
 }) {
@@ -69,14 +80,12 @@ export function HeroShowcase({
   };
 
   return (
-    <section className="relative isolate overflow-hidden bg-[#f7f5f1] py-5 text-white md:py-8">
-      <h1 className="sr-only">{activeSlide.title}</h1>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.96)_0%,rgba(247,245,241,0.92)_45%,rgba(229,224,216,0.9)_100%)]" />
-      <div className="absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-[#f7f5f1] to-transparent md:w-44" />
-      <div className="absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-[#f7f5f1] to-transparent md:w-44" />
+    <section className="public-hero relative isolate overflow-hidden text-white">
+      <div className="absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-surface-page to-transparent md:w-44" />
+      <div className="absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-surface-page to-transparent md:w-44" />
 
       <div
-        className="relative mx-auto h-[min(70svh,620px)] min-h-[390px] max-w-[1720px] md:h-[calc(100svh-10.5rem)] md:min-h-[520px] md:max-h-[760px]"
+        className="public-hero-stage relative mx-auto max-w-[1720px]"
         aria-roledescription="carousel"
         aria-label={activeSlide.eyebrow}
       >
@@ -84,7 +93,7 @@ export function HeroShowcase({
           <div
             key={slide.title}
             aria-hidden={active !== index}
-            className={`absolute top-1/2 overflow-hidden bg-primary shadow-[0_32px_90px_rgba(38,49,45,0.22)] transition-all duration-700 ease-[var(--ease-premium)] motion-reduce:transition-none ${getSlideClass(index)}`}
+            className={`public-hero-slide absolute top-1/2 overflow-hidden transition-all duration-700 ease-[var(--ease-premium)] motion-reduce:transition-none ${getSlideClass(index)}`}
           >
             <RemoteImage
               src={slide.image}
@@ -92,17 +101,18 @@ export function HeroShowcase({
               className={`h-full w-full object-cover transition-transform duration-[5200ms] ease-[var(--ease-premium)] motion-reduce:transition-none ${
                 active === index && !paused ? "scale-[1.035]" : "scale-100"
               }`}
-              priority={index < 3}
+              priority={index === 0}
               sizes={index === active ? "(min-width: 1024px) 70vw, 100vw" : "30vw"}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-black/7 to-black/12" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/62 via-black/20 to-black/24" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/16" />
           </div>
         ))}
 
         <button
           type="button"
           aria-label="Previous slide"
-          className="absolute left-4 top-1/2 z-40 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/22 text-white shadow-[0_14px_36px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-black/36 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55 md:left-[max(1rem,calc(50%-620px))]"
+          className="public-hero-control absolute right-16 top-1/2 z-50 -translate-y-1/2 md:left-8 md:right-auto"
           onClick={goPrevious}
         >
           <ChevronLeft className="size-6" />
@@ -110,14 +120,14 @@ export function HeroShowcase({
         <button
           type="button"
           aria-label="Next slide"
-          className="absolute right-4 top-1/2 z-40 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/22 text-white shadow-[0_14px_36px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-black/36 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55 md:right-[max(1rem,calc(50%-620px))]"
+          className="public-hero-control absolute right-4 top-1/2 z-50 -translate-y-1/2 md:right-8"
           onClick={goNext}
         >
           <ChevronRight className="size-6" />
         </button>
 
-        <div className="absolute bottom-5 left-1/2 z-40 flex w-[calc(100%-2.5rem)] max-w-[1180px] -translate-x-1/2 justify-end">
-          <div className="flex items-center gap-2 rounded-full border border-white/18 bg-black/20 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.14)] backdrop-blur-md">
+        <div className="absolute right-4 top-4 z-50 md:right-[max(1rem,calc(50%-590px))]">
+          <div className="public-hero-dots flex items-center gap-2 px-3 py-2">
             <div className="flex gap-1.5">
               {slides.map((slide, index) => (
                 <button
@@ -125,9 +135,7 @@ export function HeroShowcase({
                   type="button"
                   aria-label={slide.title}
                   aria-current={active === index}
-                  className={`h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55 ${
-                    active === index ? "w-9 bg-white" : "w-5 bg-white/42 hover:bg-white/65"
-                  }`}
+                  className="public-hero-dot focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
                   onClick={() => setActive(index)}
                 />
               ))}
@@ -141,6 +149,30 @@ export function HeroShowcase({
             >
               {paused ? <Play className="size-4" /> : <Pause className="size-4" />}
             </button>
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 z-40">
+          <div className="container-pd flex h-full items-center justify-center pb-16 pt-20 md:pb-20">
+            <div className="mx-auto max-w-5xl text-center">
+              <p className="label-pd text-white/74">{activeSlide.eyebrow}</p>
+              <h1 className="type-hero-title mx-auto mt-4 max-w-4xl drop-shadow-[0_18px_34px_rgba(0,0,0,0.28)]">
+                {activeSlide.title}
+              </h1>
+              <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/82 md:text-lg md:leading-8">
+                {activeSlide.lead}
+              </p>
+              {groups.length > 0 ? (
+                <div className="pointer-events-auto mt-7 flex flex-wrap justify-center gap-2">
+                  {groups.map((group) => (
+                    <Link key={group.href} href={group.href} className="public-hero-group-link group">
+                      <span>{group.title}</span>
+                      <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

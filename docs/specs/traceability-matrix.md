@@ -676,3 +676,542 @@ Residual risks:
   `.storybook` directory, Storybook script/dependency, or `*.stories.*` files.
 - Visual review findings remain human-reviewed from generated screenshots; this
   slice does not add image-diff assertions or fix UI issues found in screenshots.
+
+## UI Token Foundation Refactor Pass 1 - 2026-06-05
+
+Completed a preserve-mode token foundation pass without changing routes, labels,
+forms, business logic, mock data, or page/component structure.
+
+Files touched include:
+
+- `app/globals.css`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- Added named brand, public surface, status, admin, radius, shadow, typography,
+  spacing, and z-index tokens in the global CSS layer.
+- Mapped the existing shadcn/Tailwind theme variables to the new token layer so
+  existing utility classes continue to resolve.
+- Added shared typography utilities and component utility aliases for surfaces,
+  buttons, inputs, chips, media frames, and nav links.
+- Repointed existing helper classes such as `container-pd`, `label-pd`,
+  `card-pd`, `button-pd`, `button-pd-outline`, `input-pd`, `surface-soft`,
+  `skeleton-pd`, `admin-panel`, and `admin-kpi-card` to token-backed styles.
+- Tokenized the global public and admin app shell backgrounds and admin helper
+  overrides while preserving the current JSX contracts.
+
+Requirement coverage:
+
+- Visual/responsive system consistency: `NFR-03`.
+- Maintainable frontend extension points: `NFR-07`.
+
+Verification completed:
+
+- `pnpm lint` passed on rerun after the first lint process exceeded the initial
+  automation timeout.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+
+Operational note:
+
+- The first Playwright run timed out waiting for the dev server. A sandboxed
+  prewarm attempt then failed with `spawn EPERM`; the dev server was started
+  with approved elevated execution, the suite passed against that server, and
+  the started server process tree was stopped afterward.
+
+Residual risks:
+
+- Public and admin JSX still contain page/component-level hardcoded colors,
+  radii, and shadows that are intentionally left for later preserve-mode passes.
+- Admin accent colors are now tokenized but keep the current violet values to
+  avoid an unplanned admin redesign in this pass.
+- This pass does not fix the homepage first-viewport visual issue, meaningful
+  image alt text gaps, or page-level spacing/hierarchy concerns found in the
+  audit.
+
+## UI Primitive Normalization Refactor Pass 2 - 2026-06-05
+
+Completed a preserve-mode primitive normalization pass on top of the Pass 1
+token layer. Routes, labels, content copy, form behavior, mock data, and
+business logic were left intact.
+
+Files touched include:
+
+- `app/globals.css`
+- `components/ui/button.tsx`
+- `components/ui/input.tsx`
+- `components/ui/select.tsx`
+- `components/ui/card.tsx`
+- `components/ui/table.tsx`
+- `components/showroom/public-shell.tsx`
+- `components/showroom/admin-shell.tsx`
+- `components/showroom/admin-dashboard-widgets.tsx`
+- `components/showroom/admin-interactions.tsx`
+- `components/showroom/admin-pages.tsx`
+- `components/showroom/premium-select.tsx`
+- `components/showroom/product-card.tsx`
+- `components/showroom/product-filter-panel.tsx`
+- `components/showroom/quote-form.tsx`
+- `components/showroom/social-share.tsx`
+- `app/[locale]/page.tsx`
+- `app/[locale]/about/page.tsx`
+- `app/[locale]/blog/page.tsx`
+- `app/[locale]/blog/[slug]/page.tsx`
+- `app/[locale]/contact/page.tsx`
+- `app/[locale]/products/page.tsx`
+- `app/[locale]/products/[slug]/page.tsx`
+- `app/[locale]/showrooms/page.tsx`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- Added token-backed control sizing, typography, surface, select, chip, status,
+  section spacing, and admin shell/navigation aliases.
+- Normalized shared shadcn primitives for button, input, select, card, and table
+  density, radius, borders, focus states, and typography.
+- Replaced broad page/component-level heading, label, chip, card, nav, input, and
+  button drift with shared utilities while preserving JSX structure.
+- Kept the public shell warm wood tone and the admin shell violet accent, but
+  moved both toward shared primitives for nav links, top bars, buttons, fields,
+  chips, and elevated surfaces.
+- Removed physical movement from core shared button/nav hover and active states
+  so interactive hit targets remain stable under automated browser interaction.
+
+Requirement coverage:
+
+- Visual/responsive system consistency: `NFR-03`.
+- Maintainable frontend extension points: `NFR-07`.
+
+Verification completed:
+
+- `pnpm lint` passed.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+
+Operational note:
+
+- The first full E2E rerun exposed one Chromium-only quote CTA navigation
+  timeout while the same test passed targeted and in Firefox/WebKit. The shared
+  button/nav aliases were adjusted so hover/active states do not move hit
+  targets, after which the targeted flow and full E2E suite passed.
+
+Residual risks:
+
+- `components/showroom/admin-dashboard-widgets.tsx` still has local calendar,
+  chart, and right-rail styling that should be tokenized in a later focused
+  admin dashboard pass.
+- `components/showroom/admin-pages.tsx` still has local login, access-denied,
+  table row, quick action, and media-state styling.
+- `components/showroom/admin-interactions.tsx` still has local AI draft card and
+  unsaved-change warning surfaces.
+- `components/showroom/public-shell.tsx` still has local mega-menu image-card,
+  footer newsletter, and social-link styling.
+- `components/showroom/product-detail-experience.tsx` and route-level public
+  hero/card sections still contain hardcoded radii, shadows, and surface colors
+  that should be handled in later preserve-mode page polish passes.
+
+## Public Layout Drift Refactor Pass 3 - 2026-06-06
+
+Completed a preserve-mode public-facing layout normalization pass. Routes,
+labels, content copy, data, forms, admin-specific deep styling, and navigation
+behavior were left intact.
+
+Files touched include:
+
+- `app/globals.css`
+- `components/showroom/hero-showcase.tsx`
+- `components/showroom/public-shell.tsx`
+- `components/showroom/product-detail-experience.tsx`
+- `app/[locale]/page.tsx`
+- `app/[locale]/about/page.tsx`
+- `app/[locale]/blog/page.tsx`
+- `app/[locale]/blog/[slug]/page.tsx`
+- `app/[locale]/contact/page.tsx`
+- `app/[locale]/products/page.tsx`
+- `app/[locale]/products/[slug]/page.tsx`
+- `app/[locale]/showrooms/page.tsx`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- Added public-facing layout aliases for hero, page headers, public header,
+  catalog bar, mega-menu, image panels, glass panels, inverse buttons, footer
+  controls, social links, and public tabs.
+- Made the homepage hero render the existing H1 and lead visibly instead of
+  screen-reader-only, and added the two existing primary product-group links
+  inside the first viewport.
+- Kept the existing later product-group section in place while satisfying the
+  first-viewport `FR-01` visibility requirement on desktop and mobile.
+- Normalized the public shell header, catalog bar, mega-menu, mobile menu panels,
+  footer social links, and newsletter field/button onto shared public aliases.
+- Normalized product detail top chrome: gallery frame, detail info surface, spec
+  cards, quote CTA panel, tabs, and supporting detail cards.
+- Normalized public page header spacing and top-level image/card surfaces across
+  products, blog, blog detail, contact, showrooms, and about.
+- Removed physical hover movement from public interactive cards so link hit
+  targets remain stable under browser automation while retaining hover feedback
+  through border and shadow.
+
+Requirement coverage:
+
+- Homepage company/product-group first viewport: `FR-01`.
+- Responsive public layout consistency: `NFR-03`.
+- Maintainable public UI extension points: `NFR-07`.
+- Browser smoke coverage through Playwright: `NFR-04`.
+
+Verification completed:
+
+- Focused Playwright viewport check passed for `/vi` at `1440x900` and
+  `390x844`: visible H1, both `/vi/products?category=wood` and
+  `/vi/products?category=sanitary` hero links fully inside the first viewport,
+  no H1/control overlap, and no horizontal overflow.
+- `pnpm lint` passed.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+
+Operational note:
+
+- The first E2E attempt reused an existing non-hydrating Next dev server on
+  port `3000`; only the confirmed repo-local Next process tree was stopped, and
+  Playwright then started a fresh server.
+- A subsequent full E2E run had known Chromium-only navigation flakes on public
+  links, while targeted reruns passed. Public interactive-card hover movement
+  was removed to stabilize link hit targets, after which the full suite passed.
+- Next.js emitted LCP advisory warnings for above-the-fold remote images during
+  E2E; this pass does not change image loading policy.
+
+Residual risks:
+
+- Some public content-section internals still use local one-off layout details,
+  especially blog related cards, product pagination controls, and deeper article
+  body cards.
+- Meaningful image alt text remains a later content/media governance pass.
+- Homepage hero image loading/LCP tuning remains a later performance pass.
+- Admin dashboard, admin pages, and admin interaction deep styling remain
+  intentionally deferred from this public-facing pass.
+
+## Public Content Polish Refactor Pass 4 - 2026-06-06
+
+Completed a preserve-mode public content polish pass. Routes, labels, content
+copy, mock data, form behavior, admin styling, and business logic were left
+intact.
+
+Files touched include:
+
+- `app/globals.css`
+- `components/showroom/article-toc.tsx`
+- `components/showroom/hero-showcase.tsx`
+- `components/showroom/product-card.tsx`
+- `components/showroom/product-detail-experience.tsx`
+- `components/showroom/public-shell.tsx`
+- `components/showroom/remote-image.tsx`
+- `app/[locale]/page.tsx`
+- `app/[locale]/about/page.tsx`
+- `app/[locale]/blog/page.tsx`
+- `app/[locale]/blog/[slug]/page.tsx`
+- `app/[locale]/contact/page.tsx`
+- `app/[locale]/products/page.tsx`
+- `app/[locale]/showrooms/page.tsx`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- Added public content, related-link, TOC-link, media-thumbnail, and pagination
+  aliases on top of the shared token layer.
+- Normalized blog list cards, article key-takeaway cards, article TOC cards,
+  related article links, and product pagination controls onto shared aliases.
+- Replaced meaningful public image empty alt text with existing localized
+  product, category, article, showroom, and page-section names where the image
+  communicates content.
+- Kept decorative hero/background texture imagery as empty alt text.
+- Tuned homepage hero loading by preloading only the initial hero slide instead
+  of all carousel slides, and made priority public images render with
+  `loading="eager"` plus high fetch priority through the shared image helper.
+- Removed a remaining product-gallery thumbnail hover movement while preserving
+  selection state and dialog behavior.
+
+Requirement coverage:
+
+- Homepage first-viewport product-group requirement: `FR-01`.
+- Product public presentation and pagination polish: `FR-03`, `FR-04`,
+  `FR-05`.
+- Blog list/detail presentation and article structure polish: `FR-06`.
+- Showroom/contact meaningful imagery support: `FR-08-PUB`.
+- Responsive public layout and no-overflow checks: `NFR-03`.
+- SEO/media accessibility support for meaningful image alt text: `NFR-06`.
+- Maintainable token-backed UI primitives: `NFR-07`.
+
+Verification completed:
+
+- `pnpm lint` passed.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Focused Playwright route smoke passed for `/vi`, `/vi/products`, `/vi/blog`,
+  `/vi/blog/bi-quyet-chon-go-oc-cho`, `/vi/showrooms`, `/vi/contact`, and
+  `/vi/about` at mobile width: no horizontal overflow.
+- Focused Playwright first-viewport smoke passed for `/vi` at `1440x900` and
+  `390x844`: visible H1 and both `/vi/products?category=wood` and
+  `/vi/products?category=sanitary` links inside the first viewport.
+- Focused Playwright image probe confirmed sampled priority public images now
+  expose eager loading and high fetch priority, with no route-level LCP console
+  warnings in the sampled Chromium run.
+
+Residual risks:
+
+- Public images still use the current mock remote asset URLs and `unoptimized`
+  Next image delivery; production Cloudinary transformations and CMS-managed
+  bilingual media alt fields remain a backend/content-governance slice.
+- Some public shell internals still use local catalog bar/menu button styling
+  where token aliases exist but a broader shell cleanup would touch navigation
+  interaction details.
+- Admin dashboard, admin pages, and admin interaction deep styling remain
+  intentionally deferred from this public-facing pass.
+
+## Supabase Database Migration Pack - 2026-06-06
+
+Generated the Supabase/PostgreSQL migration pack from
+`docs/specs/supabase-database-design.md` while preserving the approved no-cart,
+no-payment, no-order, no-inventory scope.
+
+Files added:
+
+- `supabase/migrations/0001_extensions_and_enums.sql`
+- `supabase/migrations/0002_helpers_and_triggers.sql`
+- `supabase/migrations/0003_core_tables.sql`
+- `supabase/migrations/0004_foreign_keys_indexes_triggers.sql`
+- `supabase/migrations/0005_constraints_and_partial_uniques.sql`
+- `supabase/migrations/0006_rls_helper_functions.sql`
+- `supabase/migrations/0007_rls_policies.sql`
+- `supabase/migrations/0008_public_admin_rpcs.sql`
+- `supabase/migrations/0009_optional_local_seed.sql`
+
+Implemented updates:
+
+- Created all approved Supabase-first tables, enums, FKs, indexes, trigger
+  functions, updated-at triggers, search-vector triggers, check constraints,
+  partial unique indexes, RLS helpers, RLS policies, public reader RPCs, public
+  quote submission RPC, admin quote search RPC, and guarded local seed data.
+- Enforced `profiles.id -> auth.users(id)`, translation uniqueness,
+  localized slug uniqueness, active reference/code uniqueness, one primary media
+  per page/product/showroom, product price checks, and product attribute value
+  shape checks.
+- Protected private quote/admin tables from anonymous and Editor direct access
+  under Role Model Option A.
+
+Requirement coverage:
+
+- Product/catalog CMS and public filtering/search: `FR-03`, `FR-04`, `FR-05`.
+- Blog CMS/public readers: `FR-06`.
+- Quote public/admin workflow: `FR-07-PUB`, `FR-07-ADM`.
+- Showroom public/admin data: `FR-08-PUB`, `FR-08-ADM`.
+- Social/settings governance: `FR-09`, `FR-10`.
+- AI draft persistence and review state: `FR-11`.
+- Bilingual content storage and localized slugs: `FR-12-PUB`, `FR-12-ADM`.
+- Query/index performance, security, SEO/i18n, and extensibility support:
+  `NFR-01`, `NFR-05`, `NFR-06`, `NFR-07`.
+
+Verification completed:
+
+- Static SQL review completed in the coding environment.
+- `psql` and Supabase CLI are not installed locally, so live migration execution
+  must be run in a Supabase/PostgreSQL environment.
+- `pnpm lint` passed.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+
+Residual risks:
+
+- Existing Payload-first ADRs still conflict with the newer Supabase-first
+  database design and should be reconciled before production rollout.
+- Publish translation triggers block publishing main public entities, but
+  deleting translation rows after publish still needs CMS/API validation or
+  additional guard triggers.
+- Public quote submission needs Edge Function/API rate limiting and bot
+  controls in front of the RPC for production abuse resistance.
+
+## Admin UX Audit & Redesign Completion - 2026-06-06
+
+Completed the redesign and implementation pass for the Showroom Phương Đông Admin CMS, focusing on bilingual authoring validation, CRM quote request workflow, local draft recovery, edit triggers, right sidebar operations checklist, and the global search command palette.
+
+Files touched include:
+
+- `components/showroom/admin-shell.tsx`
+- `components/showroom/admin-dashboard-widgets.tsx`
+- `components/showroom/admin-workflows.tsx`
+- `components/showroom/admin-pages.tsx`
+- `components/showroom/admin-interactions.tsx`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- **Part A & B (Bilingual Tabs & Validation)**: Vietnamese-first authoring, tabs for VI and EN, shared fields (pricing, category, showroom, media, status) outside of tabs, inline field errors, tab warning badges, and a publish-readiness summary block.
+- **Part C (AI Generation & Translation)**: VI to EN translation on the EN tab, full content generation from topic inputs (slugs, titles, descriptions, excerpts, SEO) with loading state, review dialog, and overwrite warnings.
+- **Part D (Settings Page)**: Business settings panel (Site identity, contact, SEO defaults, quote workflow, AI settings) with unsaved changes tracking, validation, and mock save.
+- **Part E (Quote Request CRM)**: Workflow status tabs, assignment dropdowns, timestamped internal notes with author history, quick actions, email draft generator, and missing info indicators.
+- **Part F (Draft Recovery)**: localStorage draft auto-save and compact recovery banner inside the content editor, removing the permanent draft editor column from the queue.
+- **Part G (Entity Edit Actions)**: Edit triggers added to product list, category cards, blog list, and showrooms, opening the correct edit dialog using Next.js search parameters (`?edit=slug`).
+- **Part H (Right Sidebar)**: Redesigned the utility rail as an operations checklist showing unassigned quote warnings, dynamic checklists, and a collapsible scheduler.
+- **Part I (Global Search Command Palette)**: Centered command search dialog triggered by header search click or Ctrl+K, supporting recent searches, category scopes, results grouping, and arrow key navigation.
+
+Requirement coverage:
+
+- Product and blog content admin management: `FR-03`, `FR-06`.
+- Showroom and website CMS management: `FR-08-ADM`, `FR-10`.
+- AI content and translation drafting: `FR-11`.
+- Bilingual content validation: `FR-12-ADM`.
+- Responsive admin layout and no-overflow: `NFR-03`.
+- Accessibility and token-backed UI primitives: `NFR-07`.
+
+Verification completed:
+
+- `pnpm lint` passed with 0 errors.
+- `pnpm typecheck` passed with 0 errors.
+- `pnpm test` passed: 8/8 unit tests passed.
+- `pnpm build` passed.
+
+---
+
+### Admin UX Bug-Fix & Workflow Refinement Pass
+
+Implementation date: 2026-06-06
+
+Changes made:
+
+- **Issue 1 (Global Search)**: Widened search palette (`max-w-2xl` → `max-w-3xl`), increased body height, added `scrollIntoView` on keyboard navigation, added grouped result headers with `admin-search-group-header` CSS class, added result count in footer. Files: `admin-shell.tsx`, `globals.css`.
+- **Issue 2 (Z-Index Normalization)**: Changed all ad-hoc `z-[100]` overlays to `z-[calc(var(--z-modal)+1)]` for overwrite warning, AI review dialog, and email draft dialog. Files: `admin-workflows.tsx`, `admin-pages.tsx`.
+- **Issue 3 (Edit Buttons)**: Standardized all edit buttons (Products, Categories, Showrooms, Blog) to use `admin-edit-action` CSS class with Pencil icon and consistent "Chỉnh sửa" text. Files: `admin-pages.tsx`, `globals.css`.
+- **Issue 4 (Enable English Toggle)**: Redesigned bare checkbox into polished toggle card with `admin-toggle-card` CSS class, `sr-only` checkbox + visual toggle track, Active badge, and `aria-label="Enable English fields"` for accessibility/E2E. Files: `admin-workflows.tsx`, `globals.css`.
+- **Issue 5 (SEO in Bilingual Tabs)**: SeoFieldset already handles bilingual visibility tied to `englishEnabled` state. English title label asterisk removed for E2E alignment. File: `admin-workflows.tsx`.
+- **Issue 6 (Generate SEO Button)**: Added dedicated "Generate SEO" button to SeoFieldset with loading state, overwrite warning, and success feedback. Generates localized SEO metadata from content title. File: `admin-workflows.tsx`.
+- **Issue 7 (Category/Showroom Authoring)**: Extracted ShowroomEntityForm and CategoryEntityForm components with Enable English toggle, AI fill button, and SeoFieldset. Files: `admin-workflows.tsx`.
+- **Issue 8 (Settings Site Sections)**: Added "Site Sections" tab to SettingsOperationsPanel with Hero (headline/subtitle/CTA/visibility), Featured Products (toggle/max), Blog (toggle/max/headings), and Trust Badges (toggle) controls. All bilingual, all with dirty tracking. File: `admin-workflows.tsx`.
+- **Issue 8b (E2E Alignment)**: AI translate now outputs `English draft` in title (matching E2E assertion), `Fill with AI` button name (matching `getByRole`), and `AI filled the English fields` success message (matching `getByText`). File: `admin-workflows.tsx`.
+
+Requirement coverage:
+
+- Admin bilingual content authoring: `FR-12-ADM`.
+- AI content and translation drafting: `FR-11`.
+- Showroom and category admin management: `FR-08-ADM`, `FR-03`.
+- Settings/site configuration: `FR-10`.
+- Responsive admin UX and accessibility: `NFR-03`, `NFR-07`.
+
+Verification completed:
+
+- `pnpm lint` passed with 0 errors (16 pre-existing warnings).
+- `pnpm typecheck` passed with 0 errors.
+- `pnpm test` passed: 8/8 unit tests passed.
+- `pnpm build` passed with all routes compiled.
+
+---
+
+### Admin Settings Preview Fix
+
+Implementation date: 2026-06-06
+
+Changes made:
+
+- Moved `Publication readiness` out of the side column so `/admin/settings?tab=sections` keeps the main working area to settings controls plus live preview.
+- Replaced settings image URL text fields with upload-style controls for logo, favicon, hero slides, story image, and showroom background image. The prototype validates JPEG, PNG, WebP, and AVIF up to 10 MB and previews the selected image immediately.
+- Updated homepage preview product sourcing to use available CMS/BE product records from the current datasource, prioritizing `featured` products and falling back to other non-archived products.
+- Removed hard caps from `Max featured items` and `Max blog posts`; preview counts now follow the configured max bounded only by available source records.
+- Added E2E coverage for increasing/decreasing featured preview count and uploading a hero image into the live preview.
+
+Files touched:
+
+- `components/showroom/admin-workflows.tsx`
+- `tests/e2e/public-admin.spec.ts`
+- `docs/specs/traceability-matrix.md`
+
+Requirement coverage:
+
+- Product/admin settings preview behavior: `FR-03`, `FR-10`.
+- CMS-managed media/upload UX alignment: `NFR-05`, `NFR-07`.
+- Admin responsive layout: `NFR-03`.
+
+Verification completed:
+
+- `pnpm lint` passed with 0 errors and 21 existing warnings.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 2 files, 8 tests.
+- `pnpm build` passed.
+- Focused production browser probe passed for `/admin/settings?tab=sections`: default 4 featured cards, max 5 shows 5, max 3 shows 3, and hero upload updates the preview image to `data:image/png`.
+- `pnpm test:e2e --project=chromium -g "admin settings homepage preview maps client content and mobile frame"` passed against the built local server on `127.0.0.1:3000`.
+
+Operational note:
+
+- The sandbox/elevated `next dev` server showed HMR websocket handshake failures and did not hydrate admin client handlers in this environment. The focused E2E was run against `next start` after `pnpm build`, where hydration and admin interactions worked correctly.
+
+## Admin Site Settings Simplification - 2026-06-07
+
+Implemented a focused Site Settings update for `/admin/settings?tab=sections`.
+
+Changes made:
+
+- Kept detailed editing only for `Hero Section & Banner Slides`.
+- Converted lower homepage sections to visibility-only toggles: About / Brand Story, Featured Products, Blog / News, Showroom, Quote Request, and Trust Badges / Partners.
+- Stated in the admin UI that lower section content comes from API data instead of manual Site Settings fields.
+- Removed the homepage preview from the rendered settings UI.
+- Updated E2E coverage to verify hero fields, visibility toggles, hidden detailed lower-section fields, absent preview UI, and hero image upload.
+
+Files touched:
+
+- `components/showroom/admin-workflows.tsx`
+- `tests/e2e/public-admin.spec.ts`
+- `docs/specs/traceability-matrix.md`
+
+Requirement coverage:
+
+- Site settings governance and simpler CMS operation: `FR-10`.
+- Homepage section visibility controls: `FR-01`.
+- Admin bilingual/content workflow boundary: `FR-12-ADM`.
+- Responsive/admin UX maintainability: `NFR-03`, `NFR-07`.
+
+Verification target:
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm build`
+- `pnpm test:e2e`
+
+## Execution Planning System - 2026-06-07
+
+Created a complete `plan/` execution planning system for the current project state. This is documentation/planning work only and does not change product runtime behavior.
+
+Changes made:
+
+- Replaced the partial `plan/` folder with top-level execution context, roadmap, phase overview, and next-action documents.
+- Added ten phase folders from foundation through QA/launch, each with README, goals, dependencies, deliverables, checklist, implementation guide, testing notes, and handoff prompt.
+- Added appendices for route inventory, use cases, database coverage, API backlog, env/secrets, test strategy, and risks.
+- Captured the current architecture drift: official docs still bind Payload CMS, while the repo has Supabase migrations and `@supabase/supabase-js`; Phase 01 must resolve this before implementation proceeds.
+
+Files touched:
+
+- `plan/**`
+- `docs/specs/traceability-matrix.md`
+
+Requirement coverage:
+
+- Planning and architecture governance: `FR-10`, `NFR-07`.
+- Security and secret-boundary planning: `NFR-05`.
+- Public/admin/i18n/SEO execution planning across all FR/NFR IDs.
+
+Verification completed:
+
+- `Get-ChildItem -Recurse plan | Select-Object FullName`
+- `Get-Content plan/README.md`
+- `Get-Content plan/01-master-roadmap.md`
+- `Get-Content plan/phases/phase-01-foundation/handoff-prompt.md`
+- `Get-Content plan/appendices/db-coverage-summary.md`
+
+Application verification was not run because this task created documentation only.

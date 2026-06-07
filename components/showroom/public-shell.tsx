@@ -187,7 +187,7 @@ export function PublicShell({
   return (
     <div className="public-app min-h-screen text-on-surface">
       <header
-        className="sticky top-0 z-50 border-b border-outline-variant/25 bg-surface/92 shadow-[0_12px_34px_rgba(68,42,34,0.06)] backdrop-blur-xl"
+        className="public-header sticky top-0 z-50"
         onKeyDown={(event) => {
           if (event.key === "Escape") closeCatalog();
         }}
@@ -214,7 +214,8 @@ export function PublicShell({
                 <Link
                   key={item.key}
                   href={href}
-                  className={`group relative px-0.5 py-2 text-sm font-semibold transition-colors ${
+                  aria-current={active ? "page" : undefined}
+                  className={`nav-link-pd group relative bg-transparent px-2 ${
                     active ? "text-primary" : "text-on-surface-variant hover:text-primary"
                   }`}
                 >
@@ -230,7 +231,7 @@ export function PublicShell({
           </nav>
 
           <div className="flex items-center gap-3">
-            <div className="hidden items-center rounded-full border border-outline-variant/35 bg-surface-container-low/90 px-3 py-1.5 text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-colors hover:border-primary/30 md:flex">
+            <div className="chip-pd hidden md:flex">
               <Link href={localeHref("vi")} className={`transition-colors ${locale === "vi" ? "text-primary" : "text-outline hover:text-primary"}`}>
                 VI
               </Link>
@@ -246,7 +247,7 @@ export function PublicShell({
             <button
               type="button"
               aria-label={open ? labels.nav.close : labels.nav.menu}
-              className="inline-flex size-10 items-center justify-center rounded-md border border-outline-variant/35 bg-surface-container-low/80 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] transition hover:border-primary/30 hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 lg:hidden"
+              className="btn-pd-icon lg:hidden"
               onClick={() => setOpen((value) => !value)}
             >
               {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -255,7 +256,7 @@ export function PublicShell({
         </div>
 
         <div
-          className="relative hidden border-t border-outline-variant/25 bg-primary/95 text-white lg:block"
+          className="public-catalog-bar relative hidden lg:block"
           onMouseEnter={cancelCatalogClose}
           onMouseLeave={scheduleCatalogClose}
           onBlur={(event) => {
@@ -288,7 +289,7 @@ export function PublicShell({
 
             <Link
               href={`/${locale}`}
-              className="grid size-10 shrink-0 place-items-center rounded-md text-white/86 transition hover:bg-white/12 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-control)] text-white/86 transition hover:bg-white/12 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
               aria-label={labels.nav.home}
             >
               <Home className="size-5" />
@@ -301,7 +302,7 @@ export function PublicShell({
                   href={section.href}
                   aria-expanded={catalogOpen && activeCatalog.mode === "types" && activeCatalog.key === section.key}
                   aria-controls="catalog-mega-menu"
-                  className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-bold transition hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 xl:px-4 ${
+                  className={`whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-sm font-bold transition hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 xl:px-4 ${
                     catalogOpen && activeCatalog.mode === "types" && activeCatalog.key === section.key ? "bg-white/14 text-white" : "text-white/86"
                   }`}
                   onMouseEnter={() => openCatalog("types", section.key)}
@@ -317,7 +318,7 @@ export function PublicShell({
           {catalogOpen ? (
             <div
               id="catalog-mega-menu"
-              className="animate-in fade-in slide-in-from-top-2 absolute inset-x-0 top-full z-50 border-b border-outline-variant/25 bg-surface-container-lowest text-on-surface shadow-[0_28px_90px_rgba(68,42,34,0.18)] duration-200 motion-reduce:animate-none"
+              className="public-mega-menu animate-in fade-in slide-in-from-top-2 absolute inset-x-0 top-full z-50 text-on-surface duration-200 motion-reduce:animate-none"
               onMouseEnter={cancelCatalogClose}
             >
               {activeCatalog.mode === "brands" ? (
@@ -325,7 +326,7 @@ export function PublicShell({
                   <aside className="border-r border-outline-variant/25 py-4 pr-4">
                     <Link
                       href={withLocale(locale, "/products")}
-                      className="mb-2 flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-bold text-primary transition hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                      className="mb-2 flex w-full items-center justify-between rounded-[var(--radius-control)] px-4 py-3 text-left text-sm font-bold text-primary transition hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
                       onMouseEnter={() => openCatalog("brands", "all")}
                       onFocus={() => openCatalog("brands", "all")}
                       onClick={closeCatalog}
@@ -338,7 +339,7 @@ export function PublicShell({
                         <button
                           key={section.key}
                           type="button"
-                          className={`flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 ${
+                          className={`flex items-center justify-between rounded-[var(--radius-control)] px-4 py-3 text-left text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 ${
                             activeCatalog.key === section.key ? "bg-surface-container text-primary" : "text-secondary hover:bg-surface-container-low hover:text-primary"
                           }`}
                           onMouseEnter={() => openCatalog("brands", section.key)}
@@ -370,12 +371,12 @@ export function PublicShell({
                             <Link
                               key={section.key}
                               href={section.href}
-                              className="interactive-card group grid grid-cols-[88px_1fr] overflow-hidden rounded-xl border border-outline-variant/30 bg-white shadow-[0_14px_34px_rgba(68,42,34,0.06)]"
+                              className="surface-card interactive-card group grid grid-cols-[88px_1fr] overflow-hidden"
                               onMouseEnter={() => openCatalog("brands", section.key)}
                               onFocus={() => openCatalog("brands", section.key)}
                               onClick={closeCatalog}
                             >
-                              <RemoteImage src={section.image} alt="" className="image-lift h-full min-h-24 w-full object-cover" sizes="8vw" />
+                              <RemoteImage src={section.image} alt={section.title} className="image-lift h-full min-h-24 w-full object-cover" sizes="8vw" />
                               <span className="block p-3">
                                 <span className="font-heading text-lg font-semibold text-primary">{section.title}</span>
                                 <span className="mt-1 block text-xs font-bold uppercase tracking-[0.12em] text-outline">{section.groupTitle}</span>
@@ -396,14 +397,14 @@ export function PublicShell({
                 </div>
               ) : (
                 <div className="container-pd grid min-h-[292px] gap-6 py-5 lg:grid-cols-[0.78fr_1.22fr]">
-                  <div className="relative min-h-[250px] overflow-hidden rounded-2xl bg-primary text-white shadow-[0_22px_54px_rgba(68,42,34,0.14)]">
-                    <RemoteImage src={activeType.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-78" sizes="36vw" />
+                  <div className="public-image-panel relative min-h-[250px] bg-primary text-white">
+                    <RemoteImage src={activeType.image} alt={activeType.title} className="absolute inset-0 h-full w-full object-cover opacity-78" sizes="36vw" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/38 to-transparent" />
                     <div className="absolute bottom-0 p-5">
                       <p className="label-pd text-white/65">{labels.nav.catalogPopular}</p>
                       <h2 className="mt-3 font-heading text-3xl font-semibold">{activeType.title}</h2>
                       <p className="mt-2 max-w-sm text-sm leading-6 text-white/76">{activeType.summary}</p>
-                      <Link href={activeType.href} className="mt-5 inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-bold text-primary transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45" onClick={closeCatalog}>
+                      <Link href={activeType.href} className="public-inverse-button mt-5 min-h-9 px-4 py-2" onClick={closeCatalog}>
                         {labels.nav.catalogViewGroup}
                         <ArrowRight className="size-4" />
                       </Link>
@@ -419,7 +420,7 @@ export function PublicShell({
                               <Link
                                 key={`${activeType.key}-${item.href}`}
                                 href={item.href}
-                                className="group flex items-center gap-3 rounded-xl border border-outline-variant/25 bg-white px-4 py-3 text-sm font-semibold text-on-surface shadow-[0_10px_24px_rgba(68,42,34,0.04)] transition hover:border-primary/25 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                                className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface"
                                 onClick={closeCatalog}
                               >
                                 <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
@@ -438,7 +439,7 @@ export function PublicShell({
                             <Link
                               key={`${activeType.key}-${item.href}`}
                               href={item.href}
-                              className="group flex items-center justify-between rounded-xl bg-surface-container-low px-4 py-3 text-sm font-bold text-primary transition hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                              className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-primary"
                               onClick={closeCatalog}
                             >
                               {item.label}
@@ -456,26 +457,26 @@ export function PublicShell({
         </div>
 
         {open ? (
-          <div className="animate-in fade-in slide-in-from-top-2 border-t border-outline-variant/30 bg-surface-container-lowest shadow-[0_18px_40px_rgba(68,42,34,0.08)] duration-200 motion-reduce:animate-none lg:hidden">
+          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden">
             <nav className="container-pd grid gap-2 py-4" aria-label="Mobile">
               {navItems.map((item) => (
                 <Link
                   key={item.key}
                   href={linkHref(item.href)}
-                  className="block rounded-md px-3 py-3 font-semibold text-on-surface-variant transition hover:bg-surface-container hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                  className="nav-link-pd flex min-h-11 w-full"
                   onClick={() => setOpen(false)}
                 >
                   {labels.nav[item.key]}
                 </Link>
               ))}
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-3">
+              <div className="surface-panel p-3">
                 <p className="label-pd">{labels.nav.catalog}</p>
                 <div className="mt-3 grid gap-1 sm:grid-cols-2">
                   {brandSections.slice(0, 6).map((section) => (
                     <Link
                       key={section.key}
                       href={section.href}
-                      className="rounded-md px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-surface-container hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                      className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
                       onClick={() => setOpen(false)}
                     >
                       {section.title}
@@ -483,14 +484,14 @@ export function PublicShell({
                   ))}
                 </div>
               </div>
-              <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low p-3">
+              <div className="surface-panel p-3">
                 <p className="label-pd">{labels.nav.catalogPopular}</p>
                 <div className="mt-3 grid gap-1">
                   {typeSections.map((section) => (
                     <Link
                       key={section.key}
                       href={section.href}
-                      className="rounded-md px-3 py-2 text-sm font-semibold text-secondary transition hover:bg-surface-container hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+                      className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
                       onClick={() => setOpen(false)}
                     >
                       {section.title}
@@ -498,7 +499,7 @@ export function PublicShell({
                   ))}
                 </div>
               </div>
-              <div className="flex items-center justify-between rounded-md bg-surface-container-low px-3 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+              <div className="chip-pd flex min-h-11 justify-between px-3 py-3">
                 <span className="flex items-center gap-2 text-sm font-semibold text-outline">
                   <Globe2 className="size-4" />
                   VI / EN
@@ -519,7 +520,7 @@ export function PublicShell({
 
       {children}
 
-      <footer className="bg-[#26312d] py-16 text-white">
+      <footer className="public-footer py-16">
         <div className="container-pd grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div>
             <h2 className="font-heading text-2xl font-bold">{labels.common.brand}</h2>
@@ -529,13 +530,13 @@ export function PublicShell({
                 : "Premium furniture, sanitary ware and tiles for refined living spaces."}
             </p>
             <div className="mt-5 flex gap-3">
-              <a className="rounded-md border border-white/20 p-2 transition hover:border-white/45 hover:bg-white/10" href="https://facebook.com" aria-label="Facebook">
+              <a className="public-social-link" href="https://facebook.com" aria-label="Facebook">
                 <Globe2 className="size-4" />
               </a>
-              <a className="rounded-md border border-white/20 p-2 transition hover:border-white/45 hover:bg-white/10" href="https://instagram.com" aria-label="Instagram">
+              <a className="public-social-link" href="https://instagram.com" aria-label="Instagram">
                 <Share2 className="size-4" />
               </a>
-              <a className="rounded-md border border-white/20 p-2 transition hover:border-white/45 hover:bg-white/10" href="https://zalo.me" aria-label="Zalo">
+              <a className="public-social-link" href="https://zalo.me" aria-label="Zalo">
                 <Share2 className="size-4" />
               </a>
             </div>
@@ -571,10 +572,10 @@ export function PublicShell({
             >
               <input
                 aria-label="Email"
-                className="min-w-0 flex-1 rounded-l-md border border-white/20 bg-white/5 px-3 py-2 text-sm outline-none transition placeholder:text-white/40 focus:border-white/45"
+                className="public-footer-field"
                 placeholder="Email"
               />
-              <button className="rounded-r-md bg-primary-container px-4 text-sm font-bold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35" type="submit">
+              <button className="public-footer-button" type="submit">
                 {locale === "vi" ? "Gửi" : "Send"}
               </button>
             </form>
@@ -606,14 +607,14 @@ function BrandMegaContent({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1fr]">
-      <div className="relative min-h-[260px] overflow-hidden rounded-2xl bg-primary text-white shadow-[0_22px_54px_rgba(68,42,34,0.14)]">
-        <RemoteImage src={section.image} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75" sizes="38vw" />
+      <div className="public-image-panel relative min-h-[260px] bg-primary text-white">
+        <RemoteImage src={section.image} alt={section.title} className="absolute inset-0 h-full w-full object-cover opacity-75" sizes="38vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
         <div className="absolute bottom-0 p-5">
           <p className="label-pd text-white/65">{section.groupTitle}</p>
           <h2 className="mt-3 font-heading text-3xl font-semibold">{section.title}</h2>
           <p className="mt-2 max-w-sm text-sm leading-6 text-white/76">{section.summary}</p>
-          <Link href={section.href} className="mt-5 inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-bold text-primary transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45" onClick={closeCatalog}>
+          <Link href={section.href} className="public-inverse-button mt-5 min-h-9 px-4 py-2" onClick={closeCatalog}>
             {labels.nav.catalogViewGroup}
             <ArrowRight className="size-4" />
           </Link>
@@ -626,7 +627,7 @@ function BrandMegaContent({
             <Link
               key={`${section.key}-${item.href}-${item.label}`}
               href={item.href}
-              className="group flex items-center gap-3 rounded-xl border border-outline-variant/25 bg-white px-4 py-3 text-sm font-semibold text-on-surface shadow-[0_10px_24px_rgba(68,42,34,0.04)] transition hover:border-primary/25 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface"
               onClick={closeCatalog}
             >
               <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />

@@ -12,14 +12,62 @@ import {
   Save,
   UploadCloud,
   WandSparkles,
-  X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PremiumSelect } from "./premium-select";
 
-export function PublishWorkflow() {
-  const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+export function PublishWorkflow({
+  status: propStatus,
+  onStatusChange,
+  errors = [],
+  onSaveDraft,
+  onPublish,
+  onArchive,
+}: {
+  status?: "draft" | "published" | "archived";
+  onStatusChange?: (status: "draft" | "published" | "archived") => void;
+  errors?: string[];
+  onSaveDraft?: () => void;
+  onPublish?: () => void;
+  onArchive?: () => void;
+} = {}) {
+  const [localStatus, setLocalStatus] = useState<"draft" | "published" | "archived">("draft");
+  const status = propStatus !== undefined ? propStatus : localStatus;
+  const setStatus = onStatusChange !== undefined ? onStatusChange : setLocalStatus;
+
   const [confirm, setConfirm] = useState<"publish" | "archive" | null>(null);
   const [feedback, setFeedback] = useState("Bản nháp đang chờ lưu.");
+
+  const hasErrors = errors.length > 0;
+
+  const handlePublishClick = () => {
+    if (hasErrors) {
+      setFeedback(`Chưa thể xuất bản: vui lòng xử lý ${errors.length} vấn đề trước.`);
+    } else {
+      setConfirm("publish");
+    }
+  };
+
+  const confirmCopy =
+    confirm === "publish"
+      ? {
+          title: "Xác nhận xuất bản",
+          description: "Nội dung chỉ hiển thị công khai sau khi kiểm tra song ngữ, tệp và SEO trong Payload đạt yêu cầu.",
+          action: "Xuất bản",
+        }
+      : {
+          title: "Xác nhận lưu trữ",
+          description: "Nội dung lưu trữ sẽ bị loại khỏi danh sách công khai và đầu ra sitemap.",
+          action: "Lưu trữ",
+        };
+  const dialogTitle = confirm === "publish" ? "Xác nhận xuất bản" : confirmCopy.title;
 
   return (
     <div className="card-pd interactive-card p-4">
@@ -27,13 +75,17 @@ export function PublishWorkflow() {
         <div>
           <p className="label-pd">Trạng thái xuất bản</p>
           <p className="mt-2 font-heading text-xl font-semibold text-primary">
-            {status === "published" ? "Đã đăng" : status === "archived" ? "Đã lưu trữ" : "Bản nháp"}
+            {status === "published" ? "Đã xuất bản" : status === "archived" ? "Đã lưu trữ" : "Bản nháp"}
           </p>
         </div>
         <StatusPill status={status} />
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
-        <button className="button-pd" type="button" onClick={() => setConfirm("publish")}>
+        <button 
+          className={`button-pd ${hasErrors ? "opacity-65 cursor-not-allowed bg-slate-500 hover:bg-slate-500" : ""}`} 
+          type="button" 
+          onClick={handlePublishClick}
+        >
           <Rocket className="size-4" />
           Xuất bản
         </button>
@@ -45,65 +97,62 @@ export function PublishWorkflow() {
           className="button-pd-outline"
           type="button"
           onClick={() => {
-            setStatus("draft");
-            setFeedback("Đã lưu nháp trong phiên demo.");
+            if (onSaveDraft) {
+              onSaveDraft();
+            } else {
+              setStatus("draft");
+              setFeedback("Đã lưu bản nháp trong phiên giao diện này.");
+            }
           }}
         >
           <Save className="size-4" />
           Lưu nháp
         </button>
       </div>
+      
+      {hasErrors && (
+        <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
+          <strong className="block font-semibold mb-1">Vấn đề đang chặn xuất bản:</strong>
+          <ul className="list-disc pl-4 space-y-1">
+            {errors.slice(0, 3).map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+            {errors.length > 3 && <li>...và {errors.length - 3} vấn đề khác.</li>}
+          </ul>
+        </div>
+      )}
+
       <p aria-live="polite" className="mt-4 rounded-lg bg-surface-container-low px-3 py-2 text-sm font-semibold text-secondary">
         {feedback}
       </p>
 
-      {confirm ? (
-        <div className="animate-in fade-in fixed inset-0 z-50 grid place-items-center bg-black/35 p-4 backdrop-blur-sm duration-200 motion-reduce:animate-none">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="publish-confirm-title"
-            className="animate-in fade-in zoom-in-95 slide-in-from-bottom-2 w-full max-w-md rounded-xl bg-white p-5 shadow-[0_28px_80px_rgba(7,30,39,0.24)] duration-300 motion-reduce:animate-none"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 id="publish-confirm-title" className="font-heading text-xl font-semibold text-primary">
-                  {confirm === "publish" ? "Xác nhận xuất bản" : "Xác nhận lưu trữ"}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-secondary">
-                  {confirm === "publish"
-                    ? "Nội dung sẽ hiển thị công khai nếu đủ dữ liệu song ngữ và SEO."
-                    : "Nội dung sẽ biến mất khỏi public list và sitemap."}
-                </p>
-              </div>
-              <button
-                aria-label="Dong hop thoai xac nhan"
-                className="rounded-md border border-outline-variant/50 p-2 transition hover:border-primary/35 hover:bg-surface-container"
-                type="button"
-                onClick={() => setConfirm(null)}
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button className="button-pd-outline" type="button" onClick={() => setConfirm(null)}>
-                Hủy
-              </button>
-              <button
-                className="button-pd"
-                type="button"
-                onClick={() => {
-                  setStatus(confirm === "publish" ? "published" : "archived");
-                  setFeedback(confirm === "publish" ? "Đã chuyển sang trạng thái xuất bản." : "Đã chuyển sang trạng thái lưu trữ.");
-                  setConfirm(null);
-                }}
-              >
-                Xác nhận
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
+        <DialogContent className="admin-dialog-content sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{confirmCopy.description}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-2">
+            <button className="button-pd-outline" type="button" onClick={() => setConfirm(null)}>
+              Hủy
+            </button>
+            <button
+              className="button-pd"
+              type="button"
+              onClick={() => {
+                if (!confirm) return;
+                setStatus(confirm === "publish" ? "published" : "archived");
+                setFeedback(confirm === "publish" ? "Đã chuyển sang trạng thái xuất bản." : "Đã chuyển sang trạng thái lưu trữ.");
+                if (confirm === "publish" && onPublish) onPublish();
+                if (confirm === "archive" && onArchive) onArchive();
+                setConfirm(null);
+              }}
+            >
+              {confirmCopy.action}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -114,24 +163,24 @@ export function QuoteStatusUpdater() {
   return (
     <div className="surface-soft p-4">
       <label className="grid gap-2">
-        <span className="label-pd">Cập nhật trạng thái quote</span>
+        <span className="label-pd">Cập nhật trạng thái báo giá</span>
         <PremiumSelect
           value={status}
           onValueChange={setStatus}
-          ariaLabel="Cập nhật trạng thái quote"
-          placeholder="Trạng thái quote"
+          ariaLabel="Cập nhật trạng thái báo giá"
+          placeholder="Trạng thái báo giá"
           tone="admin"
           options={[
             { value: "new", label: "Chưa xử lý" },
             { value: "contacted", label: "Đang tư vấn" },
             { value: "qualified", label: "Đủ điều kiện" },
             { value: "closed", label: "Hoàn thành" },
-            { value: "spam", label: "Spam" },
+            { value: "spam", label: "Thư rác" },
           ]}
         />
       </label>
       <p className="field-feedback mt-3 text-sm text-secondary">
-        Trạng thái hiện tại: <strong>{status}</strong>
+        Trạng thái hiện tại: <strong>{status === "new" ? "Chưa xử lý" : status === "contacted" ? "Đang tư vấn" : status === "qualified" ? "Đủ điều kiện" : status === "closed" ? "Hoàn thành" : "Thư rác"}</strong>
       </p>
     </div>
   );
@@ -146,11 +195,11 @@ export function AiDraftWorkflow() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/30" />
       <div className="flex items-center gap-3">
         <Bot className="size-6" />
-        <h3 className="font-heading text-lg font-semibold">AI hỗ trợ Content & SEO</h3>
+        <h3 className="font-heading text-lg font-semibold">AI hỗ trợ nội dung và SEO</h3>
       </div>
       <label className="mt-5 grid gap-2">
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-white/60">
-          Brief / chủ đề
+          Tóm tắt / chủ đề
         </span>
         <input
           className="min-h-10 rounded-xl border border-white/16 bg-white/10 px-3 py-2 text-sm text-white outline-none transition placeholder:text-white/45 focus:border-white/40 focus:bg-white/14 focus:ring-2 focus:ring-white/15"
@@ -194,7 +243,7 @@ export function AiDraftWorkflow() {
         ) : null}
         {state === "result" ? (
           <div className="field-feedback">
-            <p className="text-sm font-semibold">Đề xuất Meta Description</p>
+            <p className="text-sm font-semibold">Đề xuất mô tả meta</p>
             <p className="mt-2 text-sm italic text-white/80">
               Khám phá cách chọn sofa cân đối kích thước, chất liệu và màu sắc cho phòng khách nhỏ.
             </p>
@@ -204,7 +253,7 @@ export function AiDraftWorkflow() {
               onClick={() => setAccepted(true)}
             >
               <CheckCircle2 className="mr-1 inline size-4" />
-              {accepted ? "Đã chèn" : "Chèn vào editor"}
+              {accepted ? "Đã chèn" : "Chèn vào trình soạn thảo"}
             </button>
           </div>
         ) : null}
@@ -240,16 +289,16 @@ export function UnsavedChangesBar() {
 export function StatusPill({ status }: { status: "draft" | "published" | "archived" | string }) {
   const className =
     status === "published"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "status-success"
       : status === "archived"
-        ? "bg-slate-100 text-slate-600 border-slate-200"
-        : "bg-amber-50 text-amber-700 border-amber-200";
+        ? "status-muted"
+        : "status-warning";
 
   const label =
     status === "published" ? "Đã đăng" : status === "archived" ? "Lưu trữ" : "Nháp";
 
   return (
-    <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] transition-colors ${className}`}>
+    <span className={`status-pill w-fit text-[11px] ${className}`}>
       <span className="size-2 rounded-full bg-current" />
       {label}
     </span>
@@ -262,50 +311,59 @@ export function EditorLocaleTabs() {
   return (
     <div className="mb-5">
       <div className="flex gap-2 border-b border-outline-variant/30 pb-3" role="tablist" aria-label="Ngôn ngữ nội dung">
-        {(["VI", "EN"] as const).map((item) => (
+        {([
+          { key: "VI", label: "Tiếng Việt" },
+          { key: "EN", label: "Tiếng Anh" },
+        ] as const).map((item) => (
           <button
-            key={item}
+            key={item.key}
             type="button"
             role="tab"
-            aria-selected={locale === item}
-            className={`rounded-xl px-4 py-2 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${
-              locale === item
-                ? "bg-[#8b5cf6] text-white shadow-[0_10px_22px_rgba(139,92,246,0.16)]"
-                : "text-outline hover:bg-[#f4f6fb] hover:text-[#15172b]"
-            }`}
-            onClick={() => setLocale(item)}
+            aria-selected={locale === item.key}
+            className="admin-tab-pd"
+            onClick={() => setLocale(item.key)}
           >
-            {item}
+            {item.label}
           </button>
         ))}
       </div>
-      <p className="mt-2 text-xs font-semibold text-secondary">Đang chỉnh bản {locale}.</p>
+      <p className="mt-2 text-xs font-semibold text-secondary">Đang chỉnh bản {locale === "VI" ? "Tiếng Việt" : "Tiếng Anh"}.</p>
     </div>
   );
 }
 
-export function RichTextEditorMock({ defaultValue }: { defaultValue: string }) {
+export function RichTextEditorMock({
+  defaultValue,
+  value,
+  onChange,
+  placeholder,
+}: {
+  defaultValue?: string;
+  value?: string;
+  onChange?: (val: string) => void;
+  placeholder?: string;
+}) {
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(false);
   const [imageInserted, setImageInserted] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#dfe6f1] bg-white shadow-[0_10px_24px_rgba(21,23,43,0.035),inset_0_1px_0_rgba(255,255,255,0.86)]">
-      <div className="flex gap-2 border-b border-[#e4e9f2] bg-[#f6f8fb] px-3 py-2">
+    <div className="surface-card overflow-hidden">
+      <div className="flex gap-2 border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-3 py-2">
         <button
           type="button"
-          aria-label="Bold"
+          aria-label="In đậm"
           aria-pressed={bold}
-          className={`rounded-lg p-2 font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${bold ? "bg-[#8b5cf6] text-white shadow-[0_8px_18px_rgba(139,92,246,0.16)]" : "text-[#686d82] hover:bg-white hover:text-[#15172b]"}`}
+          className="admin-tab-pd min-h-9 px-3 font-bold"
           onClick={() => setBold((value) => !value)}
         >
           B
         </button>
         <button
           type="button"
-          aria-label="Italic"
+          aria-label="In nghiêng"
           aria-pressed={italic}
-          className={`rounded-lg p-2 italic transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${italic ? "bg-[#8b5cf6] text-white shadow-[0_8px_18px_rgba(139,92,246,0.16)]" : "text-[#686d82] hover:bg-white hover:text-[#15172b]"}`}
+          className="admin-tab-pd min-h-9 px-3 italic"
           onClick={() => setItalic((value) => !value)}
         >
           I
@@ -314,20 +372,23 @@ export function RichTextEditorMock({ defaultValue }: { defaultValue: string }) {
           type="button"
           aria-pressed={imageInserted}
           aria-label="Chèn ảnh"
-          className={`rounded-lg p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25 ${imageInserted ? "bg-[#8b5cf6] text-white shadow-[0_8px_18px_rgba(139,92,246,0.16)]" : "text-[#686d82] hover:bg-white hover:text-[#15172b]"}`}
+          className="admin-tab-pd min-h-9 px-3"
           onClick={() => setImageInserted((value) => !value)}
         >
           <ImageUp className="size-4" />
         </button>
       </div>
       {imageInserted ? (
-        <p className="border-b border-[#e4e9f2] bg-[#f8fafc] px-4 py-2 text-xs font-semibold text-secondary">
+        <p className="border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-4 py-2 text-xs font-semibold text-secondary">
           Đã thêm placeholder ảnh vào nội dung nháp.
         </p>
       ) : null}
       <textarea
-        className={`min-h-48 w-full resize-y bg-white p-4 text-sm leading-7 text-[#15172b] outline-none ${bold ? "font-semibold" : ""} ${italic ? "italic" : ""}`}
-        defaultValue={defaultValue}
+        className={`min-h-48 w-full resize-y bg-white p-4 text-sm leading-7 text-[var(--admin-text)] outline-none ${bold ? "font-semibold" : ""} ${italic ? "italic" : ""}`}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        value={value}
+        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+        placeholder={placeholder}
       />
     </div>
   );
@@ -341,12 +402,12 @@ export function MediaUploadPanel() {
       <div>
         <UploadCloud className="mx-auto size-12 text-primary" />
         <h2 className="mt-4 font-heading text-xl font-semibold text-primary">Kéo thả ảnh/video</h2>
-        <p className="mt-2 text-sm text-secondary">JPEG, PNG, WebP, AVIF hoặc MP4/WebM theo context.</p>
+        <p className="mt-2 text-sm text-secondary">JPEG, PNG, WebP, AVIF hoặc MP4/WebM theo ngữ cảnh.</p>
         <button className="button-pd mt-5" type="button" onClick={() => setStatus("selected")}>
           Chọn file
         </button>
         <p className="mt-4 text-sm font-semibold text-secondary">
-          {status === "selected" ? "Đã chọn demo-image.webp. Sẵn sàng kiểm tra metadata." : "Chưa có file được chọn."}
+          {status === "selected" ? "Đã chọn demo-image.webp. Sẵn sàng kiểm tra siêu dữ liệu." : "Chưa có file được chọn."}
         </p>
       </div>
     </div>

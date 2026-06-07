@@ -777,7 +777,7 @@ export const adminStats = [
   { label: "Tổng sản phẩm", value: "248", delta: "+12" },
   { label: "Danh mục", value: "12", delta: "+2" },
   { label: "Bài viết", value: "45", delta: "+6" },
-  { label: "Showroom", value: "03", delta: "active" },
+  { label: "Showroom", value: "03", delta: "đang hoạt động" },
   { label: "Song ngữ", value: "95%", delta: "+4%" },
 ] as const;
 
@@ -809,10 +809,10 @@ export const quoteRequests = [
 ] as const;
 
 export const cmsWarnings = [
-  "Thiếu bản dịch EN cho mô tả ngắn",
-  "Meta description dài hơn 160 ký tự",
-  "Slug đã tồn tại: sofa-curve-velour",
-  "Ảnh hero chưa có alt_vi hoặc alt_en",
+  "Thiếu bản dịch tiếng Anh cho mô tả ngắn",
+  "Mô tả meta dài hơn 160 ký tự",
+  "Đường dẫn đã tồn tại: sofa-curve-velour",
+  "Ảnh hero chưa có văn bản thay thế tiếng Việt hoặc tiếng Anh",
 ] as const;
 
 export function localized<T>(value: Record<Locale, T>, locale: Locale): T {

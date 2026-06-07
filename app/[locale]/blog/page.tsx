@@ -41,11 +41,11 @@ export default async function BlogPage({
 
   return (
     <main>
-      <section className="container-pd py-10 md:py-14">
+      <section className="container-pd public-page-header">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_360px] lg:items-end">
           <div>
             <p className="label-pd">{t("latest")}</p>
-            <h1 className="mt-4 max-w-4xl font-heading text-4xl font-bold leading-[1.08] text-primary sm:text-5xl md:text-[3.35rem]">
+            <h1 className="type-page-title mt-4 max-w-4xl text-primary">
               {t("title")}
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-secondary md:text-lg">{t("lead")}</p>
@@ -56,7 +56,7 @@ export default async function BlogPage({
               {topics.map((topic) => (
                 <span
                   key={topic}
-                  className="rounded-full border border-outline-variant/35 bg-white/74 px-3 py-1.5 text-xs font-bold text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]"
+                  className="filter-chip text-primary"
                 >
                   {topic}
                 </span>
@@ -70,7 +70,7 @@ export default async function BlogPage({
         <article>
           <Link
             href={withLocale(locale, `/blog/${featured.slug}`)}
-            className="interactive-card group grid overflow-hidden rounded-2xl border border-outline-variant/30 bg-white/94 shadow-[0_18px_54px_rgba(68,42,34,0.08)] lg:grid-cols-[1.08fr_0.92fr]"
+            className="interactive-card public-content-card group grid overflow-hidden lg:grid-cols-[1.08fr_0.92fr]"
           >
             <RemoteImage
               src={featured.image}
@@ -83,7 +83,7 @@ export default async function BlogPage({
                 <p className="label-pd">
                   {localized(featured.category, locale)} / {localized(featured.readTime, locale)}
                 </p>
-                <h2 className="mt-4 max-w-2xl font-heading text-2xl font-semibold leading-tight text-primary md:text-4xl">
+                <h2 className="type-section-title mt-4 max-w-2xl text-primary md:text-4xl">
                   {localized(featured.title, locale)}
                 </h2>
                 <p className="mt-4 max-w-xl text-base leading-7 text-secondary">
@@ -108,7 +108,7 @@ export default async function BlogPage({
             <article key={post.slug}>
               <Link
                 href={withLocale(locale, `/blog/${post.slug}`)}
-                className="card-pd interactive-card group grid h-full overflow-hidden md:grid-cols-[0.82fr_1fr]"
+                className="public-content-card interactive-card group grid h-full overflow-hidden md:grid-cols-[0.82fr_1fr]"
               >
                 <RemoteImage
                   src={post.image}
@@ -120,7 +120,7 @@ export default async function BlogPage({
                     <p className="label-pd">
                       {localized(post.category, locale)} / {localized(post.readTime, locale)}
                     </p>
-                    <h2 className="mt-3 font-heading text-xl font-semibold leading-snug text-primary">
+                    <h2 className="type-card-title mt-3 text-xl text-primary">
                       {localized(post.title, locale)}
                     </h2>
                     <p className="mt-3 text-sm leading-6 text-secondary">{localized(post.excerpt, locale)}</p>

@@ -1,121 +1,100 @@
 # AGENTS.md
 
-## Project
+## Project Overview
 
-Showroom Nội Thất Phương Đông: website doanh nghiệp Đồ gỗ nội thất & Thiết bị vệ sinh.
+Showroom Nội Thất Phương Đông: A bilingual (Vietnamese/English) corporate business website for a furniture and sanitary equipment showroom. 
 
-Primary goals:
+The website showcases products, blog posts, showroom locations, company values, and provides a contact quote request form to capture potential customer leads. It includes an Admin CMS for content management, role-based controls, audit trails, and Google Gemini-powered content/SEO/translation assistants.
 
-- Giới thiệu doanh nghiệp.
-- Hiển thị sản phẩm.
-- Thu thập khách hàng tiềm năng qua form liên hệ/báo giá.
-- Hỗ trợ marketing, SEO, song ngữ Việt/Anh.
-- Cung cấp Admin CMS để quản lý nội dung.
-- Hỗ trợ AI content/SEO assistant trong CMS với human review.
+### Primary Project Scope
+- Public website for marketing and lead generation.
+- Custom Admin CMS supporting role management (Role Model Option A).
+- Google Gemini API for draft-only content generation.
+- Lead capture via quote forms.
 
-Out of scope:
+### Out of Scope
+- No cart, checkout, or online payments.
+- No order tracking or inventory management.
+- No mobile applications.
 
-- Không giỏ hàng.
-- Không thanh toán trực tuyến.
-- Không quản lý đơn hàng.
-- Không order tracking.
-- Không mobile app.
+---
 
-## Tech Stack
+## Technical Stack
 
-- Frontend: Next.js 15 App Router, TypeScript, Tailwind CSS v4, shadcn/ui.
-- CMS/Admin backend: Payload CMS 3.x.
-- Database: managed PostgreSQL.
-- Media storage/delivery: Cloudinary.
-- i18n: next-intl.
-- Forms/validation: Zod and React Hook Form.
-- Email: Resend.
-- Maps: Google Maps Embed.
-- AI in CMS: OpenAI for draft-only content/SEO assistance.
-- Testing: Vitest and Playwright.
-- Deployment: Vercel frontend, separate Payload app/runtime, managed PostgreSQL database.
+- **Frontend & Admin**: Next.js 16.2.6 App Router, React 19.2.4, TypeScript, Tailwind CSS v4, shadcn/ui.
+- **Backend & Database**: Supabase-first architecture. All persistence through Supabase PostgreSQL, RLS policies, and RPC functions.
+- **Media Storage**: Cloudinary signed uploads and optimized CDN delivery.
+- **Email**: Resend HTML templates for quote notifications.
+- **Localization**: next-intl v4 (`vi` and `en` locales, default `vi`).
+- **AI Integration**: Google Gemini API via server-only decryption helpers.
+- **Spam & Rate Limiting**: Honeypot inputs + container-local in-memory sliding-window rate limiting on `/api/contact`.
+- **Testing**: Vitest for unit/integration tests; Playwright for E2E user flows.
+- **Local Environment**: Docker & Docker Compose container runtime.
 
-## Required Documents
+---
 
-Before coding, always read:
+## Planning Source of Truth
 
-- `docs/srs/Tai_lieu_SRS_Web_do_go_noi_that.xlsx`
-- `docs/specs/product-brief.md`
-- `docs/specs/requirements.md`
-- `docs/specs/open-questions.md`
-- `docs/specs/design.md`
-- `docs/specs/data-model.md`
-- `docs/specs/api-contract.md`
-- `docs/specs/test-plan.md`
-- `docs/specs/tasks.md`
-- `docs/specs/traceability-matrix.md`
-- `docs/specs/checklist.md`
-- Relevant ADRs in `docs/decisions/`
-- Relevant architecture docs in `docs/architecture/`
+The absolute source-of-truth for planning and execution boundaries is the `plan/` folder:
+- **Project Context**: `plan/00-project-context.md`
+- **Master Roadmap**: `plan/01-master-roadmap.md`
+- **Plan Specs**: `plan/ai-gemini-integration-plan.md`, `plan/gemini-secret-storage-spec.md`, `plan/rate-limit-runtime-notes.md`
+- **Current Execution Pointer**: `plan/99-next-action.md`
+- **Current Execution Status**: `plan/execution-status.md`
+- **Execution Log**: `plan/execution-log.md`
+- **Phase Directories**: `plan/phases/` (Phase 01 through Phase 10)
 
-If these files do not exist, create them before implementation.
+Future AI coding agents must read and follow this planning context to guide their execution.
 
-## Workflow Rules
+---
 
-Do not implement vague full-project requests.
+## Execution Workflow Rules
 
-Use this order:
+### Required Read Order Before Coding
+Every time an execution agent starts a task, it must read these files in the following order:
+1. `AGENTS.md` (This file - project rules)
+2. `plan/README.md` (Overview of plan structure)
+3. `plan/execution-status.md` (Current execution states)
+4. `plan/99-next-action.md` (The next recommended step)
+5. The specific phase folder (e.g. `plan/phases/phase-01-foundation/`) containing goals, checklist, deliverables, testing, and handoff instructions.
 
-1. Requirement analysis.
-2. Clarification.
-3. Technical design.
-4. Task breakdown.
-5. Implement one vertical slice.
-6. Add tests.
-7. Run verification.
-8. Update traceability.
+### Task Selection Logic
+- Always execute tasks from the earliest incomplete phase. 
+- Do not proceed to the next phase until the current phase's definition of done is satisfied.
+- Within a phase, prioritize foundational database schema/RLS and API connection tasks before coding frontend interfaces.
+- If a phase is blocked, record the block in `plan/blockers.md` and stop. Do not jump ahead or start parallel tasks unless explicitly allowed.
 
-For every implementation task:
+### Required Update/Logging Behavior After Coding
+Following every coding session, the agent must update:
+1. The checklist inside the active phase folder (marking completed items).
+2. `plan/execution-status.md` (updating phase statuses, timestamp, last completed task, and next step).
+3. `plan/execution-log.md` (appending a chronological log record detailing files changed, tests run, and next action).
+4. `plan/99-next-action.md` (detailing the next concrete step).
+5. `plan/blockers.md` (if any unresolved decisions or human clarifications arise).
 
-- State the requirement IDs.
-- State the files you will edit.
-- Keep the scope small.
-- Do not modify unrelated modules.
-- Add or update tests.
-- Run lint, typecheck, test, and build.
-- Update `docs/specs/traceability-matrix.md`.
+### Commit & Checkpoint Recommendations
+- Commit changes to Git frequently: make atomic commits for each finished checklist item (e.g. `git commit -m "feat(auth): add middleware route guards"`).
+- Run linting, typechecking, and test runs before making commits.
 
-## Requirement IDs
+---
 
-Use the baseline IDs in `docs/specs/requirements.md`.
+## Security, Credentials, & Role Restrictions
 
-Repeated SRS IDs are normalized as:
+### Role Model Option A Rules
+- **Editor Role**: Can CRUD publishable content only (`products`, `categories`, `blog_posts`, `showrooms`, `media`).
+- **Admin Role**: Full access. Only admins can view quote requests, manage users, modify site configurations, and manage Gemini secrets.
+- Editors must be denied access to quotes, users, and privileged setting/API routes at both the UI layer (menu options) and server-side layers (Next.js middleware, Server Actions, RLS database rules).
 
-- `FR-07-PUB` and `FR-07-ADM`
-- `FR-08-PUB` and `FR-08-ADM`
-- `FR-12-PUB` and `FR-12-ADM`
+### Secrets Handling
+- Raw credentials (`CLOUDINARY_API_SECRET`, `RESEND_API_KEY`, `GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `AI_SECRET_ENCRYPTION_KEY`) must never be hardcoded, exposed in client bundles, or prefix-exposed (e.g. using `NEXT_PUBLIC_`).
+- Gemini API keys are encrypted at rest using AES-GCM-256 via a server-only encryption key. GET endpoints return only masked parameters (e.g. `****5678`).
 
-## Code Rules
+---
 
-- No hardcoded public UI text outside next-intl messages.
-- Validate all public forms, query params, admin mutations, upload metadata, and AI requests server-side.
-- Admin/CMS routes and Payload operations must enforce server-side authorization.
-- Do not expose database credentials, Payload secrets, Cloudinary secrets, Resend keys, Google Maps keys, OpenAI keys, or revalidation secrets to client code.
-- Use semantic HTML and accessible components.
-- Public pages must include localized SEO metadata.
-- Product and blog/article pages need localized slug-based routes.
-- Image/video upload must validate file type, size, resource type, and ownership/context.
-- Do not leave mock data in production routes unless clearly marked as seed/demo.
-- Do not introduce cart, payment, order, order tracking, inventory, or mobile-app behavior.
+## Testing Expectations & Verification Commands
 
-## Role Rules
-
-Role Model Option A is binding:
-
-- Editor manages publishable content only.
-- Admin manages users, settings, quote requests, media governance, integrations, and all content.
-
-Editors must not access quote requests, user management, privileged settings, or integration secrets.
-
-## Verification Commands
-
-Run before task completion:
-
+### Local Testing Command Suite
+Run before completing any task:
 ```bash
 pnpm lint
 pnpm typecheck
@@ -123,29 +102,24 @@ pnpm test
 pnpm build
 ```
 
-If E2E behavior is affected:
-
+### E2E Browser Testing
+Run if layout, page routing, auth redirects, translation switches, form validations, or rate limits are affected:
 ```bash
 pnpm test:e2e
 ```
 
-## Done Means
+### Docker Verification
+Ensure the application runs cleanly inside the Docker container:
+```bash
+docker compose up app -d
+curl http://localhost:3000/api/health
+```
 
-A task is done only when:
+---
 
-- Requirement acceptance criteria are satisfied.
-- Tests exist for important behavior.
-- lint/typecheck/test/build pass, or an environment blocker is documented.
-- UI is responsive when UI is affected.
-- i18n is handled for public UI/content.
-- SEO is handled for public pages.
-- Security risks are documented or fixed.
-- Traceability is updated.
-
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-at `specs/001-showroom-site-cms/plan.md`. If that plan conflicts with
-the docs under `docs/`, the newer `docs/` architecture decisions win and
-the Spec Kit plan must be updated before coding the affected slice.
-<!-- SPECKIT END -->
+## When to Stop & Ask for Help
+Stop execution and request human clarification if:
+- Database RLS policies prevent the authenticated test user from executing necessary queries.
+- Cloudinary, Resend, or Gemini service keys are missing or invalid, preventing service validations.
+- You encounter conflicting requirements between the SRS Excel sheet and planning documentation.
+- You identify security flaws (such as client-side auth bypasses or secret exposure risks).

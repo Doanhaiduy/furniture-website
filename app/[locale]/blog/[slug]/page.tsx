@@ -58,14 +58,14 @@ export default async function BlogDetailPage({
   return (
     <main>
       <article>
-        <header className="container-pd reveal-soft py-10 md:py-14">
+        <header className="container-pd public-page-header reveal-soft">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_minmax(280px,420px)] lg:items-end lg:justify-between">
             <div>
               <p className="label-pd">
                 {localized(post.category, locale)} / {localized(post.readTime, locale)} /{" "}
                 {formatBlogDate(post.date, locale)}
               </p>
-              <h1 className="mt-5 max-w-4xl font-heading text-4xl font-bold leading-[1.08] text-primary sm:text-5xl lg:text-[3.35rem]">
+              <h1 className="type-page-title mt-5 max-w-4xl text-primary">
                 {localized(post.title, locale)}
               </h1>
             </div>
@@ -83,7 +83,7 @@ export default async function BlogDetailPage({
         </header>
 
         <div className="container-pd">
-          <figure className="overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-container-low shadow-[0_18px_54px_rgba(68,42,34,0.09)]">
+          <figure className="public-image-panel">
             <RemoteImage
               src={post.image}
               alt={localized(post.title, locale)}
@@ -108,7 +108,7 @@ export default async function BlogDetailPage({
                 {article.takeaways.map((item, index) => (
                   <p
                     key={localized(item, locale)}
-                    className="grid gap-3 rounded-xl border border-outline-variant/25 bg-white/78 p-4 text-[0.95rem] leading-7 text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:grid-cols-[2rem_1fr]"
+                    className="public-content-card grid gap-3 p-4 text-[0.95rem] leading-7 text-secondary sm:grid-cols-[2rem_1fr]"
                   >
                     <span className="font-heading text-lg font-semibold text-primary/36">0{index + 1}</span>
                     <span>{localized(item, locale)}</span>
@@ -117,9 +117,9 @@ export default async function BlogDetailPage({
               </div>
             </section>
 
-            <aside className="mt-8 rounded-2xl bg-primary p-6 text-white shadow-[0_18px_54px_rgba(68,42,34,0.14)] md:p-7">
+            <aside className="surface-inverse mt-8 p-6 md:p-7">
               <p className="label-pd text-white/65">{t("fieldNote")}</p>
-              <blockquote className="mt-4 font-heading text-xl leading-snug text-white md:text-2xl">
+              <blockquote className="type-card-title mt-4 text-xl text-white md:text-2xl">
                 {localized(article.quote, locale)}
               </blockquote>
             </aside>
@@ -135,7 +135,7 @@ export default async function BlogDetailPage({
                   </div>
                   <h2
                     id={section.id}
-                    className="mt-5 font-heading text-2xl font-semibold leading-tight text-primary md:text-3xl"
+                    className="type-section-title mt-5 text-primary md:text-3xl"
                   >
                     {localized(section.title, locale)}
                   </h2>
@@ -143,7 +143,7 @@ export default async function BlogDetailPage({
                     {localized(section.body, locale)}
                   </p>
                   {"image" in section && section.image ? (
-                    <figure className="mt-7 overflow-hidden rounded-2xl border border-outline-variant/25 bg-surface-container-low shadow-[0_16px_38px_rgba(68,42,34,0.07)]">
+                    <figure className="public-image-panel mt-7">
                       <RemoteImage
                         src={section.image}
                         alt={localized(section.title, locale)}
@@ -159,22 +159,22 @@ export default async function BlogDetailPage({
 
           <aside className="hidden self-start lg:block">
             <div className="sticky top-28 space-y-5">
-              <div className="card-pd p-5">
+              <div className="public-content-card p-5">
                 <ArticleToc items={tocItems} title={t("toc")} />
               </div>
-              <div className="card-pd p-5">
+              <div className="public-content-card p-5">
                 <p className="label-pd">{t("related")}</p>
                 <div className="mt-4 grid gap-4">
                   {related.map((item) => (
                     <Link
                       key={item.slug}
                       href={withLocale(locale, `/blog/${item.slug}`)}
-                      className="group grid gap-3 rounded-xl border border-transparent p-2 transition hover:border-outline-variant/35 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-container/25"
+                      className="public-related-link group"
                     >
                       <RemoteImage
                         src={item.image}
                         alt={localized(item.title, locale)}
-                        className="h-28 w-full rounded-lg object-cover"
+                        className="public-media-thumb h-28 w-full object-cover"
                         sizes="320px"
                       />
                       <div>
