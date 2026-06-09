@@ -49,7 +49,7 @@ The SRS workbook contains these sheets: overview, functional requirements, non-f
 - Email: Resend.
 - Maps: Google Maps Embed.
 - AI: OpenAI for draft-only content and SEO assistance inside CMS.
-- Testing: Vitest and Playwright.
+- Testing: Vitest for unit/integration checks, Browser MCP-first for browser-visible QA/user journeys, and Playwright only as backup for CI/headless deterministic automation.
 - Deployment: Vercel for public frontend, separate Payload app/runtime, managed PostgreSQL database.
 
 ## Success Criteria
@@ -60,4 +60,4 @@ The SRS workbook contains these sheets: overview, functional requirements, non-f
 - Valid quote requests are saved, visible to Admin users, and trigger a notification attempt.
 - Payload CMS allows business users to manage launch content without developer intervention.
 - Admin/Editor permissions match Role Model Option A.
-- Every FR/NFR maps to design, implementation area, and at least one planned test.
+- Every FR/NFR maps to design, implementation area, and at least one planned validation path, with Browser MCP as the default for UI/user journey evidence.

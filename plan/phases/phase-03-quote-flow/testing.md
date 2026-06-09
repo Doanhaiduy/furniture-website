@@ -1,43 +1,62 @@
-# Phase 03 Testing – Quote Request Flow
+# Phase 03 Testing - Quote Request Flow
 
-## Test Levels & Frameworks
-- **Unit Testing**: Vitest checks phone/email/empty input validation rules.
-- **Integration Testing**: Vitest mocks the Resend SDK to verify HTML emails compile.
-- **E2E Testing**: Playwright checks honeypot actions and validation UI alerts.
-- **Manual Verification**: Database query checks for audit logs and notification status fields.
+Browser MCP is the primary tool for quote form UI validation, validation messages, honeypot-safe behavior, rate-limit user experience, and success/failure states. Playwright is backup only for CI/headless quote-flow regression or repeatable rate-limit scripting.
 
----
+## Test Levels
 
-## Concrete Scenarios & Verification Steps
+- **Unit**: Vitest checks phone/email/empty input validation.
+- **Integration**: Vitest mocks Resend and validates quote persistence/notification state.
+- **Browser MCP journey checks**: Contact form validation, safe success state, user-visible rate-limit behavior, admin visibility where in scope.
+- **CLI/API checks**: Curl or database checks verify honeypot/rate-limit internals when needed.
 
-### Scenario 1: Form Validation Verification
-1. Run `pnpm test tests/unit/quote-schema.test.ts`.
-2. Verify that:
-   - Invalid phone formats (e.g. `123456`, `abcdef`, or international numbers lacking formatting) are rejected.
-   - Vietnamese formats (e.g. `0912345678`, `0312345678`) are accepted.
-   - Missing required fields (Name, Message) yield appropriate error structures.
+## Scenario 1: Form Validation Verification
 
-### Scenario 2: Honeypot Validation Checks (Spam Mitigation)
-1. Execute a payload submission with the honeypot filled:
-   ```bash
-   curl -i -X POST http://localhost:3000/api/contact \
-     -H "Content-Type: application/json" \
-     -d '{"name":"Bot Test","email":"bot@test.com","phone":"0912345678","message":"Spam body text","website_confirm":"some-bot-value"}'
-   ```
-2. Verify the response yields a `200 OK` code and JSON output `{"submitted": true}`.
-3. Check the database `quote_requests` table to verify that no new rows were inserted.
+- **Goal**: Confirm quote form validates unsafe or incomplete input before submission.
+- **Browser MCP steps**:
+  1. Open `/vi/contact`.
+  2. Inspect the visible form.
+  3. Submit with missing required fields.
+  4. Verify inline validation messages and disabled/error states.
+  5. Enter valid Vietnamese phone and required fields.
+  6. Verify the form becomes submittable.
+- **Expected result**: Invalid input is blocked; valid input can proceed.
+- **Pass/fail**:
+  - Pass: visible validation matches schema expectations.
+  - Fail: invalid input submits or error messages are missing/confusing.
+- **Playwright backup**: Use only for CI form regression.
 
-### Scenario 3: Rate Limiting Verification
-1. Run a loop executing 5 rapid submissions to `http://localhost:3000/api/contact` using curl.
-2. Verify that:
-   - The first 3 submissions return `200 OK`.
-   - The 4th and 5th submissions are rejected, yielding `429 Too Many Requests`.
-   - The response headers contain rate-limiting window indicators if active.
+## Scenario 2: Honeypot Validation Checks
 
-### Scenario 4: Email Delivery Fallback Check
-1. Mock the Resend client connection to throw a timeout error.
-2. Submit a valid quote request via the contact API.
-3. Verify that:
-   - The record is successfully written to the database `quote_requests` table.
-   - The database `quote_notifications` table records a new row with the status `failed` and logs the error.
-   - The API returns a success code `200 OK` to the client page, ensuring the user experience is unaffected.
+- **Goal**: Confirm bot-like honeypot submissions do not create leads while preserving safe client behavior.
+- **Steps**:
+  1. Use an API/curl request with the honeypot field filled.
+  2. Confirm the client-safe response does not expose spam detection details.
+  3. Verify no new `quote_requests` row is inserted.
+- **Expected result**: Honeypot submission is safely ignored.
+- **Playwright backup**: Not needed unless a browser-visible honeypot regression is required.
+
+## Scenario 3: Rate Limiting Verification
+
+- **Goal**: Confirm rapid submissions are throttled safely.
+- **Browser MCP steps**:
+  1. Submit a valid quote request through the visible form until the limit is reached.
+  2. Verify the first allowed attempts show safe success behavior.
+  3. Verify later attempts show a user-safe rate-limit message.
+  4. Check network/API details only if the visible behavior is unclear.
+- **Expected result**: Excessive submissions are rejected without leaking internals.
+- **Pass/fail**:
+  - Pass: user sees safe guidance and API returns the expected throttle behavior.
+  - Fail: spam attempts bypass limit or expose internal details.
+- **Playwright backup**: Use for deterministic rate-limit CI script if needed.
+
+## Scenario 4: Email Delivery Fallback
+
+- **Goal**: Confirm notification failure does not break the quote user experience.
+- **Preconditions**: Resend mock or failure mode is configured.
+- **Browser MCP steps**:
+  1. Open the quote/contact form.
+  2. Submit a valid quote request.
+  3. Verify the user sees a success state.
+  4. Check database/notification records for `failed` notification state.
+- **Expected result**: Lead persists, notification failure is tracked, and user experience remains successful.
+- **Playwright backup**: Use only for CI flow with mocked Resend failure.

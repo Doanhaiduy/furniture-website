@@ -66,7 +66,7 @@ Go for coding phase with constraints:
 
 - Start with foundation, Payload access/media, HomePage/AboutPage CMS, i18n shell, and homepage public route.
 - Do not start full catalog, quote, AI, or launch-hardening slices until their open questions are answered.
-- First implementation task must align dependencies to Next.js 15, Payload CMS 3.x, Cloudinary, Resend, OpenAI, Vitest, and Playwright.
+- First implementation task must align dependencies to the active stack and testing policy: Next.js, Supabase/PostgreSQL, Cloudinary, Resend, Gemini, Vitest, Browser MCP-first QA, and Playwright backup only for CI/headless deterministic gaps.
 
 No-Go for production launch until:
 

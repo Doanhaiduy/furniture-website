@@ -35,6 +35,6 @@
   pnpm typecheck
   pnpm test
   pnpm build
-  pnpm test:e2e
   ```
+- [ ] Run Browser MCP checks for Settings, Users, Media, Gemini masking/rotation, Editor denial, and AI assistant fallback flows; use `pnpm test:e2e` only as Playwright backup for deterministic CI admin matrix scripts.
 - [ ] Update `docs/specs/traceability-matrix.md` with verification checks for Phase 09.

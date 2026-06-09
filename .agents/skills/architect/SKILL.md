@@ -48,7 +48,8 @@ Create or update:
 - Google Maps Embed
 - OpenAI
 - Vitest
-- Playwright
+- Browser MCP-first QA
+- Playwright backup for CI/headless/deterministic automation
 
 ## Rules
 

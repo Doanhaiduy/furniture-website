@@ -38,18 +38,18 @@ Do not re-plan this as a replacement backend implementation unless a later expli
 4. Read `ai-gemini-integration-plan.md`.
 5. Open the active phase folder and execute only that phase.
 
-## Plan Execution Agent System
+## Plan Orchestrator Agent System
 
-To automate the implementation phase-by-phase without context drift or scope creep, we use the Plan Execution Agent workflow.
+To automate the implementation phase-by-phase without context drift or scope creep, we use the Plan Orchestrator Agent workflow.
 
 ### How to Start the First Run
-1. Copy the contents of the bootstrap prompt file: [run-plan-executor-prompt.md](file:///d:/THCode/AI/furniture-website/plan/run-plan-executor-prompt.md).
+1. Copy the contents of the bootstrap prompt file: [run-orchestrator-prompt.md](file:///d:/THCode/AI/furniture-website/plan/run-orchestrator-prompt.md).
 2. Paste it as the initial instruction for a new AI coding agent in a clean workspace context.
-3. The agent will automatically initialize itself, read the current status, and begin implementing the first task of **Phase 01: Foundation**.
+3. The agent will automatically initialize itself in REVIEW mode, read the current status, write a proposal to `pending-approval.md`, output the Vietnamese review layout, and stop.
 
-### How to Resume Execution
-- If a session is interrupted, copy the bootstrap prompt from [run-plan-executor-prompt.md](file:///d:/THCode/AI/furniture-website/plan/run-plan-executor-prompt.md) and run it again.
-- The agent will scan [execution-status.md](file:///d:/THCode/AI/furniture-website/plan/execution-status.md) and [execution-log.md](file:///d:/THCode/AI/furniture-website/plan/execution-log.md), verify the Git status and file differences, and resume right where the previous session stopped.
+### How to Resume Execution / Confirm Proposal
+- **To Confirm Proposal**: Copy the prompt from [run-orchestrator-prompt.md](file:///d:/THCode/AI/furniture-website/plan/run-orchestrator-prompt.md) and write `confirm` (or paste the prompt containing confirm) in the chat. The agent will enter EXECUTION mode, carry out the proposed task, run tests, sync progress to disk, and output the Vietnamese summary.
+- **To Resume Interrupted Session**: If a session is interrupted, copy the bootstrap prompt from [run-orchestrator-prompt.md](file:///d:/THCode/AI/furniture-website/plan/run-orchestrator-prompt.md) and run it again. It will automatically detect state from `plan/pending-approval.md` and resume.
 
 ### How to Inspect Status
 - **Current Phase and Status Matrix**: View [execution-status.md](file:///d:/THCode/AI/furniture-website/plan/execution-status.md).
@@ -117,7 +117,9 @@ pnpm test
 pnpm build
 ```
 
-Run E2E when browser-visible behavior, admin access, i18n, SEO, quote capture, settings, Gemini AI, Docker runtime, or responsive behavior changes:
+Run Browser MCP journey checks when browser-visible behavior, admin access, i18n, SEO, quote capture, settings, Gemini AI, Docker runtime, or responsive behavior changes. Open the affected route, inspect the current visible state, perform the user journey, verify the expected result, capture screenshot/snapshot evidence when useful, and note console/network errors when relevant.
+
+Use Playwright backup only when Browser MCP cannot cover the scenario or a deterministic CI/headless script is required:
 
 ```bash
 pnpm test:e2e

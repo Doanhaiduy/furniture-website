@@ -29,7 +29,7 @@ Legend:
 
 Important status summary:
 
-- The project currently has a strong bilingual public/admin frontend prototype, mock data, Vercel frontend deployment setup, screenshot automation, and Playwright/Vitest coverage.
+- The project currently has a strong bilingual public/admin frontend prototype, mock data, Vercel frontend deployment setup, screenshot automation, Vitest coverage, and historical Playwright backup evidence. Current browser-visible QA should be performed Browser MCP-first.
 - The project is not yet a complete CMS-backed production system. Payload CMS, managed PostgreSQL persistence, Cloudinary upload governance, Resend notification, OpenAI server action, and server-side Admin/Editor authorization are still pending.
 - There is architecture drift: docs target Next.js 15, Payload CMS 3.x, and `src/`; current `package.json` uses Next.js 16.2.6, has no Payload/Cloudinary/Resend/OpenAI dependencies, includes `@supabase/supabase-js`, and current app code is root-level `app/` rather than `src/app/`.
 
@@ -57,8 +57,8 @@ Important status summary:
 
 - [ ] PARTIAL `NFR-01` Performance: build/test evidence and bounded mock filters exist; no PageSpeed Mobile score, production-like data benchmark, Payload query timing, or Cloudinary optimization evidence yet.
 - [ ] TODO `NFR-02` Availability: Vercel frontend deployment docs exist, but production monitoring tool, alert owner, Payload health monitoring, and uptime evidence are missing.
-- [x] DONE for current frontend prototype `NFR-03` Responsive UI: Playwright and screenshot evidence cover public/admin prototype routes across browser projects and breakpoints. Re-run after backend/CMS slices change UI.
-- [ ] PARTIAL `NFR-04` Browser compatibility: Playwright covers Chromium, Firefox, and WebKit; Edge and Coc Coc manual smoke evidence is still missing.
+- [x] DONE for current frontend prototype `NFR-03` Responsive UI: screenshot and historical Playwright backup evidence cover public/admin prototype routes across browser projects and breakpoints. Re-run changed UI with Browser MCP first after backend/CMS slices change UI.
+- [ ] PARTIAL `NFR-04` Browser compatibility: Browser MCP is the primary release smoke path. Playwright backup can cover Chromium, Firefox, and WebKit when CI/headless matrix evidence is required; Edge and Coc Coc manual smoke evidence is still missing.
 - [ ] PARTIAL `NFR-05` Security: quote Zod validation and robots exclusion exist; Payload RBAC, server-side CMS authorization, rate limiting, upload validation, secret-boundary tests, rich-text sanitization, and AI safety are pending.
 - [ ] PARTIAL `NFR-06` SEO: localized metadata, sitemap, and robots exist; schema.org JSON-LD, CMS-backed SEO fields, canonical/alternate coverage per dynamic content, final OG image, and SEO tests are pending.
 - [ ] PARTIAL `NFR-07` Extensibility: architecture docs and component primitives exist; actual approved `src/` feature-slice/Payload boundaries are not implemented.
@@ -73,10 +73,10 @@ Important status summary:
 - [x] Public localized routes exist for home, about, products, product detail, blog, blog detail, showrooms, contact, success, error, loading, and not-found states.
 - [x] Admin prototype routes exist for dashboard, products, categories, blog, showrooms, media, quotes, users, settings, AI assistant, login, and access denied.
 - [x] Unit tests exist for quote schema and product filtering/pagination over mock data.
-- [x] E2E tests exist for public homepage, locale switch, product listing/detail quote path, blog reading structure, and admin prototype routes.
+- [x] Backup E2E tests exist for public homepage, locale switch, product listing/detail quote path, blog reading structure, and admin prototype routes.
 - [x] Vercel frontend config/docs exist: `vercel.json`, `docs/deploy/vercel.md`.
 - [x] Screenshot automation exists: `scripts/capture-screenshots.mjs`.
-- [ ] PARTIAL CI exists: `.github/workflows/playwright.yml` runs Playwright, but there is no CI workflow for lint, typecheck, unit tests, and build.
+- [ ] PARTIAL CI exists: `.github/workflows/playwright.yml` runs Playwright as backup, but there is no CI workflow for lint, typecheck, unit tests, and build.
 - [ ] TODO Payload service code is absent: no `src/payload`, no Payload dependency, no Payload config, collections, globals, access rules, or hooks.
 - [ ] TODO Persistence is absent: no managed PostgreSQL integration and no quote/content writes.
 - [ ] TODO Media governance is absent: no Cloudinary dependency, signed uploads, media collection, or upload validation.
@@ -102,7 +102,7 @@ Important status summary:
 
 ## Current Test Evidence
 
-- [x] Existing docs record successful runs for `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e` after previous frontend/refactor passes.
+- [x] Existing docs record successful runs for `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and historical Playwright backup runs via `pnpm test:e2e` after previous frontend/refactor passes.
 - [x] Verification for this status-plan update on 2026-06-06:
   - `pnpm lint` passed on rerun. First parallel run timed out while starting ESLint.
   - `pnpm typecheck` passed.

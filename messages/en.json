@@ -179,6 +179,7 @@
     "successLead": "The Phuong Dong team will contact you using the information provided.",
     "errorTitle": "Request was not sent",
     "errorLead": "Please check your information or call the hotline for immediate support.",
+    "submitError": "Unable to send your request right now. Please try again later.",
     "honeypot": "Do not fill this field"
   },
   "states": {

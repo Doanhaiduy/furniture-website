@@ -1,26 +1,36 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowRight } from "lucide-react";
-import type { Locale } from "@/i18n/routing";
+import { type Locale, isLocale } from "@/i18n/routing";
 import {
   blogPosts,
   getBlogArticleContent,
   getBlogPostBySlug,
+} from "@/lib/showroom-mock-fallback";
+import {
   localized,
   withLocale,
-} from "@/lib/showroom-data";
+} from "@/lib/showroom-constants";
 import { SocialShare } from "@/components/showroom/social-share";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { ArticleToc } from "@/components/showroom/article-toc";
+import { createClient } from "@/lib/supabase/server";
+import { getBlogBySlug as getDBBlogBySlug, getBlogPosts } from "@/lib/supabase/queries";
+import { generatePageMetadata } from "@/lib/seo";
 
 function formatBlogDate(date: string, locale: Locale) {
-  return new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(date));
+  try {
+    return new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(date));
+  } catch {
+    return date;
+  }
 }
 
 export async function generateMetadata({
@@ -29,12 +39,37 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = getBlogPostBySlug(slug);
-  if (!post) return {};
-  return {
-    title: localized(post.title, locale),
-    description: localized(post.excerpt, locale),
-  };
+  if (!isLocale(locale)) notFound();
+  const supabase = await createClient();
+  const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
+  
+  let title = "";
+  let excerpt = "";
+  let imageUrl = "";
+  let publishedAt = "";
+
+  if (dbPost) {
+    title = dbPost.title;
+    excerpt = dbPost.excerpt;
+    imageUrl = dbPost.coverMedia?.url || "";
+    publishedAt = dbPost.publishedAt || "";
+  } else {
+    const mockPost = getBlogPostBySlug(slug);
+    if (mockPost) {
+      title = localized(mockPost.title, locale);
+      excerpt = localized(mockPost.excerpt, locale);
+      imageUrl = mockPost.image || "";
+    }
+  }
+  
+  if (!title) return {};
+  return generatePageMetadata({
+    title,
+    description: excerpt,
+    path: `/${locale}/blog/${slug}`,
+    imageUrl,
+    publishedAt,
+  });
 }
 
 export default async function BlogDetailPage({
@@ -43,14 +78,91 @@ export default async function BlogDetailPage({
   params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
+  if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  const post = getBlogPostBySlug(slug);
-  if (!post) notFound();
+  
+  const supabase = await createClient();
+  const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
+  
+  let post: any = null;
+  let article: any = null;
+  
+  if (dbPost) {
+    post = {
+      slug: dbPost.slug,
+      image: dbPost.coverMedia?.url || "/globe.svg",
+      category: { vi: dbPost.category.name, en: dbPost.category.name },
+      date: dbPost.publishedAt || new Date().toISOString(),
+      readTime: { vi: "5 phút đọc", en: "5 min read" },
+      title: { vi: dbPost.title, en: dbPost.title },
+      excerpt: { vi: dbPost.excerpt, en: dbPost.excerpt },
+    };
+    
+    const body = dbPost.bodyJson || {};
+    article = {
+      takeaways: (body.takeaways || []).map((item: any) => ({
+        vi: typeof item === "object" ? (item.vi || item.en || "") : item,
+        en: typeof item === "object" ? (item.en || item.vi || "") : item,
+      })),
+      quote: {
+        vi: typeof body.quote === "object" ? (body.quote.vi || body.quote.en || "") : (body.quote || ""),
+        en: typeof body.quote === "object" ? (body.quote.en || body.quote.vi || "") : (body.quote || ""),
+      },
+      sections: (body.sections || []).map((section: any) => ({
+        id: section.id,
+        title: {
+          vi: typeof section.title === "object" ? (section.title.vi || section.title.en || "") : (section.title || ""),
+          en: typeof section.title === "object" ? (section.title.en || section.title.vi || "") : (section.title || ""),
+        },
+        body: {
+          vi: typeof section.body === "object" ? (section.body.vi || section.body.en || "") : (section.body || ""),
+          en: typeof section.body === "object" ? (section.body.en || section.body.vi || "") : (section.body || ""),
+        },
+        image: section.image,
+      })),
+    };
+  } else {
+    const mockPost = getBlogPostBySlug(slug);
+    if (mockPost) {
+      post = mockPost;
+      article = getBlogArticleContent(slug);
+    }
+  }
+  
+  if (!post || !article) notFound();
+  
   const t = await getTranslations("blog");
   const common = await getTranslations("common");
-  const related = blogPosts.filter((item) => item.slug !== post.slug).slice(0, 2);
-  const article = getBlogArticleContent(post.slug);
-  const tocItems = article.sections.map((section) => ({
+  
+  let related: any[] = [];
+  if (dbPost?.category?.slug) {
+    const dbRelated = await getBlogPosts(supabase, {
+      locale,
+      categorySlug: dbPost.category.slug,
+      limit: 5,
+    }).catch(() => []);
+    
+    related = dbRelated
+      .filter((item: any) => item.slug !== post.slug)
+      .slice(0, 2)
+      .map((item: any) => ({
+        slug: item.slug,
+        image: item.cover_media?.url || "/globe.svg",
+        category: { vi: item.category_name, en: item.category_name },
+        date: item.published_at || new Date().toISOString(),
+        readTime: { vi: "5 phút đọc", en: "5 min read" },
+        title: { vi: item.title, en: item.title },
+        excerpt: { vi: item.excerpt, en: item.excerpt },
+      }));
+  }
+  
+  if (related.length === 0) {
+    related = blogPosts
+      .filter((item) => item.slug !== post.slug)
+      .slice(0, 2);
+  }
+  
+  const tocItems = article.sections.map((section: any) => ({
     id: section.id,
     title: localized(section.title, locale),
   }));
@@ -105,7 +217,7 @@ export default async function BlogDetailPage({
             <section className="surface-soft p-5 md:p-6">
               <p className="label-pd">{t("keyTakeaways")}</p>
               <div className="mt-5 grid gap-3">
-                {article.takeaways.map((item, index) => (
+                {article.takeaways.map((item: any, index: number) => (
                   <p
                     key={localized(item, locale)}
                     className="public-content-card grid gap-3 p-4 text-[0.95rem] leading-7 text-secondary sm:grid-cols-[2rem_1fr]"
@@ -125,7 +237,7 @@ export default async function BlogDetailPage({
             </aside>
 
             <div className="mt-12 space-y-12">
-              {article.sections.map((section, index) => (
+              {article.sections.map((section: any, index: number) => (
                 <section key={section.id} aria-labelledby={section.id} className="scroll-mt-28">
                   <div className="flex items-center gap-4">
                     <span className="font-heading text-2xl font-semibold text-primary/28">

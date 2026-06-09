@@ -54,7 +54,9 @@ pnpm test
 pnpm build
 ```
 
-If public browser behavior changed, run:
+If public browser behavior changed, run Browser MCP checks first against the affected route: inspect visible load behavior, layout stability, responsive state, and console/network issues. Capture screenshots/snapshots when useful.
+
+Use Playwright only as backup when Browser MCP cannot cover the scenario or a deterministic CI/headless regression is required:
 
 ```bash
 pnpm test:e2e

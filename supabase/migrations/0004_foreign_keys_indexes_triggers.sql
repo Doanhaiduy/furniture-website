@@ -337,7 +337,7 @@ create index idx_product_translations_product_locale on public.product_translati
 create index idx_product_translations_locale_slug on public.product_translations (locale, slug);
 create index idx_product_translations_search_text on public.product_translations using gin (search_text);
 create index idx_product_translations_name_summary_trgm
-  on public.product_translations using gin (public.immutable_unaccent(lower(concat_ws(' ', name, summary, material))) gin_trgm_ops);
+  on public.product_translations using gin (public.immutable_unaccent(lower(coalesce(name, '') || ' ' || coalesce(summary, '') || ' ' || coalesce(material, ''))) gin_trgm_ops);
 create index idx_product_media_product_sort on public.product_media (product_id, sort_order);
 create index idx_product_media_media on public.product_media (media_id);
 
@@ -367,7 +367,7 @@ create index idx_blog_post_translations_post_locale on public.blog_post_translat
 create index idx_blog_post_translations_locale_slug on public.blog_post_translations (locale, slug);
 create index idx_blog_post_translations_search_text on public.blog_post_translations using gin (search_text);
 create index idx_blog_post_translations_title_excerpt_trgm
-  on public.blog_post_translations using gin (public.immutable_unaccent(lower(concat_ws(' ', title, excerpt))) gin_trgm_ops);
+  on public.blog_post_translations using gin (public.immutable_unaccent(lower(coalesce(title, '') || ' ' || coalesce(excerpt, ''))) gin_trgm_ops);
 
 create index idx_showrooms_status_sort on public.showrooms (status, sort_order);
 create index idx_showrooms_deleted_at on public.showrooms (deleted_at);
@@ -375,7 +375,7 @@ create index idx_showrooms_public on public.showrooms (sort_order)
   where status = 'published'::public.publish_status and deleted_at is null;
 create index idx_showroom_translations_showroom_locale on public.showroom_translations (showroom_id, locale);
 create index idx_showroom_translations_name_address_trgm
-  on public.showroom_translations using gin (public.immutable_unaccent(lower(concat_ws(' ', name, address))) gin_trgm_ops);
+  on public.showroom_translations using gin (public.immutable_unaccent(lower(coalesce(name, '') || ' ' || coalesce(address, ''))) gin_trgm_ops);
 create index idx_showroom_media_showroom_sort on public.showroom_media (showroom_id, sort_order);
 create index idx_showroom_media_media on public.showroom_media (media_id);
 
@@ -387,7 +387,7 @@ create index idx_quote_requests_source_path on public.quote_requests (source_pat
 create index idx_quote_requests_deleted_at on public.quote_requests (deleted_at);
 create index idx_quote_requests_keyword_trgm
   on public.quote_requests using gin (
-    public.immutable_unaccent(lower(concat_ws(' ', full_name, phone, email, company, service, message, admin_notes))) gin_trgm_ops
+    public.immutable_unaccent(lower(coalesce(full_name, '') || ' ' || coalesce(phone, '') || ' ' || coalesce(email, '') || ' ' || coalesce(company, '') || ' ' || coalesce(service, '') || ' ' || coalesce(message, '') || ' ' || coalesce(admin_notes, ''))) gin_trgm_ops
   );
 create index idx_quote_request_events_quote_created on public.quote_request_events (quote_request_id, created_at);
 create index idx_quote_request_events_actor on public.quote_request_events (actor_id);

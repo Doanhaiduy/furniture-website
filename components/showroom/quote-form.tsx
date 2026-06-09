@@ -24,6 +24,7 @@ type QuoteLabels = {
   sending: string;
   responseTime: string;
   honeypot: string;
+  submitError: string;
 };
 
 export function QuoteForm({
@@ -57,6 +58,7 @@ export function QuoteForm({
       productId: productId || "",
       categoryId: "",
       sourcePath,
+      sourceUrl: typeof window === "undefined" ? "" : window.location.href,
       honeypot: "",
     },
   });
@@ -71,7 +73,7 @@ export function QuoteForm({
     const result = (await response.json()) as { ok: boolean; message?: string };
 
     if (!response.ok || !result.ok) {
-      setServerError(result.message || "Unable to submit request.");
+      setServerError(result.message || labels.submitError);
       return;
     }
 
@@ -90,9 +92,9 @@ export function QuoteForm({
       <input type="hidden" {...register("locale")} />
       <input type="hidden" {...register("productId")} />
       <input type="hidden" {...register("sourcePath")} />
-      <label className="sr-only">
+      <label className="sr-only" aria-hidden="true">
         {labels.honeypot}
-        <input tabIndex={-1} autoComplete="off" {...register("honeypot")} />
+        <input type="text" tabIndex={-1} autoComplete="off" {...register("honeypot")} />
       </label>
 
       <div className="grid gap-4 md:grid-cols-2">

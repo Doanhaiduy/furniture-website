@@ -27,7 +27,7 @@ Use:
 - Email: Resend.
 - Maps: Google Maps Embed.
 - AI in CMS: OpenAI for draft-only content/SEO assistance.
-- Testing: Vitest and Playwright.
+- Testing: Vitest for unit/integration checks, Browser MCP-first for browser-visible QA/user journeys, and Playwright only as backup for CI/headless deterministic automation.
 - Deployment: Vercel frontend, separate Payload app/runtime, managed PostgreSQL.
 
 ## Rationale

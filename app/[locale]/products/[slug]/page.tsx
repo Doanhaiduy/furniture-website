@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowRight, MapPin, Ruler } from "lucide-react";
-import type { Locale } from "@/i18n/routing";
-import { getProductBySlug, localized, products, withLocale } from "@/lib/showroom-data";
+import { type Locale, isLocale } from "@/i18n/routing";
+import { getProductBySlug as getMockProductBySlug, products } from "@/lib/showroom-mock-fallback";
+import { localized, withLocale } from "@/lib/showroom-constants";
 import { QuoteForm } from "@/components/showroom/quote-form";
 import { SocialShare } from "@/components/showroom/social-share";
 import { ProductCard } from "@/components/showroom/product-card";
@@ -12,7 +14,13 @@ import {
   ProductGallery,
   ProductInformationTabs,
   SaveSelectionButton,
+  SaveSelectionButton as SavedSelectionButtonProps,
+  SaveSelectionButton as SavedSelectionButtonPropsTwo,
+  ProductInformationTabs as ProductInfoTabsProps,
 } from "@/components/showroom/product-detail-experience";
+import { createClient } from "@/lib/supabase/server";
+import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
+import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -20,12 +28,20 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const product = getProductBySlug(slug);
+  if (!isLocale(locale)) notFound();
+  const supabase = await createClient();
+  const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
+  let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
+  if (!product) {
+    product = getMockProductBySlug(slug) || null;
+  }
   if (!product) return {};
-  return {
+  return generatePageMetadata({
     title: localized(product.name, locale),
     description: localized(product.summary, locale),
-  };
+    path: `/${locale}/products/${slug}`,
+    imageUrl: product.image,
+  });
 }
 
 export default async function ProductDetailPage({
@@ -34,13 +50,36 @@ export default async function ProductDetailPage({
   params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
+  if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  const product = getProductBySlug(slug);
+  const supabase = await createClient();
+  const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
+  let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
+  if (!product) {
+    product = getMockProductBySlug(slug) || null;
+  }
   if (!product) notFound();
+  
   const t = await getTranslations("products");
   const contact = await getTranslations("contact");
   const common = await getTranslations("common");
-  const related = products.filter((item) => item.slug !== product.slug).slice(0, 3);
+  
+  let related: any[] = [];
+  if (dbProduct?.category?.slug) {
+    const dbRelated = await getProducts(supabase, {
+      locale,
+      categorySlug: dbProduct.category.slug,
+      limit: 10,
+    }).catch(() => []);
+    
+    related = dbRelated
+      .map((p: any) => mapDBProductToPublicProduct(p, locale))
+      .filter((item: any) => item.slug !== product.slug)
+      .slice(0, 3);
+  }
+  if (related.length === 0) {
+    related = products.filter((item) => item.slug !== product.slug).slice(0, 3);
+  }
 
   return (
     <main>
@@ -70,7 +109,7 @@ export default async function ProductDetailPage({
           </div>
           <p className="mt-5 text-lg leading-8 text-secondary">{localized(product.summary, locale)}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {product.specs.slice(0, 4).map((spec) => (
+            {product.specs.slice(0, 4).map((spec: any) => (
               <div key={localized(spec.label, locale)} className="surface-card p-3">
                 <div className="flex gap-3">
                   <Ruler className="size-5 text-primary" />
@@ -90,7 +129,7 @@ export default async function ProductDetailPage({
               <ArrowRight className="size-4" />
             </Link>
             <div className="grid gap-3 sm:grid-cols-2">
-              <SaveSelectionButton label={t("saveSelection")} savedLabel={t("savedSelection")} />
+              <SaveSelectionButton label={t("saveSelection") as any} savedLabel={t("savedSelection") as any} />
               <Link href={withLocale(locale, "/showrooms")} className="button-pd-outline">
                 <MapPin className="size-4" />
                 {t("viewInShowroom")}
@@ -153,6 +192,7 @@ export default async function ProductDetailPage({
             sending: contact("sending"),
             responseTime: contact("responseTime"),
             honeypot: contact("honeypot"),
+        submitError: contact("submitError"),
           }}
         />
       </section>

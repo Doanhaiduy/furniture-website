@@ -1,22 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowRight, BadgeCheck, BookOpen, MapPin, Phone } from "lucide-react";
-import type { Locale } from "@/i18n/routing";
+import { type Locale, isLocale } from "@/i18n/routing";
+import { notFound } from "next/navigation";
 import {
-  blogPosts,
   imageAssets,
   localized,
   productGroups,
-  products,
-  showrooms,
   trustBadges,
   withLocale,
-} from "@/lib/showroom-data";
+} from "@/lib/showroom-constants";
+import { showrooms } from "@/lib/showroom-mock-fallback";
 import { QuoteForm } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { HeroShowcase } from "@/components/showroom/hero-showcase";
 import { ProductCard } from "@/components/showroom/product-card";
+import { createClient } from "@/lib/supabase/server";
+import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
   params,
@@ -24,6 +26,7 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "meta" });
   return {
     title: t("homeTitle"),
@@ -37,13 +40,47 @@ export default async function HomePage({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   const home = await getTranslations("home");
   const common = await getTranslations("common");
   const contact = await getTranslations("contact");
 
-  const featured = products.filter((product) => product.featured).slice(0, 4);
-  const editorialPosts = blogPosts.slice(0, 3);
+  // Fetch dynamic data from local database
+  const supabase = await createClient();
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 4 });
+  const featured = dbProducts.length > 0 
+    ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
+    : []; // Fallback to empty list or mock if desired
+
+  const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: 3 });
+  const editorialPosts = dbBlogPosts.length > 0
+    ? dbBlogPosts.map((post: any) => ({
+        slug: post.slug,
+        image: post.cover_media?.url || imageAssets.blog1,
+        category: { vi: post.category_name, en: post.category_name },
+        date: post.published_at?.split("T")[0] || "",
+        readTime: { vi: "6 phút đọc", en: "6 min read" },
+        title: { vi: post.title, en: post.title },
+        excerpt: { vi: post.excerpt, en: post.excerpt },
+      }))
+    : [];
+
+  const dbShowrooms = await getShowrooms(supabase, locale);
+  const displayShowrooms = dbShowrooms.length > 0
+    ? dbShowrooms.slice(0, 2).map((s: any) => ({
+        code: s.code,
+        name: s.name,
+        address: s.address,
+        hotline: s.hotline,
+      }))
+    : showrooms.slice(0, 2).map((s: any) => ({
+        code: s.code,
+        name: localized(s.name, locale),
+        address: localized(s.address, locale),
+        hotline: s.hotline,
+      }));
+
   const heroGroups = productGroups.slice(0, 2).map((group) => ({
     href: withLocale(locale, group.href),
     image: group.image,
@@ -137,7 +174,7 @@ export default async function HomePage({
             </Link>
           </div>
           <div className="motion-stagger grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {featured.map((product) => (
+            {featured.map((product: any) => (
               <ProductCard
                 key={product.slug}
                 product={product}
@@ -156,7 +193,7 @@ export default async function HomePage({
             {home("editorialLead")}
           </h2>
           <div className="mt-8 grid gap-4">
-            {editorialPosts.map((post) => (
+            {editorialPosts.map((post: any) => (
               <Link
                 key={post.slug}
                 href={withLocale(locale, `/blog/${post.slug}`)}
@@ -217,12 +254,12 @@ export default async function HomePage({
             <h2 className="type-section-title mt-3 text-white">{home("showroomTitle")}</h2>
             <p className="mt-4 max-w-xl text-lg leading-8 text-white/75">{home("showroomLead")}</p>
             <div className="mt-8 space-y-6">
-              {showrooms.slice(0, 2).map((showroom) => (
+              {displayShowrooms.map((showroom: any) => (
                 <div key={showroom.code} className="border-l border-white/25 pl-5">
-                  <h3 className="type-card-title text-xl text-white">{localized(showroom.name, locale)}</h3>
+                  <h3 className="type-card-title text-xl text-white">{showroom.name}</h3>
                   <p className="mt-2 flex gap-2 text-sm text-white/75">
                     <MapPin className="mt-0.5 size-4 shrink-0" />
-                    {localized(showroom.address, locale)}
+                    {showroom.address}
                   </p>
                   <p className="mt-2 flex gap-2 text-sm text-white/75">
                     <Phone className="mt-0.5 size-4 shrink-0" />
@@ -238,10 +275,10 @@ export default async function HomePage({
           <div className="grid gap-5">
             <div className="public-glass-panel p-6">
               <p className="label-pd text-white/60">{home("showroomCta")}</p>
-              <p className="type-section-title mt-4 text-white">{localized(showrooms[0].name, locale)}</p>
+              <p className="type-section-title mt-4 text-white">{displayShowrooms[0]?.name || ""}</p>
               <p className="mt-3 flex gap-2 text-sm leading-6 text-white/72">
                 <MapPin className="mt-0.5 size-4 shrink-0" />
-                {localized(showrooms[0].address, locale)}
+                {displayShowrooms[0]?.address || ""}
               </p>
             </div>
             <div className="surface-card p-5 text-primary">
@@ -294,6 +331,7 @@ export default async function HomePage({
               sending: contact("sending"),
               responseTime: contact("responseTime"),
               honeypot: contact("honeypot"),
+        submitError: contact("submitError"),
             }}
           />
         </div>

@@ -37,7 +37,7 @@ This audit evaluates these files, identifies quality and structural issues, maps
 1. **Upgraded Specificity**: Every single file was rewritten to explicitly target real routes (e.g., `app/[locale]/products/[slug]/page.tsx`), component filenames (e.g., `components/showroom/admin-workflows.tsx`), database tables, and environment variables.
 2. **Action-Oriented Checklist**: Refined checklist items into verifiable steps rather than vague guidelines (e.g., changed "Test RLS policies" to "Execute RLS policy validation scripts using postgres role masks").
 3. **Enhanced Security Enforcement**: Documented exact server-side guard logic and RLS rules for Role Model Option A across all relevant phases (specifically Phases 04, 05, 06, 07, 09, 10).
-4. **Concrete Testing Plans**: Added explicit test suites, Playwright test structures, mock credentials, locale verification paths (vi vs. en), and fallback error assertions.
+4. **Concrete Testing Plans**: Added explicit Browser MCP-first journey structures, focused unit/integration suites, backup-only Playwright triggers, mock credentials, locale verification paths (vi vs. en), and fallback error assertions.
 
 ---
 

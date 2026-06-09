@@ -73,8 +73,11 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm test:e2e --project=chromium
 ```
+
+For browser-visible preview validation, run Browser MCP checks first against the deployed Preview URL: open `/vi`, `/vi/products`, `/vi/blog`, `/vi/contact`, and `/admin`, inspect visible state, perform the affected user journeys, and capture screenshot/snapshot evidence where useful.
+
+Use `pnpm test:e2e --project=chromium` only as Playwright backup when Browser MCP cannot cover the scenario or the release requires deterministic CI/headless regression evidence.
 
 ## pnpm 11 Build Script Approval
 

@@ -1,9 +1,10 @@
 # Phase 10 Checklist – QA Hardening & Launch Preparation
 
-## 1. Playwright E2E Test Suite
-- [ ] Create `tests/e2e/public-pages.spec.ts` verifying visitor flows (homepage renders, language switching, product searches, contact form submissions).
-- [ ] Create `tests/e2e/auth.spec.ts` verifying Admin login actions, Editor page blocks, and settings access control.
-- [ ] Execute E2E test suites inside Docker: run `docker compose exec app pnpm test:e2e` and confirm all tests pass.
+## 1. Browser MCP Launch Journey Suite
+- [ ] Complete Browser MCP visitor-flow validation (homepage renders, language switching, product searches, contact form submissions) with screenshot/snapshot evidence where useful.
+- [ ] Complete Browser MCP admin-flow validation (Admin login actions, Editor page blocks, and settings access control) with role/session evidence.
+- [ ] Add or update Playwright backup specs (`tests/e2e/**/*.spec.ts`) only for CI/headless deterministic regression gaps discovered during Browser MCP validation.
+- [ ] If release policy requires CI backup, execute `docker compose exec app pnpm test:e2e` and record that it was used as Playwright backup.
 
 ## 2. Performance & Accessibility Optimizations
 - [ ] Run Lighthouse audits on critical public routes (Homepage, Products listing, Blog listing).

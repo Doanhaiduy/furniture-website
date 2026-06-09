@@ -31,7 +31,7 @@ The project targets:
 - Cloudinary for media storage and delivery.
 - Tailwind CSS v4, shadcn/ui, next-intl, Zod, React Hook Form.
 - Resend, Google Maps Embed, and OpenAI through server-side boundaries.
-- Vitest and Playwright for verification.
+- Vitest for unit/integration verification, Browser MCP for primary browser-visible QA/user-flow validation, and Playwright only as CI/headless/deterministic backup.
 
 Current package drift to resolve before implementation: `package.json` currently uses
 Next.js 16.2.6 and does not include Payload CMS 3.x, Cloudinary, Resend, or OpenAI.
@@ -59,5 +59,6 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
-pnpm test:e2e
 ```
+
+For browser-visible changes, validate with Browser MCP first. Use `pnpm test:e2e` only as Playwright backup when Browser MCP cannot cover the scenario or a deterministic CI/headless script is required.

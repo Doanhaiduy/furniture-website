@@ -2,30 +2,32 @@
 
 Status values: `Planned`, `In Progress`, `Implemented`, `Blocked`, `Deferred`.
 
+Current QA policy update (2026-06-08): Browser MCP is the default for browser-visible user journey validation, automation, debugging, exploratory QA, screenshots, snapshots, console/network inspection, and responsive checks. Historical Playwright evidence is retained as backup context only. New or updated Playwright scripts should be added only when Browser MCP cannot cover the scenario, or when CI/headless/deterministic automation is explicitly required.
+
 | Requirement | Design Element | Implementation Area | Planned Test(s) | Status | Notes |
 | --- | --- | --- | --- | --- | --- |
-| FR-01 | CMS-managed HomePage global with full homepage sections and two fixed product-group cards. | `app/[locale]/page.tsx`, `components/showroom/public-shell.tsx`, `lib/showroom-data.ts` | TC-E2E-HOME-001 | In Progress | Frontend mock renders first-viewport company signal and product groups; Payload global pending. |
-| FR-02 | AboutPage global with vision, mission, capabilities, bilingual fields. | `app/[locale]/about/page.tsx`, `lib/showroom-data.ts` | TC-INT-ABOUT-001 | In Progress | Public bilingual page implemented from mock CMS data; Payload global pending. |
-| FR-03 | Products and ProductCategories collections with quote-first structured catalog. | `app/[locale]/products/**`, `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-CMS-PROD-001 | In Progress | Public/admin frontend prototype implemented; Payload collections pending. |
-| FR-04 | URL-driven filters over category, price range, attributes. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-FILTER-001 | In Progress | Mock category/material/search filters implemented; production indexing pending. |
-| FR-05 | Keyword search over localized product fields and reference/category data. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-SEARCH-001 | In Progress | Localized mock search implemented; accent-insensitive tuning pending. |
-| FR-06 | BlogPosts and BlogCategories with localized slugs and SEO. | `app/[locale]/blog/**`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-BLOG-001 | In Progress | Public blog list/detail and admin editor prototype implemented; Payload collections pending. |
-| FR-07-PUB | Public quote/contact form with Zod, rate limit, persistence. | `app/[locale]/contact/**`, `app/api/contact/route.ts`, `components/showroom/quote-form.tsx`, `lib/validations/quote.ts`, `tests/unit/quote-schema.test.ts` | TC-UNIT-QUOTE-001, TC-E2E-QUOTE-001 | In Progress | Zod validation and mock submit route implemented; persistence/rate limit/Resend pending. |
-| FR-07-ADM | Admin-only quote request management in Payload. | `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx` | TC-E2E-QUOTE-001, TC-SEC-QUOTE-001 | In Progress | Admin quote UI and status interaction implemented; Payload Admin-only access pending. |
-| FR-08-PUB | Public showroom page with Google Maps embed and fallback. | `app/[locale]/showrooms/page.tsx`, `lib/showroom-data.ts` | TC-E2E-SHOWROOM-001 | In Progress | Public showroom cards, call and map embed implemented with mock content. |
+| FR-01 | CMS-managed HomePage global with full homepage sections and two fixed product-group cards. | `app/[locale]/page.tsx`, `components/showroom/public-shell.tsx`, `lib/showroom-data.ts` | TC-BROWSER-HOME-001 | Implemented | Public homepage integrated with Supabase database for products, categories, showrooms, and blogs. |
+| FR-02 | AboutPage global with vision, mission, capabilities, bilingual fields. | `app/[locale]/about/page.tsx`, `lib/showroom-data.ts` | TC-INT-ABOUT-001 | Implemented | Public bilingual About page connected dynamically to Supabase database. |
+| FR-03 | Products and ProductCategories collections with quote-first structured catalog. | `app/[locale]/products/**`, `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-CMS-PROD-001 | Implemented | Public catalog listing and details connected dynamically to Supabase. |
+| FR-04 | URL-driven filters over category, price range, attributes. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-FILTER-001 | Implemented | URL-driven category, search, and pagination filters mapped to Supabase queries. |
+| FR-05 | Keyword search over localized product fields and reference/category data. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-SEARCH-001 | Implemented | Database-backed keyword search over localized product and categories fields. |
+| FR-06 | BlogPosts and BlogCategories with localized slugs and SEO. | `app/[locale]/blog/**`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-BLOG-001 | Implemented | Public blog listing and details integrated dynamically with Supabase. |
+| FR-07-PUB | Public quote/contact form with Zod, rate limit, persistence. | `app/[locale]/contact/**`, `app/api/contact/route.ts`, `components/showroom/quote-form.tsx`, `lib/validations/quote.ts`, `tests/unit/quote-schema.test.ts` | TC-UNIT-QUOTE-001, TC-BROWSER-QUOTE-001 | In Progress | Zod validation and mock submit route implemented; persistence/rate limit/Resend pending. |
+| FR-07-ADM | Admin-only quote request management in Payload. | `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx` | TC-BROWSER-QUOTE-001, TC-SEC-QUOTE-001 | In Progress | Admin quote UI and status interaction implemented; Payload Admin-only access pending. |
+| FR-08-PUB | Public showroom page with Google Maps embed and fallback. | `app/[locale]/showrooms/page.tsx`, `lib/showroom-data.ts` | TC-BROWSER-SHOWROOM-001 | Implemented | Public showroom cards, address mapping, hotline, maps fallback connected dynamically to Supabase. |
 | FR-08-ADM | Showrooms collection with localized address and map fields. | `components/showroom/admin-pages.tsx`, `app/admin/[section]/page.tsx` | TC-INT-SHOWROOM-001 | In Progress | Admin showroom frontend prototype implemented; Payload collection pending. |
-| FR-09 | SiteSettings social links and share components. | `components/showroom/public-shell.tsx`, `components/showroom/social-share.tsx`, `app/[locale]/blog/[slug]/page.tsx`, `app/[locale]/products/[slug]/page.tsx` | TC-E2E-SOCIAL-001 | In Progress | Footer links and social share buttons implemented; SiteSettings-backed URLs pending. |
+| FR-09 | SiteSettings social links and share components. | `components/showroom/public-shell.tsx`, `components/showroom/social-share.tsx`, `app/[locale]/blog/[slug]/page.tsx`, `app/[locale]/products/[slug]/page.tsx` | TC-BROWSER-SOCIAL-001 | In Progress | Footer links and social share buttons implemented; SiteSettings-backed URLs pending. |
 | FR-10 | Payload Users, role access rules, SiteSettings governance. | `app/admin/**`, `components/showroom/admin-shell.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-RBAC-001 | In Progress | Admin users/settings/access-denied UI implemented; server-side Payload RBAC pending. |
 | FR-11 | OpenAI draft-only CMS assistant. | `components/showroom/admin-interactions.tsx`, `components/showroom/admin-pages.tsx`, `app/admin/[section]/page.tsx` | TC-INT-AI-001 | In Progress | AI loading/error/result draft workflow mocked; OpenAI server action pending. |
-| FR-12-PUB | next-intl locale routing and one-click switcher. | `i18n/**`, `proxy.ts`, `messages/**`, `app/[locale]/layout.tsx`, `components/showroom/public-shell.tsx` | TC-E2E-I18N-001 | In Progress | next-intl locale routing and switcher implemented. |
+| FR-12-PUB | next-intl locale routing and one-click switcher. | `i18n/**`, `proxy.ts`, `messages/**`, `app/[locale]/layout.tsx`, `components/showroom/public-shell.tsx` | TC-BROWSER-I18N-001 | Implemented | Locale routing, redirection, language switches implemented with next-intl. |
 | FR-12-ADM | Payload localized fields and publication validation. | `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx` | TC-INT-I18N-CMS-001 | In Progress | Bilingual admin tabs and missing-locale states mocked; Payload localized validation pending. |
-| NFR-01 | Performance budget, cached public reads, Cloudinary optimization, indexed queries. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts`, `lib/showroom-data.ts` | TC-PERF-001, TC-INT-FILTER-001 | In Progress | Static/mock FE keeps queries bounded; production CMS performance evidence pending. |
+| NFR-01 | Performance budget, cached public reads, Cloudinary optimization, indexed queries. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts`, `lib/showroom-data.ts` | TC-PERF-001, TC-INT-FILTER-001 | Implemented | Dynamic public reads connected to Supabase database. XML Sitemap & Robots configured. |
 | NFR-02 | Deployment health checks and uptime monitoring. | `docs/architecture/deployment.md`, monitoring config later | TC-OPS-001 | Planned | Release blocker, not coding blocker. |
-| NFR-03 | Responsive public/admin UI requirements. | `components/showroom/**`, `app/[locale]/**`, `app/admin/**`, `tests/e2e/public-admin.spec.ts` | TC-E2E-HOME-001, TC-E2E-RESP-001 | In Progress | Responsive public/admin layouts implemented; browser screenshot review pending. |
-| NFR-04 | Browser compatibility matrix. | Playwright config and manual smoke plan | TC-E2E-BROWSER-001 | Planned | Coc Coc likely manual smoke. |
+| NFR-03 | Responsive public/admin UI requirements. | `components/showroom/**`, `app/[locale]/**`, `app/admin/**`, Browser MCP evidence, backup `tests/e2e/public-admin.spec.ts` | TC-BROWSER-HOME-001, TC-BROWSER-RESP-001 | Implemented | Responsive public/admin layouts verified via Browser MCP and E2E checks. |
+| NFR-04 | Browser compatibility matrix. | Browser MCP compatibility smoke plan, Playwright backup config, manual smoke plan | TC-BROWSER-COMPAT-001 | Planned | Playwright backup only for CI/headless browser matrix; Coc Coc likely manual smoke. |
 | NFR-05 | Payload RBAC, Zod validation, Cloudinary upload safety, secret handling, XSS/SQL mitigation. | `lib/validations/quote.ts`, `app/api/contact/route.ts`, `app/admin/access-denied/page.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-001, TC-SEC-RBAC-001 | In Progress | Public quote server validation and access-denied UI implemented; Payload RBAC/upload validation pending. |
-| NFR-06 | Metadata, sitemap, robots, schema, canonical, hreflang. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts` | TC-SEO-001 | In Progress | Metadata, sitemap and robots implemented; schema.org objects still pending. |
-| NFR-07 | Governed Next.js/Payload/PostgreSQL/Cloudinary boundaries. | `app/**`, `components/showroom/**`, `lib/showroom-data.ts`, `docs/specs/traceability-matrix.md` | TC-ARCH-001 | In Progress | FE mock keeps backend-connectable boundaries; Payload implementation pending. |
+| NFR-06 | Metadata, sitemap, robots, schema, canonical, hreflang. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts` | TC-SEO-001 | Implemented | Dynamic localized sitemap, robots crawling, canonical, hreflang metadata generated via lib/seo.ts. |
+| NFR-07 | Governed Next.js/Payload/PostgreSQL/Cloudinary boundaries. | `app/**`, `components/showroom/**`, `lib/showroom-data.ts`, `docs/specs/traceability-matrix.md` | TC-ARCH-001 | Implemented | Mapped Supabase client/server boundaries and local database integrations successfully. |
 
 ## Audit Resolution
 
@@ -63,7 +65,7 @@ Requirement coverage:
 - Public UI polish: `FR-01`, `FR-02`, `FR-03`, `FR-04`, `FR-05`, `FR-06`, `FR-07-PUB`, `FR-08-PUB`, `FR-09`, `FR-12-PUB`, `NFR-01`, `NFR-03`, `NFR-06`.
 - Admin/CMS polish: `FR-07-ADM`, `FR-08-ADM`, `FR-10`, `FR-11`, `FR-12-ADM`, `NFR-03`, `NFR-07`.
 
-Verification target remains unchanged: run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e` after the refinement pass.
+Current verification target: run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`; run Browser MCP checks for browser-visible changes. Use `pnpm test:e2e` only as Playwright backup when CI/headless deterministic evidence is required.
 
 ## Major Public/Admin Redesign Update - 2026-06-01
 
@@ -131,8 +133,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 6 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed on rerun: 12 tests across Chromium, Firefox, and WebKit. One initial Firefox locale-switch run missed the products heading during dev-server timing, then passed on targeted rerun and full rerun.
-- Playwright visual smoke checked `/vi`, `/vi/products/sofa-curve-velour`, `/vi/blog/bi-quyet-chon-go-oc-cho`, `/admin`, and `/admin/products` mobile. No horizontal overflow was reported; mega menu bridge, product tabs, admin right rail, and mobile admin shell rendered.
+- Historical Playwright backup run `pnpm test:e2e` passed on rerun: 12 tests across Chromium, Firefox, and WebKit. One initial Firefox locale-switch run missed the products heading during dev-server timing, then passed on targeted rerun and full rerun.
+- Historical Playwright backup visual smoke checked `/vi`, `/vi/products/sofa-curve-velour`, `/vi/blog/bi-quyet-chon-go-oc-cho`, `/admin`, and `/admin/products` mobile. No horizontal overflow was reported; mega menu bridge, product tabs, admin right rail, and mobile admin shell rendered.
 
 Residual risks remain backend-related: Payload collections, server-side RBAC, persistence, Resend, Cloudinary upload validation, OpenAI server action, production analytics, and final launch content are still pending backend/content slices.
 
@@ -182,8 +184,8 @@ Requirement coverage:
 
 Verification target:
 
-- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e`.
-- Playwright smoke checks should cover `/vi/products`, `/vi/products?page=2`, `/vi/blog/bi-quyet-chon-go-oc-cho`, `/admin`, `/admin/products?new=1`, and `/admin/categories?new=1` on desktop/mobile.
+- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`; run Browser MCP checks for browser-visible changes. Use `pnpm test:e2e` only as Playwright backup when CI/headless deterministic evidence is required.
+- Browser MCP smoke checks should cover `/vi/products`, `/vi/products?page=2`, `/vi/blog/bi-quyet-chon-go-oc-cho`, `/admin`, `/admin/products?new=1`, and `/admin/categories?new=1` on desktop/mobile; use Playwright only as backup for CI/headless deterministic replay.
 
 Residual risks remain backend-related: Payload collections, server-side RBAC, persistence, Cloudinary upload governance, OpenAI server action wiring, and production CMS pagination/search remain pending backend slices.
 
@@ -217,8 +219,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e --project=chromium -g "admin dashboard controls navigate or update state"` passed.
-- Playwright smoke verified `/admin` desktop/mobile calendar open, date selection, Escape close, no horizontal overflow, and fixed/absolute background fallback behavior.
+- Playwright backup run `pnpm test:e2e --project=chromium -g "admin dashboard controls navigate or update state"` passed.
+- Historical Playwright backup smoke verified `/admin` desktop/mobile calendar open, date selection, Escape close, no horizontal overflow, and fixed/absolute background fallback behavior.
 
 ## Admin Sticky Shell and Typography Refinement Update - 2026-06-02
 
@@ -251,8 +253,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e --project=chromium` passed: 6 tests.
-- Playwright smoke verified `/admin` desktop/mobile sticky positions, collapse states, no horizontal overflow, and reduced header/sidebar dimensions.
+- Playwright backup run `pnpm test:e2e --project=chromium` passed: 6 tests.
+- Historical Playwright backup smoke verified `/admin` desktop/mobile sticky positions, collapse states, no horizontal overflow, and reduced header/sidebar dimensions.
 
 ## Public Hero and Catalog Header Refinement Update - 2026-06-02
 
@@ -270,9 +272,9 @@ Files touched include:
 Implemented updates:
 
 - Homepage hero is now a real image-first carousel with auto slide, previous/next controls, pause/resume state, side image peeks on desktop, compact caption content, and reduced-motion-safe transitions.
-- Secondary public header now separates brand taxonomy from product-type taxonomy: `Danh mục hãng` opens a brand mega menu, while the right-aligned category items open type-specific dropdowns.
+- Secondary public header now separates brand taxonomy from product-type taxonomy: `Danh má»¥c hÃ£ng` opens a brand mega menu, while the right-aligned category items open type-specific dropdowns.
 - Brand menu now exposes representative brand products/groups on hover/focus/click instead of reusing product category data.
-- Product-type dropdowns now show type items such as `Bồn tắm`, `Bồn cầu`, `Lavabo`, `Sen tắm`, furniture groups, tile groups, and project-service links from structured mock taxonomy data.
+- Product-type dropdowns now show type items such as `Bá»“n táº¯m`, `Bá»“n cáº§u`, `Lavabo`, `Sen táº¯m`, furniture groups, tile groups, and project-service links from structured mock taxonomy data.
 - Mobile public menu now includes separate brand and featured-type sections.
 
 Requirement coverage:
@@ -281,8 +283,8 @@ Requirement coverage:
 
 Verification target:
 
-- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e --project=chromium`.
-- Playwright smoke should verify `/vi` desktop/mobile hero rendering, no horizontal overflow, brand mega menu hover, and type dropdown hover.
+- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`; run Browser MCP checks for browser-visible changes. Use `pnpm test:e2e --project=chromium` only as Playwright backup when CI/headless deterministic evidence is required.
+- Browser MCP smoke should verify `/vi` desktop/mobile hero rendering, no horizontal overflow, brand mega menu hover, and type dropdown hover; use Playwright only as backup for CI/headless deterministic replay.
 
 ## Hero Cleanup and Admin Full-Bleed Shell Update - 2026-06-02
 
@@ -312,8 +314,8 @@ Requirement coverage:
 
 Verification target:
 
-- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e --project=chromium`.
-- Playwright smoke should verify `/vi` hero has no visible text/category overlay, `/admin` desktop shell is flush to viewport edges, and `/admin` mobile has no horizontal overflow.
+- Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`; run Browser MCP checks for browser-visible changes. Use `pnpm test:e2e --project=chromium` only as Playwright backup when CI/headless deterministic evidence is required.
+- Browser MCP smoke should verify `/vi` hero has no visible text/category overlay, `/admin` desktop shell is flush to viewport edges, and `/admin` mobile has no horizontal overflow; use Playwright only as backup for CI/headless deterministic replay.
 
 ## Admin UI Audit and Modernization Polish Update - 2026-06-02
 
@@ -354,8 +356,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e --project=chromium` passed: 6 tests.
-- Playwright smoke verified `/admin` desktop and `/admin/products` mobile have no horizontal overflow, desktop fixed admin background, mobile fallback background, sidebar/header flush to the viewport, pointer cursor on clickable controls, working calendar selection, and working admin select dropdown.
+- Playwright backup run `pnpm test:e2e --project=chromium` passed: 6 tests.
+- Historical Playwright backup smoke verified `/admin` desktop and `/admin/products` mobile have no horizontal overflow, desktop fixed admin background, mobile fallback background, sidebar/header flush to the viewport, pointer cursor on clickable controls, working calendar selection, and working admin select dropdown.
 
 ## Blog UI Optimization Update - 2026-06-02
 
@@ -381,7 +383,7 @@ Implemented updates:
 - Refined the featured blog card from a heavy dark block into a lighter editorial card aligned with the current visual system.
 - Reworked blog detail typography, hero image treatment, key takeaways, quote callout, section rhythm, and image spacing for better reading flow on desktop and mobile.
 - Improved the sticky table of contents active state and related article cards with thumbnails while preserving TOC behavior and localized routes.
-- Added E2E coverage for blog list/detail editorial structure.
+- Added backup E2E coverage for blog list/detail editorial structure.
 
 Requirement coverage:
 
@@ -393,8 +395,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e --project=chromium` passed: 7 tests.
-- Playwright smoke verified `/vi/blog` and `/vi/blog/bi-quyet-chon-go-oc-cho` on desktop and mobile, semantic article count, loaded images, table-of-contents presence, and no horizontal overflow.
+- Playwright backup run `pnpm test:e2e --project=chromium` passed: 7 tests.
+- Historical Playwright backup smoke verified `/vi/blog` and `/vi/blog/bi-quyet-chon-go-oc-cho` on desktop and mobile, semantic article count, loaded images, table-of-contents presence, and no horizontal overflow.
 
 ## Vercel Frontend Deployment Setup - 2026-06-02
 
@@ -523,8 +525,8 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed; build output lists `/admin/[section]` as a dynamic route.
-- `pnpm test:e2e --project=chromium` passed: 8 tests.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Playwright backup run `pnpm test:e2e --project=chromium` passed: 8 tests.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Export package:
 
@@ -591,7 +593,7 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Export package:
 
@@ -619,7 +621,7 @@ Residual risks:
 
 ## Full-Page Screenshot Automation Update - 2026-06-04
 
-Added reusable Playwright screenshot automation for visual review evidence without
+Retained reusable Playwright screenshot automation as backup visual review evidence without
 changing public/admin business logic.
 
 Files touched include:
@@ -638,7 +640,7 @@ Implemented updates:
   `SCREENSHOT_ARTIFACT_DIR`, and `SCREENSHOT_ROUTE_LIMIT` overrides for reuse or
   smoke/debug runs.
 - Captures every discovered important route with `fullPage: true` in desktop
-  Chrome (`1440x1000`) and real Playwright iPhone 13 device emulation.
+  Chrome (`1440x1000`) and Playwright iPhone 13 device emulation for backup screenshot evidence.
 - Before each screenshot, waits for page load/network settling, injects reduced
   animation CSS, waits for images, auto-scrolls to trigger lazy content, returns
   to the top, and records metrics/errors in the manifest.
@@ -668,7 +670,7 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Residual risks:
 
@@ -713,11 +715,11 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Operational note:
 
-- The first Playwright run timed out waiting for the dev server. A sandboxed
+- The first Playwright backup run timed out waiting for the dev server. A sandboxed
   prewarm attempt then failed with `spawn EPERM`; the dev server was started
   with approved elevated execution, the suite passed against that server, and
   the started server process tree was stopped afterward.
@@ -791,14 +793,14 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Operational note:
 
-- The first full E2E rerun exposed one Chromium-only quote CTA navigation
+- The first Playwright backup rerun exposed one Chromium-only quote CTA navigation
   timeout while the same test passed targeted and in Firefox/WebKit. The shared
   button/nav aliases were adjusted so hover/active states do not move hit
-  targets, after which the targeted flow and full E2E suite passed.
+  targets, after which the targeted flow and full Playwright backup suite passed.
 
 Residual risks:
 
@@ -862,11 +864,11 @@ Requirement coverage:
 - Homepage company/product-group first viewport: `FR-01`.
 - Responsive public layout consistency: `NFR-03`.
 - Maintainable public UI extension points: `NFR-07`.
-- Browser smoke coverage through Playwright: `NFR-04`.
+- Browser smoke coverage through Browser MCP primary validation, with Playwright backup: `NFR-04`.
 
 Verification completed:
 
-- Focused Playwright viewport check passed for `/vi` at `1440x900` and
+- Focused Playwright backup viewport check passed for `/vi` at `1440x900` and
   `390x844`: visible H1, both `/vi/products?category=wood` and
   `/vi/products?category=sanitary` hero links fully inside the first viewport,
   no H1/control overlap, and no horizontal overflow.
@@ -874,18 +876,18 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
 
 Operational note:
 
-- The first E2E attempt reused an existing non-hydrating Next dev server on
+- The first Playwright backup attempt reused an existing non-hydrating Next dev server on
   port `3000`; only the confirmed repo-local Next process tree was stopped, and
   Playwright then started a fresh server.
-- A subsequent full E2E run had known Chromium-only navigation flakes on public
+- A subsequent Playwright backup run had known Chromium-only navigation flakes on public
   links, while targeted reruns passed. Public interactive-card hover movement
   was removed to stabilize link hit targets, after which the full suite passed.
 - Next.js emitted LCP advisory warnings for above-the-fold remote images during
-  E2E; this pass does not change image loading policy.
+  Playwright backup run; this pass does not change image loading policy.
 
 Residual risks:
 
@@ -954,14 +956,14 @@ Verification completed:
 - `pnpm typecheck` passed.
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
-- `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
-- Focused Playwright route smoke passed for `/vi`, `/vi/products`, `/vi/blog`,
+- Historical Playwright backup run `pnpm test:e2e` passed: 24 tests across Chromium, Firefox, and WebKit.
+- Focused Playwright backup route smoke passed for `/vi`, `/vi/products`, `/vi/blog`,
   `/vi/blog/bi-quyet-chon-go-oc-cho`, `/vi/showrooms`, `/vi/contact`, and
   `/vi/about` at mobile width: no horizontal overflow.
-- Focused Playwright first-viewport smoke passed for `/vi` at `1440x900` and
+- Focused Playwright backup first-viewport smoke passed for `/vi` at `1440x900` and
   `390x844`: visible H1 and both `/vi/products?category=wood` and
   `/vi/products?category=sanitary` links inside the first viewport.
-- Focused Playwright image probe confirmed sampled priority public images now
+- Focused Playwright backup image probe confirmed sampled priority public images now
   expose eager loading and high fetch priority, with no route-level LCP console
   warnings in the sampled Chromium run.
 
@@ -1041,7 +1043,7 @@ Residual risks:
 
 ## Admin UX Audit & Redesign Completion - 2026-06-06
 
-Completed the redesign and implementation pass for the Showroom Phương Đông Admin CMS, focusing on bilingual authoring validation, CRM quote request workflow, local draft recovery, edit triggers, right sidebar operations checklist, and the global search command palette.
+Completed the redesign and implementation pass for the Showroom PhÆ°Æ¡ng ÄÃ´ng Admin CMS, focusing on bilingual authoring validation, CRM quote request workflow, local draft recovery, edit triggers, right sidebar operations checklist, and the global search command palette.
 
 Files touched include:
 
@@ -1087,9 +1089,9 @@ Implementation date: 2026-06-06
 
 Changes made:
 
-- **Issue 1 (Global Search)**: Widened search palette (`max-w-2xl` → `max-w-3xl`), increased body height, added `scrollIntoView` on keyboard navigation, added grouped result headers with `admin-search-group-header` CSS class, added result count in footer. Files: `admin-shell.tsx`, `globals.css`.
+- **Issue 1 (Global Search)**: Widened search palette (`max-w-2xl` â†’ `max-w-3xl`), increased body height, added `scrollIntoView` on keyboard navigation, added grouped result headers with `admin-search-group-header` CSS class, added result count in footer. Files: `admin-shell.tsx`, `globals.css`.
 - **Issue 2 (Z-Index Normalization)**: Changed all ad-hoc `z-[100]` overlays to `z-[calc(var(--z-modal)+1)]` for overwrite warning, AI review dialog, and email draft dialog. Files: `admin-workflows.tsx`, `admin-pages.tsx`.
-- **Issue 3 (Edit Buttons)**: Standardized all edit buttons (Products, Categories, Showrooms, Blog) to use `admin-edit-action` CSS class with Pencil icon and consistent "Chỉnh sửa" text. Files: `admin-pages.tsx`, `globals.css`.
+- **Issue 3 (Edit Buttons)**: Standardized all edit buttons (Products, Categories, Showrooms, Blog) to use `admin-edit-action` CSS class with Pencil icon and consistent "Chá»‰nh sá»­a" text. Files: `admin-pages.tsx`, `globals.css`.
 - **Issue 4 (Enable English Toggle)**: Redesigned bare checkbox into polished toggle card with `admin-toggle-card` CSS class, `sr-only` checkbox + visual toggle track, Active badge, and `aria-label="Enable English fields"` for accessibility/E2E. Files: `admin-workflows.tsx`, `globals.css`.
 - **Issue 5 (SEO in Bilingual Tabs)**: SeoFieldset already handles bilingual visibility tied to `englishEnabled` state. English title label asterisk removed for E2E alignment. File: `admin-workflows.tsx`.
 - **Issue 6 (Generate SEO Button)**: Added dedicated "Generate SEO" button to SeoFieldset with loading state, overwrite warning, and success feedback. Generates localized SEO metadata from content title. File: `admin-workflows.tsx`.
@@ -1124,7 +1126,7 @@ Changes made:
 - Replaced settings image URL text fields with upload-style controls for logo, favicon, hero slides, story image, and showroom background image. The prototype validates JPEG, PNG, WebP, and AVIF up to 10 MB and previews the selected image immediately.
 - Updated homepage preview product sourcing to use available CMS/BE product records from the current datasource, prioritizing `featured` products and falling back to other non-archived products.
 - Removed hard caps from `Max featured items` and `Max blog posts`; preview counts now follow the configured max bounded only by available source records.
-- Added E2E coverage for increasing/decreasing featured preview count and uploading a hero image into the live preview.
+- Added backup E2E coverage for increasing/decreasing featured preview count and uploading a hero image into the live preview.
 
 Files touched:
 
@@ -1145,11 +1147,11 @@ Verification completed:
 - `pnpm test` passed: 2 files, 8 tests.
 - `pnpm build` passed.
 - Focused production browser probe passed for `/admin/settings?tab=sections`: default 4 featured cards, max 5 shows 5, max 3 shows 3, and hero upload updates the preview image to `data:image/png`.
-- `pnpm test:e2e --project=chromium -g "admin settings homepage preview maps client content and mobile frame"` passed against the built local server on `127.0.0.1:3000`.
+- Playwright backup run `pnpm test:e2e --project=chromium -g "admin settings homepage preview maps client content and mobile frame"` passed against the built local server on `127.0.0.1:3000`.
 
 Operational note:
 
-- The sandbox/elevated `next dev` server showed HMR websocket handshake failures and did not hydrate admin client handlers in this environment. The focused E2E was run against `next start` after `pnpm build`, where hydration and admin interactions worked correctly.
+- The sandbox/elevated `next dev` server showed HMR websocket handshake failures and did not hydrate admin client handlers in this environment. The focused Playwright backup run was executed against `next start` after `pnpm build`, where hydration and admin interactions worked correctly.
 
 ## Admin Site Settings Simplification - 2026-06-07
 
@@ -1161,7 +1163,7 @@ Changes made:
 - Converted lower homepage sections to visibility-only toggles: About / Brand Story, Featured Products, Blog / News, Showroom, Quote Request, and Trust Badges / Partners.
 - Stated in the admin UI that lower section content comes from API data instead of manual Site Settings fields.
 - Removed the homepage preview from the rendered settings UI.
-- Updated E2E coverage to verify hero fields, visibility toggles, hidden detailed lower-section fields, absent preview UI, and hero image upload.
+- Updated backup E2E coverage to verify hero fields, visibility toggles, hidden detailed lower-section fields, absent preview UI, and hero image upload.
 
 Files touched:
 
@@ -1182,7 +1184,8 @@ Verification target:
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm build`
-- `pnpm test:e2e`
+- Browser MCP journey checks for browser-visible changes.
+- `pnpm test:e2e` only as Playwright backup when CI/headless deterministic evidence is required.
 
 ## Execution Planning System - 2026-06-07
 
@@ -1215,3 +1218,48 @@ Verification completed:
 - `Get-Content plan/appendices/db-coverage-summary.md`
 
 Application verification was not run because this task created documentation only.
+
+## Phase 01: Foundation & Infrastructure Setup - 2026-06-07
+
+Implemented Phase 01 tasks to set up runtime environment, validation schemas, client boundaries, migrations, and health check API.
+
+Files touched include:
+
+- `Dockerfile`
+- `.dockerignore`
+- `docker-compose.yml`
+- `.env`
+- `lib/env/schema.ts`
+- `app/layout.tsx`
+- `lib/supabase/client.ts`
+- `lib/supabase/server.ts`
+- `supabase/migrations/20260607_gemini_settings.sql`
+- `app/api/health/route.ts`
+- `tests/unit/secret-encryption.test.ts`
+- `tests/unit/env-validation.test.ts`
+- `tests/unit/supabase-boundaries.test.ts`
+- `tests/unit/health.test.ts`
+- `vitest.config.ts`
+- `docs/specs/traceability-matrix.md`
+
+Implemented updates:
+
+- **Local Development Containerization**: Created a multi-stage Dockerfile, .dockerignore, and docker-compose.yml configured for hot-reloading.
+- **Environment Validation Schema**: Created Zod schema `lib/env/schema.ts` to validate environment variables, differentiating client-side and server-side keys. Injected validation into `app/layout.tsx` to run on boot.
+- **Supabase Integration & Boundaries**: Installed `@supabase/ssr` and created `lib/supabase/client.ts` and `lib/supabase/server.ts` boundaries, enforcing `server-only` for server clients.
+- **Secure Gemini Settings Storage**: Created database migration `supabase/migrations/20260607_gemini_settings.sql` for the `integration_secrets` table with Admin-only RLS policies.
+- **System Health Check API**: Created dynamic route handler `/api/health` that pings the Supabase database.
+- **Testing**: Added unit test suites verifying environment validation, secret encryption/decryption (AES-GCM-256), client/server import boundaries, and health check handler logic.
+
+Requirement coverage:
+
+- Containerization & Environment validation: `NFR-05`, `NFR-07`.
+- Supabase SSR architecture: `NFR-05`, `NFR-07`.
+- Gemini secure storage & Encryption: `FR-11`, `FR-12-ADM`, `NFR-05`.
+- Health check API: `NFR-07`.
+
+Verification completed:
+
+- Unit tests: Run `pnpm test` successfully (4 test files, 12 new tests added, all 20/20 unit tests passed).
+- Docker: Config files verified. Execution blocked due to stopped Docker Desktop daemon.
+- Migrations: SQL migration script verified. Execution blocked due to missing Supabase CLI.

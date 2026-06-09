@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import "@/lib/env/schema";
 import "./globals.css";
+
 
 export const metadata: Metadata = {
   title: {

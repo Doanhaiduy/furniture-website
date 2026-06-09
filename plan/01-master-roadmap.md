@@ -62,7 +62,8 @@ Every implementation phase must report:
 - Security and RLS checks.
 - Tests added or updated.
 - Verification commands and outcomes.
-- E2E result or reason not run.
+- Browser MCP journey evidence for browser-visible changes, or reason not applicable.
+- Playwright backup result only when Browser MCP cannot cover the scenario or CI/headless/deterministic regression is required.
 - Traceability update in `docs/specs/traceability-matrix.md`.
 
 Default commands:
@@ -74,7 +75,9 @@ pnpm test
 pnpm build
 ```
 
-Run E2E for browser-visible, admin access, i18n, SEO, quote, settings, Gemini, Docker-smoke, or responsive behavior changes:
+Run Browser MCP journey checks for browser-visible, admin access, i18n, SEO, quote, settings, Gemini, Docker-smoke, or responsive behavior changes.
+
+Use Playwright backup only when Browser MCP cannot cover the scenario or CI/headless/deterministic regression is required:
 
 ```bash
 pnpm test:e2e

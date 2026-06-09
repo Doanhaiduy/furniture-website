@@ -1,63 +1,64 @@
-# Phase 06 Testing – Admin Write Integration & Audit Logging
+# Phase 06 Testing - Admin Write Integration & Audit Logging
 
-## Test Levels & Frameworks
-- **Unit Testing**: Vitest checks for slug Zod validation rules and payload normalization helpers.
-- **Integration Testing**: Vitest testing for database write helper functions with transaction rollbacks.
-- **E2E Testing**: Playwright checks for form creation, validation alerts, and revalidation refreshes.
-- **Manual Verification**: Direct database checks on table states and `audit_logs` entries.
+Browser MCP is the primary tool for validating admin create/update/archive flows, form validation, confirmation dialogs, success states, and visible revalidation. Playwright is backup only for deterministic CI CRUD scripts.
 
----
+## Test Levels
 
-## Concrete Scenarios & Verification Steps
+- **Unit**: Vitest checks slug validation and payload normalization helpers.
+- **Integration**: Vitest checks database write helpers with transaction rollbacks.
+- **Browser MCP journey checks**: Content creation, validation errors, archive confirmation, role-denied mutation attempts.
+- **Database checks**: SQL/RPC checks verify table state and `audit_logs`.
 
-### Scenario 1: Valid Content Creation & Audit Log Check
-1. Log in to the admin panel as an Editor.
-2. Navigate to `/admin/products/new`.
-3. Fill out the form:
-   - Name (VI): `"Bàn trà gỗ sồi cao cấp"`
-   - Name (EN): `"Premium Oak Coffee Table"`
-   - Slug: `"ban-tra-go-soi-cao-cap"`
-   - Price: `15000000`
-   - Category: Select an active category.
-4. Click "Submit".
-5. Verify that:
-   - A success toast is displayed.
-   - The user is redirected to `/admin/products`.
-   - The product table displays the new item.
-6. Check the database `audit_logs` table:
-   ```sql
-   SELECT action_type, target_table, metadata FROM audit_logs ORDER BY created_at DESC LIMIT 1;
-   ```
-7. Verify the output displays `action_type = 'INSERT'`, `target_table = 'products'`, and the metadata contains the new product details.
+## Scenario 1: Valid Content Creation And Audit Log
 
-### Scenario 2: Form Validation Error Handling (Zod Check)
-1. Navigate to `/admin/products/new`.
-2. Input an invalid slug containing uppercase letters and spaces: `"Ban Tra Go Soi"`.
-3. Click "Submit".
-4. Verify that:
-   - The form is not submitted.
-   - The slug input field renders a red border and validation message: `"Slug chỉ được chứa chữ thường, số và dấu gạch ngang" / "Slug must contain only lowercase letters, numbers, and hyphens"`.
+- **Goal**: Confirm authorized users can create publishable content and audit logs are written.
+- **Browser MCP steps**:
+  1. Log in as Editor.
+  2. Open `/admin/products/new`.
+  3. Fill required product fields using visible labels.
+  4. Submit the form.
+  5. Verify success toast or success state.
+  6. Verify redirect/list update shows the new item.
+  7. Check `audit_logs` for the insert entry.
+- **Expected result**: Product is created, visible in admin list, and audit log records the action.
+- **Pass/fail**:
+  - Pass: UI success, persisted record, and audit entry all exist.
+  - Fail: form submits incorrectly, record missing, or audit log absent.
+- **Playwright backup**: Use for CI CRUD regression.
 
-### Scenario 3: Soft-Deletion Verification (Archive Action)
-1. Navigate to `/admin/products`.
-2. Locate a product card row and click the "Archive" action button.
-3. Verify a confirmation modal is shown with the warning message: `"Bạn có chắc chắn muốn lưu trữ sản phẩm này?" / "Are you sure you want to archive this product?"`.
-4. Click "Confirm".
-5. Verify that:
-   - The product row disappears from the active table list (or updates its status indicator to "Archived").
-   - A check on the database `products` table shows `is_active = false` (the record is not deleted).
-   - The public products directory no longer displays the archived product.
+## Scenario 2: Form Validation Error Handling
 
-### Scenario 4: Unauthorized Writer Block (RBAC Test)
-1. Log in to the admin panel as an Editor.
-2. Attempt to update system configurations via a direct API request:
-   ```bash
-   curl -i -X POST http://localhost:3000/api/admin/settings \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer <editor-token>" \
-     -d '{"key":"gemini_model","value":"gemini-ultra"}'
-   ```
-3. Verify that:
-   - The response returns `403 Forbidden`.
-   - The database settings table is not updated.
-   - A new row is written to `audit_logs` recording the unauthorized access attempt.
+- **Goal**: Confirm invalid admin input is blocked with useful visible errors.
+- **Browser MCP steps**:
+  1. Open `/admin/products/new`.
+  2. Enter an invalid slug with uppercase letters and spaces.
+  3. Submit or blur the field.
+  4. Verify the field shows validation styling and localized error text.
+- **Expected result**: Form is not submitted and the user sees clear guidance.
+- **Playwright backup**: Use only for CI validation regression.
+
+## Scenario 3: Soft-Deletion / Archive Action
+
+- **Goal**: Confirm archive behavior is safe, confirmable, and not a hard delete.
+- **Browser MCP steps**:
+  1. Open `/admin/products`.
+  2. Locate a product row/card.
+  3. Use the visible Archive action.
+  4. Verify the confirmation modal.
+  5. Confirm archive.
+  6. Verify the row disappears from active list or shows archived state.
+  7. Verify database `is_active = false` and public listing excludes the product.
+- **Expected result**: Archive updates state safely and writes audit evidence.
+- **Playwright backup**: Use for deterministic archive regression.
+
+## Scenario 4: Unauthorized Writer Block
+
+- **Goal**: Confirm Editor cannot mutate privileged settings.
+- **Browser MCP steps**:
+  1. Log in as Editor.
+  2. Attempt to open a privileged settings route or trigger a privileged action.
+  3. Verify access-denied UI or redirect.
+  4. Use direct API check only if needed to confirm `403 Forbidden`.
+  5. Verify settings are unchanged and audit logs record the denied attempt if required.
+- **Expected result**: Unauthorized mutation is blocked in UI and server-side.
+- **Playwright backup**: Use for CI role mutation matrix.

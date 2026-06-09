@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks to verify seeded content appears on public/admin routes and media renders correctly.
+   - Use `pnpm test:e2e` only as Playwright backup for deterministic seeded-route CI regression or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Ensure all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 09 until database seeds are verified.
 
 ## Key Rules

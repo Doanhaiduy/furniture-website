@@ -54,3 +54,8 @@ node_modules/
 /artifacts
 /03_Modern_Showroom
 .specify
+.claude
+.agents
+.gemini
+.vscode
+

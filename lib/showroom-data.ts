@@ -832,21 +832,24 @@ export function getBlogPostBySlug(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
 }
 
-export function filterProducts(query: {
-  category?: string;
-  material?: string;
-  room?: string;
-  style?: string;
-  collection?: string;
-  tone?: string;
-  availability?: string;
-  featured?: string;
-  q?: string;
-}) {
+export function filterProducts(
+  query: {
+    category?: string;
+    material?: string;
+    room?: string;
+    style?: string;
+    collection?: string;
+    tone?: string;
+    availability?: string;
+    featured?: string;
+    q?: string;
+  },
+  items: readonly Product[] = products
+) {
   const normalizedQuery = query.q?.trim().toLowerCase();
   const isActive = (value?: string) => Boolean(value && value !== "all");
 
-  return products.filter((product) => {
+  return items.filter((product) => {
     if (product.status === "archived") return false;
     if (isActive(query.category) && product.categoryKey !== query.category) return false;
     if (isActive(query.material) && product.materialKey !== query.material) return false;
@@ -875,7 +878,10 @@ export function filterProducts(query: {
 }
 
 export function sortProducts(items: readonly Product[], sort: ProductSort = "newest") {
-  const byCatalogOrder = (product: Product) => products.findIndex((item) => item.slug === product.slug);
+  const byCatalogOrder = (product: Product) => {
+    const idx = products.findIndex((item) => item.slug === product.slug);
+    return idx === -1 ? 999999 : idx; // Fallback to end of array if from DB
+  };
 
   return [...items].sort((a, b) => {
     if (sort === "featured") {

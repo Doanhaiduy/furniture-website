@@ -77,4 +77,5 @@ export async function checkRateLimit(ip: string): Promise<boolean> {
   for i in {1..5}; do curl -i http://localhost:3000/api/contact; done
   ```
 - **Hashed IP Resolution**: Verify that the Next.js server resolves the client's actual IP address rather than the Docker gateway bridge IP (e.g., checking `x-forwarded-for` header mapping).
-- **Automated tests**: Playwright scripts will execute consecutive POST requests and assert that the 4th request returns a `429` status code.
+- **Browser MCP validation**: Submit through the visible quote form until the limit is reached, verify the safe rate-limit message, and inspect network/API details only if the visible state is unclear.
+- **Playwright backup**: Use a deterministic script for consecutive POST requests only when CI/headless rate-limit regression is required.

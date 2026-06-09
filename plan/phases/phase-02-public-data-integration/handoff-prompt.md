@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for affected public routes, locale switching, filters, sitemap/robots visibility, and responsive states. Capture screenshot/snapshot evidence when useful.
+   - Use `pnpm test:e2e` only as Playwright backup when a deterministic CI/headless route regression is required or Browser MCP cannot cover the scenario.
 5. **Marking Complete**: Confirm all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 03 or Phase 04 until all public pages display dynamic database content.
 
 ## Key Rules

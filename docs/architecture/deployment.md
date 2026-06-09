@@ -55,7 +55,7 @@ pnpm test
 pnpm build
 ```
 
-Also run `pnpm test:e2e` for changed browser-visible or admin flows.
+For changed browser-visible or admin flows, run Browser MCP journey checks first and record visible pass/fail evidence, screenshots/snapshots when useful, and console/network notes when relevant. Use `pnpm test:e2e` only as Playwright backup when Browser MCP cannot cover the scenario or a deterministic CI/headless regression script is required.
 
 ## Monitoring
 

@@ -1,48 +1,61 @@
-# Phase 09 Testing – Admin Settings, Users, Media, & AI Completion
+# Phase 09 Testing - Admin Settings, Users, Media, & AI Completion
 
-## Test Levels & Frameworks
-- **Unit Testing**: Vitest testing for `lib/security/encrypt.ts` and `lib/security/mask.ts`.
-- **Integration Testing**: Vitest testing for settings mutation helpers and Auth Admin API integrations.
-- **E2E Testing**: Playwright checks for key masking, user deactivations, and AI drafting fallbacks.
-- **Manual Verification**: SQL checks on `settings` table value hashes and `audit_logs` entries.
+Browser MCP is the primary validation tool for Admin Settings, Users, Media, Gemini settings, masking, role-denied states, and AI assistant workflows. Playwright is backup only for deterministic CI admin matrix scripts.
 
----
+## Test Levels
 
-## Concrete Scenarios & Verification Steps
+- **Unit**: Vitest checks encryption, masking, validators, and settings helpers.
+- **Integration**: Tests cover settings mutation helpers, Auth Admin API integrations, and audit logs.
+- **Browser MCP journey checks**: Settings save/mask, key rotation UI, user role change, self-deactivation block, AI offline fallback.
+- **Database checks**: SQL/RPC verifies ciphertext and audit rows.
 
-### Scenario 1: Gemini API Key Encryption & Masking
-1. Log in to the admin panel as an Admin.
-2. Navigate to `/admin/settings`.
-3. Open the "AI Configuration" tab, input the key: `"AI_TEST_KEY_VALUE_123456"`, and click "Save".
-4. Verify that:
-   - A success toast is displayed.
-   - The input field refreshes and displays exactly: `************3456` (the raw key is hidden).
-5. Inspect the database table `settings`:
-   - `SELECT value FROM settings WHERE key = 'gemini_api_key';`
-6. Verify the stored string is a complex ciphertext hash (representing GCM encrypted parameters) and does not contain the plaintext key.
+## Scenario 1: Gemini API Key Encryption And Masking
 
-### Scenario 2: Gemini API Key Rotation & Auditing
-1. Log in as an Admin.
-2. Navigate to `/admin/settings` and update the Gemini API key.
-3. Check the database `audit_logs` table:
-   ```sql
-   SELECT action_type, target_table, metadata FROM audit_logs WHERE target_table = 'settings' ORDER BY created_at DESC LIMIT 1;
-   ```
-4. Verify the log displays `action_type = 'UPDATE'`, the target row is registered, and metadata contains the masked key suffix.
+- **Goal**: Confirm Admin can save a Gemini key and the UI never reveals raw value.
+- **Browser MCP steps**:
+  1. Log in as Admin.
+  2. Open `/admin/settings`.
+  3. Open AI Configuration.
+  4. Enter a test key and save.
+  5. Verify success state.
+  6. Verify refreshed UI shows only masked key suffix.
+  7. Check database value separately for ciphertext.
+- **Expected result**: Raw key is never visible after save and is encrypted at rest.
+- **Playwright backup**: Use for CI settings masking regression.
 
-### Scenario 3: User Role Modification (Admin Only)
-1. Navigate to `/admin/users` as an Admin.
-2. Locate a test Editor user row and change their role to "Admin" using the dropdown select.
-3. Verify that:
-   - The change is saved and a success toast is displayed.
-   - The table reflects the new role.
-   - An audit record is written to `audit_logs` registering the change.
-4. Try to click "Deactivate" on your own Admin account. Verify the action is blocked with an alert warning: `"Không thể tự vô hiệu hóa tài khoản của chính mình" / "Cannot deactivate your own account"`.
+## Scenario 2: Gemini API Key Rotation And Auditing
 
-### Scenario 4: AI Generation Offline Fallback
-1. Log in as an Admin.
-2. Navigate to `/admin/settings`, toggle the AI Enabled setting to "Off", and click "Save".
-3. Navigate to `/admin/blog/new` as an Editor.
-4. Verify that:
-   - The "Generate outline with AI" button is disabled or hidden.
-   - An alert banner displays: `"Dịch vụ AI đang tắt" / "AI service is offline"`.
+- **Goal**: Confirm key rotation writes audit evidence without exposing the key.
+- **Browser MCP steps**:
+  1. Log in as Admin.
+  2. Update the Gemini key in Settings.
+  3. Verify success state and masked suffix.
+  4. Check `audit_logs` for masked metadata.
+- **Expected result**: Rotation is saved, masked, and audited.
+- **Playwright backup**: Use for deterministic CI settings flow.
+
+## Scenario 3: User Role Modification
+
+- **Goal**: Confirm only Admin can manage roles and cannot deactivate their own account.
+- **Browser MCP steps**:
+  1. Log in as Admin.
+  2. Open `/admin/users`.
+  3. Change a test Editor role using visible controls.
+  4. Verify success state and table update.
+  5. Attempt to deactivate the current Admin account.
+  6. Verify the action is blocked with safe visible warning.
+- **Expected result**: Authorized role change works; unsafe self-deactivation is blocked.
+- **Playwright backup**: Use for CI role management matrix.
+
+## Scenario 4: AI Generation Offline Fallback
+
+- **Goal**: Confirm disabled AI does not block manual authoring.
+- **Browser MCP steps**:
+  1. Log in as Admin.
+  2. Disable AI in Settings.
+  3. Open `/admin/blog/new` as Editor.
+  4. Verify AI generation controls are disabled/hidden.
+  5. Verify an offline banner or safe guidance appears.
+  6. Confirm manual editing controls remain usable.
+- **Expected result**: AI offline state is clear and non-blocking.
+- **Playwright backup**: Use for CI AI fallback regression.

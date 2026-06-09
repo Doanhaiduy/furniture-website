@@ -16,8 +16,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for create/edit/archive flows, visible validation errors, confirmation dialogs, toast states, and role-denied mutations.
+   - Use `pnpm test:e2e` only as Playwright backup for deterministic CI CRUD regression or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Ensure all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 07 until database mutations are verified.
 
 ## Key Rules

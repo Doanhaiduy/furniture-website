@@ -23,9 +23,10 @@
 - **User management** (`app/admin/users/page.tsx`) will be integrated with Auth API hooks in Phase 09.
 
 ## Verification Evidence Required
-1. **Playwright test outputs**: E2E test reports verifying:
+1. **Browser MCP role-access evidence**: Behavior-first notes and screenshots/snapshots where useful verifying:
    - Anonymous redirection to `/admin/login`.
    - Successful Editor login and dashboard access.
    - Editor block when attempting to access `/admin/quotes`.
-2. **Session Persistence checks**: Visual logs confirming the user session survives browser tab closures.
-3. **Database RLS validation**: CLI outputs proving queries on `profiles` fail if executed as a different user without permissions.
+2. **Playwright backup outputs**: Optional E2E reports only when CI/headless role regression is required.
+3. **Session Persistence checks**: Visual logs confirming the user session survives browser tab closures.
+4. **Database RLS validation**: CLI outputs proving queries on `profiles` fail if executed as a different user without permissions.

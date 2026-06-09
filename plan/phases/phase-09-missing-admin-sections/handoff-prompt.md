@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for Settings, Users, Media, Gemini masking/rotation, Editor denial, and AI assistant fallback flows.
+   - Use `pnpm test:e2e` only as Playwright backup for deterministic CI admin matrix scripts or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Ensure all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 10 until all admin sections are functional.
 
 ## Key Rules

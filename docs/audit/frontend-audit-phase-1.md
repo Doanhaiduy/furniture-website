@@ -1869,7 +1869,7 @@ Based on frontend audit, the following tables are required:
 2. **Testing**:
    - Add unit tests for critical components
    - Add integration tests for API routes
-   - Expand E2E test coverage (currently basic Playwright setup exists)
+   - Expand Browser MCP journey coverage first; keep Playwright only as backup for CI/headless deterministic gaps.
 
 3. **Documentation**:
    - API documentation (OpenAPI/Swagger)
@@ -1928,7 +1928,7 @@ This audit confirms that the **frontend UI is feature-complete as a prototype**,
 - **Forms**: React Hook Form + Zod
 - **Icons**: lucide-react
 - **State Management**: React hooks (no global state library)
-- **Testing**: Vitest + Playwright
+- **Testing**: Vitest + Browser MCP-first journey validation, with Playwright as backup for CI/headless deterministic automation
 - **Deployment**: Vercel (frontend)
 
 ### Appendix B: File Structure

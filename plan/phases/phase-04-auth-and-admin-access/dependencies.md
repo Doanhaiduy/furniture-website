@@ -18,4 +18,4 @@
   - Designing the `access-denied` page visual feedback is independent of database auth checks.
 - **Sequential Constraints**:
   - Server-side role resolution functions must be completed before applying them to route handlers or layout components.
-  - The middleware route guards must be verified with automated E2E tests before integrating dynamic data reads (Phase 05).
+  - The middleware route guards must be verified with Browser MCP role-access journeys and server-side integration tests before integrating dynamic data reads (Phase 05). Use Playwright only as backup for a deterministic CI role matrix.

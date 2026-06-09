@@ -1,40 +1,62 @@
-# Phase 04 Testing – Authentication & Admin Access Control
+# Phase 04 Testing - Authentication & Admin Access Control
 
-## Test Levels & Frameworks
-- **Unit Testing**: Vitest testing for role matching logic.
-- **Integration Testing**: Vitest testing for server route helpers (`requireAdmin` / `requireEditorOrAdmin`).
-- **E2E Testing**: Playwright validation for login flows and role-based redirects.
-- **Manual Verification**: Chrome developer tools checking for cookie updates and session properties.
+Browser MCP is the primary tool for login flows, redirects, role-specific navigation, access-denied pages, session refresh visibility, and browser-cookie debugging. Playwright is backup only for deterministic CI role matrices.
 
----
+## Test Levels
 
-## Concrete Scenarios & Verification Steps
+- **Unit**: Vitest tests role matching and access helper logic.
+- **Integration**: Vitest tests server route helpers such as `requireAdmin` and `requireEditorOrAdmin`.
+- **Browser MCP journey checks**: Anonymous redirects, Editor denial, Admin access, session behavior.
+- **Security checks**: Server/API/RLS verification for protected resources.
 
-### Scenario 1: Anonymous Access Block
-1. Navigate to `/admin/dashboard` in an incognito window.
-2. Verify that:
-   - The middleware blocks the request and redirects to `/admin/login`.
-   - The URL search parameters contain the redirect path (`?redirect=/admin/dashboard`).
+## Scenario 1: Anonymous Access Block
 
-### Scenario 2: Editor Access Restrictions (Role Enforcement)
-1. Log in to the admin panel using an Editor profile (`editor@showroom.com`).
-2. Verify that:
-   - The user is redirected to `/admin/dashboard`.
-   - The Sidebar menu hides links to Quotes, Users, and Settings.
-3. Manually type `http://localhost:3000/admin/quotes` in the browser address bar.
-4. Verify that:
-   - The middleware intercepts the request and redirects the browser to `/admin/access-denied`.
-   - The page displays a custom message: `"Bạn không có quyền truy cập vào trang này" / "You do not have permission to access this page"`.
+- **Goal**: Confirm unauthenticated users cannot access admin routes.
+- **Browser MCP steps**:
+  1. Open `/admin/dashboard` in a clean or logged-out browser state.
+  2. Inspect the current visible state and URL.
+  3. Verify redirect to `/admin/login` with redirect intent preserved.
+- **Expected result**: Anonymous access is blocked and redirected safely.
+- **Pass/fail**:
+  - Pass: login page appears and redirect target is preserved.
+  - Fail: dashboard is visible or redirect target is lost.
+- **Playwright backup**: Use for CI auth redirect regression.
 
-### Scenario 3: Admin Global Access
-1. Log in to the admin panel using an Admin profile (`admin@showroom.com`).
-2. Verify that:
-   - The user is redirected to `/admin/dashboard`.
-   - The Sidebar menu displays all navigation links (Dashboard, Products, Categories, Blog, Showrooms, Media, Quotes, Users, Settings).
-3. Click on `/admin/quotes` and confirm the page loads without any redirects.
+## Scenario 2: Editor Access Restrictions
 
-### Scenario 4: Session Refresh Check
-1. Log in to the admin panel as an Admin.
-2. In Chrome DevTools, inspect cookies and locate the Supabase session token.
-3. Wait or manually expire the access token (keeping the refresh token active).
-4. Refresh the page and confirm that the user remains authenticated without having to re-enter credentials.
+- **Goal**: Confirm Editor can manage publishable content only.
+- **Browser MCP steps**:
+  1. Log in as an Editor profile.
+  2. Inspect the dashboard and sidebar.
+  3. Verify Quotes, Users, and Settings links are hidden or inaccessible.
+  4. Open `/admin/quotes` directly.
+  5. Verify redirect or access-denied page appears.
+- **Expected result**: Editor is denied privileged surfaces in UI and route handling.
+- **Pass/fail**:
+  - Pass: privileged areas are unavailable and direct navigation is blocked.
+  - Fail: Editor can view quotes/users/settings or privileged data.
+- **Playwright backup**: Use for automated role matrix in CI.
+
+## Scenario 3: Admin Global Access
+
+- **Goal**: Confirm Admin can access all admin sections.
+- **Browser MCP steps**:
+  1. Log in as an Admin profile.
+  2. Inspect the dashboard and sidebar.
+  3. Verify all expected navigation links are visible.
+  4. Open `/admin/quotes`.
+  5. Verify the page loads without redirect.
+- **Expected result**: Admin has full access.
+- **Playwright backup**: Use only for CI role regression.
+
+## Scenario 4: Session Refresh Check
+
+- **Goal**: Confirm active refresh session keeps Admin authenticated.
+- **Browser MCP steps**:
+  1. Log in as Admin.
+  2. Inspect current URL and visible role/session state.
+  3. Refresh the page after token refresh conditions are simulated.
+  4. Verify the user remains authenticated.
+  5. Check console/network logs if refresh fails.
+- **Expected result**: Session refresh is seamless and secure.
+- **Playwright backup**: Use only if deterministic token-expiry automation is required.

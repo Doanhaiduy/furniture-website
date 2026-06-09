@@ -81,14 +81,20 @@ const adminNav = [
 export function AdminShell({
   active,
   children,
+  role,
 }: {
   active: string;
   children: ReactNode;
+  role?: "admin" | "editor";
 }) {
   const activeItem = adminNav.find((item) => item.key === active) ?? adminNav[0];
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  const visibleNav = role === "editor"
+    ? adminNav.filter((item) => !["quotes", "users", "settings"].includes(item.key))
+    : adminNav;
 
   useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
@@ -104,177 +110,168 @@ export function AdminShell({
   return (
     <AdminDateProvider>
       <div className="admin-app min-h-screen text-[var(--admin-text)]">
-      <div className="flex min-h-screen w-full items-stretch bg-transparent">
-        <aside
-          className={`admin-sidebar-pd sticky left-0 top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto py-4 transition-[width,padding] duration-300 motion-reduce:transition-none lg:flex ${
-            sidebarCollapsed ? "w-[76px] px-2" : "w-[240px] px-3"
-          }`}
-        >
-          <div className={`mb-5 flex items-center gap-2 ${sidebarCollapsed ? "justify-center" : "justify-between px-2"}`}>
-            <Link href="/admin" className={`group flex min-w-0 items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
-              <div className="flex size-9 items-center justify-center rounded-[var(--radius-panel)] bg-white/10 text-white ring-1 ring-white/10 transition group-hover:bg-white/16">
-                <Store className="size-5" />
-              </div>
-              {!sidebarCollapsed ? (
-                <div className="min-w-0">
-                  <p className="admin-section-title-pd text-[15px] text-white">Phương Đông</p>
-                  <p className="type-label mt-1 text-[9px] text-white/42">
-                    Bộ quản trị
-                  </p>
+        <div className="flex min-h-screen w-full items-stretch bg-transparent">
+          <aside
+            className={`admin-sidebar-pd sticky left-0 top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto py-4 transition-[width,padding] duration-300 motion-reduce:transition-none lg:flex ${
+              sidebarCollapsed ? "w-[76px] px-2" : "w-[240px] px-3"
+            }`}
+          >
+            <div className={`mb-5 flex items-center gap-2 ${sidebarCollapsed ? "justify-center" : "justify-between px-2"}`}>
+              <Link href="/admin" className={`group flex min-w-0 items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
+                <div className="flex size-9 items-center justify-center rounded-[var(--radius-panel)] bg-white/10 text-white ring-1 ring-white/10 transition group-hover:bg-white/16">
+                  <Store className="size-5" />
                 </div>
-              ) : null}
-            </Link>
-            <button
-              type="button"
-              aria-label={sidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
-              title={sidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
-              aria-pressed={sidebarCollapsed}
-              className="grid size-8 place-items-center rounded-lg text-white/58 transition hover:bg-white/9 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
-              onClick={() => setSidebarCollapsed((value) => !value)}
-            >
-              {sidebarCollapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
-            </button>
-          </div>
-
-          <nav className="flex-1 space-y-1" aria-label="Điều hướng quản trị">
-            {adminNav.map((item) => {
-              const Icon = item.icon;
-              const selected = active === item.key;
-
-              return (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  aria-current={selected ? "page" : undefined}
-                  className={`admin-nav-link-pd group ${
-                    selected ? "" : "text-white/60"
-                  } ${sidebarCollapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5"}`}
-                >
-                  <Icon className="size-[18px]" />
-                  {!sidebarCollapsed ? <span className="min-w-0 flex-1 truncate">{item.label}</span> : null}
-                  {selected && !sidebarCollapsed ? <ChevronRight className="size-4 text-white/75" /> : null}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className={`mt-5 rounded-[var(--radius-panel)] border border-white/10 bg-white/7 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${sidebarCollapsed ? "grid place-items-center" : ""}`}>
-            <div className={`flex items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
-              <div className="grid size-9 place-items-center rounded-[var(--radius-panel)] bg-[var(--state-warning)] font-bold text-white">A</div>
-              {!sidebarCollapsed ? (
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">Hồ sơ quản trị</p>
-                  <p className="text-xs text-white/45">Mô hình vai trò A</p>
-                </div>
-              ) : null}
-            </div>
-            {!sidebarCollapsed ? (
-              <div className="mt-3 grid gap-1">
-                <Link
-                  href="/admin/access-denied"
-                  className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-white/58 transition hover:bg-white/9 hover:text-white"
-                >
-                  <ShieldAlert className="size-4" />
-                  Kiểm tra phân quyền
-                </Link>
-                <Link
-                  href="/admin/login"
-                  className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-[#ffd7b0] transition hover:bg-white/9"
-                >
-                  <LogOut className="size-4" />
-                  Đăng xuất
-                </Link>
-              </div>
-            ) : null}
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <div className="sticky top-0 z-40">
-            <header
-              className={`admin-topbar-pd flex items-center justify-between gap-4 px-4 transition-[min-height,padding] duration-300 motion-reduce:transition-none md:px-6 ${
-                headerCollapsed ? "min-h-[52px]" : "min-h-[68px]"
-              }`}
-            >
-              <div className="min-w-0">
-                {!headerCollapsed ? (
-                  <p className="type-label text-[10px] text-[var(--admin-accent)]">
-                    Không gian quản trị
-                  </p>
-                ) : null}
-                <h1 className={`admin-title-pd truncate ${headerCollapsed ? "text-base" : "mt-1 text-lg"}`}>
-                  {activeItem.label}
-                </h1>
-              </div>
-
-              {!headerCollapsed ? (
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(true)}
-                  className="hidden h-10 min-w-[240px] max-w-xl flex-1 items-center justify-between rounded-[var(--radius-panel)] border border-[var(--admin-border-strong)] bg-white/92 px-3 shadow-[0_8px_20px_rgba(21,23,43,0.04)] text-left text-[13px] text-[var(--admin-text-subtle)] hover:border-[#8b5cf6]/50 transition md:flex focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/25"
-                >
-                  <div className="flex items-center gap-3">
-                    <Search className="size-[17px]" />
-                    <span>Tìm kiếm hệ thống...</span>
+                {!sidebarCollapsed ? (
+                  <div className="min-w-0">
+                    <p className="admin-section-title-pd text-[15px] text-white">Phương Đông</p>
+                    <p className="type-label mt-1 text-[9px] text-white/42">Bộ quản trị</p>
                   </div>
-                  <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                    <span className="text-xs">Ctrl </span>K
-                  </kbd>
-                </button>
-              ) : (
-                <div className="hidden flex-1 md:block" />
-              )}
+                ) : null}
+              </Link>
+              <button
+                type="button"
+                aria-label={sidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
+                title={sidebarCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
+                aria-pressed={sidebarCollapsed}
+                className="grid size-8 place-items-center rounded-lg text-white/58 transition hover:bg-white/9 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
+                onClick={() => setSidebarCollapsed((value) => !value)}
+              >
+                {sidebarCollapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+              </button>
+            </div>
 
-              <div className="flex shrink-0 items-center gap-2.5">
-                <button
-                  type="button"
-                  aria-label={headerCollapsed ? "Mở rộng thanh trên" : "Thu gọn thanh trên"}
-                  title={headerCollapsed ? "Mở rộng thanh trên" : "Thu gọn thanh trên"}
-                  aria-pressed={headerCollapsed}
-                  className="admin-icon-button-pd"
-                  onClick={() => setHeaderCollapsed((value) => !value)}
-                >
-                  {headerCollapsed ? <ChevronsDown className="size-4" /> : <ChevronsUp className="size-4" />}
-                </button>
-                <NotificationButton />
-                <Link href="/admin/users" className="admin-icon-button-pd bg-[var(--state-warning-soft)] font-bold text-[var(--admin-sidebar-bg)]">
-                  A
-                </Link>
-              </div>
-            </header>
-
-            <nav className="flex gap-2 overflow-x-auto border-b border-[var(--admin-border)] bg-white/92 px-4 py-2.5 backdrop-blur-xl lg:hidden" aria-label="Điều hướng quản trị di động">
-              {adminNav.map((item) => {
+            <nav className="flex-1 space-y-1" aria-label="Điều hướng quản trị">
+              {visibleNav.map((item) => {
                 const Icon = item.icon;
                 const selected = active === item.key;
+
                 return (
                   <Link
                     key={item.key}
                     href={item.href}
+                    title={sidebarCollapsed ? item.label : undefined}
                     aria-current={selected ? "page" : undefined}
-                    className={`admin-nav-link-pd inline-flex shrink-0 gap-2 px-3 py-2 text-xs ${
-                      selected ? "" : "bg-white text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-                    }`}
+                    className={`admin-nav-link-pd group ${
+                      selected ? "" : "text-white/60"
+                    } ${sidebarCollapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5"}`}
                   >
-                    <Icon className="size-4" />
-                    {item.label}
+                    <Icon className="size-[18px]" />
+                    {!sidebarCollapsed ? <span className="min-w-0 flex-1 truncate">{item.label}</span> : null}
+                    {selected && !sidebarCollapsed ? <ChevronRight className="size-4 text-white/75" /> : null}
                   </Link>
                 );
               })}
             </nav>
-          </div>
 
-          <div className="flex min-h-0 flex-1">
-            <main className="min-w-0 flex-1 px-4 py-4 text-sm md:px-5 xl:px-6">
-              <div className="reveal-soft">{children}</div>
-            </main>
-            <AdminUtilityRail active={active} />
+            <div className={`mt-5 rounded-[var(--radius-panel)] border border-white/10 bg-white/7 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${sidebarCollapsed ? "grid place-items-center" : ""}`}>
+              <div className={`flex items-center gap-3 ${sidebarCollapsed ? "justify-center" : ""}`}>
+                <div className="grid size-9 place-items-center rounded-[var(--radius-panel)] bg-[var(--state-warning)] font-bold text-white">A</div>
+                {!sidebarCollapsed ? (
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">Hồ sơ quản trị</p>
+                    <p className="text-xs text-white/45">Mô hình vai trò A</p>
+                  </div>
+                ) : null}
+              </div>
+              {!sidebarCollapsed ? (
+                <div className="mt-3 grid gap-1">
+                  <Link
+                    href="/admin/access-denied"
+                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-white/58 transition hover:bg-white/9 hover:text-white"
+                  >
+                    <ShieldAlert className="size-4" /> Kiểm tra phân quyền
+                  </Link>
+                  <Link
+                    href="/admin/login"
+                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-[#ffd7b0] transition hover:bg-white/9"
+                  >
+                    <LogOut className="size-4" /> Đăng xuất
+                  </Link>
+                </div>
+              ) : null}
+            </div>
+          </aside>
+
+          <div className="min-w-0 flex-1">
+            <div className="sticky top-0 z-40">
+              <header
+                className={`admin-topbar-pd flex items-center justify-between gap-4 px-4 transition-[min-height,padding] duration-300 motion-reduce:transition-none md:px-6 ${
+                  headerCollapsed ? "min-h-[52px]" : "min-h-[68px]"
+                }`}
+              >
+                <div className="min-w-0">
+                  {!headerCollapsed ? (
+                    <p className="type-label text-[10px] text-[var(--admin-accent)]">Không gian quản trị</p>
+                  ) : null}
+                  <h1 className={`admin-title-pd truncate ${headerCollapsed ? "text-base" : "mt-1 text-lg"}`}>
+                    {activeItem.label}
+                  </h1>
+                </div>
+
+                {!headerCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsSearchOpen(true)}
+                    className="hidden h-10 min-w-[240px] max-w-xl flex-1 items-center justify-between rounded-[var(--radius-panel)] border border-[var(--admin-border-strong)] bg-white/92 px-3 shadow-[0_8px_20px_rgba(21,23,43,0.04)] text-left text-[13px] text-[var(--admin-text-subtle)] hover:border-[#8b5cf6]/50 transition md:flex focus:outline-none focus:ring-2 focus:ring-[#8b5cf6]/25"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Search className="size-[17px]" />
+                      <span>Tìm kiếm hệ thống...</span>
+                    </div>
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                      <span className="text-xs">Ctrl </span>K
+                    </kbd>
+                  </button>
+                ) : (
+                  <div className="hidden flex-1 md:block" />
+                )}
+
+                <div className="flex shrink-0 items-center gap-2.5">
+                  <button
+                    type="button"
+                    aria-label={headerCollapsed ? "Mở rộng thanh trên" : "Thu gọn thanh trên"}
+                    title={headerCollapsed ? "Mở rộng thanh trên" : "Thu gọn thanh trên"}
+                    aria-pressed={headerCollapsed}
+                    className="admin-icon-button-pd"
+                    onClick={() => setHeaderCollapsed((value) => !value)}
+                  >
+                    {headerCollapsed ? <ChevronsDown className="size-4" /> : <ChevronsUp className="size-4" />}
+                  </button>
+                  <NotificationButton />
+                  <Link href="/admin/users" className="admin-icon-button-pd bg-[var(--state-warning-soft)] font-bold text-[var(--admin-sidebar-bg)]">A</Link>
+                </div>
+              </header>
+
+              <nav className="flex gap-2 overflow-x-auto border-b border-[var(--admin-border)] bg-white/92 px-4 py-2.5 backdrop-blur-xl lg:hidden" aria-label="Điều hướng quản trị di động">
+                {visibleNav.map((item) => {
+                  const Icon = item.icon;
+                  const selected = active === item.key;
+                  return (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      aria-current={selected ? "page" : undefined}
+                      className={`admin-nav-link-pd inline-flex shrink-0 gap-2 px-3 py-2 text-xs ${
+                        selected ? "" : "bg-white text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
+                      }`}
+                    >
+                      <Icon className="size-4" /> {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="flex min-h-0 flex-1">
+              <main className="min-w-0 flex-1 px-4 py-4 text-sm md:px-5 xl:px-6">
+                <div className="reveal-soft">{children}</div>
+              </main>
+              <AdminUtilityRail active={active} />
+            </div>
           </div>
         </div>
+        <AdminSearchPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
       </div>
-      <AdminSearchPalette open={isSearchOpen} onOpenChange={setIsSearchOpen} />
-    </div>
     </AdminDateProvider>
   );
 }

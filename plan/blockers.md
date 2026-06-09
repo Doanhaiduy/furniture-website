@@ -8,7 +8,7 @@ If a task is blocked, the agent must document it here, mark the status as `block
 
 ## 1. Active Blockers
 
-*There are currently no active blockers. The planning phase audits are fully reconciled.*
+*No active blockers at this time.*
 
 ---
 
@@ -22,6 +22,12 @@ If a task is blocked, the agent must document it here, mark the status as `block
 
 ### Resolved on June 7, 2026
 
+- **Docker Desktop Daemon Not Running**:
+  - *Context*: Required to verify container build and hot-reloads.
+  - *Resolution*: User started Docker Desktop daemon on the host. Next.js container environment was updated in `docker-compose.yml` to use `host.docker.internal` for resolving the local host network Services.
+- **Supabase CLI Not Installed**:
+  - *Context*: Required to run database migrations.
+  - *Resolution*: Determined that `supabase` package is already present in `devDependencies`, enabling CLI tasks to execute smoothly via `pnpm supabase`.
 - **Gemini Key Storage Mechanism**:
   - *Context*: Deciding between Supabase Vault and a custom `integration_secrets` table.
   - *Decision*: A custom `integration_secrets` table with Admin-only RLS and AES-GCM-256 server-side encryption via a server-only environment key `AI_SECRET_ENCRYPTION_KEY`.

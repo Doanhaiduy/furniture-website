@@ -1,8 +1,8 @@
-# AI Content Generation & Translation Workflow Specification
+﻿# AI Content Generation & Translation Workflow Specification
 
-**Version:** 1.0  
-**Date:** 2026-06-06  
-**Status:** Ready for Implementation  
+**Version:** 1.0
+**Date:** 2026-06-06
+**Status:** Ready for Implementation
 **Prerequisites:** Slices S-00 to S-05 complete (Payload CMS foundation, Users, Media, Product catalog)
 
 ---
@@ -11,7 +11,7 @@
 
 ### Scope
 
-This spec defines the **backend-only** AI content generation API and translation workflow for the Showroom Nội Thất Phương Đông CMS. It covers:
+This spec defines the **backend-only** AI content generation API and translation workflow for the Showroom Ná»™i Tháº¥t PhÆ°Æ¡ng ÄÃ´ng CMS. It covers:
 
 - OpenAI integration architecture
 - Server-side prompt builders and API client
@@ -43,50 +43,50 @@ This spec defines the **backend-only** AI content generation API and translation
 ### System Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Payload CMS Admin UI                     │
-│  ┌─────────────────┐  ┌──────────────────┐  ┌────────────┐ │
-│  │ Product Editor  │  │  Blog Editor     │  │  SEO Panel │ │
-│  │ [Generate AI]   │  │  [Translate]     │  │ [Generate] │ │
-│  └────────┬────────┘  └────────┬─────────┘  └─────┬──────┘ │
-│           │                    │                    │         │
-└───────────┼────────────────────┼────────────────────┼─────────┘
-            │                    │                    │
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                     Payload CMS Admin UI                     â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚ Product Editor  â”‚  â”‚  Blog Editor     â”‚  â”‚  SEO Panel â”‚ â”‚
+â”‚  â”‚ [Generate AI]   â”‚  â”‚  [Translate]     â”‚  â”‚ [Generate] â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚           â”‚                    â”‚                    â”‚         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+            â”‚                    â”‚                    â”‚
             v                    v                    v
-┌───────────────────────────────────────────────────────────────┐
-│              Payload Server-Side Hooks & Actions              │
-│  ┌──────────────────────────────────────────────────────────┐ │
-│  │  AI Generation Actions (server-only)                     │ │
-│  │  - generateProductDescription()                          │ │
-│  │  - generateSEOMetadata()                                 │ │
-│  │  - generateBlogOutline()                                 │ │
-│  │  - translateContent()                                       │ │
-│  │  - reviewContentSafety()                                 │ │
-│  └──────────────────────┬────────────────────────────────────┘ │
-│                         │                                        │
-│  ┌──────────────────────v────────────────────────────────────┐ │
-│  │  AI Service Layer (lib/ai/)                              │ │
-│  │  - OpenAI client wrapper                                 │ │
-│  │  - Prompt builder library                                │ │
-│  │  - Response validation                                   │ │
-│  │  - Rate limiter                                          │ │
-│  └──────────────────────┬────────────────────────────────────┘ │
-└────────────────────────┼─────────────────────────────────────┘
-                         │
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚              Payload Server-Side Hooks & Actions              â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚  AI Generation Actions (server-only)                     â”‚ â”‚
+â”‚  â”‚  - generateProductDescription()                          â”‚ â”‚
+â”‚  â”‚  - generateSEOMetadata()                                 â”‚ â”‚
+â”‚  â”‚  - generateBlogOutline()                                 â”‚ â”‚
+â”‚  â”‚  - translateContent()                                       â”‚ â”‚
+â”‚  â”‚  - reviewContentSafety()                                 â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                         â”‚                                        â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€vâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚  â”‚  AI Service Layer (lib/ai/)                              â”‚ â”‚
+â”‚  â”‚  - OpenAI client wrapper                                 â”‚ â”‚
+â”‚  â”‚  - Prompt builder library                                â”‚ â”‚
+â”‚  â”‚  - Response validation                                   â”‚ â”‚
+â”‚  â”‚  - Rate limiter                                          â”‚ â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
                          v
-┌────────────────────────────────────────────────────────────────┐
-│                    OpenAI API (External)                        │
-│  Models: gpt-4o-mini (default), gpt-4o (premium)              │
-└────────────────────────────────────────────────────────────────┘
-                         │
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    OpenAI API (External)                        â”‚
+â”‚  Models: gpt-4o-mini (default), gpt-4o (premium)              â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
                          v
-┌────────────────────────────────────────────────────────────────┐
-│              PostgreSQL Database (via Payload)                 │
-│  Collections:                                                  │
-│  - AIDrafts (id, targetType, targetId, locale, promptType,   │
-│              input, output, status, requestedBy, reviewedBy)  │
-│  - AuditLogs (actor, action, entity, metadata)               │
-└────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚              PostgreSQL Database (via Payload)                 â”‚
+â”‚  Collections:                                                  â”‚
+â”‚  - AIDrafts (id, targetType, targetId, locale, promptType,   â”‚
+â”‚              input, output, status, requestedBy, reviewedBy)  â”‚
+â”‚  - AuditLogs (actor, action, entity, metadata)               â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Key Principles
@@ -353,7 +353,7 @@ export function buildProductDescriptionPrompt(
       : 'English showroom consultant tone, professional and refined';
 
   return {
-    system: `You are a ${localeContext} content writer for Showroom Nội Thất Phương Đông, a premium furniture and sanitary equipment showroom.
+    system: `You are a ${localeContext} content writer for Showroom Ná»™i Tháº¥t PhÆ°Æ¡ng ÄÃ´ng, a premium furniture and sanitary equipment showroom.
 
 Rules:
 - Focus on consultation and quote-first approach (NOT ecommerce)
@@ -454,7 +454,7 @@ export function buildTranslationPrompt(
 ): { system: string; user: string } {
   const glossaryText = input.glossary
     ? `\n\nGlossary (preserve these terms):\n${Object.entries(input.glossary)
-        .map(([vi, en]) => `- ${vi} → ${en}`)
+        .map(([vi, en]) => `- ${vi} â†’ ${en}`)
         .join('\n')}`
     : '';
 
@@ -470,7 +470,7 @@ Rules:
 
 Preserve these key terms:
 - Heritage Modernism (keep in English)
-- Showroom Nội Thất Phương Đông (company name)
+- Showroom Ná»™i Tháº¥t PhÆ°Æ¡ng ÄÃ´ng (company name)
 - Product reference codes (e.g., PD-S2401)${glossaryText}`,
     user: `Translate the following ${input.contentType} content from ${input.sourceLocale.toUpperCase()} to ${input.targetLocale.toUpperCase()}:
 
@@ -885,10 +885,10 @@ export function sanitizeAIInput(input: Record<string, any>): Record<string, any>
 ### 8.3 Compliance Rules
 
 **OpenAI Terms of Service:**
-- ✅ Use for content generation (allowed)
-- ✅ User-initiated requests (not automated bulk processing)
-- ❌ Never send private customer data without consent
-- ✅ Human review before publication
+- âœ… Use for content generation (allowed)
+- âœ… User-initiated requests (not automated bulk processing)
+- âŒ Never send private customer data without consent
+- âœ… Human review before publication
 
 **GDPR/Privacy:**
 - AI input must NOT contain customer PII from quote requests
@@ -956,7 +956,7 @@ describe('AI Generation Actions', () => {
   beforeAll(async () => {
     mockUser = await createMockUser({ role: 'editor' });
     mockProduct = await createMockProduct({
-      name_vi: 'Bàn Trà Marble',
+      name_vi: 'BÃ n TrÃ  Marble',
       category: 'Coffee Table',
     });
   });
@@ -1003,82 +1003,61 @@ describe('AI Generation Actions', () => {
 });
 ```
 
-### 9.3 E2E Tests
+### 9.3 Browser MCP Journey Checks
 
-```typescript
-// tests/e2e/ai-workflow.spec.ts
-import { test, expect } from '@playwright/test';
+Browser MCP is the primary tool for CMS AI workflow validation. Do not start by writing Playwright scripts or selector-first assertions. Use Playwright only as backup when Browser MCP cannot cover the interaction or a deterministic CI/headless regression script is required.
 
-test.describe('AI Content Generation Workflow', () => {
-  test.use({ storageState: 'tests/auth/editor.json' }); // Authenticated as Editor
+#### Test Case: Product Description Draft
 
-  test('generates product description via CMS UI', async ({ page }) => {
-    // Navigate to product edit page
-    await page.goto('/admin/collections/products/create');
+- **Goal**: Verify an Editor can generate, review, and accept a product description draft without auto-publishing.
+- **Preconditions**: Editor is authenticated; Gemini/OpenAI mock or configured provider is available; product creation page is reachable.
+- **Browser MCP steps**:
+  1. Open the product creation page.
+  2. Inspect the current form state and AI action availability.
+  3. Fill basic product context using visible labels, such as product name and category.
+  4. Click the visible AI generate action for product description.
+  5. Verify loading state appears.
+  6. Verify a draft preview appears with accept/discard/regenerate controls.
+  7. Accept the draft.
+  8. Verify the draft content is copied into the editable description field and remains unpublished until the user manually saves/publishes.
+- **Expected result**: AI output is draft-only, editable, and copied only after user acceptance.
+- **Pass/fail**:
+  - Pass: draft preview appears, acceptance copies content to the target field, and no auto-publish occurs.
+  - Fail: output is published automatically, private data appears, or the user cannot review before accepting.
+- **Playwright backup**: Use only for mocked CI regression of the same flow.
 
-    // Fill basic product info
-    await page.fill('input[name="name_vi"]', 'Test Sofa');
-    await page.fill('input[name="category"]', 'Sofa');
+#### Test Case: Vietnamese To English Translation Draft
 
-    // Click AI generate button for description
-    await page.click('button:has-text("Generate description with AI")');
+- **Goal**: Verify an Editor can generate an English translation draft from existing Vietnamese content.
+- **Preconditions**: Product record has Vietnamese content; Editor is authenticated.
+- **Browser MCP steps**:
+  1. Open the product edit page.
+  2. Inspect Vietnamese source fields.
+  3. Use the visible action to generate English translation.
+  4. Verify side-by-side or preview comparison appears.
+  5. Accept the translation.
+  6. Verify English fields are populated and remain editable.
+- **Expected result**: Translation preserves product facts and requires human acceptance.
+- **Pass/fail**:
+  - Pass: translation appears in preview, can be accepted, and populates target locale fields.
+  - Fail: translation overwrites source content, invents unsupported facts, or skips review.
+- **Playwright backup**: Use only when a deterministic seeded translation script is required.
 
-    // Wait for draft modal
-    await page.waitForSelector('.ai-draft-preview');
+#### Test Case: Incomplete Bilingual Publication Block
 
-    // Verify draft content
-    const draftSummary = await page.textContent('.draft-summary');
-    expect(draftSummary).toContain('Sofa');
-
-    // Accept draft
-    await page.click('button:has-text("Accept Draft")');
-
-    // Verify content copied to field
-    const descriptionValue = await page.inputValue('textarea[name="description_vi"]');
-    expect(descriptionValue).toContain(draftSummary);
-  });
-
-  test('translates content from vi to en', async ({ page }) => {
-    await page.goto('/admin/collections/products/123');
-
-    // Assume vi content exists
-    await expect(page.locator('input[name="name_vi"]')).toHaveValue('Bàn Trà Marble');
-
-    // Click translate button for English
-    await page.click('button:has-text("Generate EN Translation")');
-
-    // Wait for translation draft
-    await page.waitForSelector('.translation-preview');
-
-    // Verify translation
-    const translatedName = await page.textContent('.translated-name');
-    expect(translatedName).toContain('Marble');
-
-    // Accept translation
-    await page.click('button:has-text("Accept Translation")');
-
-    // Verify copied to en field
-    await expect(page.locator('input[name="name_en"]')).toHaveValue(/Marble.*Table/);
-  });
-
-  test('blocks publish when bilingual content incomplete', async ({ page }) => {
-    await page.goto('/admin/collections/products/create');
-
-    // Fill only Vietnamese content
-    await page.fill('input[name="name_vi"]', 'Test Product');
-    await page.fill('textarea[name="description_vi"]', 'Test description');
-
-    // Try to publish
-    await page.selectOption('select[name="status"]', 'published');
-    await page.click('button:has-text("Save")');
-
-    // Expect validation error
-    await expect(page.locator('.error-message')).toContainText(
-      /Missing required bilingual fields.*name_en.*description_en/i
-    );
-  });
-});
-```
+- **Goal**: Verify publication is blocked when required bilingual fields are incomplete.
+- **Preconditions**: Editor is authenticated; product creation/edit page is reachable.
+- **Browser MCP steps**:
+  1. Open product creation.
+  2. Fill only the Vietnamese required fields.
+  3. Attempt to publish.
+  4. Verify localized validation errors identify missing English fields.
+  5. Verify the record remains draft/unpublished.
+- **Expected result**: Publication is blocked with clear guidance.
+- **Pass/fail**:
+  - Pass: user sees actionable validation and public publish state is not reached.
+  - Fail: incomplete bilingual content is published or validation is unclear.
+- **Playwright backup**: Use only for CI publication-validation regression.
 
 ---
 
@@ -1106,10 +1085,10 @@ test.describe('AI Content Generation Workflow', () => {
 
 | Task | Files | Estimated Hours | Tests |
 |---|---|---|---|
-| **T-11.9: AI Generate button component** | `src/payload/components/AIGenerateButton.tsx`<br>`src/payload/components/AIDraftPreview.tsx` | 6h | E2E: click generate<br>E2E: accept/discard draft |
-| **T-11.10: Translation workflow UI** | `src/payload/components/TranslationPanel.tsx` | 4h | E2E: translate vi→en<br>E2E: side-by-side review |
-| **T-11.11: Integrate AI buttons in Products** | `src/payload/collections/Products.ts` | 2h | E2E: full product workflow |
-| **T-11.12: Integrate AI buttons in Blog** | `src/payload/collections/BlogPosts.ts` | 2h | E2E: blog translation |
+| **T-11.9: AI Generate button component** | `src/payload/components/AIGenerateButton.tsx`<br>`src/payload/components/AIDraftPreview.tsx` | 6h | Browser MCP: click generate and accept/discard draft; Playwright backup only for CI |
+| **T-11.10: Translation workflow UI** | `src/payload/components/TranslationPanel.tsx` | 4h | Browser MCP: translate vi to en and review side-by-side; Playwright backup only for CI |
+| **T-11.11: Integrate AI buttons in Products** | `src/payload/collections/Products.ts` | 2h | Browser MCP: full product workflow; Playwright backup only for CI |
+| **T-11.12: Integrate AI buttons in Blog** | `src/payload/collections/BlogPosts.ts` | 2h | Browser MCP: blog translation workflow; Playwright backup only for CI |
 
 ### Documentation Tasks
 
@@ -1133,9 +1112,9 @@ test.describe('AI Content Generation Workflow', () => {
 
 | ID | Criterion | Verification Method |
 |---|---|---|
-| AC-11.1 | Editor can click "Generate with AI" button for product descriptions | E2E test: Product edit page |
+| AC-11.1 | Editor can click "Generate with AI" button for product descriptions | Browser MCP journey: Product edit page |
 | AC-11.2 | AI output is saved as `status: 'draft'` in `AIDrafts` collection | Integration test: Check database |
-| AC-11.3 | Draft preview modal shows AI output with Accept/Discard/Regenerate options | E2E test: Modal interaction |
+| AC-11.3 | Draft preview modal shows AI output with Accept/Discard/Regenerate options | Browser MCP journey: Modal interaction |
 | AC-11.4 | Accepted draft copies content to target field and marks draft as `accepted` | Integration test: Field update |
 | AC-11.5 | Discarded draft marks as `discarded` without changing target field | Integration test: No field update |
 | AC-11.6 | AI cannot auto-publish content (all generations remain draft until human review) | Unit test: Validate no auto-publish path |
@@ -1152,11 +1131,11 @@ test.describe('AI Content Generation Workflow', () => {
 | ID | Criterion | Verification Method |
 |---|---|---|
 | AC-12.1 | Products have separate `name_vi`, `name_en`, `description_vi`, `description_en` fields | Schema inspection: Payload collection |
-| AC-12.2 | Editor can initiate translation from `vi` to `en` via "Generate Translation" button | E2E test: Translation button |
-| AC-12.3 | Translation draft shows source and target side-by-side for review | E2E test: Translation preview |
+| AC-12.2 | Editor can initiate translation from `vi` to `en` via "Generate Translation" button | Browser MCP journey: Translation button |
+| AC-12.3 | Translation draft shows source and target side-by-side for review | Browser MCP journey: Translation preview |
 | AC-12.4 | Accepted translation copies to target locale fields | Integration test: Field update |
 | AC-12.5 | Publication validation blocks publish if required bilingual fields are incomplete | Integration test: Validation error |
-| AC-12.6 | Validation error message guides user to use AI translation for missing content | E2E test: Error message text |
+| AC-12.6 | Validation error message guides user to use AI translation for missing content | Browser MCP journey: Error message text |
 
 ---
 
@@ -1169,7 +1148,7 @@ test.describe('AI Content Generation Workflow', () => {
 **Token Usage Estimates:**
 - Product description (vi): ~800 tokens
 - SEO metadata: ~400 tokens
-- Translation (vi→en product): ~600 tokens
+- Translation (viâ†’en product): ~600 tokens
 - Blog outline: ~500 tokens
 
 **Cost at $0.01 per 1K tokens (gpt-4o-mini):**
@@ -1225,7 +1204,7 @@ OPENAI_MODEL_PREMIUM=gpt-4o       # Optional override for blog content
 ### Phase 2 Features
 
 1. **Batch Translation**
-   - Select multiple products and translate all vi→en in one operation
+   - Select multiple products and translate all viâ†’en in one operation
    - Progress tracking UI
    - Parallel API calls with queue management
 
@@ -1269,11 +1248,11 @@ OPENAI_MODEL_PREMIUM=gpt-4o       # Optional override for blog content
 
 | Prerequisite | Status | Blocking Tasks |
 |---|---|---|
-| Payload CMS 3.x installed | ❌ TODO (S-00) | All AI tasks |
-| Users collection with role field | ❌ TODO (S-01) | Authorization |
-| Products collection with bilingual fields | ❌ TODO (S-05) | Product AI features |
-| BlogPosts collection | ❌ TODO (S-08) | Blog AI features |
-| AuditLogs collection | ❌ TODO (S-01) | Audit logging |
+| Payload CMS 3.x installed | âŒ TODO (S-00) | All AI tasks |
+| Users collection with role field | âŒ TODO (S-01) | Authorization |
+| Products collection with bilingual fields | âŒ TODO (S-05) | Product AI features |
+| BlogPosts collection | âŒ TODO (S-08) | Blog AI features |
+| AuditLogs collection | âŒ TODO (S-01) | Audit logging |
 
 ---
 
@@ -1297,8 +1276,8 @@ pnpm test tests/integration/ai-generation.test.ts
 # 5. Integration: Translation workflow
 pnpm test tests/integration/translation-workflow.test.ts
 
-# 6. E2E: CMS AI workflow
-pnpm test:e2e tests/e2e/ai-workflow.spec.ts
+# 6. Browser MCP: CMS AI workflow
+# Open the CMS AI route, perform product draft, translation, and incomplete-publication journeys, capture screenshot/snapshot evidence when useful, and record pass/fail. Use pnpm test:e2e tests/e2e/ai-workflow.spec.ts only as Playwright backup for CI/headless regression.
 
 # 7. Security: No API key in client bundles
 pnpm build
@@ -1420,39 +1399,40 @@ export async function logAIMetrics(params: {
 
 ### What This Spec Delivers
 
-✅ **Backend AI Integration:**
+âœ… **Backend AI Integration:**
 - OpenAI GPT-4o-mini integration for content generation
 - Server-side prompt builders for products, SEO, blog, translation
 - Draft-only workflow with human review
 - Rate limiting and cost controls
 - Security: API key protection, PII filtering, audit logging
 
-✅ **Translation Workflow:**
-- Vietnamese ↔ English content translation
+âœ… **Translation Workflow:**
+- Vietnamese â†” English content translation
 - Side-by-side review UI
 - Publication validation (both locales required)
 - Brand glossary support
 
-✅ **CMS Integration:**
+âœ… **CMS Integration:**
 - Payload CMS custom field components
 - AI Generate buttons in Products and Blog collections
 - Draft preview and acceptance workflow
 - Bilingual publication validation hook
 
-✅ **Testing:**
+âœ… **Testing:**
 - Unit tests for prompts, rate limiter, validation
 - Integration tests for full AI generation flow
-- E2E tests for CMS UI workflow
+- Browser MCP journey checks for CMS UI workflow
+- Playwright backup scripts only for CI/headless deterministic regression when needed
 - Security tests for API key protection
 
 ### What This Spec Does NOT Include
 
-❌ **Frontend Public Features:**
+âŒ **Frontend Public Features:**
 - Public AI chatbot
 - AI product recommendations on website
 - Real-time translation for visitors
 
-❌ **Advanced Features (Phase 2):**
+âŒ **Advanced Features (Phase 2):**
 - Batch translation
 - Translation memory
 - AI image alt text
@@ -1482,15 +1462,15 @@ Implementation is complete when:
 
 1. All AC-11.x and AC-12.x acceptance criteria pass
 2. All verification commands pass
-3. E2E tests cover full CMS AI workflow
+3. Browser MCP journey checks cover full CMS AI workflow; Playwright backup covers only CI/headless deterministic gaps when needed
 4. Security review confirms no API key exposure
 5. Editor training session conducted successfully
 6. Production deployment smoke test passes
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-06-06  
-**Status:** ✅ Ready for Implementation  
+**Document Version:** 1.0
+**Last Updated:** 2026-06-06
+**Status:** âœ… Ready for Implementation
 **Next Step:** Begin T-11.1 (Environment config) after S-05 completes
 

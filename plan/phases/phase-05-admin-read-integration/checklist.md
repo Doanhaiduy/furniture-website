@@ -1,13 +1,13 @@
 # Phase 05 Checklist – Admin Read Integration (Data Display)
 
 ## 1. Reusable Data Table Component
-- [ ] Create `components/admin/DataTable.tsx` supporting:
+- [x] Create `components/admin/DataTable.tsx` supporting:
   - Column cell formatting.
   - Paginated database page controls (Next / Previous buttons).
   - Search query strings parser.
   - Column sorting keys.
-- [ ] Implement skeletal loaders inside `components/admin/TableSkeleton.tsx` to display during data loads.
-- [ ] Implement error fallback views handling query execution errors.
+- [x] Implement skeletal loaders inside `components/admin/TableSkeleton.tsx` to display during data loads.
+- [x] Implement error fallback views handling query execution errors.
 
 ## 2. Dashboard Statistics Integration
 - [ ] Implement `getAdminDashboardStats` inside `lib/supabase/admin-queries.ts` to retrieve count statistics.
@@ -29,5 +29,5 @@
 ## 5. Verification & Linting
 - [ ] Confirm no prototype data files are imported inside admin pages.
 - [ ] Run `pnpm lint` and `pnpm typecheck` inside Docker to confirm compilation.
-- [ ] Run Playwright tests `pnpm test:e2e` to verify dashboard display rules.
+- [ ] Run Browser MCP admin-read journey checks to verify dashboard display rules; use `pnpm test:e2e` only as Playwright backup for deterministic CI seeded-data regression.
 - [ ] Update `docs/specs/traceability-matrix.md` with verification checks for Phase 05.

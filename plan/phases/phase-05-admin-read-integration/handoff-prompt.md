@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for admin dashboard reads, pagination, empty states, and role-specific visibility.
+   - Use `pnpm test:e2e` only as Playwright backup for deterministic CI seeded-data regression or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Ensure all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 06 until all admin tables show real database content.
 
 ## Key Rules

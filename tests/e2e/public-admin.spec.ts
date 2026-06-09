@@ -118,7 +118,7 @@ test("admin create dialogs and bilingual fields use overlay workflows", async ({
   const dialogBox = await productDialog.boundingBox();
   expect(dialogBox?.width ?? 0).toBeGreaterThan(700);
 
-  await page.getByLabel("Bật trường tiếng Anh").check();
+  await page.getByLabel("Bật trường tiếng Anh").check({ force: true });
   await expect(page.getByLabel("Tiêu đề sản phẩm - Tiếng Anh")).toBeVisible();
   await page.getByRole("button", { name: /Dịch bằng AI/i }).click();
   await expect(page.getByLabel("Tiêu đề sản phẩm - Tiếng Anh")).toHaveValue(/English draft/);
@@ -177,7 +177,7 @@ test("admin settings site sections keep hero editing and toggles only", async ({
     await expect(page.getByLabel(toggle)).toBeChecked();
   }
 
-  await page.getByLabel("Khu vực bài viết / tin tức hiển thị").uncheck();
+  await page.getByLabel("Khu vực bài viết / tin tức hiển thị").uncheck({ force: true });
   await expect(page.getByLabel("Khu vực bài viết / tin tức hiển thị")).not.toBeChecked();
   await expect(page.getByText("Nội dung chi tiết của các khu vực trang chủ lấy từ dữ liệu API.")).toBeVisible();
 

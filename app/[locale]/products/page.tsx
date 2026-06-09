@@ -1,23 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import type { Locale } from "@/i18n/routing";
+import { type Locale, isLocale } from "@/i18n/routing";
+import { notFound } from "next/navigation";
 import {
-  filterProducts,
   imageAssets,
   localized,
-  paginateItems,
   productGroups,
   productTaxonomy,
   sortProducts,
+  filterProducts,
+  paginateItems,
   type ProductSort,
   withLocale,
-} from "@/lib/showroom-data";
+} from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { ProductCard } from "@/components/showroom/product-card";
 import { ProductFilterPanel } from "@/components/showroom/product-filter-panel";
 import { ProductSortSelect } from "@/components/showroom/product-sort-select";
+import { createClient } from "@/lib/supabase/server";
+import { getProducts, getCategories, mapDBProductGroupKeyToUI, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
 
 type ProductSearchParams = {
   category?: string;
@@ -41,6 +45,7 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "meta" });
   return {
     title: t("productsTitle"),
@@ -56,24 +61,41 @@ export default async function ProductsPage({
   searchParams: Promise<ProductSearchParams>;
 }) {
   const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   const query = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("products");
   const common = await getTranslations("common");
-  const filteredResults = filterProducts(query);
+
+  // Fetch dynamic catalog data from database
+  const supabase = await createClient();
+  const dbProducts = await getProducts(supabase, { locale, limit: 1000 });
+  const dbProductsMapped = dbProducts.map((p: any) => mapDBProductToPublicProduct(p, locale));
+
+  const filteredResults = filterProducts(query, dbProductsMapped);
   const sort: ProductSort = query.sort === "featured" ? "featured" : "newest";
   const results = sortProducts(filteredResults, sort);
   const requestedPage = Number.parseInt(query.page ?? "1", 10);
   const page = paginateItems(results, Number.isFinite(requestedPage) ? requestedPage : 1, productPageSize);
+
   const optionLabel = (value: { vi: string; en: string }) => localized(value, locale);
   const allOption = { value: "all", label: t("all") };
+  
+  // Load categories from database
+  const dbCategories = await getCategories(supabase, locale);
   const categoryOptions = [
     allOption,
-    ...productGroups.slice(0, 3).map((group) => ({
-      value: group.key,
-      label: localized(group.title, locale),
-    })),
+    ...(dbCategories.length > 0 
+      ? dbCategories.map((cat: any) => ({
+          value: mapDBProductGroupKeyToUI(cat.groupKey) || cat.slug,
+          label: cat.name,
+        }))
+      : productGroups.slice(0, 3).map((group) => ({
+          value: group.key,
+          label: localized(group.title, locale),
+        }))),
   ];
+
   const materialOptions = [
     allOption,
     ...productTaxonomy.materials.map((item) => ({ value: item.value, label: optionLabel(item.label) })),
@@ -291,7 +313,7 @@ export default async function ProductsPage({
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {secondaryGroups.map((group) => {
-              const count = filterProducts({ category: group.key }).length;
+              const count = filterProducts({ category: group.key }, dbProductsMapped).length;
               return (
               <Link
                 key={group.key}

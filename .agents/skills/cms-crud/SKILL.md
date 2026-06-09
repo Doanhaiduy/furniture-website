@@ -58,7 +58,9 @@ pnpm test
 pnpm build
 ```
 
-If the CMS flow changes browser behavior, run:
+If the CMS flow changes browser behavior, run Browser MCP checks first for the affected admin journey, including role/session, visible form state, validation, success/error messages, and persisted results.
+
+Use Playwright only as backup when Browser MCP cannot cover the scenario or a deterministic CI/headless CRUD regression is required:
 
 ```bash
 pnpm test:e2e

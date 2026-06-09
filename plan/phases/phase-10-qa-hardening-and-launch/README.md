@@ -16,7 +16,8 @@ Earlier phases integrate features. This phase proves the system is safe and read
 ## Real Scope
 
 - Full command suite.
-- Full E2E.
+- Browser MCP-first launch journey validation.
+- Playwright backup only for CI/headless deterministic regression.
 - Docker Compose smoke.
 - Supabase migration/RLS/RPC verification.
 - Security review.
@@ -48,7 +49,7 @@ Earlier phases integrate features. This phase proves the system is safe and read
 ## Implementation Tasks
 
 1. Run and record the full verification matrix.
-2. Fix high/critical defects found by lint, typecheck, tests, build, E2E, Docker smoke, security, SEO, performance, and responsive checks.
+2. Fix high/critical defects found by lint, typecheck, tests, build, Browser MCP launch journeys, Docker smoke, security, SEO, performance, and responsive checks.
 3. Verify Supabase migrations/RLS/RPCs in the selected launch environment.
 4. Verify Gemini settings masking, rotation, fallback, and audit logging.
 5. Document launch readiness, monitoring, backups, and rollback paths.
@@ -91,7 +92,9 @@ Earlier phases integrate features. This phase proves the system is safe and read
 
 ## Testing Checklist
 
-- `pnpm lint`, `typecheck`, `test`, `build`, `test:e2e`.
+- `pnpm lint`, `typecheck`, `test`, `build`.
+- Browser MCP launch journey evidence.
+- `pnpm test:e2e` only as Playwright backup for CI/headless deterministic regression.
 - Docker app smoke.
 - Supabase RLS/security tests.
 - Gemini settings masking/rotation/fallback tests.
@@ -115,5 +118,5 @@ Earlier phases integrate features. This phase proves the system is safe and read
 
 ## Risks/Unknowns
 
-- Browser compatibility outside Playwright may require manual checks.
+- Browser compatibility outside Browser MCP-supported environments may require manual/device checks or Playwright backup for automated browser matrices.
 - Performance depends on production-like data and media sizes.

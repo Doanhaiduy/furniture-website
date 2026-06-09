@@ -32,6 +32,6 @@
   pnpm typecheck
   pnpm test
   pnpm build
-  pnpm test:e2e
   ```
+- [ ] Run Browser MCP admin-write journey checks for create/edit/archive, validation errors, toast states, and role-denied mutations; use `pnpm test:e2e` only as Playwright backup for deterministic CI CRUD regression.
 - [ ] Update `docs/specs/traceability-matrix.md` with verification checks for Phase 06.

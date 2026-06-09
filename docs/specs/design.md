@@ -8,7 +8,7 @@ This design prepares the project for coding the bilingual Showroom Nội Thất 
 - Payload CMS 3.x backend/admin.
 - Managed PostgreSQL database.
 - Cloudinary media storage and delivery.
-- next-intl, Resend, Google Maps Embed, OpenAI, Vitest, and Playwright.
+- next-intl, Resend, Google Maps Embed, OpenAI, Vitest, Browser MCP-first QA, and Playwright backup for CI/headless deterministic automation.
 
 ## Runtime Topology
 
@@ -194,7 +194,7 @@ pnpm test
 pnpm build
 ```
 
-Run `pnpm test:e2e` when browser-visible behavior, admin auth, i18n, SEO, or lead capture changes.
+Run Browser MCP journey checks first when browser-visible behavior, admin auth, i18n, SEO, or lead capture changes. Use `pnpm test:e2e` only as Playwright backup when Browser MCP cannot cover the scenario or a deterministic CI/headless regression script is required.
 
 ## Deployment
 

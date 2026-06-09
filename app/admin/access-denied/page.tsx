@@ -8,3 +8,5 @@ export default function AdminAccessDeniedPage() {
     </AdminShell>
   );
 }
+
+export const dynamic = "force-dynamic";

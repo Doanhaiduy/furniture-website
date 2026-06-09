@@ -12,9 +12,11 @@ The application runs in Docker containers for both development and production en
 version: '3.8'
 services:
   app:
+    container_name: furniture-website-app
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      target: development
     ports:
       - "3000:3000"
     volumes:
@@ -25,19 +27,6 @@ services:
       - NODE_ENV=development
     env_file:
       - .env
-
-  db-smoke:
-    image: postgres:15-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: furniture_showroom
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-volumes:
-  postgres_data:
 ```
 
 ### 1.2. Dockerfile.dev

@@ -22,8 +22,9 @@
 ## 4. UI adaptation & Verification
 - [ ] Modify `components/showroom/admin-shell.tsx` to read the active profile role from the context.
 - [ ] Hide `/admin/quotes`, `/admin/users`, and `/admin/settings` links in the sidebar if the role is `editor`.
-- [ ] Run Playwright tests `pnpm test:e2e` to verify:
+- [ ] Run Browser MCP auth and role-access journey checks to verify:
   - Redirection of anonymous requests.
   - Editor access blocks.
   - Session persistence across hot-reloads.
+  - Use `pnpm test:e2e` only as Playwright backup for a deterministic CI role matrix.
 - [ ] Update `docs/specs/traceability-matrix.md` with requirement mapping details for Phase 04.

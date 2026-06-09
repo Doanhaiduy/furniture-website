@@ -179,6 +179,7 @@
     "successLead": "Đội ngũ Phương Đông sẽ liên hệ lại theo thông tin bạn cung cấp.",
     "errorTitle": "Chưa gửi được yêu cầu",
     "errorLead": "Vui lòng kiểm tra lại thông tin hoặc gọi hotline để được hỗ trợ ngay.",
+    "submitError": "Không thể gửi yêu cầu lúc này. Vui lòng thử lại sau.",
     "honeypot": "Không nhập trường này"
   },
   "states": {

@@ -35,7 +35,7 @@ Primary requirement areas:
 - Preserve project scope: no cart, online payment, order management, or mobile app.
 - Map every proposed task to requirement IDs from `docs/specs/requirements.md`.
 - Use local IDs `FR-07-PUB`, `FR-07-ADM`, `FR-08-PUB`, `FR-08-ADM`, `FR-12-PUB`, and `FR-12-ADM` when the SRS ID is reused.
-- Enforce the standardized architecture: Next.js 15 frontend, Payload CMS backend/admin, managed PostgreSQL, Cloudinary, next-intl, Resend, Google Maps Embed, OpenAI, Vitest, and Playwright.
+- Enforce the standardized architecture: Next.js frontend, Supabase/PostgreSQL backend boundaries in the active plan, Cloudinary, next-intl, Resend, Google Maps Embed, Gemini AI, Vitest, Browser MCP-first QA, and Playwright only as backup for CI/headless/deterministic automation.
 - Enforce Role Model Option A: Editor manages publishable content only; Admin manages users, settings, quote requests, and all content.
 - Identify missing acceptance criteria, data ownership, authorization needs, i18n needs, SEO needs, validation needs, tests, and traceability impact.
 - Ask targeted clarification questions only when the answer cannot be inferred safely from existing docs.
@@ -56,7 +56,7 @@ Primary requirement areas:
 - Suggested files or modules likely to be edited by the later implementation task.
 - Test coverage expected, including unit, integration, E2E, security, SEO, i18n, or performance checks as applicable.
 - Traceability update needed.
-- Recommended next skill or phase, such as `architect`, `nextjs-feature-slice`, `cms-crud`, `seo-i18n`, `playwright-e2e`, `security-review`, or `performance-audit`.
+- Recommended next skill or phase, such as `architect`, `nextjs-feature-slice`, `cms-crud`, `seo-i18n`, `browser-mcp-qa`, `playwright-e2e` as backup only, `security-review`, or `performance-audit`.
 
 ## Verification Commands
 
@@ -74,5 +74,5 @@ pnpm build
 If browser-visible acceptance criteria or E2E scope is changed, plan for:
 
 ```bash
-pnpm test:e2e
+Browser MCP journey checks for browser-visible requirements; `pnpm test:e2e` only as Playwright backup when CI/headless/deterministic regression is required.
 ```

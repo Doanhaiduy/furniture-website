@@ -57,7 +57,9 @@ pnpm test
 pnpm build
 ```
 
-If localized browser journeys or public navigation changed, run:
+If localized browser journeys or public navigation changed, run Browser MCP checks first for the affected routes, locale switching, visible metadata-related behavior, sitemap/robots visibility, and responsive state.
+
+Use Playwright only as backup when Browser MCP cannot cover the scenario or a deterministic CI/headless route regression is required:
 
 ```bash
 pnpm test:e2e

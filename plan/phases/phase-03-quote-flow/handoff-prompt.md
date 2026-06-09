@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for quote form validation, safe success/failure messages, rate-limit UX, and admin lead visibility where in scope.
+   - Use `pnpm test:e2e` only as Playwright backup for CI/headless quote-flow regression or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Ensure all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 04 until public lead submissions successfully persist.
 
 ## Key Rules

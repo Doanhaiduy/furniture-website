@@ -9,7 +9,7 @@
 | Mock data remains in production paths | Prototype looks complete but does not satisfy persistence requirements | Phases 02, 05, and 08 remove/quarantine mock reads. |
 | Admin auth/RBAC missing | Private quote/user/settings/Gemini data may be exposed | Phase 04 enforces Supabase Auth and Role Model A server-side. |
 | Gemini key stored unsafely | Provider secret exposure | Phase 01/09 implement encrypted/secret-manager storage, masking, and audit logs. |
-| Editor accesses AI secrets | Violates explicit requirement | Admin-only settings APIs/RLS plus E2E denial tests. |
+| Editor accesses AI secrets | Violates explicit requirement | Admin-only settings APIs/RLS plus Browser MCP denial journeys; Playwright backup only for CI role matrix. |
 
 ## Medium Risks
 
@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | Plain Postgres Docker mode is mistaken for Supabase Auth/RLS equivalence | False confidence in security tests | Docker plan distinguishes Supabase local/remote from Postgres-only smoke. |
 | Current docs outside `plan/` still mention older architecture | Future agents may be confused | `architecture-decisions.md` and Phase 01 require docs alignment before coding beyond foundation. |
-| Current tests assert prototype strings and mock counts | Tests may fail after real data integration | Update tests to use seeded data or stable selectors. |
+| Current tests assert prototype strings and mock counts | Tests may fail after real data integration | Validate real behavior with Browser MCP journeys first; update backup scripts to use seeded data and user-facing locators only when CI regression is required. |
 | Gemini unavailable or invalid config | AI assistant user flow breaks | Fallback UI and safe `AI_UNAVAILABLE` response are required. |
 | Cloudinary/Resend credentials unavailable | Media and notifications blocked | Phase 07 records skipped/fallback status and tests helpers with mocks. |
 | Launch monitoring owner missing | NFR-02 cannot be claimed | Phase 10 requires owner/tool/channel documentation. |

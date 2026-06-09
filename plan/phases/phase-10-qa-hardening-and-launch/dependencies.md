@@ -5,8 +5,8 @@
 - **Production Environment Profile**: Target deployment configurations and server configurations must be finalized.
 
 ## Required Services / Configuration / Auth State
-- **Staging / Preview Environment**: A test deployment environment (or a local Docker Compose production environment) is required to run the E2E suites.
-- **Testing Credentials**: Seeded active user profiles (`admin` and `editor`) are required to run automated Playwright scripts.
+- **Staging / Preview Environment**: A test deployment environment (or a local Docker Compose production environment) is required for Browser MCP launch journeys and any backup regression scripts.
+- **Testing Credentials**: Seeded active user profiles (`admin` and `editor`) are required for Browser MCP role/access validation and any Playwright backup scripts.
 - **Audit Tools**: PageSpeed Insights / Lighthouse tools, axe-core scanners, and security validation utilities must be available in development setups.
 
 ## Blockers

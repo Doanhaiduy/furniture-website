@@ -53,7 +53,9 @@ pnpm test
 pnpm build
 ```
 
-If browser security behavior or admin access changed, run:
+If browser security behavior or admin access changed, run Browser MCP checks first for the affected role/access journey and record visible denial/success evidence plus any console/network notes.
+
+Use Playwright only as backup when Browser MCP cannot cover the scenario or a deterministic CI/headless security regression is required:
 
 ```bash
 pnpm test:e2e

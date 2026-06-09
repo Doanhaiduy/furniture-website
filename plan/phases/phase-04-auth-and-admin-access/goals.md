@@ -17,4 +17,4 @@
 - Secure Next.js `middleware.ts` routing guards.
 - Protected Server Component wrappers (`requireAdmin` and `requireEditorOrAdmin`).
 - Integrated `components/providers/AuthProvider.tsx` tracking current user profiles.
-- Automated Playwright and integration test suites validating unauthorized redirects and role boundaries.
+- Browser MCP role-access journey evidence plus integration tests validating unauthorized redirects and role boundaries. Playwright backup scripts are optional only for deterministic CI role matrices.

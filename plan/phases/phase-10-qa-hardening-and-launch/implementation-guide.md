@@ -1,12 +1,12 @@
 # Phase 10 Implementation Guide – QA Hardening & Launch Preparation
 
 ## Implementation Order
-1. **E2E Test Suites Setup**: Write Playwright test files.
+1. **Browser MCP Launch Journey Setup**: Define behavior-first launch journeys and evidence capture points.
 2. **Performance Improvements**: Apply bundle checks, image compression parameters, and lazy loading.
 3. **Accessibility Audit fixes**: Correct markup errors and contrast levels.
 4. **Security Verification**: Inspect RLS rules, verify credential leaks, and review API authorization checks.
 5. **Operational Guide Setup**: Write `docs/operations-runbook.md` and verify database restore routines.
-6. **Launch Verification**: Run the final test commands to certify launch readiness.
+6. **Launch Verification**: Run the final command suite and Browser MCP launch journeys to certify readiness. Add Playwright backup scripts only for CI/headless deterministic gaps.
 
 ---
 
@@ -49,5 +49,5 @@
 ---
 
 ## Open Questions & Assumptions
-- **Assumption**: Developers have credentials to configure staging/preview deployments to execute remote E2E tests.
+- **Assumption**: Developers have credentials to configure staging/preview deployments for Browser MCP launch validation and any backup CI/headless regression scripts.
 - **Open Question**: Will we configure a Content Security Policy (CSP) header? We assume setting standard secure headers inside `next.config.ts` is sufficient for this launch phase.

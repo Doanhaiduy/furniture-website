@@ -102,7 +102,7 @@ A task is considered complete only if all the following conditions are met:
    - Credentials (API keys, encryption secrets) are verified to be safe from client exposure.
 4. **Validation**:
    - Inputs are validated server-side (Zod schema validation).
-   - Rate limiters are working and validated via local curl/E2E test.
+   - Rate limiters are working and validated via local curl/API checks plus Browser MCP UX checks when browser-visible behavior is affected.
 5. **Testing**:
    - Unit tests are added or updated in `tests/` or `components/`.
    - The test commands pass successfully:
@@ -112,7 +112,8 @@ A task is considered complete only if all the following conditions are met:
      pnpm test
      pnpm build
      ```
-   - If UI routing or authentication is changed, Playwright E2E tests pass (`pnpm test:e2e`).
+   - If UI routing, authentication, localization, forms, responsive behavior, SEO-visible routes, or rate limits are changed, Browser MCP journey checks are completed and evidence is recorded.
+   - Playwright E2E (`pnpm test:e2e`) is used only as backup when Browser MCP cannot cover the scenario or CI/headless/deterministic regression is explicitly required.
 6. **Documentation Updated**: All disk records (checklist, execution status, execution log, next action) are updated and saved to the repository.
 
 ---

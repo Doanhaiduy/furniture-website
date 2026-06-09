@@ -20,4 +20,4 @@
 - Reusable admin data table component (`components/admin/DataTable.tsx`) supporting pagination controls.
 - Server-side read helper libraries (`lib/supabase/admin-queries.ts`) restricted to authenticated users.
 - Dynamic data display inside `/admin/[section]` and dashboard views.
-- Playwright E2E tests verifying dashboard stats display database values.
+- Browser MCP admin-read journey evidence verifying dashboard stats display database values. Playwright backup scripts are optional only for deterministic CI seeded-data regression.

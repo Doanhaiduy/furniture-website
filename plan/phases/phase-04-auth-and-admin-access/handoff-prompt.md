@@ -15,8 +15,9 @@
      pnpm typecheck
      pnpm test
      pnpm build
-     pnpm test:e2e
      ```
+   - Run Browser MCP journey checks for anonymous redirects, Editor denial, Admin access, and session refresh behavior.
+   - Use `pnpm test:e2e` only as Playwright backup for deterministic CI role matrices or unsupported Browser MCP scenarios.
 5. **Marking Complete**: Confirm all tasks in `checklist.md` are marked complete, and record changes inside `docs/specs/traceability-matrix.md`. Do not start Phase 05 until authorization rules are verified on the server.
 
 ## Key Rules
