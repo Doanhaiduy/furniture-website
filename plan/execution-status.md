@@ -7,10 +7,10 @@ This is the central status board tracking progress of the Showroom site implemen
 ## 1. Project Overview & Meta Information
 
 - **Current Active Phase**: Re-audit Phase 03: Missing Admin Sections & Services
-- **Last Completed Task**: Giải quyết triệt để chuỗi lỗi xác thực trong Docker (Sửa lỗi kết nối ECONNREFUSED, lỗi mismatch cookie name và lỗi Đăng xuất fake) bằng cách sử dụng SUPABASE_URL_INTERNAL, đồng bộ cookieOptions name ("sb-auth-token") và tích hợp supabase.auth.signOut() thực tế cho nút Đăng xuất; đã xác thực QA toàn bộ hành trình đăng nhập/đăng xuất bằng Browser MCP. (June 13, 2026)
-- **Next Recommended Task**: Tiến tới Re-audit Phase 3: Settings, Secrets & Real Integrations.
-- **Last Updated**: 2026-06-13T22:35:00+07:00
-- **Status Summary**: Chuỗi hotfix Authentication & Session trên Docker hoàn tất xuất sắc và được verify QA 100%. Sẵn sàng tiếp tục Re-audit Phase 3.
+- **Last Completed Task**: Tích hợp API settings server-side, sửa lỗi localStorage ở Admin Settings; hoàn thiện UI Quản lý tài khoản CMS (cho phép sửa role và active status thông qua modal); khắc phục cursor-pointer trên Hero Carousel public và căn chỉnh cân đối trục tâm Floating FAB menu. (June 14, 2026)
+- **Next Recommended Task**: Tiếp tục Re-Audit v2 Sprint (refactor Brands admin và Promotions admin).
+- **Last Updated**: 2026-06-14T09:00:00+07:00
+- **Status Summary**: Tích hợp cài đặt hệ thống, quản lý tài khoản và sửa các lỗi UX/UI đã được kiểm chứng hoàn thành (lint + typecheck + test pass).
 
 ---
 

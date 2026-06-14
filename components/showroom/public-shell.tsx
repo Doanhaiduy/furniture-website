@@ -640,10 +640,10 @@ export function PublicShell({
             {/* Hotline Option */}
             <a
               href={`tel:${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
-              className="group flex items-center gap-3"
+              className="group flex items-center gap-3 mr-[6px]"
               aria-label={labels.nav.hotline}
             >
-              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 {labels.nav.hotline}: {siteSettings?.contactPhone || "08172 357 587"}
               </span>
               <div className="flex size-11 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
@@ -656,10 +656,10 @@ export function PublicShell({
               href={`https://zalo.me/${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3"
+              className="group flex items-center gap-3 mr-[6px]"
               aria-label={labels.nav.zalo}
             >
-              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 {labels.nav.zalo}
               </span>
               <div className="flex size-11 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
@@ -672,10 +672,10 @@ export function PublicShell({
               href="https://m.me/phuongdongshowroom"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3"
+              className="group flex items-center gap-3 mr-[6px]"
               aria-label={labels.nav.messenger}
             >
-              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 {labels.nav.messenger}
               </span>
               <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-[#006AFF] via-[#A75FFF] to-[#FF5A5F] text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
@@ -686,11 +686,11 @@ export function PublicShell({
             {/* Contact Form Option */}
             <Link
               href={`/${locale}/contact`}
-              className="group flex items-center gap-3"
+              className="group flex items-center gap-3 mr-[6px]"
               onClick={() => setFabOpen(false)}
               aria-label={labels.nav.contact}
             >
-              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 {labels.nav.contact}
               </span>
               <div className="flex size-11 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-110 active:scale-95">

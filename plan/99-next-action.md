@@ -10,11 +10,11 @@
 
 ## 2. Immediate Next Step
 
-**Prepare a Review Mode proposal for Re-audit Phase 3: Settings, Secrets & Real Integrations.**
+**Prepare a Review Mode proposal for Re-audit Phase A3/C2/C3: Brands, Promotions and Menu DB integration.**
 
 ### How to Execute:
-1. **Review Tasks**: Identify remaining settings variables, secret validation procedures, Resend templates, and verify Cloudinary CDN routing in next.config.ts.
-2. **Submit Proposal**: Write a Review Mode proposal in Vietnamese outlining the planned code changes for Phase 3.
+1. **Review Tasks**: Identify migrations for promotions and brands join tables, refactor Brands admin component to align with Product CRUD, and integrate Mega Menu from DB.
+2. **Submit Proposal**: Write a Review Mode proposal in Vietnamese outlining the planned code changes.
 3. **Validation**: Wait for Owner `confirm` to start implementation.
 
 ---

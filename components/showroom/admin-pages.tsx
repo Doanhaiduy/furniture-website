@@ -797,6 +797,43 @@ function SettingsPage() {
 }
 
 function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profiles?: AdminUser[] }) {
+  const router = useRouter();
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editRole, setEditRole] = useState("editor");
+  const [editActive, setEditActive] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const startEdit = (user: AdminUser) => {
+    setEditingUser(user);
+    setEditRole(user.role);
+    setEditActive(user.is_active);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setIsUpdating(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingUser.id, role: editRole, isActive: editActive }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Cập nhật quyền thành viên thành công!");
+        setEditingUser(null);
+        router.refresh();
+      } else {
+        alert(data.error || "Lỗi khi cập nhật tài khoản.");
+      }
+    } catch (err) {
+      alert("Lỗi kết nối tới máy chủ.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -821,11 +858,19 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
                   {profile.full_name && <p className="text-xs font-medium text-slate-500">{profile.full_name}</p>}
                   <p className="text-xs text-secondary mt-0.5">{roleLabel} — {scope}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400">
-                    {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
-                  </span>
-                  <StatusPill status={profile.is_active ? "published" : "draft"} />
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400">
+                      {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
+                    </span>
+                    <StatusPill status={profile.is_active ? "published" : "draft"} />
+                  </div>
+                  <button 
+                    onClick={() => startEdit(profile)}
+                    className="admin-edit-action cursor-pointer flex size-8 items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-primary transition-colors"
+                  >
+                    <Pencil className="size-3.5" />
+                  </button>
                 </div>
               </div>
             );
@@ -841,6 +886,73 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
       >
         <EntityCreateForm kind="user" />
       </AdminRouteDialog>
+
+      {/* Edit User Modal Overlay */}
+      {editingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[480px] bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl animate-in zoom-in duration-200 text-slate-900">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Hiệu chỉnh quyền thành viên</h3>
+                <p className="text-xs text-slate-500 mt-1">Thay đổi vai trò và trạng thái truy cập của {editingUser.email}</p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setEditingUser(null)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer transition-colors p-1"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              <label className="grid gap-2">
+                <span className="label-pd">Vai trò</span>
+                <PremiumSelect
+                  value={editRole}
+                  onValueChange={setEditRole}
+                  ariaLabel="Vai trò"
+                  placeholder="Vai trò"
+                  tone="admin"
+                  options={[
+                    { value: "editor", label: "Biên tập viên - chỉ quản lý nội dung có thể xuất bản" },
+                    { value: "admin", label: "Quản trị viên - người dùng, cài đặt, báo giá và toàn bộ nội dung" },
+                  ]}
+                />
+              </label>
+              <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-slate-200 bg-white p-3 text-sm">
+                <input 
+                  className="mt-1 cursor-pointer" 
+                  type="checkbox" 
+                  checked={editActive} 
+                  onChange={(e) => setEditActive(e.target.checked)} 
+                />
+                <span>
+                  <strong className="block text-slate-900 font-semibold">Tài khoản đang hoạt động</strong>
+                  <span className="text-slate-500 text-xs mt-0.5 block">Biên tập viên bị tắt không thể truy cập CMS.</span>
+                </span>
+              </label>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer text-slate-700 bg-white"
+                  disabled={isUpdating}
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-primary/90 rounded-lg transition cursor-pointer"
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

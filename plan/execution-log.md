@@ -753,3 +753,33 @@ This is a chronological log of all execution sessions performed by the Plan Exec
 - **Result**: **SUCCESS**. Khắc phục triệt để lỗi đăng xuất "fake", bảo vệ các tuyến trang admin tuyệt đối an toàn.
 - **Encountered Blockers**: Không có.
 - **Next Action**: Tiếp tục Re-audit Phase 3: Settings, Secrets & Real Integrations.
+
+---
+
+## [2026-06-14T09:00:00+07:00] - Session 23: Tích hợp API Settings Server-side, Quản lý tài khoản CMS & Sửa các lỗi UI UX
+
+- **Agent ID**: Antigravity (Principal Full-stack Engineer + Tech Lead)
+- **Phase**: Re-audit Phase 03: Missing Admin Sections & Services
+- **Tasks Attempted**:
+  - Loại bỏ hoàn toàn `localStorage` ở Settings panel trong admin-workflows.tsx. Thay thế bằng tích hợp API thực tế: gọi `GET /api/admin/settings` khi mount và gọi `PUT /api/admin/settings` khi lưu.
+  - Cập nhật nhãn "Khóa riêng OpenAI" thành "Khóa API Google Gemini", sửa placeholder sang dạng "AIzaSy..." và cập nhật mô tả bảo mật (sửa Payload CMS thành cơ sở dữ liệu phía máy chủ).
+  - Hoàn thiện UI trang Quản lý tài khoản quản trị CMS `/admin/users`: Thêm nút edit Pencil cho mỗi profiles, thêm form modal cho phép hiệu chỉnh trực tiếp vai trò (role) và trạng thái hoạt động (is_active) của user, kết nối với API `PUT /api/admin/users` được bổ sung ở server-side.
+  - Khắc phục con trỏ chuột `cursor-pointer` cho các nút điều khiển Hero Carousel trang chủ công cộng.
+  - Tinh chỉnh Floating FAB contact menu: thêm `mr-[6px]` vào các liên kết phụ để căn tâm thẳng hàng dọc 100% với FAB chính 56px, đồng thời thêm `pointer-events-none` cho các span tooltip để không cản click chuột.
+- **Files Modified**:
+  - `components/showroom/admin-workflows.tsx`
+  - `components/showroom/admin-pages.tsx`
+  - `components/showroom/hero-showcase.tsx`
+  - `components/showroom/public-shell.tsx`
+  - `app/api/admin/users/route.ts`
+  - `plan/execution-status.md`
+  - `plan/99-next-action.md`
+  - `plan/execution-log.md`
+  - `C:/Users/DELL/.gemini/antigravity/brain/3618a13c-a0f2-46c7-a67c-6b322392a649/task.md`
+- **Tests/Checks Run**:
+  - `pnpm typecheck` -> Thành công (no errors).
+  - `pnpm lint` -> Thành công (0 errors, 52 warnings).
+  - `pnpm test` -> 32/32 unit tests passed.
+- **Result**: **SUCCESS**. Hoàn thành xuất sắc sprint tích hợp cài đặt server-side, quản lý tài khoản và sửa các lỗi UX/UI.
+- **Encountered Blockers**: Không có.
+- **Next Action**: Chuẩn bị Review Mode proposal cho Re-audit Phase A3/C2/C3: Brands, Promotions và Menu DB integration.

@@ -112,3 +112,60 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const actor = await getCurrentUser();
+    if (!actor || actor.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, role, isActive } = body;
+
+    if (!id || !role) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+    if (useMock) {
+      return NextResponse.json({ success: true });
+    }
+
+    const supabase = createAdminClient();
+
+    // 1. Cập nhật bảng profiles
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        role,
+        is_active: isActive,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (profileError) {
+      console.error("Profile update error:", profileError);
+      return NextResponse.json({ error: profileError.message || "Failed to update profile" }, { status: 400 });
+    }
+
+    // 2. Ghi nhật ký audit log
+    try {
+      await writeAuditLog(supabase, {
+        actorId: actor.id,
+        action: "update",
+        entityType: "profile",
+        entityId: id,
+        metadata: { role, is_active: isActive },
+      });
+    } catch (auditErr) {
+      console.warn("Audit log failed for user update, continuing anyway:", auditErr);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("PUT users error:", err);
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Internal server error" }, { status: 500 });
+  }
+}

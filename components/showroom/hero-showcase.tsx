@@ -112,7 +112,7 @@ export function HeroShowcase({
         <button
           type="button"
           aria-label="Previous slide"
-          className="public-hero-control absolute left-4 right-auto top-1/2 z-50 -translate-y-1/2 md:left-8"
+          className="public-hero-control cursor-pointer absolute left-4 right-auto top-1/2 z-50 -translate-y-1/2 md:left-8"
           onClick={goPrevious}
         >
           <ChevronLeft className="size-6" />
@@ -120,7 +120,7 @@ export function HeroShowcase({
         <button
           type="button"
           aria-label="Next slide"
-          className="public-hero-control absolute right-4 left-auto top-1/2 z-50 -translate-y-1/2 md:right-8"
+          className="public-hero-control cursor-pointer absolute right-4 left-auto top-1/2 z-50 -translate-y-1/2 md:right-8"
           onClick={goNext}
         >
           <ChevronRight className="size-6" />
@@ -135,14 +135,14 @@ export function HeroShowcase({
                   type="button"
                   aria-label={slide.title}
                   aria-current={active === index}
-                  className="public-hero-dot focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
+                  className="public-hero-dot cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
                   onClick={() => setActive(index)}
                 />
               ))}
             </div>
             <button
               type="button"
-              className="inline-flex size-8 items-center justify-center rounded-full border border-white/18 text-white/78 transition hover:border-white/45 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35"
+              className="cursor-pointer inline-flex size-8 items-center justify-center rounded-full border border-white/18 text-white/78 transition hover:border-white/45 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35"
               aria-label={paused ? playLabel : pauseLabel}
               aria-pressed={paused}
               onClick={() => setPaused((value) => !value)}

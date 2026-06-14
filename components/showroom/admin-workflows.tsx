@@ -1127,95 +1127,97 @@ export function SettingsOperationsPanel() {
     setSaveSuccess(false);
   };
 
-  // Load from localStorage on mount
+  // Load from server settings API on mount
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setClientReady(true);
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("pd-cms-settings");
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          if (data.brandNameVi !== undefined) setBrandNameVi(data.brandNameVi);
-          if (data.brandNameEn !== undefined) setBrandNameEn(data.brandNameEn);
-          if (data.logoUrl !== undefined) setLogoUrl(data.logoUrl);
-          if (data.faviconUrl !== undefined) setFaviconUrl(data.faviconUrl);
-          if (data.contactPhone !== undefined) setContactPhone(data.contactPhone);
-          if (data.contactEmail !== undefined) setContactEmail(data.contactEmail);
-          if (data.addressVi !== undefined) setAddressVi(data.addressVi);
-          if (data.addressEn !== undefined) setAddressEn(data.addressEn);
-          if (data.defaultLocale !== undefined) setDefaultLocale(data.defaultLocale);
-          if (data.seoTitleVi !== undefined) setSeoTitleVi(data.seoTitleVi);
-          if (data.seoTitleEn !== undefined) setSeoTitleEn(data.seoTitleEn);
-          if (data.seoDescVi !== undefined) setSeoDescVi(data.seoDescVi);
-          if (data.seoDescEn !== undefined) setSeoDescEn(data.seoDescEn);
-          if (data.resendKey !== undefined) setResendKey(data.resendKey);
-          if (data.cloudinaryPreset !== undefined) setCloudinaryPreset(data.cloudinaryPreset);
-          if (data.openaiKey !== undefined) setOpenaiKey(data.openaiKey);
-          if (data.slaHours !== undefined) setSlaHours(data.slaHours);
-          if (data.heroHeadlineVi !== undefined) setHeroHeadlineVi(data.heroHeadlineVi);
-          if (data.heroHeadlineEn !== undefined) setHeroHeadlineEn(data.heroHeadlineEn);
-          if (data.heroSubtitleVi !== undefined) setHeroSubtitleVi(data.heroSubtitleVi);
-          if (data.heroSubtitleEn !== undefined) setHeroSubtitleEn(data.heroSubtitleEn);
-          if (data.heroCtaLabel !== undefined) setHeroCtaLabel(data.heroCtaLabel);
-          if (data.heroCtaLink !== undefined) setHeroCtaLink(data.heroCtaLink);
-          if (data.heroVisible !== undefined) setHeroVisible(data.heroVisible);
-          if (data.heroImage1 !== undefined) setHeroImage1(data.heroImage1);
-          if (data.aboutVisible !== undefined) setAboutVisible(data.aboutVisible);
-          if (data.slide2TitleVi !== undefined) setSlide2TitleVi(data.slide2TitleVi);
-          if (data.slide2TitleEn !== undefined) setSlide2TitleEn(data.slide2TitleEn);
-          if (data.slide2LeadVi !== undefined) setSlide2LeadVi(data.slide2LeadVi);
-          if (data.slide2LeadEn !== undefined) setSlide2LeadEn(data.slide2LeadEn);
-          if (data.slide2Image !== undefined) setSlide2Image(data.slide2Image);
-          if (data.slide3TitleVi !== undefined) setSlide3TitleVi(data.slide3TitleVi);
-          if (data.slide3TitleEn !== undefined) setSlide3TitleEn(data.slide3TitleEn);
-          if (data.slide3LeadVi !== undefined) setSlide3LeadVi(data.slide3LeadVi);
-          if (data.slide3LeadEn !== undefined) setSlide3LeadEn(data.slide3LeadEn);
-          if (data.slide3Image !== undefined) setSlide3Image(data.slide3Image);
-          if (data.aboutHeadingVi !== undefined) setAboutHeadingVi(data.aboutHeadingVi);
-          if (data.aboutHeadingEn !== undefined) setAboutHeadingEn(data.aboutHeadingEn);
-          if (data.aboutLeadVi !== undefined) setAboutLeadVi(data.aboutLeadVi);
-          if (data.aboutLeadEn !== undefined) setAboutLeadEn(data.aboutLeadEn);
-          if (data.aboutImage !== undefined) setAboutImage(data.aboutImage);
-          if (data.featuredVisible !== undefined) setFeaturedVisible(data.featuredVisible);
-          if (data.featuredMaxItems !== undefined) setFeaturedMaxItems(data.featuredMaxItems);
-          if (data.blogSectionVisible !== undefined) setBlogSectionVisible(data.blogSectionVisible);
-          if (data.blogMaxPosts !== undefined) setBlogMaxPosts(data.blogMaxPosts);
-          if (data.blogHeadingVi !== undefined) setBlogHeadingVi(data.blogHeadingVi);
-          if (data.blogHeadingEn !== undefined) setBlogHeadingEn(data.blogHeadingEn);
-          if (data.trustBadgesVisible !== undefined) setTrustBadgesVisible(data.trustBadgesVisible);
-          if (data.badge1ValueVi !== undefined) setBadge1ValueVi(data.badge1ValueVi);
-          if (data.badge1ValueEn !== undefined) setBadge1ValueEn(data.badge1ValueEn);
-          if (data.badge1DescVi !== undefined) setBadge1DescVi(data.badge1DescVi);
-          if (data.badge1DescEn !== undefined) setBadge1DescEn(data.badge1DescEn);
-          if (data.badge2ValueVi !== undefined) setBadge2ValueVi(data.badge2ValueVi);
-          if (data.badge2ValueEn !== undefined) setBadge2ValueEn(data.badge2ValueEn);
-          if (data.badge2DescVi !== undefined) setBadge2DescVi(data.badge2DescVi);
-          if (data.badge2DescEn !== undefined) setBadge2DescEn(data.badge2DescEn);
-          
-          if (data.showroomVisible !== undefined) setShowroomVisible(data.showroomVisible);
-          if (data.showroomHeadingVi !== undefined) setShowroomHeadingVi(data.showroomHeadingVi);
-          if (data.showroomHeadingEn !== undefined) setShowroomHeadingEn(data.showroomHeadingEn);
-          if (data.showroomLeadVi !== undefined) setShowroomLeadVi(data.showroomLeadVi);
-          if (data.showroomLeadEn !== undefined) setShowroomLeadEn(data.showroomLeadEn);
-          if (data.showroomCtaVi !== undefined) setShowroomCtaVi(data.showroomCtaVi);
-          if (data.showroomCtaEn !== undefined) setShowroomCtaEn(data.showroomCtaEn);
-          if (data.showroomBgImage !== undefined) setShowroomBgImage(data.showroomBgImage);
-          
-          if (data.quoteVisible !== undefined) setQuoteVisible(data.quoteVisible);
-          if (data.quoteHeadingVi !== undefined) setQuoteHeadingVi(data.quoteHeadingVi);
-          if (data.quoteHeadingEn !== undefined) setQuoteHeadingEn(data.quoteHeadingEn);
-          if (data.quoteLeadVi !== undefined) setQuoteLeadVi(data.quoteLeadVi);
-          if (data.quoteLeadEn !== undefined) setQuoteLeadEn(data.quoteLeadEn);
-        } catch (e) {
-          // ignore
+    const loadSettings = async () => {
+      try {
+        const res = await fetch("/api/admin/settings");
+        if (!res.ok) {
+          throw new Error("Không thể tải cấu hình từ server");
         }
+        const data = await res.json();
+        if (data.brandNameVi !== undefined) setBrandNameVi(data.brandNameVi);
+        if (data.brandNameEn !== undefined) setBrandNameEn(data.brandNameEn);
+        if (data.logoUrl !== undefined) setLogoUrl(data.logoUrl);
+        if (data.faviconUrl !== undefined) setFaviconUrl(data.faviconUrl);
+        if (data.contactPhone !== undefined) setContactPhone(data.contactPhone);
+        if (data.contactEmail !== undefined) setContactEmail(data.contactEmail);
+        if (data.addressVi !== undefined) setAddressVi(data.addressVi);
+        if (data.addressEn !== undefined) setAddressEn(data.addressEn);
+        if (data.defaultLocale !== undefined) setDefaultLocale(data.defaultLocale);
+        if (data.seoTitleVi !== undefined) setSeoTitleVi(data.seoTitleVi);
+        if (data.seoTitleEn !== undefined) setSeoTitleEn(data.seoTitleEn);
+        if (data.seoDescVi !== undefined) setSeoDescVi(data.seoDescVi);
+        if (data.seoDescEn !== undefined) setSeoDescEn(data.seoDescEn);
+        if (data.resendKey !== undefined) setResendKey(data.resendKey);
+        if (data.cloudinaryPreset !== undefined) setCloudinaryPreset(data.cloudinaryPreset);
+        if (data.openaiKey !== undefined) setOpenaiKey(data.openaiKey);
+        if (data.slaHours !== undefined) setSlaHours(data.slaHours);
+        if (data.heroHeadlineVi !== undefined) setHeroHeadlineVi(data.heroHeadlineVi);
+        if (data.heroHeadlineEn !== undefined) setHeroHeadlineEn(data.heroHeadlineEn);
+        if (data.heroSubtitleVi !== undefined) setHeroSubtitleVi(data.heroSubtitleVi);
+        if (data.heroSubtitleEn !== undefined) setHeroSubtitleEn(data.heroSubtitleEn);
+        if (data.heroCtaLabel !== undefined) setHeroCtaLabel(data.heroCtaLabel);
+        if (data.heroCtaLink !== undefined) setHeroCtaLink(data.heroCtaLink);
+        if (data.heroVisible !== undefined) setHeroVisible(data.heroVisible);
+        if (data.heroImage1 !== undefined) setHeroImage1(data.heroImage1);
+        if (data.aboutVisible !== undefined) setAboutVisible(data.aboutVisible);
+        if (data.slide2TitleVi !== undefined) setSlide2TitleVi(data.slide2TitleVi);
+        if (data.slide2TitleEn !== undefined) setSlide2TitleEn(data.slide2TitleEn);
+        if (data.slide2LeadVi !== undefined) setSlide2LeadVi(data.slide2LeadVi);
+        if (data.slide2LeadEn !== undefined) setSlide2LeadEn(data.slide2LeadEn);
+        if (data.slide2Image !== undefined) setSlide2Image(data.slide2Image);
+        if (data.slide3TitleVi !== undefined) setSlide3TitleVi(data.slide3TitleVi);
+        if (data.slide3TitleEn !== undefined) setSlide3TitleEn(data.slide3TitleEn);
+        if (data.slide3LeadVi !== undefined) setSlide3LeadVi(data.slide3LeadVi);
+        if (data.slide3LeadEn !== undefined) setSlide3LeadEn(data.slide3LeadEn);
+        if (data.slide3Image !== undefined) setSlide3Image(data.slide3Image);
+        if (data.aboutHeadingVi !== undefined) setAboutHeadingVi(data.aboutHeadingVi);
+        if (data.aboutHeadingEn !== undefined) setAboutHeadingEn(data.aboutHeadingEn);
+        if (data.aboutLeadVi !== undefined) setAboutLeadVi(data.aboutLeadVi);
+        if (data.aboutLeadEn !== undefined) setAboutLeadEn(data.aboutLeadEn);
+        if (data.aboutImage !== undefined) setAboutImage(data.aboutImage);
+        if (data.featuredVisible !== undefined) setFeaturedVisible(data.featuredVisible);
+        if (data.featuredMaxItems !== undefined) setFeaturedMaxItems(data.featuredMaxItems);
+        if (data.blogSectionVisible !== undefined) setBlogSectionVisible(data.blogSectionVisible);
+        if (data.blogMaxPosts !== undefined) setBlogMaxPosts(data.blogMaxPosts);
+        if (data.blogHeadingVi !== undefined) setBlogHeadingVi(data.blogHeadingVi);
+        if (data.blogHeadingEn !== undefined) setBlogHeadingEn(data.blogHeadingEn);
+        if (data.trustBadgesVisible !== undefined) setTrustBadgesVisible(data.trustBadgesVisible);
+        if (data.badge1ValueVi !== undefined) setBadge1ValueVi(data.badge1ValueVi);
+        if (data.badge1ValueEn !== undefined) setBadge1ValueEn(data.badge1ValueEn);
+        if (data.badge1DescVi !== undefined) setBadge1DescVi(data.badge1DescVi);
+        if (data.badge1DescEn !== undefined) setBadge1DescEn(data.badge1DescEn);
+        if (data.badge2ValueVi !== undefined) setBadge2ValueVi(data.badge2ValueVi);
+        if (data.badge2ValueEn !== undefined) setBadge2ValueEn(data.badge2ValueEn);
+        if (data.badge2DescVi !== undefined) setBadge2DescVi(data.badge2DescVi);
+        if (data.badge2DescEn !== undefined) setBadge2DescEn(data.badge2DescEn);
+        
+        if (data.showroomVisible !== undefined) setShowroomVisible(data.showroomVisible);
+        if (data.showroomHeadingVi !== undefined) setShowroomHeadingVi(data.showroomHeadingVi);
+        if (data.showroomHeadingEn !== undefined) setShowroomHeadingEn(data.showroomHeadingEn);
+        if (data.showroomLeadVi !== undefined) setShowroomLeadVi(data.showroomLeadVi);
+        if (data.showroomLeadEn !== undefined) setShowroomLeadEn(data.showroomLeadEn);
+        if (data.showroomCtaVi !== undefined) setShowroomCtaVi(data.showroomCtaVi);
+        if (data.showroomCtaEn !== undefined) setShowroomCtaEn(data.showroomCtaEn);
+        if (data.showroomBgImage !== undefined) setShowroomBgImage(data.showroomBgImage);
+        
+        if (data.quoteVisible !== undefined) setQuoteVisible(data.quoteVisible);
+        if (data.quoteHeadingVi !== undefined) setQuoteHeadingVi(data.quoteHeadingVi);
+        if (data.quoteHeadingEn !== undefined) setQuoteHeadingEn(data.quoteHeadingEn);
+        if (data.quoteLeadVi !== undefined) setQuoteLeadVi(data.quoteLeadVi);
+        if (data.quoteLeadEn !== undefined) setQuoteLeadEn(data.quoteLeadEn);
+      } catch (e) {
+        console.error("Lỗi khi tải cấu hình settings:", e);
       }
-    }
+    };
+    loadSettings();
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate Email
     if (!contactEmail.includes("@") || !contactEmail.includes(".")) {
       setEmailError("Vui lòng nhập email liên hệ hợp lệ.");
@@ -1224,241 +1226,204 @@ export function SettingsOperationsPanel() {
     setEmailError("");
     
     setIsSaving(true);
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        const settingsData = {
-          brandNameVi,
-          brandNameEn,
-          logoUrl,
-          faviconUrl,
-          contactPhone,
-          contactEmail,
-          addressVi,
-          addressEn,
-          defaultLocale,
-          seoTitleVi,
-          seoTitleEn,
-          seoDescVi,
-          seoDescEn,
-          resendKey,
-          cloudinaryPreset,
-          openaiKey,
-          slaHours,
-          heroHeadlineVi,
-          heroHeadlineEn,
-          heroSubtitleVi,
-          heroSubtitleEn,
-          heroCtaLabel,
-          heroCtaLink,
-          heroVisible,
-          heroImage1,
-          aboutVisible,
-          slide2TitleVi,
-          slide2TitleEn,
-          slide2LeadVi,
-          slide2LeadEn,
-          slide2Image,
-          slide3TitleVi,
-          slide3TitleEn,
-          slide3LeadVi,
-          slide3LeadEn,
-          slide3Image,
-          aboutHeadingVi,
-          aboutHeadingEn,
-          aboutLeadVi,
-          aboutLeadEn,
-          aboutImage,
-          featuredVisible,
-          featuredMaxItems,
-          blogSectionVisible,
-          blogMaxPosts,
-          blogHeadingVi,
-          blogHeadingEn,
-          trustBadgesVisible,
-          badge1ValueVi,
-          badge1ValueEn,
-          badge1DescVi,
-          badge1DescEn,
-          badge2ValueVi,
-          badge2ValueEn,
-          badge2DescVi,
-          badge2DescEn,
-          showroomVisible,
-          showroomHeadingVi,
-          showroomHeadingEn,
-          showroomLeadVi,
-          showroomLeadEn,
-          showroomCtaVi,
-          showroomCtaEn,
-          showroomBgImage,
-          quoteVisible,
-          quoteHeadingVi,
-          quoteHeadingEn,
-          quoteLeadVi,
-          quoteLeadEn,
-        };
-        localStorage.setItem("pd-cms-settings", JSON.stringify(settingsData));
+    try {
+      const settingsData = {
+        brandNameVi,
+        brandNameEn,
+        logoUrl,
+        faviconUrl,
+        contactPhone,
+        contactEmail,
+        addressVi,
+        addressEn,
+        defaultLocale,
+        seoTitleVi,
+        seoTitleEn,
+        seoDescVi,
+        seoDescEn,
+        resendKey,
+        cloudinaryPreset,
+        openaiKey, // Sẽ được API Route giải thích là gemini_api_key
+        slaHours,
+        heroHeadlineVi,
+        heroHeadlineEn,
+        heroSubtitleVi,
+        heroSubtitleEn,
+        heroCtaLabel,
+        heroCtaLink,
+        heroVisible,
+        heroImage1,
+        aboutVisible,
+        slide2TitleVi,
+        slide2TitleEn,
+        slide2LeadVi,
+        slide2LeadEn,
+        slide2Image,
+        slide3TitleVi,
+        slide3TitleEn,
+        slide3LeadVi,
+        slide3LeadEn,
+        slide3Image,
+        aboutHeadingVi,
+        aboutHeadingEn,
+        aboutLeadVi,
+        aboutLeadEn,
+        aboutImage,
+        featuredVisible,
+        featuredMaxItems,
+        blogSectionVisible,
+        blogMaxPosts,
+        blogHeadingVi,
+        blogHeadingEn,
+        trustBadgesVisible,
+        badge1ValueVi,
+        badge1ValueEn,
+        badge1DescVi,
+        badge1DescEn,
+        badge2ValueVi,
+        badge2ValueEn,
+        badge2DescVi,
+        badge2DescEn,
+        showroomVisible,
+        showroomHeadingVi,
+        showroomHeadingEn,
+        showroomLeadVi,
+        showroomLeadEn,
+        showroomCtaVi,
+        showroomCtaEn,
+        showroomBgImage,
+        quoteVisible,
+        quoteHeadingVi,
+        quoteHeadingEn,
+        quoteLeadVi,
+        quoteLeadEn,
+      };
+
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsData),
+      });
+
+      if (!res.ok) {
+        throw new Error("Lỗi mạng khi cập nhật settings");
       }
+
+      const resData = await res.json();
+      if (resData.success) {
+        setIsDirty(false);
+        setSaveSuccess(true);
+        // Tải lại settings để cập nhật các key đã được masked (ví dụ: ****5678)
+        const getRes = await fetch("/api/admin/settings");
+        if (getRes.ok) {
+          const freshData = await getRes.json();
+          if (freshData.resendKey !== undefined) setResendKey(freshData.resendKey);
+          if (freshData.openaiKey !== undefined) setOpenaiKey(freshData.openaiKey);
+        }
+      } else {
+        alert("Lỗi lưu cấu hình: " + (resData.error || "Không rõ nguyên nhân"));
+      }
+    } catch (err) {
+      alert("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
+    } finally {
       setIsSaving(false);
-      setIsDirty(false);
-      setSaveSuccess(true);
-    }, 1200);
+    }
   };
 
-  const handleDiscard = () => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("pd-cms-settings");
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          setBrandNameVi(data.brandNameVi || settingsHomepageDefaults.brandNameVi);
-          setBrandNameEn(data.brandNameEn || settingsHomepageDefaults.brandNameEn);
-          setLogoUrl(data.logoUrl || "https://phuongdong.vn/logo.png");
-          setFaviconUrl(data.faviconUrl || "https://phuongdong.vn/favicon.ico");
-          setContactPhone(data.contactPhone || "0908 247 688");
-          setContactEmail(data.contactEmail || "contact@phuongdong.vn");
-          setAddressVi(data.addressVi || "124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
-          setAddressEn(data.addressEn || "124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
-          setDefaultLocale(data.defaultLocale || "vi");
-          setSeoTitleVi(data.seoTitleVi || "Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
-          setSeoTitleEn(data.seoTitleEn || "Phuong Dong - Premium Furniture & Sanitary Ware");
-          setSeoDescVi(data.seoDescVi || "Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.");
-          setSeoDescEn(data.seoDescEn || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
-          setResendKey(data.resendKey || "re_123456789abcdef");
-          setCloudinaryPreset(data.cloudinaryPreset || "phuongdong_unsigned_preset");
-          setOpenaiKey(data.openaiKey || "sk-proj-••••••••••••••••");
-          setSlaHours(data.slaHours || "24");
-          setHeroHeadlineVi(data.heroHeadlineVi || settingsHomepageDefaults.heroHeadlineVi);
-          setHeroHeadlineEn(data.heroHeadlineEn || settingsHomepageDefaults.heroHeadlineEn);
-          setHeroSubtitleVi(data.heroSubtitleVi || settingsHomepageDefaults.heroSubtitleVi);
-          setHeroSubtitleEn(data.heroSubtitleEn || settingsHomepageDefaults.heroSubtitleEn);
-          setHeroCtaLabel(data.heroCtaLabel || settingsHomepageDefaults.heroCtaLabel);
-          setHeroCtaLink(data.heroCtaLink || settingsHomepageDefaults.heroCtaLink);
-          setHeroVisible(data.heroVisible ?? true);
-          setHeroImage1(data.heroImage1 || settingsHomepageDefaults.heroImage1);
-          setAboutVisible(data.aboutVisible ?? true);
-          setFeaturedVisible(data.featuredVisible ?? true);
-          setFeaturedMaxItems(data.featuredMaxItems || settingsHomepageDefaults.featuredMaxItems);
-          setBlogSectionVisible(data.blogSectionVisible ?? true);
-          setBlogMaxPosts(data.blogMaxPosts || settingsHomepageDefaults.blogMaxPosts);
-          setBlogHeadingVi(data.blogHeadingVi || settingsHomepageDefaults.blogHeadingVi);
-          setBlogHeadingEn(data.blogHeadingEn || settingsHomepageDefaults.blogHeadingEn);
-          setTrustBadgesVisible(data.trustBadgesVisible ?? true);
-          setBadge1ValueVi(data.badge1ValueVi || settingsHomepageDefaults.badge1ValueVi);
-          setBadge1ValueEn(data.badge1ValueEn || settingsHomepageDefaults.badge1ValueEn);
-          setBadge1DescVi(data.badge1DescVi || settingsHomepageDefaults.badge1DescVi);
-          setBadge1DescEn(data.badge1DescEn || settingsHomepageDefaults.badge1DescEn);
-          setBadge2ValueVi(data.badge2ValueVi || settingsHomepageDefaults.badge2ValueVi);
-          setBadge2ValueEn(data.badge2ValueEn || settingsHomepageDefaults.badge2ValueEn);
-          setBadge2DescVi(data.badge2DescVi || settingsHomepageDefaults.badge2DescVi);
-          setBadge2DescEn(data.badge2DescEn || settingsHomepageDefaults.badge2DescEn);
-          
-          setShowroomVisible(data.showroomVisible ?? true);
-          setShowroomHeadingVi(data.showroomHeadingVi || settingsHomepageDefaults.showroomHeadingVi);
-          setShowroomHeadingEn(data.showroomHeadingEn || settingsHomepageDefaults.showroomHeadingEn);
-          setShowroomLeadVi(data.showroomLeadVi || settingsHomepageDefaults.showroomLeadVi);
-          setShowroomLeadEn(data.showroomLeadEn || settingsHomepageDefaults.showroomLeadEn);
-          setShowroomCtaVi(data.showroomCtaVi || settingsHomepageDefaults.showroomCtaVi);
-          setShowroomCtaEn(data.showroomCtaEn || settingsHomepageDefaults.showroomCtaEn);
-          setShowroomBgImage(data.showroomBgImage || settingsHomepageDefaults.showroomBgImage);
-          
-          setQuoteVisible(data.quoteVisible ?? true);
-          setQuoteHeadingVi(data.quoteHeadingVi || settingsHomepageDefaults.quoteHeadingVi);
-          setQuoteHeadingEn(data.quoteHeadingEn || settingsHomepageDefaults.quoteHeadingEn);
-          setQuoteLeadVi(data.quoteLeadVi || settingsHomepageDefaults.quoteLeadVi);
-          setQuoteLeadEn(data.quoteLeadEn || settingsHomepageDefaults.quoteLeadEn);
-
-          setIsDirty(false);
-          setEmailError("");
-          setSaveSuccess(false);
-          return;
-        } catch (e) {
-          // ignore
-        }
+  const handleDiscard = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings");
+      if (!res.ok) {
+        throw new Error("Không thể tải cấu hình");
       }
+      const data = await res.json();
+      setBrandNameVi(data.brandNameVi || settingsHomepageDefaults.brandNameVi);
+      setBrandNameEn(data.brandNameEn || settingsHomepageDefaults.brandNameEn);
+      setLogoUrl(data.logoUrl || "https://phuongdong.vn/logo.png");
+      setFaviconUrl(data.faviconUrl || "https://phuongdong.vn/favicon.ico");
+      setContactPhone(data.contactPhone || "0908 247 688");
+      setContactEmail(data.contactEmail || "contact@phuongdong.vn");
+      setAddressVi(data.addressVi || "124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
+      setAddressEn(data.addressEn || "124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
+      setDefaultLocale(data.defaultLocale || "vi");
+      setSeoTitleVi(data.seoTitleVi || "Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
+      setSeoTitleEn(data.seoTitleEn || "Phuong Dong - Premium Furniture & Sanitary Ware");
+      setSeoDescVi(data.seoDescVi || "Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.");
+      setSeoDescEn(data.seoDescEn || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
+      setResendKey(data.resendKey || "re_123456789abcdef");
+      setCloudinaryPreset(data.cloudinaryPreset || "phuongdong_unsigned_preset");
+      setOpenaiKey(data.openaiKey || "sk-proj-••••••••••••••••");
+      setSlaHours(data.slaHours || "24");
+      
+      setHeroHeadlineVi(data.heroHeadlineVi || settingsHomepageDefaults.heroHeadlineVi);
+      setHeroHeadlineEn(data.heroHeadlineEn || settingsHomepageDefaults.heroHeadlineEn);
+      setHeroSubtitleVi(data.heroSubtitleVi || settingsHomepageDefaults.heroSubtitleVi);
+      setHeroSubtitleEn(data.heroSubtitleEn || settingsHomepageDefaults.heroSubtitleEn);
+      setHeroCtaLabel(data.heroCtaLabel || settingsHomepageDefaults.heroCtaLabel);
+      setHeroCtaLink(data.heroCtaLink || settingsHomepageDefaults.heroCtaLink);
+      setHeroVisible(data.heroVisible !== undefined ? data.heroVisible : true);
+      setHeroImage1(data.heroImage1 || settingsHomepageDefaults.heroImage1);
+      
+      setAboutVisible(data.aboutVisible !== undefined ? data.aboutVisible : true);
+      setSlide2TitleVi(data.slide2TitleVi || settingsHomepageDefaults.slide2TitleVi);
+      setSlide2TitleEn(data.slide2TitleEn || settingsHomepageDefaults.slide2TitleEn);
+      setSlide2LeadVi(data.slide2LeadVi || settingsHomepageDefaults.slide2LeadVi);
+      setSlide2LeadEn(data.slide2LeadEn || settingsHomepageDefaults.slide2LeadEn);
+      setSlide2Image(data.slide2Image || settingsHomepageDefaults.slide2Image);
+      
+      setSlide3TitleVi(data.slide3TitleVi || settingsHomepageDefaults.slide3TitleVi);
+      setSlide3TitleEn(data.slide3TitleEn || settingsHomepageDefaults.slide3TitleEn);
+      setSlide3LeadVi(data.slide3LeadVi || settingsHomepageDefaults.slide3LeadVi);
+      setSlide3LeadEn(data.slide3LeadEn || settingsHomepageDefaults.slide3LeadEn);
+      setSlide3Image(data.slide3Image || settingsHomepageDefaults.slide3Image);
+      
+      setAboutHeadingVi(data.aboutHeadingVi || settingsHomepageDefaults.aboutHeadingVi);
+      setAboutHeadingEn(data.aboutHeadingEn || settingsHomepageDefaults.aboutHeadingEn);
+      setAboutLeadVi(data.aboutLeadVi || settingsHomepageDefaults.aboutLeadVi);
+      setAboutLeadEn(data.aboutLeadEn || settingsHomepageDefaults.aboutLeadEn);
+      setAboutImage(data.aboutImage || settingsHomepageDefaults.aboutImage);
+      
+      setFeaturedVisible(data.featuredVisible !== undefined ? data.featuredVisible : true);
+      setFeaturedMaxItems(data.featuredMaxItems || settingsHomepageDefaults.featuredMaxItems);
+      setBlogSectionVisible(data.blogSectionVisible !== undefined ? data.blogSectionVisible : true);
+      setBlogMaxPosts(data.blogMaxPosts || settingsHomepageDefaults.blogMaxPosts);
+      setBlogHeadingVi(data.blogHeadingVi || settingsHomepageDefaults.blogHeadingVi);
+      setBlogHeadingEn(data.blogHeadingEn || settingsHomepageDefaults.blogHeadingEn);
+      
+      setTrustBadgesVisible(data.trustBadgesVisible !== undefined ? data.trustBadgesVisible : true);
+      setBadge1ValueVi(data.badge1ValueVi || settingsHomepageDefaults.badge1ValueVi);
+      setBadge1ValueEn(data.badge1ValueEn || settingsHomepageDefaults.badge1ValueEn);
+      setBadge1DescVi(data.badge1DescVi || settingsHomepageDefaults.badge1DescVi);
+      setBadge1DescEn(data.badge1DescEn || settingsHomepageDefaults.badge1DescEn);
+      setBadge2ValueVi(data.badge2ValueVi || settingsHomepageDefaults.badge2ValueVi);
+      setBadge2ValueEn(data.badge2ValueEn || settingsHomepageDefaults.badge2ValueEn);
+      setBadge2DescVi(data.badge2DescVi || settingsHomepageDefaults.badge2DescVi);
+      setBadge2DescEn(data.badge2DescEn || settingsHomepageDefaults.badge2DescEn);
+      
+      setShowroomVisible(data.showroomVisible !== undefined ? data.showroomVisible : true);
+      setShowroomHeadingVi(data.showroomHeadingVi || settingsHomepageDefaults.showroomHeadingVi);
+      setShowroomHeadingEn(data.showroomHeadingEn || settingsHomepageDefaults.showroomHeadingEn);
+      setShowroomLeadVi(data.showroomLeadVi || settingsHomepageDefaults.showroomLeadVi);
+      setShowroomLeadEn(data.showroomLeadEn || settingsHomepageDefaults.showroomLeadEn);
+      setShowroomCtaVi(data.showroomCtaVi || settingsHomepageDefaults.showroomCtaVi);
+      setShowroomCtaEn(data.showroomCtaEn || settingsHomepageDefaults.showroomCtaEn);
+      setShowroomBgImage(data.showroomBgImage || settingsHomepageDefaults.showroomBgImage);
+      
+      setQuoteVisible(data.quoteVisible !== undefined ? data.quoteVisible : true);
+      setQuoteHeadingVi(data.quoteHeadingVi || settingsHomepageDefaults.quoteHeadingVi);
+      setQuoteHeadingEn(data.quoteHeadingEn || settingsHomepageDefaults.quoteHeadingEn);
+      setQuoteLeadVi(data.quoteLeadVi || settingsHomepageDefaults.quoteLeadVi);
+      setQuoteLeadEn(data.quoteLeadEn || settingsHomepageDefaults.quoteLeadEn);
+      
+      setIsDirty(false);
+      setEmailError("");
+      setSaveSuccess(false);
+    } catch (err) {
+      alert("Không thể hủy thay đổi: " + (err instanceof Error ? err.message : err));
+    } finally {
+      setIsSaving(false);
     }
-
-    setBrandNameVi(settingsHomepageDefaults.brandNameVi);
-    setBrandNameEn(settingsHomepageDefaults.brandNameEn);
-    setLogoUrl("https://phuongdong.vn/logo.png");
-    setFaviconUrl("https://phuongdong.vn/favicon.ico");
-    setContactPhone("0908 247 688");
-    setContactEmail("contact@phuongdong.vn");
-    setAddressVi("124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
-    setAddressEn("124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
-    setDefaultLocale("vi");
-    setSeoTitleVi("Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
-    setSeoTitleEn("Phuong Dong - Premium Furniture & Sanitary Ware");
-    setSeoDescVi("Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.");
-    setSeoDescEn("Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
-    setResendKey("re_123456789abcdef");
-    setCloudinaryPreset("phuongdong_unsigned_preset");
-    setOpenaiKey("sk-proj-••••••••••••••••");
-    setSlaHours("24");
-    
-    setHeroHeadlineVi(settingsHomepageDefaults.heroHeadlineVi);
-    setHeroHeadlineEn(settingsHomepageDefaults.heroHeadlineEn);
-    setHeroSubtitleVi(settingsHomepageDefaults.heroSubtitleVi);
-    setHeroSubtitleEn(settingsHomepageDefaults.heroSubtitleEn);
-    setHeroCtaLabel(settingsHomepageDefaults.heroCtaLabel);
-    setHeroCtaLink(settingsHomepageDefaults.heroCtaLink);
-    setHeroVisible(true);
-    setHeroImage1(settingsHomepageDefaults.heroImage1);
-    setAboutVisible(true);
-    setFeaturedVisible(true);
-    setFeaturedMaxItems(settingsHomepageDefaults.featuredMaxItems);
-    setBlogSectionVisible(true);
-    setBlogMaxPosts(settingsHomepageDefaults.blogMaxPosts);
-    setBlogHeadingVi(settingsHomepageDefaults.blogHeadingVi);
-    setBlogHeadingEn(settingsHomepageDefaults.blogHeadingEn);
-    setTrustBadgesVisible(true);
-
-    setSlide2TitleVi(settingsHomepageDefaults.slide2TitleVi);
-    setSlide2TitleEn(settingsHomepageDefaults.slide2TitleEn);
-    setSlide2LeadVi(settingsHomepageDefaults.slide2LeadVi);
-    setSlide2LeadEn(settingsHomepageDefaults.slide2LeadEn);
-    setSlide2Image(settingsHomepageDefaults.slide2Image);
-
-    setSlide3TitleVi(settingsHomepageDefaults.slide3TitleVi);
-    setSlide3TitleEn(settingsHomepageDefaults.slide3TitleEn);
-    setSlide3LeadVi(settingsHomepageDefaults.slide3LeadVi);
-    setSlide3LeadEn(settingsHomepageDefaults.slide3LeadEn);
-    setSlide3Image(settingsHomepageDefaults.slide3Image);
-
-    setAboutHeadingVi(settingsHomepageDefaults.aboutHeadingVi);
-    setAboutHeadingEn(settingsHomepageDefaults.aboutHeadingEn);
-    setAboutLeadVi(settingsHomepageDefaults.aboutLeadVi);
-    setAboutLeadEn(settingsHomepageDefaults.aboutLeadEn);
-    setAboutImage(settingsHomepageDefaults.aboutImage);
-
-    setBadge1ValueVi(settingsHomepageDefaults.badge1ValueVi);
-    setBadge1ValueEn(settingsHomepageDefaults.badge1ValueEn);
-    setBadge1DescVi(settingsHomepageDefaults.badge1DescVi);
-    setBadge1DescEn(settingsHomepageDefaults.badge1DescEn);
-
-    setBadge2ValueVi(settingsHomepageDefaults.badge2ValueVi);
-    setBadge2ValueEn(settingsHomepageDefaults.badge2ValueEn);
-    setBadge2DescVi(settingsHomepageDefaults.badge2DescVi);
-    setBadge2DescEn(settingsHomepageDefaults.badge2DescEn);
-    
-    setShowroomVisible(true);
-    setShowroomHeadingVi(settingsHomepageDefaults.showroomHeadingVi);
-    setShowroomHeadingEn(settingsHomepageDefaults.showroomHeadingEn);
-    setShowroomLeadVi(settingsHomepageDefaults.showroomLeadVi);
-    setShowroomLeadEn(settingsHomepageDefaults.showroomLeadEn);
-    setShowroomCtaVi(settingsHomepageDefaults.showroomCtaVi);
-    setShowroomCtaEn(settingsHomepageDefaults.showroomCtaEn);
-    setShowroomBgImage(settingsHomepageDefaults.showroomBgImage);
-    
-    setQuoteVisible(true);
-    setQuoteHeadingVi(settingsHomepageDefaults.quoteHeadingVi);
-    setQuoteHeadingEn(settingsHomepageDefaults.quoteHeadingEn);
-    setQuoteLeadVi(settingsHomepageDefaults.quoteLeadVi);
-    setQuoteLeadEn(settingsHomepageDefaults.quoteLeadEn);
-
-    setIsDirty(false);
-    setEmailError("");
-    setSaveSuccess(false);
   };
 
   const homepagePreviewProps = {
@@ -1787,11 +1752,11 @@ export function SettingsOperationsPanel() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <AdminField 
-                  label="Khóa riêng OpenAI" 
+                  label="Khóa API Google Gemini" 
                   name="openai-key" 
                   value={openaiKey} 
                   onChange={(val) => { setOpenaiKey(val); markDirty(); }} 
-                  placeholder="sk-proj-..." 
+                  placeholder="AIzaSy..." 
                 />
                 <AdminField 
                   label="Giới hạn SLA phản hồi (giờ)" 
@@ -1801,7 +1766,7 @@ export function SettingsOperationsPanel() {
                 />
               </div>
               <p className="text-xs text-slate-400 font-semibold italic">
-                * Toàn bộ thông số API trên chỉ được lưu trữ và truy cập an toàn ở phía máy chủ của Payload CMS.
+                * Toàn bộ thông số API trên chỉ được lưu trữ và truy cập an toàn trong cơ sở dữ liệu phía máy chủ.
               </p>
             </div>
           </section>
