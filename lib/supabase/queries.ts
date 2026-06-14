@@ -30,6 +30,7 @@ export async function getProducts(
     q?: string;
     priceMin?: number;
     priceMax?: number;
+    attributeFilters?: Record<string, string | string[]>;
     featured?: boolean;
     limit?: number;
     offset?: number;
@@ -47,6 +48,7 @@ export async function getProducts(
         p_q: params.q || null,
         p_price_min: params.priceMin || null,
         p_price_max: params.priceMax || null,
+        p_attribute_filters: params.attributeFilters || {},
         p_featured: params.featured !== undefined ? params.featured : null,
         p_limit: params.limit || 24,
         p_offset: params.offset || 0,
@@ -569,16 +571,20 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
   const priceVi = typeof priceDisplayText === "object" ? (priceDisplayText as any).vi : priceDisplayText || "Liên hệ báo giá";
   const priceEn = typeof priceDisplayText === "object" ? (priceDisplayText as any).en : priceDisplayText || "Contact for quote";
 
+  const findAttrValue = (key: string) => {
+    return attributes.find((a: any) => a.key === key)?.value || "";
+  };
+
   return {
     slug: dbProduct.slug,
     referenceCode,
     categoryKey,
-    materialKey: dbProduct.material_key || dbProduct.materialKey || (typeof dbProduct.material === "object" ? dbProduct.material.en : dbProduct.material || ""),
-    roomKey: dbProduct.room_key || dbProduct.roomKey || "",
-    styleKey: dbProduct.style_key || dbProduct.styleKey || "",
-    collectionKey: dbProduct.collection_key || dbProduct.collectionKey || "",
-    toneKey: dbProduct.tone_key || dbProduct.toneKey || "",
-    availabilityKey: dbProduct.availability_key || dbProduct.availabilityKey || "",
+    materialKey: dbProduct.material_key || dbProduct.materialKey || findAttrValue("material") || (typeof dbProduct.material === "object" ? dbProduct.material.en : dbProduct.material || ""),
+    roomKey: dbProduct.room_key || dbProduct.roomKey || findAttrValue("room") || "",
+    styleKey: dbProduct.style_key || dbProduct.styleKey || findAttrValue("style") || "",
+    collectionKey: dbProduct.collection_key || dbProduct.collectionKey || findAttrValue("collection") || "",
+    toneKey: dbProduct.tone_key || dbProduct.toneKey || findAttrValue("tone") || "",
+    availabilityKey: dbProduct.availability_key || dbProduct.availabilityKey || findAttrValue("availability") || "",
     status: "published" as const,
     featured: dbProduct.featured || false,
     image: primaryMedia?.url || media[0]?.url || "/placeholder.jpg",

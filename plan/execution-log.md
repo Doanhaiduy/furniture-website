@@ -849,3 +849,29 @@ This is a chronological log of all execution sessions performed by the Plan Exec
 - **Result**: **SUCCESS**. Hoàn thành xuất sắc sprint cải thiện UI/UX và đồng bộ dữ liệu động thực tế.
 - **Encountered Blockers**: Không có.
 - **Next Action**: Chạy Git commit và chuẩn bị Review Mode proposal cho Sprint tiếp theo.
+
+---
+
+## [2026-06-14T09:45:00+07:00] - Session 26: Tối ưu bộ lọc sản phẩm Catalog Server-side (F13 / Task 9)
+
+- **Agent ID**: Antigravity (Principal Full-stack Engineer + Tech Lead)
+- **Phase**: Re-audit Phase 03: Missing Admin Sections & Services
+- **Tasks Attempted**:
+  - **F13 (Server Filtering)**: Nâng cấp queries helper `getProducts` hỗ trợ đối số `attributeFilters` và chuyển tiếp cho RPC `public_products` của Supabase.
+  - **Catalog Synchronization**: Sửa đổi `app/[locale]/products/page.tsx` để trích xuất các bộ lọc thuộc tính động (`material`, `room`, `style`, `collection`, `tone`, `availability`) từ searchParams và truyền trực tiếp vào `getProducts` thay vì lọc bằng JavaScript trên 1000 sản phẩm thô ở client.
+  - **Mapping Fix**: Cập nhật hàm `mapDBProductToPublicProduct` để tự động map các thuộc tính động (`roomKey`, `styleKey`...) từ mảng `attributes` trả về của RPC nhằm đảm bảo các bộ lọc ở client nhận diện chính xác dữ liệu thực tế từ database.
+- **Files Modified**:
+  - `lib/supabase/queries.ts`
+  - `app/[locale]/products/page.tsx`
+  - `plan/execution-status.md`
+  - `plan/execution-log.md`
+  - `plan/99-next-action.md`
+- **Tests/Checks Run**:
+  - `pnpm typecheck` -> Thành công (no errors).
+  - `pnpm lint` -> Thành công (0 errors, 52 warnings).
+  - `pnpm test` -> 32/32 unit tests passed.
+  - `pnpm build` -> Thành công 100% (Turbopack compile and page generation succeeded).
+  - Browser MCP QA -> Điều hướng tới `/vi/products` và kiểm tra bộ lọc tìm kiếm "Sen" realtime, URL cập nhật mượt mà và kết quả lọc từ DB hiển thị đúng 1 sản phẩm "Sen Tắm Mạ Vàng 24K".
+- **Result**: **SUCCESS**. Hoàn thành xuất sắc việc tối ưu hóa bộ lọc sản phẩm Catalog server-side trực tiếp qua PostgreSQL.
+- **Encountered Blockers**: Không có.
+- **Next Action**: Chạy Git commit và chuẩn bị Review Mode proposal cho các task tiếp theo (ví dụ: Cloudinary signed uploads).

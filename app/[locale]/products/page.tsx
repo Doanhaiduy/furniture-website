@@ -69,7 +69,29 @@ export default async function ProductsPage({
 
   // Fetch dynamic catalog data from database
   const supabase = await createClient();
-  const dbProducts = await getProducts(supabase, { locale, limit: 1000 });
+  
+  // Extract and build database filters
+  const attributeFilters: Record<string, string> = {};
+  const attrKeys = ["material", "room", "style", "collection", "tone", "availability"];
+  attrKeys.forEach((key) => {
+    const value = query[key as keyof ProductSearchParams];
+    if (typeof value === "string" && value && value !== "all") {
+      attributeFilters[key] = value;
+    }
+  });
+
+  const categorySlug = typeof query.category === "string" && query.category !== "all" ? query.category : undefined;
+  const q = typeof query.q === "string" && query.q ? query.q : undefined;
+  const featured = query.featured === "true" ? true : undefined;
+
+  const dbProducts = await getProducts(supabase, {
+    locale,
+    categorySlug,
+    q,
+    featured,
+    attributeFilters,
+    limit: 1000,
+  });
   const dbProductsMapped = dbProducts.map((p: any) => mapDBProductToPublicProduct(p, locale));
 
   const filteredResults = filterProducts(query, dbProductsMapped);
