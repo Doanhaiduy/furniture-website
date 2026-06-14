@@ -40,6 +40,17 @@ const metricOptions = [
 
 type Metric = (typeof metricOptions)[number]["key"];
 type WeekIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+type AdminRole = "admin" | "editor";
+
+function isAdminOnlyHref(href: string) {
+  return ["/admin/quotes", "/admin/users", "/admin/settings"].some((prefix) =>
+    href.startsWith(prefix),
+  );
+}
+
+function safeAdminHref(href: string, role?: AdminRole) {
+  return role === "editor" && isAdminOnlyHref(href) ? "/admin/access-denied" : href;
+}
 
 const todayIndex: WeekIndex = 1;
 const calendarWeekdays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"] as const;
@@ -78,13 +89,16 @@ function AdminDatePicker({
   selectedIndex,
   onSelectIndex,
   variant,
+  role,
 }: {
   selectedIndex: number;
   onSelectIndex: (index: WeekIndex) => void;
   variant: "chart" | "rail-date" | "rail-icon";
+  role?: AdminRole;
 }) {
   const [open, setOpen] = useState(false);
   const selected = weekData[selectedIndex] ?? weekData[todayIndex];
+  const summaryMetric: "quotes" | "drafts" = role === "editor" ? "drafts" : "quotes";
   const calendarTitleId = `admin-calendar-${variant}-title`;
   const scheduledByDay = new Map<number, { item: (typeof weekData)[number]; index: WeekIndex }>(
     weekData.map((item, index) => [item.dayNumber, { item, index: index as WeekIndex }])
@@ -194,7 +208,7 @@ function AdminDatePicker({
           <div className="mt-4 grid gap-2 rounded-xl bg-[#f4f6fb] p-3">
             <div className="flex items-center justify-between gap-3 text-sm">
               <span className="font-semibold text-[#686d82]">Yêu cầu báo giá</span>
-              <strong>{selected.quotes}</strong>
+              <strong>{selected[summaryMetric]}</strong>
             </div>
             <div className="flex items-center justify-between gap-3 text-sm">
               <span className="font-semibold text-[#686d82]">Mức độ sẵn sàng SEO</span>
@@ -217,7 +231,7 @@ function AdminDatePicker({
               Hôm nay
             </button>
             <Link
-              href={selected.href}
+              href={safeAdminHref(selected.href, role)}
               className="rounded-lg bg-[#8b5cf6] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#7d4df0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5cf6]/25"
               onClick={() => setOpen(false)}
             >
@@ -231,7 +245,7 @@ function AdminDatePicker({
   );
 }
 
-export function NotificationButton() {
+export function NotificationButton({ role }: { role?: AdminRole }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(false);
 
@@ -265,7 +279,7 @@ export function NotificationButton() {
           >
           <p className="type-label text-[var(--admin-text-subtle)]">Thông báo</p>
           <div className="mt-3 grid gap-2 text-sm">
-            <Link href="/admin/quotes" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
+            <Link href={safeAdminHref("/admin/quotes", role)} className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
               3 yêu cầu báo giá cần kiểm duyệt
             </Link>
             <Link href="/admin/products" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
@@ -280,9 +294,13 @@ export function NotificationButton() {
   );
 }
 
-export function DashboardInsightChart() {
-  const [metric, setMetric] = useState<Metric>("quotes");
+export function DashboardInsightChart({ role }: { role?: AdminRole }) {
+  const [metric, setMetric] = useState<Metric>(role === "editor" ? "seo" : "quotes");
   const { selectedIndex: activeIndex, setSelectedIndex: setActiveIndex } = useAdminDateSelection();
+  const visibleMetricOptions = useMemo(
+    () => (role === "editor" ? metricOptions.filter((option) => option.key !== "quotes") : metricOptions),
+    [role],
+  );
   const values = weekData.map((item) => item[metric]);
   const max = Math.max(...values);
   const active = weekData[activeIndex];
@@ -303,7 +321,7 @@ export function DashboardInsightChart() {
       <div className="rounded-2xl border border-[#e0e6ef] bg-[#f4f6fb] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
-            {metricOptions.map((option) => (
+            {visibleMetricOptions.map((option) => (
               <button
                 key={option.key}
                 type="button"
@@ -317,7 +335,7 @@ export function DashboardInsightChart() {
               </button>
             ))}
           </div>
-          <AdminDatePicker selectedIndex={activeIndex} onSelectIndex={setActiveIndex} variant="chart" />
+          <AdminDatePicker selectedIndex={activeIndex} onSelectIndex={setActiveIndex} variant="chart" role={role} />
         </div>
 
         <svg className="mt-4 h-52 w-full" viewBox="0 0 404 190" role="img" aria-label={`Biểu đồ tuần: ${metricLabel}`}>
@@ -374,7 +392,7 @@ export function DashboardInsightChart() {
   );
 }
 
-export function AdminUtilityRail({ active }: { active: string }) {
+export function AdminUtilityRail({ active, role }: { active: string; role?: AdminRole }) {
   const { selectedIndex, setSelectedIndex } = useAdminDateSelection();
   const selected = weekData[selectedIndex];
   const [showCalendar, setShowCalendar] = useState(true);
@@ -427,23 +445,26 @@ export function AdminUtilityRail({ active }: { active: string }) {
         };
     }
   }, [active]);
+  const isEditor = role === "editor";
+  const visibleIssues = pageData.issues.filter((issue) => !isEditor || !isAdminOnlyHref(issue.href));
 
   return (
     <aside className="hidden w-[286px] shrink-0 border-l border-[#e3e8f0] bg-white/55 p-4 xl:block">
       <div className="sticky top-[84px] space-y-4">
-        {/* Quote Lead Notification Alert if there are urgent CRM items */}
-        <section className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="size-5 shrink-0 text-rose-600 mt-0.5" />
-            <div className="space-y-1">
-              <h4 className="font-semibold text-xs text-rose-900">Yêu cầu báo giá mới</h4>
-              <p className="text-xs text-rose-700">Có <strong>1 yêu cầu báo giá chưa phân công</strong> cần xử lý ngay.</p>
-              <Link href="/admin/quotes?id=QR-2406-001" className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 hover:text-rose-950 underline mt-1 transition">
-                Phân công xử lý <ArrowUpRight className="size-3" />
-              </Link>
+        {!isEditor ? (
+          <section className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 shrink-0 text-rose-600 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="font-semibold text-xs text-rose-900">Yêu cầu báo giá mới</h4>
+                <p className="text-xs text-rose-700">Có <strong>1 yêu cầu báo giá chưa phân công</strong> cần xử lý ngay.</p>
+                <Link href="/admin/quotes?id=QR-2406-001" className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 hover:text-rose-950 underline mt-1 transition">
+                  Phân công xử lý <ArrowUpRight className="size-3" />
+                </Link>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         {/* Readiness progress wheel */}
         <section className="rounded-2xl border border-[#e0e6ef] bg-white p-4 shadow-[0_14px_34px_rgba(21,23,43,0.06)]">
@@ -469,11 +490,11 @@ export function AdminUtilityRail({ active }: { active: string }) {
           <div className="flex items-center justify-between border-b border-slate-50 pb-2.5">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Checklist vận hành</p>
             <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
-              {pageData.issues.length} việc cần làm
+              {visibleIssues.length} việc cần làm
             </span>
           </div>
           <div className="mt-3.5 space-y-3">
-            {pageData.issues.map((issue) => (
+            {visibleIssues.map((issue) => (
               <div key={issue.id} className="group flex items-start gap-2.5 rounded-xl border border-slate-50 bg-slate-50/50 p-2.5 transition hover:border-[#8b5cf6]/20 hover:bg-violet-50/10">
                 {issue.type === "error" ? (
                   <AlertCircle className="size-4 shrink-0 text-rose-500 mt-0.5" />
@@ -484,7 +505,7 @@ export function AdminUtilityRail({ active }: { active: string }) {
                 )}
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="text-[11px] font-semibold text-slate-700 leading-relaxed group-hover:text-slate-900 transition break-words">{issue.text}</p>
-                  <Link href={issue.href} className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8b5cf6] hover:text-[#7c3aed] transition">
+                  <Link href={safeAdminHref(issue.href, role)} className="inline-flex items-center gap-1 text-[10px] font-bold text-[#8b5cf6] hover:text-[#7c3aed] transition">
                     Sửa ngay <ArrowRight className="size-3" />
                   </Link>
                 </div>
@@ -540,7 +561,7 @@ export function AdminUtilityRail({ active }: { active: string }) {
               <div className="rounded-lg bg-slate-50 p-2 text-[10px] font-semibold text-slate-500 leading-normal">
                 Ngày {selected.date} có <strong>{selected.quotes} yêu cầu</strong> & <strong>{selected.drafts} bản nháp</strong>.
               </div>
-              <Link href={selected.href} className="flex items-center gap-2 rounded-xl border border-[#e0e6ef] bg-white p-3 text-sm font-bold text-[#15172b] shadow-[0_12px_28px_rgba(21,23,43,0.05)] transition hover:border-[#8b5cf6]/35 hover:text-[#8b5cf6]">
+              <Link href={safeAdminHref(selected.href, role)} className="flex items-center gap-2 rounded-xl border border-[#e0e6ef] bg-white p-3 text-sm font-bold text-[#15172b] shadow-[0_12px_28px_rgba(21,23,43,0.05)] transition hover:border-[#8b5cf6]/35 hover:text-[#8b5cf6]">
                 <CheckCircle2 className="size-4 text-emerald-600" />
                 Mở việc ngày {selected.date}
               </Link>

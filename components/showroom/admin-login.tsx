@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2, Lock } from "lucide-react";
@@ -15,14 +15,34 @@ export function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+    if (useMock) {
+      router.push("/admin");
+    }
+  }, [router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+    if (useMock) {
+      setLoading(false);
+      router.push("/admin");
+      router.refresh();
+      return;
+    }
+
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookieOptions: {
+          name: "sb-auth-token",
+        },
+      }
     );
 
     const { error: signInError } = await supabase.auth.signInWithPassword({

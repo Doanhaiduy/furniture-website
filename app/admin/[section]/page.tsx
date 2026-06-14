@@ -10,23 +10,29 @@ import {
   getAdminCategories,
   getAdminBlogPosts,
   getAdminShowrooms,
+  getAdminPromotions,
+  getAdminUsers,
   type AdminQuote,
   type AdminProduct,
   type AdminCategory,
   type AdminBlogPost,
   type AdminShowroom,
+  type AdminPromotion,
+  type AdminUser,
 } from "@/lib/supabase/admin-queries";
+import { getAdminBrands } from "@/lib/supabase/brands-mutations";
+import { type Brand } from "@/components/admin/brands-admin";
 
 const adminSections = [
   "products",
   "categories",
+  "brands",
+  "promotions",
   "blog",
   "showrooms",
-  "media",
   "quotes",
   "users",
   "settings",
-  "ai-assistant",
 ] as const;
 
 type AdminSection = typeof adminSections[number];
@@ -55,6 +61,9 @@ export default async function AdminDynamicPage({
   let blogPosts: AdminBlogPost[] = [];
   let showrooms: AdminShowroom[] = [];
   let quotes: AdminQuote[] = [];
+  let promotions: AdminPromotion[] = [];
+  let brands: Brand[] = [];
+  let profiles: AdminUser[] = [];
 
   if (section === "quotes" && role === "admin") {
     quotes = await getAdminQuotesList({ limit: 50, offset: 0 });
@@ -66,6 +75,12 @@ export default async function AdminDynamicPage({
     categories = await getAdminCategories();
   } else if (section === "products") {
     products = await getAdminProducts({ limit: 50, offset: 0 });
+  } else if (section === "promotions") {
+    promotions = await getAdminPromotions();
+  } else if (section === "brands") {
+    brands = await getAdminBrands();
+  } else if (section === "users" && role === "admin") {
+    profiles = await getAdminUsers();
   }
 
   return (
@@ -80,7 +95,11 @@ export default async function AdminDynamicPage({
         blogPosts={blogPosts}
         showrooms={showrooms}
         quotes={quotes}
+        promotions={promotions}
+        brands={brands}
+        profiles={profiles}
       />
     </AdminShell>
   );
 }
+

@@ -12,6 +12,11 @@ export async function proxy(request: NextRequest) {
     return intlMiddleware(request);
   }
 
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  if (useMock) {
+    return NextResponse.next();
+  }
+
   if (
     request.nextUrl.pathname === "/admin/login" ||
     request.nextUrl.pathname === "/admin/access-denied"
@@ -20,8 +25,9 @@ export async function proxy(request: NextRequest) {
   }
 
   const response = NextResponse.next();
+  const supabaseUrl = process.env.SUPABASE_URL_INTERNAL || env.NEXT_PUBLIC_SUPABASE_URL;
   const supabase = createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseUrl,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
@@ -33,6 +39,9 @@ export async function proxy(request: NextRequest) {
             response.cookies.set(name, value, options),
           );
         },
+      },
+      cookieOptions: {
+        name: "sb-auth-token",
       },
     },
   );

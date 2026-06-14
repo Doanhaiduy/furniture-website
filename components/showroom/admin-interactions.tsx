@@ -82,6 +82,7 @@ export function PublishWorkflow({
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
         <button 
+          data-testid="publish-workflow-publish"
           className={`button-pd ${hasErrors ? "opacity-65 cursor-not-allowed bg-slate-500 hover:bg-slate-500" : ""}`} 
           type="button" 
           onClick={handlePublishClick}
@@ -89,11 +90,12 @@ export function PublishWorkflow({
           <Rocket className="size-4" />
           Xuất bản
         </button>
-        <button className="button-pd-outline" type="button" onClick={() => setConfirm("archive")}>
+        <button data-testid="publish-workflow-archive" className="button-pd-outline" type="button" onClick={() => setConfirm("archive")}>
           <Archive className="size-4" />
           Lưu trữ
         </button>
         <button
+          data-testid="publish-workflow-save-draft"
           className="button-pd-outline"
           type="button"
           onClick={() => {
@@ -127,7 +129,7 @@ export function PublishWorkflow({
       </p>
 
       <Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
-        <DialogContent className="admin-dialog-content sm:max-w-md">
+        <DialogContent data-testid="publish-workflow-confirm-dialog" className="admin-dialog-content sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription>{confirmCopy.description}</DialogDescription>

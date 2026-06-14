@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -10,12 +11,15 @@ import {
   Globe2,
   Home,
   Layers3,
+  Mail,
   Menu,
+  MessageCircle,
   Phone,
   Share2,
   X,
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
+import type { PublicSiteSettings } from "@/lib/supabase/queries";
 import {
   brandCatalog,
   localized,
@@ -25,6 +29,7 @@ import {
   withLocale,
 } from "@/lib/showroom-data";
 import { RemoteImage } from "./remote-image";
+import { imageAssets } from "@/lib/showroom-constants";
 
 type PublicShellLabels = {
   common: {
@@ -35,6 +40,7 @@ type PublicShellLabels = {
   nav: {
     home: string;
     products: string;
+    promotions: string;
     showrooms: string;
     blog: string;
     about: string;
@@ -47,16 +53,19 @@ type PublicShellLabels = {
     catalogHint: string;
     catalogPopular: string;
     catalogViewGroup: string;
+    zalo: string;
+    messenger: string;
+    hotline: string;
   };
 };
 
 const navItems = [
   { key: "home", href: "" },
   { key: "products", href: "/products" },
+  { key: "promotions", href: "/promotions" },
   { key: "showrooms", href: "/showrooms" },
   { key: "blog", href: "/blog" },
   { key: "about", href: "/about" },
-  { key: "contact", href: "/contact" },
 ] as const;
 
 type CatalogMode = "brands" | "types";
@@ -85,17 +94,22 @@ export function PublicShell({
   children,
   locale,
   labels,
+  siteSettings,
+  brands = [],
 }: {
   children: React.ReactNode;
   locale: Locale;
   labels: PublicShellLabels;
+  siteSettings?: PublicSiteSettings;
+  brands?: any[];
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
   const [activeCatalog, setActiveCatalog] = useState<{ mode: CatalogMode; key: string }>({
     mode: "brands",
-    key: brandCatalog[0]?.key ?? "all",
+    key: brands && brands.length > 0 ? brands[0].id : (brandCatalog[0]?.key ?? "all"),
   });
   const [newsletterSent, setNewsletterSent] = useState(false);
   const catalogCloseTimer = useRef<number | null>(null);
@@ -139,7 +153,25 @@ export function PublicShell({
     };
   };
 
-  const brandSections: BrandSection[] = brandCatalog.map((brand) => {
+  const finalBrandCatalog = brands && brands.length > 0
+    ? brands.map((b: any) => {
+        const staticMatch = brandCatalog.find(
+          (item) => item.key.toLowerCase() === b.name.en?.toLowerCase() || item.key.toLowerCase() === b.id
+        );
+        return {
+          key: b.id,
+          href: `/products?brand=${b.id}`,
+          image: b.logo_url || staticMatch?.image || imageAssets.room,
+          groupKey: staticMatch?.groupKey || "sanitary",
+          title: b.name,
+          summary: b.description || staticMatch?.summary || { vi: "", en: "" },
+          productSlugs: staticMatch?.productSlugs || [],
+          items: staticMatch?.items || [],
+        };
+      })
+    : brandCatalog;
+
+  const brandSections: BrandSection[] = finalBrandCatalog.map((brand) => {
     const group = productGroups.find((item) => item.key === brand.groupKey);
     const productLinks = brand.productSlugs
       .map((slug) => productLinkFromSlug(slug))
@@ -193,13 +225,22 @@ export function PublicShell({
         }}
       >
         <div className="container-pd flex h-20 items-center justify-between gap-6">
-          <Link href={`/${locale}`} className="group flex shrink-0 flex-col">
-            <span className="font-heading text-2xl font-bold leading-none text-primary transition-colors group-hover:text-primary-container">
-              {labels.common.brand}
-            </span>
-            <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-on-surface-variant">
-              {labels.common.tagline}
-            </span>
+          <Link href={`/${locale}`} className="group flex shrink-0 items-center gap-3">
+            <div className="logo-wrapper-shine rounded-lg">
+              <img
+                src={siteSettings?.logoUrl || "/logo-final.svg"}
+                alt={siteSettings?.brandName || labels.common.brand}
+                className="h-14 w-14 object-contain transition-transform group-hover:scale-[1.03]"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-heading text-sm sm:text-base md:text-lg font-bold leading-tight text-primary transition-colors group-hover:text-primary-container max-w-[180px] md:max-w-none">
+                {siteSettings?.brandName || labels.common.brand}
+              </span>
+              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-on-surface-variant">
+                {labels.common.tagline}
+              </span>
+            </div>
           </Link>
 
           <nav className="hidden items-center gap-6 lg:flex" aria-label="Primary">
@@ -215,7 +256,7 @@ export function PublicShell({
                   key={item.key}
                   href={href}
                   aria-current={active ? "page" : undefined}
-                  className={`nav-link-pd group relative bg-transparent px-2 ${
+                  className={`nav-link-pd group relative bg-transparent px-2 uppercase tracking-wider text-[13px] ${
                     active ? "text-primary" : "text-on-surface-variant hover:text-primary"
                   }`}
                 >
@@ -240,10 +281,7 @@ export function PublicShell({
                 EN
               </Link>
             </div>
-            <Link href={`/${locale}/contact`} className="button-pd hidden md:inline-flex">
-              <Phone className="size-4" />
-              {labels.nav.quote}
-            </Link>
+            {/* Contact button removed from header to move to FAB */}
             <button
               type="button"
               aria-label={open ? labels.nav.close : labels.nav.menu}
@@ -269,7 +307,7 @@ export function PublicShell({
               type="button"
               aria-expanded={catalogOpen && activeCatalog.mode === "brands"}
               aria-controls="catalog-mega-menu"
-              className={`inline-flex h-full min-w-[228px] items-center gap-3 px-4 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 ${
+              className={`inline-flex h-full min-w-[228px] items-center gap-3 px-4 text-sm font-bold uppercase tracking-wider transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 ${
                 catalogOpen && activeCatalog.mode === "brands" ? "bg-primary-container text-white" : "bg-primary-container/90 text-white hover:bg-primary-container"
               }`}
               onMouseEnter={() => openCatalog("brands", activeCatalog.mode === "brands" ? activeCatalog.key : brandSections[0]?.key ?? "all")}
@@ -302,7 +340,7 @@ export function PublicShell({
                   href={section.href}
                   aria-expanded={catalogOpen && activeCatalog.mode === "types" && activeCatalog.key === section.key}
                   aria-controls="catalog-mega-menu"
-                  className={`whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-sm font-bold transition hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 xl:px-4 ${
+                  className={`whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-sm font-bold uppercase tracking-wider transition hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 xl:px-4 ${
                     catalogOpen && activeCatalog.mode === "types" && activeCatalog.key === section.key ? "bg-white/14 text-white" : "text-white/86"
                   }`}
                   onMouseEnter={() => openCatalog("types", section.key)}
@@ -463,7 +501,7 @@ export function PublicShell({
                 <Link
                   key={item.key}
                   href={linkHref(item.href)}
-                  className="nav-link-pd flex min-h-11 w-full"
+                  className="nav-link-pd flex min-h-11 w-full uppercase tracking-wider"
                   onClick={() => setOpen(false)}
                 >
                   {labels.nav[item.key]}
@@ -509,10 +547,7 @@ export function PublicShell({
                   <Link href={localeHref("en")}>EN</Link>
                 </div>
               </div>
-              <Link href={`/${locale}/contact`} className="button-pd mt-2" onClick={() => setOpen(false)}>
-                {labels.nav.quote}
-                <ArrowRight className="size-4" />
-              </Link>
+              {/* Mobile contact CTA removed to move to FAB */}
             </nav>
           </div>
         ) : null}
@@ -523,7 +558,14 @@ export function PublicShell({
       <footer className="public-footer py-16">
         <div className="container-pd grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           <div>
-            <h2 className="font-heading text-2xl font-bold">{labels.common.brand}</h2>
+            <div className="flex items-center gap-3">
+              <img
+                src={siteSettings?.logoUrl || "/logo-final.svg"}
+                alt={siteSettings?.brandName || labels.common.brand}
+                className="h-10 w-10 rounded-md object-contain bg-[#fdebbf] p-0.5"
+              />
+              <h2 className="font-heading text-xl font-bold">{siteSettings?.brandName || labels.common.brand}</h2>
+            </div>
             <p className="mt-4 max-w-sm text-sm leading-7 text-white/70">
               {locale === "vi"
                 ? "Nội thất, thiết bị vệ sinh và gạch ốp lát cao cấp. Không gian chuẩn mực cho mọi ngôi nhà Việt."
@@ -590,7 +632,111 @@ export function PublicShell({
           © 2026 Showroom Nội Thất Phương Đông.
         </div>
       </footer>
+      {/* Floating Quick Contact FAB Menu */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 font-sans">
+        {/* Contact list options */}
+        {fabOpen && (
+          <div className="flex flex-col items-end gap-3 mb-1 animate-in fade-in slide-in-from-bottom-5 duration-200">
+            {/* Hotline Option */}
+            <a
+              href={`tel:${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
+              className="group flex items-center gap-3"
+              aria-label={labels.nav.hotline}
+            >
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                {labels.nav.hotline}: {siteSettings?.contactPhone || "08172 357 587"}
+              </span>
+              <div className="flex size-11 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <Phone className="size-5" />
+              </div>
+            </a>
+
+            {/* Zalo Option */}
+            <a
+              href={`https://zalo.me/${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3"
+              aria-label={labels.nav.zalo}
+            >
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                {labels.nav.zalo}
+              </span>
+              <div className="flex size-11 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <ZaloIcon className="size-5" />
+              </div>
+            </a>
+
+            {/* Messenger Option */}
+            <a
+              href="https://m.me/phuongdongshowroom"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3"
+              aria-label={labels.nav.messenger}
+            >
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                {labels.nav.messenger}
+              </span>
+              <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-tr from-[#006AFF] via-[#A75FFF] to-[#FF5A5F] text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <MessengerIcon className="size-5" />
+              </div>
+            </a>
+
+            {/* Contact Form Option */}
+            <Link
+              href={`/${locale}/contact`}
+              className="group flex items-center gap-3"
+              onClick={() => setFabOpen(false)}
+              aria-label={labels.nav.contact}
+            >
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                {labels.nav.contact}
+              </span>
+              <div className="flex size-11 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <Mail className="size-5" />
+              </div>
+            </Link>
+          </div>
+        )}
+
+        {/* Main FAB Trigger Button */}
+        <button
+          type="button"
+          onClick={() => setFabOpen((open) => !open)}
+          className={`flex size-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
+            fabOpen
+              ? "bg-surface-container text-primary rotate-90"
+              : "bg-primary hover:bg-primary/90 text-white hover:scale-105 active:scale-95"
+          }`}
+          aria-expanded={fabOpen}
+          aria-label="Contact actions"
+        >
+          {fabOpen ? (
+            <X className="size-6 animate-in spin-in duration-300" />
+          ) : (
+            <MessageCircle className="size-6 animate-in zoom-in duration-300" />
+          )}
+        </button>
+      </div>
     </div>
+  );
+}
+
+// Stylized social icon components
+function ZaloIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 2C6.477 2 2 5.86 2 10.62c0 2.68 1.42 5.08 3.65 6.64-.17.76-.7 2.46-.77 2.68-.1.33.1.66.45.62.33-.04 2.24-.86 3.6-1.58C10.02 19.14 11.02 19.24 12 19.24c5.523 0 10-3.86 10-8.62C22 5.86 17.523 2 12 2zm.2 11.66h-2.3v-1.63l1.37-1.74h-1.37v-1.12h2.24v1.54l-1.34 1.83h1.4v1.12z" />
+    </svg>
+  );
+}
+
+function MessengerIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.9 1.15 5.5 3.03 7.37.15.15.25.37.22.58l-.33 2.1c-.05.37.28.7.65.65l2.1-.33c.2-.03.42.07.57.22C10.15 22.8 11.1 23 12 23c5.64 0 10-4.13 10-9.7C22 7.13 17.64 2 12 2zm1 13.5l-2.5-2.7-4.8 2.7 5.3-5.6 2.5 2.7 4.8-2.7-5.3 5.6z" />
+    </svg>
   );
 }
 

@@ -331,8 +331,8 @@ begin
 
   insert into public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text, seo_title, seo_description)
   values
-    (v_product_id, 'vi', 'sofa-curve-velour', 'Sofa Curve Velour', 'Sofa cao cấp bọc vải Velour với đường cong tinh tế.', '{"type":"doc","content":[]}'::jsonb, 'Gỗ sồi tự nhiên', '45.000.000đ', '2400 x 950 x 850 mm', 'Sofa Curve Velour', 'Sofa cao cấp bọc vải Velour'),
-    (v_product_id, 'en', 'sofa-curve-velour', 'Sofa Curve Velour', 'Premium velour sofa with a soft curved silhouette.', '{"type":"doc","content":[]}'::jsonb, 'Natural oak', 'VND 45,000,000', '2400 x 950 x 850 mm', 'Sofa Curve Velour', 'Premium velour sofa')
+    (v_product_id, 'vi', 'sofa-curve-velour', 'Sofa Curve Velour', 'Sofa cao cấp bọc vải Velour với đường cong tinh tế.', '{"type":"doc","content":[]}'::jsonb, 'Gỗ sồi tự nhiên', '45,000,000 VND', '2400 x 950 x 850 mm', 'Sofa Curve Velour', 'Sofa cao cấp bọc vải Velour'),
+    (v_product_id, 'en', 'sofa-curve-velour', 'Sofa Curve Velour', 'Premium velour sofa with a soft curved silhouette.', '{"type":"doc","content":[]}'::jsonb, 'Natural oak', '45,000,000 VND', '2400 x 950 x 850 mm', 'Sofa Curve Velour', 'Premium velour sofa')
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_id;
@@ -352,8 +352,8 @@ begin
 
   insert into public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text, seo_title, seo_description)
   values
-    (v_product_2_id, 'vi', 'ban-tra-marble-round', 'Bàn Trà Marble Round', 'Mặt đá marble Calacatta, chân gỗ walnut.', '{"type":"doc","content":[]}'::jsonb, 'Đá marble', '12.500.000đ', 'Đường kính 900 mm', 'Bàn Trà Marble Round', 'Bàn Trà Marble Round'),
-    (v_product_2_id, 'en', 'ban-tra-marble-round', 'Marble Round Coffee Table', 'Calacatta marble top and walnut base.', '{"type":"doc","content":[]}'::jsonb, 'Marble', 'VND 12,500,000', 'Diameter 900 mm', 'Marble Round Coffee Table', 'Marble Round Coffee Table')
+    (v_product_2_id, 'vi', 'ban-tra-marble-round', 'Bàn Trà Marble Round', 'Mặt đá marble Calacatta, chân gỗ walnut.', '{"type":"doc","content":[]}'::jsonb, 'Đá marble', '12,500,000 VND', 'Đường kính 900 mm', 'Bàn Trà Marble Round', 'Bàn Trà Marble Round'),
+    (v_product_2_id, 'en', 'ban-tra-marble-round', 'Marble Round Coffee Table', 'Calacatta marble top and walnut base.', '{"type":"doc","content":[]}'::jsonb, 'Marble', '12,500,000 VND', 'Diameter 900 mm', 'Marble Round Coffee Table', 'Marble Round Coffee Table')
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_2_id;
@@ -373,8 +373,8 @@ begin
 
   insert into public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text, seo_title, seo_description)
   values
-    (v_product_3_id, 'vi', 'ke-tivi-minimalist-wood', 'Kệ Tivi Minimalist Wood', 'Kệ tivi gỗ veneer tối màu với ngăn kéo giảm chấn.', '{"type":"doc","content":[]}'::jsonb, 'Veneer', '22.000.000đ', '2200 mm', 'Kệ Tivi Minimalist Wood', 'Kệ Tivi Minimalist Wood'),
-    (v_product_3_id, 'en', 'ke-tivi-minimalist-wood', 'Minimalist Wood TV Cabinet', 'Dark veneer TV cabinet with soft-close drawers.', '{"type":"doc","content":[]}'::jsonb, 'Veneer', 'VND 22,000,000', '2200 mm', 'Minimalist Wood TV Cabinet', 'Minimalist Wood TV Cabinet')
+    (v_product_3_id, 'vi', 'ke-tivi-minimalist-wood', 'Kệ Tivi Minimalist Wood', 'Kệ tivi gỗ veneer tối màu với ngăn kéo giảm chấn.', '{"type":"doc","content":[]}'::jsonb, 'Veneer', '22,000,000 VND', '2200 mm', 'Kệ Tivi Minimalist Wood', 'Kệ Tivi Minimalist Wood'),
+    (v_product_3_id, 'en', 'ke-tivi-minimalist-wood', 'Minimalist Wood TV Cabinet', 'Dark veneer TV cabinet with soft-close drawers.', '{"type":"doc","content":[]}'::jsonb, 'Veneer', '22,000,000 VND', '2200 mm', 'Minimalist Wood TV Cabinet', 'Minimalist Wood TV Cabinet')
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_3_id;
@@ -394,8 +394,8 @@ begin
 
   insert into public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text, seo_title, seo_description)
   values
-    (v_product_4_id, 'vi', 'sen-tam-ma-vang-24k', 'Sen Tắm Mạ Vàng 24K', 'Bộ sen tắm mạ vàng với van điều nhiệt.', '{"type":"doc","content":[]}'::jsonb, 'Đồng thau', '12.500.000đ', 'Tiêu chuẩn', 'Sen Tắm Mạ Vàng 24K', 'Sen Tắm Mạ Vàng 24K'),
-    (v_product_4_id, 'en', 'sen-tam-ma-vang-24k', '24K Gold Plated Shower Set', 'Gold plated shower set with thermostatic valve.', '{"type":"doc","content":[]}'::jsonb, 'Brass', 'VND 12,500,000', 'Standard', '24K Gold Plated Shower Set', '24K Gold Plated Shower Set')
+    (v_product_4_id, 'vi', 'sen-tam-ma-vang-24k', 'Sen Tắm Mạ Vàng 24K', 'Bộ sen tắm mạ vàng với van điều nhiệt.', '{"type":"doc","content":[]}'::jsonb, 'Đồng thau', '12,500,000 VND', 'Tiêu chuẩn', 'Sen Tắm Mạ Vàng 24K', 'Sen Tắm Mạ Vàng 24K'),
+    (v_product_4_id, 'en', 'sen-tam-ma-vang-24k', '24K Gold Plated Shower Set', 'Gold plated shower set with thermostatic valve.', '{"type":"doc","content":[]}'::jsonb, 'Brass', '12,500,000 VND', 'Standard', '24K Gold Plated Shower Set', '24K Gold Plated Shower Set')
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_4_id;

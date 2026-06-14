@@ -152,6 +152,65 @@ test("admin section routes render inside the admin shell", async ({ page }) => {
   }
 });
 
+test("editor mock role is blocked from privileged admin sections", async ({ page }) => {
+  test.skip(process.env.MOCK_ADMIN_ROLE !== "editor", "Requires MOCK_ADMIN_ROLE=editor.");
+
+  await page.context().addCookies([
+    {
+      name: "pd_mock_admin_role",
+      value: "editor",
+      url: "http://127.0.0.1:3000",
+    },
+  ]);
+  await page.goto("/admin");
+  await expect(page.locator(".admin-app")).toBeVisible();
+  await expect(page.locator('a[href="/admin/products"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/admin/blog"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/admin/showrooms"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/admin/quotes"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/admin/users"]')).toHaveCount(0);
+  await expect(page.locator('a[href="/admin/settings"]')).toHaveCount(0);
+
+  await page.goto("/admin/blog?create=1");
+  await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+  await expect(page.locator('input[name="blog-title-vi"]')).toBeVisible();
+
+  for (const route of ["/admin/quotes", "/admin/users", "/admin/settings"]) {
+    await page.goto(route);
+    await expect(page.locator("main").getByRole("heading")).toContainText(/quy/i);
+    await expect(page.locator('a[href="/admin/quotes"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/admin/users"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/admin/settings"]')).toHaveCount(0);
+  }
+});
+
+test("admin blog and showroom write workflows expose validation and archive safeguards", async ({ page }) => {
+  test.skip(process.env.MOCK_ADMIN_ROLE === "editor", "Run as default mock admin role.");
+
+  await page.goto("/admin/blog?create=1");
+  const blogDialog = page.locator('[role="dialog"]').first();
+  await expect(blogDialog).toBeVisible();
+  await expect(blogDialog.locator('input[name="blog-title-vi"]')).toBeVisible();
+  await expect(blogDialog.locator('input[name="blog-slug-vi"]')).toBeVisible();
+  await blogDialog.getByTestId("publish-workflow-publish").click();
+  await expect(page.getByTestId("publish-workflow-confirm-dialog")).toHaveCount(0);
+
+  await page.goto("/admin/showrooms?create=1");
+  const showroomDialog = page.locator('[role="dialog"]').first();
+  await expect(showroomDialog).toBeVisible();
+  await expect(showroomDialog.locator('input[name="showroom-name-vi"]')).toBeVisible();
+  await expect(showroomDialog.locator('input[name="showroom-code"]')).toBeVisible();
+  await showroomDialog.getByTestId("publish-workflow-publish").click();
+  await expect(page.getByTestId("publish-workflow-confirm-dialog")).toHaveCount(0);
+
+  await page.goto("/admin/blog");
+  await expect(page.getByTestId("archive-entity-button").first()).toBeVisible();
+  await page.getByTestId("archive-entity-button").first().click();
+  await expect(page.getByTestId("archive-entity-dialog")).toBeVisible();
+  await page.getByTestId("archive-entity-dialog").locator("button").first().click();
+  await expect(page.getByTestId("archive-entity-dialog")).toHaveCount(0);
+});
+
 test("admin settings site sections keep hero editing and toggles only", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.removeItem("pd-cms-settings"));
   await page.goto("/admin/settings?tab=sections");

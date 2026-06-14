@@ -5,11 +5,14 @@
     "productsTitle": "Product catalog",
     "blogTitle": "Interior journal",
     "showroomsTitle": "Showrooms",
-    "contactTitle": "Contact and quote request"
+    "contactTitle": "Contact and quote request",
+    "promotionsTitle": "Promotions & Offers - Phuong Dong Showroom",
+    "promotionsDescription": "Discover special offers, premium walnut furniture packages, and genuine imported sanitary fixture deals."
   },
   "nav": {
     "home": "Home",
     "products": "Products",
+    "promotions": "Promotions",
     "showrooms": "Showrooms",
     "blog": "Journal",
     "about": "About",
@@ -21,10 +24,13 @@
     "catalogAll": "All brands",
     "catalogHint": "Hover each brand to view representative products and relevant consultation paths.",
     "catalogPopular": "Featured items",
-    "catalogViewGroup": "View this section"
+    "catalogViewGroup": "View this section",
+    "zalo": "Chat Zalo",
+    "messenger": "Chat Messenger",
+    "hotline": "Call Hotline"
   },
   "common": {
-    "brand": "Phuong Dong",
+    "brand": "PHUONG DONG INTERIOR SHOWROOM",
     "tagline": "Heritage Modernism",
     "readMore": "Read more",
     "explore": "Explore",
@@ -190,7 +196,7 @@
     "tryAgain": "Try again"
   },
   "admin": {
-    "brand": "Phuong Dong",
+    "brand": "PHUONG DONG INTERIOR SHOWROOM",
     "panel": "Admin Panel",
     "search": "Search system...",
     "dashboard": "Dashboard",

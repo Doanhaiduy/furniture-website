@@ -11,23 +11,23 @@ Current QA policy update (2026-06-08): Browser MCP is the default for browser-vi
 | FR-03 | Products and ProductCategories collections with quote-first structured catalog. | `app/[locale]/products/**`, `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-CMS-PROD-001 | Implemented | Public catalog listing and details connected dynamically to Supabase. |
 | FR-04 | URL-driven filters over category, price range, attributes. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-FILTER-001 | Implemented | URL-driven category, search, and pagination filters mapped to Supabase queries. |
 | FR-05 | Keyword search over localized product fields and reference/category data. | `app/[locale]/products/page.tsx`, `lib/showroom-data.ts`, `tests/unit/product-filter.test.ts` | TC-INT-SEARCH-001 | Implemented | Database-backed keyword search over localized product and categories fields. |
-| FR-06 | BlogPosts and BlogCategories with localized slugs and SEO. | `app/[locale]/blog/**`, `components/showroom/admin-pages.tsx`, `lib/showroom-data.ts` | TC-INT-BLOG-001 | Implemented | Public blog listing and details integrated dynamically with Supabase. |
+| FR-06 | BlogPosts and BlogCategories with localized slugs and SEO. | `app/[locale]/blog/**`, `components/showroom/admin-pages.tsx`, `components/showroom/admin-workflows.tsx`, `lib/supabase/mutations.ts`, `lib/showroom-data.ts` | TC-INT-BLOG-001 | Implemented | Public blog listing/details and admin Blog CRUD integrated with Supabase; focused Playwright backup verified admin write safeguards on 2026-06-13 because Browser MCP was unavailable. |
 | FR-07-PUB | Public quote/contact form with Zod, rate limit, persistence. | `app/[locale]/contact/**`, `app/api/contact/route.ts`, `components/showroom/quote-form.tsx`, `lib/validations/quote.ts`, `tests/unit/quote-schema.test.ts` | TC-UNIT-QUOTE-001, TC-BROWSER-QUOTE-001 | In Progress | Zod validation and mock submit route implemented; persistence/rate limit/Resend pending. |
 | FR-07-ADM | Admin-only quote request management in Payload. | `app/admin/[section]/page.tsx`, `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx` | TC-BROWSER-QUOTE-001, TC-SEC-QUOTE-001 | In Progress | Admin quote UI and status interaction implemented; Payload Admin-only access pending. |
 | FR-08-PUB | Public showroom page with Google Maps embed and fallback. | `app/[locale]/showrooms/page.tsx`, `lib/showroom-data.ts` | TC-BROWSER-SHOWROOM-001 | Implemented | Public showroom cards, address mapping, hotline, maps fallback connected dynamically to Supabase. |
-| FR-08-ADM | Showrooms collection with localized address and map fields. | `components/showroom/admin-pages.tsx`, `app/admin/[section]/page.tsx` | TC-INT-SHOWROOM-001 | In Progress | Admin showroom frontend prototype implemented; Payload collection pending. |
+| FR-08-ADM | Showrooms collection with localized address and map fields. | `components/showroom/admin-pages.tsx`, `components/showroom/admin-workflows.tsx`, `app/admin/[section]/page.tsx`, `lib/supabase/mutations.ts` | TC-INT-SHOWROOM-001 | Implemented | Admin Showroom CRUD integrated with Supabase, including localized address fields, working hours, coordinates, status, archive flow, audit logging, and focused Playwright backup verification. |
 | FR-09 | SiteSettings social links and share components. | `components/showroom/public-shell.tsx`, `components/showroom/social-share.tsx`, `app/[locale]/blog/[slug]/page.tsx`, `app/[locale]/products/[slug]/page.tsx` | TC-BROWSER-SOCIAL-001 | In Progress | Footer links and social share buttons implemented; SiteSettings-backed URLs pending. |
-| FR-10 | Payload Users, role access rules, SiteSettings governance. | `app/admin/**`, `components/showroom/admin-shell.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-RBAC-001 | In Progress | Admin users/settings/access-denied UI implemented; server-side Payload RBAC pending. |
+| FR-10 | Payload Users, role access rules, SiteSettings governance. | `app/admin/**`, `components/showroom/admin-shell.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-RBAC-001 | In Progress | Admin users/settings/access-denied UI implemented; Editor denial for quote/user/settings routes verified by focused Playwright backup; broader user/settings write governance remains pending. |
 | FR-11 | OpenAI draft-only CMS assistant. | `components/showroom/admin-interactions.tsx`, `components/showroom/admin-pages.tsx`, `app/admin/[section]/page.tsx` | TC-INT-AI-001 | In Progress | AI loading/error/result draft workflow mocked; OpenAI server action pending. |
 | FR-12-PUB | next-intl locale routing and one-click switcher. | `i18n/**`, `proxy.ts`, `messages/**`, `app/[locale]/layout.tsx`, `components/showroom/public-shell.tsx` | TC-BROWSER-I18N-001 | Implemented | Locale routing, redirection, language switches implemented with next-intl. |
-| FR-12-ADM | Payload localized fields and publication validation. | `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx` | TC-INT-I18N-CMS-001 | In Progress | Bilingual admin tabs and missing-locale states mocked; Payload localized validation pending. |
+| FR-12-ADM | Localized admin fields and publication validation. | `components/showroom/admin-pages.tsx`, `components/showroom/admin-interactions.tsx`, `components/showroom/admin-workflows.tsx`, `lib/validations/admin.ts`, `lib/supabase/mutations.ts` | TC-INT-I18N-CMS-001 | In Progress | Bilingual admin tabs and missing-locale states implemented; Supabase database validation and translation persistence wired for products, categories, blog posts, and showrooms; role/write evidence completed with focused Playwright backup. |
 | NFR-01 | Performance budget, cached public reads, Cloudinary optimization, indexed queries. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts`, `lib/showroom-data.ts` | TC-PERF-001, TC-INT-FILTER-001 | Implemented | Dynamic public reads connected to Supabase database. XML Sitemap & Robots configured. |
 | NFR-02 | Deployment health checks and uptime monitoring. | `docs/architecture/deployment.md`, monitoring config later | TC-OPS-001 | Planned | Release blocker, not coding blocker. |
 | NFR-03 | Responsive public/admin UI requirements. | `components/showroom/**`, `app/[locale]/**`, `app/admin/**`, Browser MCP evidence, backup `tests/e2e/public-admin.spec.ts` | TC-BROWSER-HOME-001, TC-BROWSER-RESP-001 | Implemented | Responsive public/admin layouts verified via Browser MCP and E2E checks. |
 | NFR-04 | Browser compatibility matrix. | Browser MCP compatibility smoke plan, Playwright backup config, manual smoke plan | TC-BROWSER-COMPAT-001 | Planned | Playwright backup only for CI/headless browser matrix; Coc Coc likely manual smoke. |
-| NFR-05 | Payload RBAC, Zod validation, Cloudinary upload safety, secret handling, XSS/SQL mitigation. | `lib/validations/quote.ts`, `app/api/contact/route.ts`, `app/admin/access-denied/page.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-001, TC-SEC-RBAC-001 | In Progress | Public quote server validation and access-denied UI implemented; Payload RBAC/upload validation pending. |
+| NFR-05 | Supabase RBAC, Zod validation, Cloudinary upload safety, secret handling, XSS/SQL mitigation. | `lib/validations/quote.ts`, `lib/validations/admin.ts`, `lib/supabase/mutations.ts`, `app/api/contact/route.ts`, `app/admin/access-denied/page.tsx`, `components/showroom/admin-pages.tsx` | TC-SEC-001, TC-SEC-RBAC-001 | In Progress | Public quote server validation, access-denied UI, content Server Action role checks, service-role-after-auth pattern, audit logging, and focused role-denial evidence implemented for core content entities; Cloudinary upload validation remains pending. |
 | NFR-06 | Metadata, sitemap, robots, schema, canonical, hreflang. | `app/[locale]/**`, `app/sitemap.ts`, `app/robots.ts` | TC-SEO-001 | Implemented | Dynamic localized sitemap, robots crawling, canonical, hreflang metadata generated via lib/seo.ts. |
-| NFR-07 | Governed Next.js/Payload/PostgreSQL/Cloudinary boundaries. | `app/**`, `components/showroom/**`, `lib/showroom-data.ts`, `docs/specs/traceability-matrix.md` | TC-ARCH-001 | Implemented | Mapped Supabase client/server boundaries and local database integrations successfully. |
+| NFR-07 | Governed Next.js/Supabase PostgreSQL/Cloudinary boundaries. | `app/**`, `components/showroom/**`, `lib/showroom-data.ts`, `lib/supabase/**`, `docs/specs/traceability-matrix.md` | TC-ARCH-001 | Implemented | Mapped Supabase client/server boundaries, admin server-action write boundaries, and local database integrations successfully. |
 
 ## Audit Resolution
 
@@ -41,6 +41,62 @@ Current QA policy update (2026-06-08): Browser MCP is the default for browser-vi
 ## Update Rule
 
 For every implementation task, update the row status and add concrete changed files, test files, verification results, and residual risks.
+
+## Phase 06 Verification Closure - 2026-06-13
+
+Closed the approved Phase 06 Part 3 verification scope for `FR-03`, `FR-06`, `FR-08-ADM`, `FR-10`, `FR-12-ADM`, `NFR-05`, and `NFR-07`.
+
+Files touched:
+
+- `app/admin/access-denied/page.tsx`
+- `tests/e2e/public-admin.spec.ts`
+- `plan/phases/phase-06-admin-write-integration/checklist.md`
+- `plan/execution-status.md`
+- `plan/execution-log.md`
+- `plan/99-next-action.md`
+- `plan/pending-approval.md`
+- `docs/specs/traceability-matrix.md`
+
+Verification completed:
+
+- Browser MCP was unavailable in this session; Node REPL browser control was also unavailable, so the documented Playwright backup path was used.
+- Focused Editor role backup passed: `pnpm test:e2e --project=chromium -g "editor mock role" --reporter=line --workers=1 --output %TEMP%\pw-phase06-editor-current`.
+- Focused Admin write backup passed: `pnpm test:e2e --project=chromium -g "admin blog and showroom write" --reporter=line --workers=1 --output %TEMP%\pw-phase06-admin-write-current`.
+- `pnpm lint` passed with 0 errors and 50 warnings.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 7 files, 29 tests.
+- `pnpm build` passed.
+
+Residual risk:
+
+- Browser MCP evidence remains unavailable for this environment only. The approved fallback evidence is complete, and Phase 07 should retry Browser MCP for media upload, map, quote email, and Gemini UI checks before using Playwright backup.
+
+## Phase 06 Admin Blog/Showroom Write Integration - 2026-06-12
+
+Implemented the approved Phase 06 Part 2 scope for `FR-06`, `FR-08-ADM`, `FR-12-ADM`, `NFR-05`, and `NFR-07`.
+
+Files touched:
+
+- `lib/supabase/mutations.ts`
+- `components/showroom/admin-workflows.tsx`
+- `components/showroom/admin-pages.tsx`
+- `plan/phases/phase-06-admin-write-integration/checklist.md`
+- `plan/execution-status.md`
+- `plan/execution-log.md`
+- `plan/99-next-action.md`
+- `plan/pending-approval.md`
+- `docs/specs/traceability-matrix.md`
+
+Verification completed:
+
+- `pnpm lint` passed with 0 errors and 51 warnings.
+- `pnpm typecheck` passed.
+- `pnpm test` passed: 7 files, 29 tests.
+- `pnpm build` passed.
+
+Residual risk:
+
+- Browser MCP admin-write journey checks were not completed because Browser MCP tools were unavailable in the current session. Focused Playwright backup attempts for admin route tests timed out without runner output.
 
 ## Frontend UI Prototype Update - 2026-06-01
 

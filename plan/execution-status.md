@@ -6,11 +6,11 @@ This is the central status board tracking progress of the Showroom site implemen
 
 ## 1. Project Overview & Meta Information
 
-- **Current Active Phase**: Phase 05: Admin Read Integration
-- **Last Completed Task**: Phase 05 Section 1 completed. Reusable `components/admin/DataTable.tsx` and `components/admin/TableSkeleton.tsx` added with search, sorting, pagination, loading/error states, and unit tests verified. (June 8, 2026)
-- **Next Recommended Task**: Phase 05 - Task 2: Implement `getAdminDashboardStats` and connect dashboard widgets to Supabase-backed role-aware stats.
-- **Last Updated**: 2026-06-08T22:56:00+07:00
-- **Status Summary**: Phase 03 and Phase 04 are 100% completed. Phase 05 remains in progress; Section 1 reusable admin table infrastructure is now completed.
+- **Current Active Phase**: Re-audit Phase 03: Missing Admin Sections & Services
+- **Last Completed Task**: Giải quyết triệt để chuỗi lỗi xác thực trong Docker (Sửa lỗi kết nối ECONNREFUSED, lỗi mismatch cookie name và lỗi Đăng xuất fake) bằng cách sử dụng SUPABASE_URL_INTERNAL, đồng bộ cookieOptions name ("sb-auth-token") và tích hợp supabase.auth.signOut() thực tế cho nút Đăng xuất; đã xác thực QA toàn bộ hành trình đăng nhập/đăng xuất bằng Browser MCP. (June 13, 2026)
+- **Next Recommended Task**: Tiến tới Re-audit Phase 3: Settings, Secrets & Real Integrations.
+- **Last Updated**: 2026-06-13T22:35:00+07:00
+- **Status Summary**: Chuỗi hotfix Authentication & Session trên Docker hoàn tất xuất sắc và được verify QA 100%. Sẵn sàng tiếp tục Re-audit Phase 3.
 
 ---
 
@@ -22,9 +22,9 @@ This is the central status board tracking progress of the Showroom site implemen
 | **02** | [Public Data Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-02-public-data-integration/README.md) | **done** | 2026-06-10 | 2026-06-08 | Localized public reads, catalog listing, dynamic showrooms, seo.ts metadata, sitemap.xml and robots.txt |
 | **03** | [Quote Flow & Rate Limiting](file:///d:/THCode/AI/furniture-website/plan/phases/phase-03-quote-flow/README.md) | **done** | 2026-06-12 | 2026-06-08 | Zod validation, honeypot, rate-limit, Supabase persistence, Resend email, notification tracking |
 | **04** | [Auth & Admin Access Control](file:///d:/THCode/AI/furniture-website/plan/phases/phase-04-auth-and-admin-access/README.md) | **done** | 2026-06-14 | 2026-06-08 | AuthProvider, login form, server helpers, proxy guard (Next 16 proxy.ts), role-aware AdminShell, typecheck+test+build pass |
-| **05** | [Admin Read Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-05-admin-read-integration/README.md) | **in-progress** | 2026-06-16 | - | Admin dashboard lists, search filters, quotes lists with pagination |
-| **06** | [Admin Write Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-06-admin-write-integration/README.md) | **not-started** | 2026-06-18 | - | Product/Category CRUD, server-side Zod validations, audit trail logs |
-| **07** | [Media & Third-Party Services](file:///d:/THCode/AI/furniture-website/plan/phases/phase-07-media-and-third-party-services/README.md) | **not-started** | 2026-06-20 | - | Cloudinary signed uploads, Resend HTML templates, Google Maps fallback |
+| **05** | [Admin Read Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-05-admin-read-integration/README.md) | **done** | 2026-06-16 | 2026-06-09 | Reusable DataTable, admin stats, secure quotes view, QuoteDetailDialog modal integrated |
+| **06** | [Admin Write Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-06-admin-write-integration/README.md) | **done** | 2026-06-18 | 2026-06-13 | Product/Category/Blog/Showroom CRUD, audit logs, archive confirmation, Editor role constraints, and focused Playwright backup verification completed |
+| **07** | [Media & Third-Party Services](file:///d:/THCode/AI/furniture-website/plan/phases/phase-07-media-and-third-party-services/README.md) | **in-progress** | 2026-06-20 | - | Sync media mutations and Contact API fix completed; moving to Cloudinary, Resend, and dynamic site settings di |
 | **08** | [Data Migration & Seeding](file:///d:/THCode/AI/furniture-website/plan/phases/phase-08-data-migration-and-seeding/README.md) | **not-started** | 2026-06-21 | - | Local database seeding scripts, final migration validation |
 | **09** | [Missing Admin Sections](file:///d:/THCode/AI/furniture-website/plan/phases/phase-09-missing-admin-sections/README.md) | **not-started** | 2026-06-23 | - | Media library manager, user admin, Gemini configuration screen |
 | **10** | [QA Hardening & Launch](file:///d:/THCode/AI/furniture-website/plan/phases/phase-10-qa-hardening-and-launch/README.md) | **not-started** | 2026-06-25 | - | Full test runs, Docker optimization, Vercel edge testing, final backup checks |
@@ -41,7 +41,6 @@ This is the central status board tracking progress of the Showroom site implemen
 
 *No active blockers at this time.*
 * (See [blockers.md](file:///d:/THCode/AI/furniture-website/plan/blockers.md) for full history and closed items).
-
 
 ---
 

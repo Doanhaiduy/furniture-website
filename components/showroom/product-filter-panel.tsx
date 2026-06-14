@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useState } from "react";
-import Link from "next/link";
-import { ChevronDown, Filter, Search } from "lucide-react";
+import { useId, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
 import { PremiumSelect, type PremiumSelectOption } from "./premium-select";
 
 type ProductFilterLabels = {
@@ -35,6 +35,8 @@ export type ProductFilterPanelProps = {
     tone?: string;
     availability?: string;
     featured?: string;
+    discount?: string;
+    brand?: string;
   };
   options: {
     category: PremiumSelectOption[];
@@ -45,6 +47,7 @@ export type ProductFilterPanelProps = {
     tone: PremiumSelectOption[];
     availability: PremiumSelectOption[];
     featured: PremiumSelectOption[];
+    brand?: PremiumSelectOption[];
   };
   resetHref: string;
   defaultExpanded?: boolean;
@@ -55,140 +58,150 @@ export function ProductFilterPanel({
   query,
   options,
   resetHref,
-  defaultExpanded = false,
 }: ProductFilterPanelProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const advancedId = useId();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [, startTransition] = useTransition();
+  const searchRef = useRef<HTMLInputElement>(null);
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Check if any filter is active
+  const hasActive =
+    (query.q && query.q !== "") ||
+    (query.category && query.category !== "all") ||
+    (query.material && query.material !== "all") ||
+    (query.featured && query.featured !== "all") ||
+    (query.brand && query.brand !== "all");
+
+  function navigate(overrides: Record<string, string | undefined>) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page"); // Reset to page 1 on filter change
+
+    Object.entries(overrides).forEach(([key, value]) => {
+      if (!value || value === "all" || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+
+    const query = params.toString();
+    startTransition(() => {
+      router.push(query ? `${pathname}?${query}` : pathname);
+    });
+  }
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      navigate({ q: value });
+    }, 400);
+  }
+
+  function handleClear() {
+    if (searchRef.current) searchRef.current.value = "";
+    router.push(resetHref);
+  }
+
+  const discountOptions: PremiumSelectOption[] = [
+    { value: "all", label: "Tất cả sản phẩm" },
+    { value: "true", label: "Đang giảm giá" },
+  ];
+
+  const brandOptions: PremiumSelectOption[] = options.brand && options.brand.length > 1
+    ? options.brand
+    : [{ value: "all", label: "Tất cả thương hiệu" }];
 
   return (
-    <form method="get" className="surface-panel mb-8 p-5">
-      <div className="grid gap-5 lg:grid-cols-[1fr_1.05fr_0.9fr_0.9fr] lg:items-end">
-        <div className="lg:self-center">
-          <p className="label-pd">{labels.filters}</p>
-          <p className="mt-2 text-sm text-secondary">{labels.showing}</p>
-        </div>
-
+    <div className="surface-panel mb-8 p-5">
+      <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+        {/* Search */}
         <label className="grid gap-2">
           <span className="field-label-pd">{labels.search}</span>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-outline" />
-            <input className="input-pd pl-9" name="q" defaultValue={query.q} />
+            <input
+              ref={searchRef}
+              className="input-pd pl-9"
+              name="q"
+              defaultValue={query.q}
+              onChange={handleSearchChange}
+              placeholder={labels.search}
+            />
           </div>
         </label>
 
+        {/* Category */}
         <label className="grid gap-2">
           <span className="field-label-pd">{labels.category}</span>
           <PremiumSelect
             name="category"
-            defaultValue={query.category || "all"}
+            value={query.category || "all"}
             options={options.category}
             placeholder={labels.category}
             ariaLabel={labels.category}
+            onValueChange={(v) => navigate({ category: v })}
           />
         </label>
 
+        {/* Material */}
         <label className="grid gap-2">
           <span className="field-label-pd">{labels.material}</span>
           <PremiumSelect
             name="material"
-            defaultValue={query.material || "all"}
+            value={query.material || "all"}
             options={options.material}
             placeholder={labels.material}
             ariaLabel={labels.material}
+            onValueChange={(v) => navigate({ material: v })}
           />
         </label>
-      </div>
 
-      {expanded ? (
-        <div
-          id={advancedId}
-          className="animate-in fade-in slide-in-from-top-2 mt-5 grid gap-5 duration-300 motion-reduce:animate-none lg:grid-cols-4"
-        >
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.room}</span>
-            <PremiumSelect
-              name="room"
-              defaultValue={query.room || "all"}
-              options={options.room}
-              placeholder={labels.room}
-              ariaLabel={labels.room}
-            />
-          </label>
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.style}</span>
-            <PremiumSelect
-              name="style"
-              defaultValue={query.style || "all"}
-              options={options.style}
-              placeholder={labels.style}
-              ariaLabel={labels.style}
-            />
-          </label>
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.collection}</span>
-            <PremiumSelect
-              name="collection"
-              defaultValue={query.collection || "all"}
-              options={options.collection}
-              placeholder={labels.collection}
-              ariaLabel={labels.collection}
-            />
-          </label>
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.tone}</span>
-            <PremiumSelect
-              name="tone"
-              defaultValue={query.tone || "all"}
-              options={options.tone}
-              placeholder={labels.tone}
-              ariaLabel={labels.tone}
-            />
-          </label>
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.availability}</span>
-            <PremiumSelect
-              name="availability"
-              defaultValue={query.availability || "all"}
-              options={options.availability}
-              placeholder={labels.availability}
-              ariaLabel={labels.availability}
-            />
-          </label>
-          <label className="grid gap-2">
-            <span className="field-label-pd">{labels.featuredOnly}</span>
-            <PremiumSelect
-              name="featured"
-              defaultValue={query.featured || "all"}
-              options={options.featured}
-              placeholder={labels.featuredOnly}
-              ariaLabel={labels.featuredOnly}
-            />
-          </label>
-        </div>
-      ) : null}
+        {/* Discount / Giảm giá */}
+        <label className="grid gap-2">
+          <span className="field-label-pd">Giảm giá</span>
+          <PremiumSelect
+            name="featured"
+            value={query.featured || "all"}
+            options={discountOptions}
+            placeholder="Giảm giá"
+            ariaLabel="Giảm giá"
+            onValueChange={(v) => navigate({ featured: v })}
+          />
+        </label>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          aria-controls={advancedId}
-          aria-expanded={expanded}
-          className="button-pd-outline justify-center sm:justify-start"
-          onClick={() => setExpanded((value) => !value)}
-        >
-          <ChevronDown className={`size-4 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
-          {expanded ? labels.collapse : labels.expand}
-        </button>
+        {/* Brand / Thương hiệu */}
+        <label className="grid gap-2">
+          <span className="field-label-pd">Thương hiệu</span>
+          <PremiumSelect
+            name="brand"
+            value={query.brand || "all"}
+            options={brandOptions}
+            placeholder="Thương hiệu"
+            ariaLabel="Thương hiệu"
+            onValueChange={(v) => navigate({ brand: v })}
+          />
+        </label>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button className="button-pd" type="submit">
-            <Filter className="size-4" />
-            {labels.apply}
-          </button>
-          <Link href={resetHref} className="button-pd-outline justify-center">
-            {labels.reset}
-          </Link>
+        {/* Clear button — only show when filter is active */}
+        <div className="self-end">
+          {hasActive ? (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="button-pd-outline flex h-11 w-full items-center justify-center gap-2 lg:w-auto"
+              aria-label={labels.reset}
+            >
+              <X className="size-4" />
+              {labels.reset}
+            </button>
+          ) : (
+            <div className="h-11" />
+          )}
         </div>
       </div>
-    </form>
+    </div>
   );
 }

@@ -112,7 +112,7 @@ export function HeroShowcase({
         <button
           type="button"
           aria-label="Previous slide"
-          className="public-hero-control absolute right-16 top-1/2 z-50 -translate-y-1/2 md:left-8 md:right-auto"
+          className="public-hero-control absolute left-4 right-auto top-1/2 z-50 -translate-y-1/2 md:left-8"
           onClick={goPrevious}
         >
           <ChevronLeft className="size-6" />
@@ -120,7 +120,7 @@ export function HeroShowcase({
         <button
           type="button"
           aria-label="Next slide"
-          className="public-hero-control absolute right-4 top-1/2 z-50 -translate-y-1/2 md:right-8"
+          className="public-hero-control absolute right-4 left-auto top-1/2 z-50 -translate-y-1/2 md:right-8"
           onClick={goNext}
         >
           <ChevronRight className="size-6" />

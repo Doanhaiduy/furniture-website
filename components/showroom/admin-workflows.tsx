@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   ArrowRight,
+  Award,
+  BadgePercent,
   BadgeCheck,
   BookOpen,
   Bot,
@@ -63,7 +65,7 @@ import enMessages from "@/messages/en.json";
 import viMessages from "@/messages/vi.json";
 
 type ContentKind = "product" | "blog" | "category" | "showroom";
-type EntityKind = "category" | "showroom" | "user" | "media";
+type EntityKind = "category" | "showroom" | "user" | "media" | "promotion" | "brand";
 type SettingsTab = "identity" | "contact" | "seo" | "integrations" | "sections";
 
 const productReadiness = [
@@ -306,64 +308,149 @@ export function AdminRouteDialog({
 
 
 
-export function EntityCreateForm({ kind }: { kind: EntityKind }) {
+export function EntityCreateForm({ kind, idOrSlug }: { kind: EntityKind; idOrSlug?: string }) {
   if (kind === "media") return <MediaUploadPanel />;
-
-  if (kind === "user") {
-    return (
-      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-        <section className="surface-soft p-4">
-          <WorkflowIntro
-            icon={Lock}
-            title="Tạo người dùng dành cho quản trị viên"
-            description="Tạo tài khoản CMS, gán quyền theo mô hình vai trò A và chặn người dùng đã tắt khỏi xác thực Payload."
-          />
-          <div className="mt-5 grid gap-4">
-            <AdminField label="Tên hiển thị" name="user-name" defaultValue="Nguyễn Minh Quân" />
-            <AdminField label="Email đăng nhập" name="user-email" defaultValue="editor@phuongdong.vn" />
-            <label className="grid gap-2">
-              <span className="label-pd">Vai trò</span>
-              <PremiumSelect
-                defaultValue="editor"
-                ariaLabel="Vai trò"
-                placeholder="Vai trò"
-                tone="admin"
-                options={[
-                  { value: "editor", label: "Biên tập viên - chỉ quản lý nội dung có thể xuất bản" },
-                  { value: "admin", label: "Quản trị viên - người dùng, cài đặt, báo giá và toàn bộ nội dung" },
-                ]}
-              />
-            </label>
-            <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
-              <input className="mt-1" type="checkbox" defaultChecked />
-              <span>
-                <strong className="block text-[var(--admin-text)]">Tài khoản đang hoạt động</strong>
-                <span className="text-[var(--admin-text-muted)]">Người dùng bị tắt không thể truy cập CMS.</span>
-              </span>
-            </label>
-          </div>
-        </section>
-        <ReadinessPanel
-          items={[
-            { label: "Vai trò khớp ma trận quyền của phương án A", state: "ready" },
-            { label: "Tài khoản quản trị đầu tiên vẫn do vận hành backend thiết lập", state: "warning" },
-            { label: "Email mời đặt mật khẩu cần kết nối xác thực Payload", state: "warning" },
-          ]}
-        />
-      </div>
-    );
-  }
-
-  if (kind === "showroom") {
-    return <ShowroomEntityForm />;
-  }
-
-  return <CategoryEntityForm />;
+  if (kind === "user") return <UserCreateEntityForm />;
+  if (kind === "showroom") return <ShowroomEntityForm idOrSlug={idOrSlug} />;
+  if (kind === "promotion") return <PromotionEntityForm idOrSlug={idOrSlug} />;
+  if (kind === "brand") return <BrandEntityForm idOrSlug={idOrSlug} />;
+  return <CategoryEntityForm idOrSlug={idOrSlug} />;
 }
 
-function ShowroomEntityForm() {
+function UserCreateEntityForm() {
+  const [fullName, setFullName] = useState("Nguyễn Minh Quân");
+  const [email, setEmail] = useState("editor@phuongdong.vn");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("editor");
+  const [isActive, setIsActive] = useState(true);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !fullName) {
+      setFormError("Vui lòng điền đầy đủ thông tin.");
+      return;
+    }
+    setFormLoading(true);
+    setFormError("");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName, role, isActive }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Tạo tài khoản quản trị thành công!");
+        window.location.href = "/admin/users";
+      } else {
+        setFormError(data.error || "Có lỗi xảy ra khi tạo tài khoản.");
+      }
+    } catch (err) {
+      setFormError("Lỗi kết nối tới máy chủ.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleCreateUser} className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <section className="surface-soft p-4">
+        <WorkflowIntro
+          icon={Lock}
+          title="Tạo người dùng dành cho quản trị viên"
+          description="Tạo tài khoản CMS, gán quyền theo mô hình vai trò A và đồng bộ trực tiếp vào database."
+        />
+        {formError && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+            {formError}
+          </div>
+        )}
+        <div className="mt-5 grid gap-4">
+          <label className="grid gap-2">
+            <span className="label-pd">Tên hiển thị</span>
+            <input
+              className="input-pd bg-white"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Email đăng nhập</span>
+            <input
+              className="input-pd bg-white"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Mật khẩu ban đầu</span>
+            <input
+              className="input-pd bg-white"
+              type="password"
+              value={password}
+              placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Vai trò</span>
+            <PremiumSelect
+              value={role}
+              onValueChange={setRole}
+              ariaLabel="Vai trò"
+              placeholder="Vai trò"
+              tone="admin"
+              options={[
+                { value: "editor", label: "Biên tập viên - chỉ quản lý nội dung có thể xuất bản" },
+                { value: "admin", label: "Quản trị viên - người dùng, cài đặt, báo giá và toàn bộ nội dung" },
+              ]}
+            />
+          </label>
+          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
+            <input 
+              className="mt-1" 
+              type="checkbox" 
+              checked={isActive} 
+              onChange={(e) => setIsActive(e.target.checked)} 
+            />
+            <span>
+              <strong className="block text-[var(--admin-text)]">Tài khoản đang hoạt động</strong>
+              <span className="text-[var(--admin-text-muted)]">Người dùng bị tắt không thể truy cập CMS.</span>
+            </span>
+          </label>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="submit"
+              className="button-pd"
+              disabled={formLoading}
+            >
+              {formLoading ? "Đang tạo..." : "Tạo tài khoản"}
+            </button>
+          </div>
+        </div>
+      </section>
+      <ReadinessPanel
+        items={[
+          { label: "Vai trò khớp ma trận quyền của phương án A", state: "ready" },
+          { label: "Tài khoản quản trị đầu tiên vẫn do vận hành backend thiết lập", state: "warning" },
+          { label: "Mật khẩu sẽ có hiệu lực ngay lập tức", state: "ready" },
+        ]}
+      />
+    </form>
+  );
+}
+
+function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const searchParams = useSearchParams();
-  const editSlug = searchParams.get("edit");
+  const editSlug = idOrSlug || searchParams.get("edit");
   const isEdit = Boolean(editSlug);
 
   const [englishEnabled, setEnglishEnabled] = useState(isEdit);
@@ -640,9 +727,9 @@ function ShowroomEntityForm() {
   );
 }
 
-function CategoryEntityForm() {
+function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const searchParams = useSearchParams();
-  const editSlug = searchParams.get("edit");
+  const editSlug = idOrSlug || searchParams.get("edit");
   const isEdit = Boolean(editSlug);
 
   const [englishEnabled, setEnglishEnabled] = useState(isEdit);
@@ -2345,6 +2432,38 @@ export function AiAssistantWorkspace() {
   const [task, setTask] = useState("translate");
   const [state, setState] = useState<"idle" | "loading" | "result" | "error">("idle");
   const [inserted, setInserted] = useState(false);
+  const [inputText, setInputText] = useState("Sofa go oc cho boc ni, phu hop phong khach can ho cao cap, can noi bat vat lieu, kich thuoc va loi moi nhan bao gia.");
+  const [resultText, setResultText] = useState("");
+  const [errorText, setErrorText] = useState("");
+
+  const handleGenerate = async () => {
+    if (!inputText.trim()) return;
+    setState("loading");
+    setInserted(false);
+    setErrorText("");
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task,
+          inputText,
+          targetLocale: task === "translate" ? "en" : "vi",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResultText(data.text);
+        setState("result");
+      } else {
+        setErrorText(data.error || "Có lỗi xảy ra từ API dịch vụ AI.");
+        setState("error");
+      }
+    } catch (err) {
+      setErrorText("Không thể kết nối đến máy chủ.");
+      setState("error");
+    }
+  };
 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -2390,7 +2509,8 @@ export function AiAssistantWorkspace() {
             <span className="label-pd">Nội dung gốc tiếng Việt</span>
             <textarea
               className="input-pd min-h-32"
-              defaultValue="Sofa go oc cho boc ni, phu hop phong khach can ho cao cap, can noi bat vat lieu, kich thuoc va loi moi nhan bao gia."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
             />
             <span className="text-xs text-[var(--admin-text-muted)]">
               Trợ lý này cố ý không sử dụng dữ liệu yêu cầu báo giá riêng tư.
@@ -2400,24 +2520,11 @@ export function AiAssistantWorkspace() {
             <button
               className="button-pd"
               type="button"
-              onClick={() => {
-                setState("loading");
-                setInserted(false);
-                window.setTimeout(() => setState("result"), 500);
-              }}
+              onClick={handleGenerate}
+              disabled={state === "loading"}
             >
               <WandSparkles className="size-4" />
-              Tạo bản nháp
-            </button>
-            <button
-              className="button-pd-outline"
-              type="button"
-              onClick={() => {
-                setState("error");
-                setInserted(false);
-              }}
-            >
-              Mô phỏng lỗi nhà cung cấp
+              {state === "loading" ? "Đang tạo nháp..." : "Tạo bản nháp"}
             </button>
           </div>
         </div>
@@ -2436,12 +2543,8 @@ export function AiAssistantWorkspace() {
           {state === "result" ? (
             <div className="field-feedback">
               <p className="label-pd">Kết quả bản nháp</p>
-              <p className="mt-2 rounded-[var(--radius-card)] bg-[var(--admin-bg-soft)] p-3 text-sm leading-6 text-[var(--admin-text)]">
-                {task === "translate"
-                  ? "Walnut wood sofa with fabric upholstery for premium apartment living rooms, highlighting material quality, dimensions and a quote request path."
-                  : task === "seo"
-                    ? "SEO title: Walnut sofa for refined living rooms | Meta: Explore material, size and quote guidance for Phuong Dong showroom clients."
-                    : "Outline: room context, material choice, size planning, showroom comparison, consultation CTA."}
+              <p className="mt-2 rounded-[var(--radius-card)] bg-[var(--admin-bg-soft)] p-3 text-sm leading-6 text-[var(--admin-text)] whitespace-pre-wrap">
+                {resultText}
               </p>
               <button
                 className="button-pd mt-4"
@@ -2455,7 +2558,7 @@ export function AiAssistantWorkspace() {
           ) : null}
           {state === "error" ? (
             <p className="field-feedback rounded-[var(--radius-card)] border border-error/25 bg-error-container p-3 text-sm text-on-error-container">
-              Nhà cung cấp AI tạm thời không khả dụng. Nội dung hiện có không bị thay đổi.
+              {errorText || "Nhà cung cấp AI tạm thời không khả dụng. Nội dung hiện có không bị thay đổi."}
             </p>
           ) : null}
         </div>
@@ -2486,12 +2589,354 @@ export function AiAssistantWorkspace() {
   );
 }
 
+
+function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const searchParams = useSearchParams();
+  const editId = idOrSlug || searchParams.get("edit") || "";
+  const isEdit = Boolean(editId);
+
+  const [nameVi, setNameVi] = useState("");
+  const [nameEn, setNameEn] = useState("");
+  const [descriptionVi, setDescriptionVi] = useState("");
+  const [descriptionEn, setDescriptionEn] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [sortOrder, setSortOrder] = useState(0);
+  const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    if (isEdit) {
+      const loadBrand = async () => {
+        try {
+          const { getAdminBrandById } = await import("@/lib/supabase/brands-mutations");
+          const res = await getAdminBrandById(editId);
+          if (res.success && res.data) {
+            const b = res.data;
+            setNameVi(b.name_vi || "");
+            setNameEn(b.name_en || "");
+            setDescriptionVi(b.description_vi || "");
+            setDescriptionEn(b.description_en || "");
+            setOrigin(b.origin || "");
+            setLogoUrl(b.logo_url || "");
+            setSortOrder(b.sort_order || 0);
+            setStatus(b.status || "draft");
+          }
+        } catch (e) {
+          console.error("Failed to load brand:", e);
+        }
+      };
+      loadBrand();
+    }
+  }, [editId, isEdit]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError("");
+    try {
+      const { createAdminBrand, updateAdminBrand } = await import("@/lib/supabase/brands-mutations");
+      const brandData = {
+        name_vi: nameVi,
+        name_en: nameEn,
+        description_vi: descriptionVi,
+        description_en: descriptionEn,
+        origin,
+        logo_url: logoUrl,
+        sort_order: Number(sortOrder),
+        status,
+      };
+
+      let res;
+      if (isEdit) {
+        res = await updateAdminBrand(editId, brandData);
+      } else {
+        res = await createAdminBrand(brandData);
+      }
+
+      if (res.success) {
+        alert(isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!");
+        window.location.href = "/admin/brands";
+      } else {
+        setFormError(res.error || "Có lỗi xảy ra.");
+      }
+    } catch (err) {
+      setFormError("Lỗi kết nối.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <section className="surface-soft p-4">
+        <WorkflowIntro
+          icon={Award}
+          title={isEdit ? "Hiệu chỉnh thương hiệu" : "Thêm thương hiệu mới"}
+          description="Thiết lập logo, xuất xứ và mô tả song ngữ cho thương hiệu đối tác."
+        />
+        {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
+        <div className="mt-5 grid gap-4">
+          <label className="grid gap-2">
+            <span className="label-pd">Tên thương hiệu (VI) *</span>
+            <input className="input-pd bg-white" type="text" value={nameVi} onChange={(e) => setNameVi(e.target.value)} required />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Tên thương hiệu (EN)</span>
+            <input className="input-pd bg-white" type="text" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Mô tả tiếng Việt</span>
+            <textarea className="input-pd bg-white min-h-20" value={descriptionVi} onChange={(e) => setDescriptionVi(e.target.value)} />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Mô tả tiếng Anh</span>
+            <textarea className="input-pd bg-white min-h-20" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Xuất xứ</span>
+            <input className="input-pd bg-white" type="text" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Ví dụ: Đức, Mỹ, Nhật Bản" />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Đường dẫn Logo (Cloudinary URL hoặc ID)</span>
+            <input className="input-pd bg-white" type="text" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://res.cloudinary.com/..." />
+          </label>
+        </div>
+      </section>
+      <div className="space-y-5">
+        <section className="surface-soft p-4">
+          <label className="grid gap-2">
+            <span className="label-pd">Thứ tự hiển thị</span>
+            <input className="input-pd bg-white" type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
+          </label>
+          <label className="grid gap-2 mt-4">
+            <span className="label-pd">Trạng thái</span>
+            <PremiumSelect
+              value={status}
+              onValueChange={(val) => setStatus(val as "draft" | "published" | "archived")}
+              ariaLabel="Trạng thái"
+              placeholder="Trạng thái"
+              tone="admin"
+              options={[
+                { value: "draft", label: "Bản nháp" },
+                { value: "published", label: "Đã xuất bản" },
+                { value: "archived", label: "Đã lưu trữ" },
+              ]}
+            />
+          </label>
+          <div className="mt-6">
+            <button type="submit" className="button-pd w-full" disabled={formLoading}>
+              {formLoading ? "Đang lưu..." : "Lưu thương hiệu"}
+            </button>
+          </div>
+        </section>
+      </div>
+    </form>
+  );
+}
+
+function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const searchParams = useSearchParams();
+  const editId = idOrSlug || searchParams.get("edit") || "";
+  const isEdit = Boolean(editId);
+
+  const [code, setCode] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState(10);
+  const [titleVi, setTitleVi] = useState("");
+  const [titleEn, setTitleEn] = useState("");
+  const [descriptionVi, setDescriptionVi] = useState("");
+  const [descriptionEn, setDescriptionEn] = useState("");
+  const [comboPrice, setComboPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [itemsList, setItemsList] = useState<string[]>([""]);
+  const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    if (isEdit) {
+      const loadPromotion = async () => {
+        try {
+          const { getAdminPromotionById } = await import("@/lib/supabase/admin-queries");
+          const res = await getAdminPromotionById(editId);
+          if (res.success && res.data) {
+            const p = res.data;
+            setCode(p.code || "");
+            setDiscountPercentage(p.discount_percentage || 0);
+            setTitleVi(p.title?.vi || p.title_vi || "");
+            setTitleEn(p.title?.en || p.title_en || "");
+            setDescriptionVi(p.description?.vi || p.description_vi || "");
+            setDescriptionEn(p.description?.en || p.description_en || "");
+            setComboPrice(p.combo_price ? String(p.combo_price) : "");
+            setOriginalPrice(p.original_price ? String(p.original_price) : "");
+            setCoverImage(p.cover_image_url || p.cover_image || "");
+            setItemsList(p.items && p.items.length > 0 ? p.items : [""]);
+            setStatus(p.status || "draft");
+          }
+        } catch (e) {
+          console.error("Failed to load promotion:", e);
+        }
+      };
+      loadPromotion();
+    }
+  }, [editId, isEdit]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError("");
+    try {
+      const { createAdminPromotion, updateAdminPromotion } = await import("@/lib/supabase/admin-queries");
+      const promotionData = {
+        code,
+        discount_percentage: Number(discountPercentage),
+        title_vi: titleVi,
+        title_en: titleEn,
+        description_vi: descriptionVi,
+        description_en: descriptionEn,
+        cover_image: coverImage,
+        combo_price: comboPrice ? Number(comboPrice) : null,
+        start_at: null,
+        end_at: null,
+        original_price: originalPrice ? Number(originalPrice) : null,
+        items: itemsList.filter(i => i.trim() !== ""),
+        status,
+      };
+
+      let res;
+      if (isEdit) {
+        res = await updateAdminPromotion(editId, promotionData);
+      } else {
+        res = await createAdminPromotion(promotionData);
+      }
+
+      if (res.success) {
+        alert(isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!");
+        window.location.href = "/admin/promotions";
+      } else {
+        setFormError(res.error || "Có lỗi xảy ra.");
+      }
+    } catch (err) {
+      setFormError("Lỗi kết nối.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleAddItem = () => setItemsList([...itemsList, ""]);
+  const handleRemoveItem = (index: number) => setItemsList(itemsList.filter((_, idx) => idx !== index));
+  const handleItemChange = (index: number, val: string) => {
+    const updated = [...itemsList];
+    updated[index] = val;
+    setItemsList(updated);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <section className="surface-soft p-4">
+        <WorkflowIntro
+          icon={BadgePercent}
+          title={isEdit ? "Hiệu chỉnh chương trình khuyến mãi" : "Thêm chương trình khuyến mãi mới"}
+          description="Thiết lập thông tin khuyến mãi combo, chiết khấu và sản phẩm đi kèm."
+        />
+        {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
+        <div className="mt-5 grid gap-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="label-pd">Mã khuyến mãi *</span>
+              <input className="input-pd bg-white" type="text" value={code} onChange={(e) => setCode(e.target.value)} required placeholder="Ví dụ: VALENTINE-COMBO" />
+            </label>
+            <label className="grid gap-2">
+              <span className="label-pd">Phần trăm chiết khấu (%) *</span>
+              <input className="input-pd bg-white" type="number" min={0} max={100} value={discountPercentage} onChange={(e) => setDiscountPercentage(Number(e.target.value))} required />
+            </label>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="label-pd">Tiêu đề (VI) *</span>
+              <input className="input-pd bg-white" type="text" value={titleVi} onChange={(e) => setTitleVi(e.target.value)} required />
+            </label>
+            <label className="grid gap-2">
+              <span className="label-pd">Tiêu đề (EN)</span>
+              <input className="input-pd bg-white" type="text" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} />
+            </label>
+          </div>
+          <label className="grid gap-2">
+            <span className="label-pd">Mô tả ngắn (VI)</span>
+            <textarea className="input-pd bg-white min-h-20" value={descriptionVi} onChange={(e) => setDescriptionVi(e.target.value)} />
+          </label>
+          <label className="grid gap-2">
+            <span className="label-pd">Mô tả ngắn (EN)</span>
+            <textarea className="input-pd bg-white min-h-20" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
+          </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="label-pd">Giá Combo (VND)</span>
+              <input className="input-pd bg-white" type="number" value={comboPrice} onChange={(e) => setComboPrice(e.target.value)} />
+            </label>
+            <label className="grid gap-2">
+              <span className="label-pd">Giá gốc tổng cộng (VND)</span>
+              <input className="input-pd bg-white" type="number" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
+            </label>
+          </div>
+          <label className="grid gap-2">
+            <span className="label-pd">Ảnh bìa Combo (Cloudinary URL)</span>
+            <input className="input-pd bg-white" type="text" value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://res.cloudinary.com/..." />
+          </label>
+
+          <div className="grid gap-2">
+            <span className="label-pd">Các sản phẩm đi kèm trong Combo</span>
+            <div className="space-y-2">
+              {itemsList.map((item, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <input className="input-pd bg-white flex-1" type="text" value={item} onChange={(e) => handleItemChange(idx, e.target.value)} placeholder={`Sản phẩm #${idx + 1}`} />
+                  <button type="button" onClick={() => handleRemoveItem(idx)} className="button-pd-outline py-2 px-3 text-red-500 border-red-200 hover:bg-red-50" disabled={itemsList.length <= 1}>Xóa</button>
+                </div>
+              ))}
+              <button type="button" onClick={handleAddItem} className="button-pd-outline text-xs mt-2 py-1 px-2">
+                + Thêm sản phẩm
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="space-y-5">
+        <section className="surface-soft p-4">
+          <label className="grid gap-2">
+            <span className="label-pd">Trạng thái</span>
+            <PremiumSelect
+              value={status}
+              onValueChange={(val) => setStatus(val as "draft" | "published" | "archived")}
+              ariaLabel="Trạng thái"
+              placeholder="Trạng thái"
+              tone="admin"
+              options={[
+                { value: "draft", label: "Bản nháp" },
+                { value: "published", label: "Đã xuất bản" },
+                { value: "archived", label: "Đã lưu trữ" },
+              ]}
+            />
+          </label>
+          <div className="mt-6">
+            <button type="submit" className="button-pd w-full" disabled={formLoading}>
+              {formLoading ? "Đang lưu..." : "Lưu khuyến mãi"}
+            </button>
+          </div>
+        </section>
+      </div>
+    </form>
+  );
+}
 export function ContentEditorForm({
   kind,
   mode = "edit",
+  idOrSlug,
 }: {
   kind: ContentKind;
   mode?: "create" | "edit";
+  idOrSlug?: string;
 }) {
   const isProduct = kind === "product";
 
@@ -2719,58 +3164,32 @@ export function ContentEditorForm({
     }
   };
 
-  const triggerAiGeneration = () => {
+    const triggerAiGeneration = async () => {
     setShowOverwriteWarning(false);
     setAiLoading(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "generate-content",
+          inputText: aiTopic,
+          targetType: kind,
+        }),
+      });
+      const data = await res.json();
       setAiLoading(false);
-      
-      const slugified = aiTopic.toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .replace(/\s+/g, "-");
-
-      const mockData = isProduct ? {
-        viTitle: `${aiTopic}`,
-        enTitle: `Premium ${aiTopic} - Modern Line`,
-        viSlug: slugified,
-        enSlug: `premium-${slugified}`,
-        viSummary: `Phiên bản thiết kế giới hạn cho ${aiTopic.toLowerCase()} chế tác từ gỗ tự nhiên nguyên khối cao cấp.`,
-        enSummary: `Limited design version of ${aiTopic.toLowerCase()} crafted from premium solid natural wood.`,
-        viBody: `<p>Sản phẩm <strong>${aiTopic}</strong> được thiết kế theo xu hướng tối giản hiện đại. Khung xương chắc chắn, lớp hoàn thiện tinh tế phô bày trọn vẹn nét đẹp tự nhiên của từng thớ gỗ. Rất phù hợp với các không gian kiến trúc biệt thự, căn hộ cao cấp.</p>`,
-        enBody: `<p>The <strong>${aiTopic}</strong> product features a warm minimal design. Solid structure, refined natural finishes showcasing the wood grain beauty. Perfect for premium villas and apartments.</p>`,
-        seoTitleVi: `Mua ${aiTopic} gỗ tự nhiên cao cấp | Phương Đông`,
-        seoTitleEn: `Premium ${aiTopic} - Walnut & Oak | Phuong Dong`,
-        seoDescVi: `Khám phá dòng sản phẩm ${aiTopic.toLowerCase()} đẳng cấp. Nhận tư vấn trực tiếp và báo giá showroom tốt nhất.`,
-        seoDescEn: `Explore the premium class ${aiTopic.toLowerCase()} collection. Request customized design quote at Phuong Dong showroom.`,
-        materialsVi: "Chất liệu chính: Gỗ tự nhiên tuyển chọn, lớp bọc cao cấp nhập khẩu",
-        materialsEn: "Primary materials: Handpicked natural wood, imported premium upholstery",
-        dimensionsVi: "2000 x 900 x 750 mm",
-        dimensionsEn: "2000 x 900 x 750 mm",
-        specMaterialVi: "Gỗ tự nhiên nguyên chất",
-        specMaterialEn: "100% genuine solid natural wood",
-        specFinishVi: "Hoàn thiện bằng dầu lau tự nhiên hoặc sơn mờ",
-        specFinishEn: "Bio plant-oil finish or matte coating",
-        specCareVi: "Lau bằng khăn ẩm vắt kiệt nước, tránh hóa chất tẩy rửa mạnh",
-        specCareEn: "Wipe with a well-wrung damp cloth, avoid harsh chemical cleaners",
-      } : {
-        viTitle: `${aiTopic}`,
-        enTitle: `${aiTopic} - Professional Guide`,
-        viSlug: slugified,
-        enSlug: `${slugified}-guide`,
-        viSummary: `Bài viết chuyên sâu hướng dẫn cách bố trí, lựa chọn và bảo quản ${aiTopic.toLowerCase()} trong gia đình.`,
-        enSummary: `In-depth editorial guide on arranging, selecting, and maintaining ${aiTopic.toLowerCase()} in your home.`,
-        viBody: `<p>Khi lên phương án thiết kế cho ngôi nhà, việc bố trí <strong>${aiTopic.toLowerCase()}</strong> đóng vai trò vô cùng quan trọng. Bài viết này sẽ chia sẻ những lời khuyên từ các chuyên gia thiết kế Phương Đông để bạn tối ưu hóa công năng và phong thủy.</p>`,
-        enBody: `<p>When planning your home layout, arranging <strong>${aiTopic.toLowerCase()}</strong> plays a critical role. This article shares core insights from Phuong Dong designers to optimize functional and aesthetic flow.</p>`,
-        seoTitleVi: `${aiTopic} - Cẩm nang thiết kế nội thất`,
-        seoTitleEn: `${aiTopic} - Home Interior Design Handbook`,
-        seoDescVi: `Bí quyết thiết kế và sắp xếp không gian sống ấn tượng cùng ${aiTopic.toLowerCase()}. Đọc ngay tư vấn chuyên gia.`,
-        seoDescEn: `Pro tips on planning and organizing spaces with ${aiTopic.toLowerCase()}. Read our expert advisory journal.`,
-      };
-
-      setAiResult(mockData);
-      setShowAiReviewDialog(true);
-    }, 1500);
+      if (data.success && data.data && !data.data.error) {
+        setAiResult(data.data);
+        setShowAiReviewDialog(true);
+      } else {
+        alert(data.error || (data.data && data.data.error) || "Không thể tạo nội dung từ AI.");
+      }
+    } catch (err) {
+      setAiLoading(false);
+      alert("Lỗi kết nối khi gọi API AI.");
+    }
   };
 
   const applyGeneratedContent = () => {

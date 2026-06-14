@@ -35,10 +35,26 @@ export function PremiumSelect({
   className?: string;
   tone?: "default" | "admin";
 }) {
+  const EMPTY_VALUE = "none";
+
+  // Map empty string values to EMPTY_VALUE internally to comply with Radix UI requirements
+  const mappedValue = value === "" ? EMPTY_VALUE : value;
+  const mappedDefaultValue = defaultValue === "" ? EMPTY_VALUE : defaultValue;
+  const mappedOptions = options.map((opt) => ({
+    ...opt,
+    value: opt.value === "" ? EMPTY_VALUE : opt.value,
+  }));
+
+  const handleValueChange = (val: string) => {
+    if (onValueChange) {
+      onValueChange(val === EMPTY_VALUE ? "" : val);
+    }
+  };
+
   const stateProps =
     value !== undefined
-      ? { value, onValueChange }
-      : { defaultValue: defaultValue || options[0]?.value, onValueChange };
+      ? { value: mappedValue, onValueChange: handleValueChange }
+      : { defaultValue: mappedDefaultValue || mappedOptions[0]?.value, onValueChange: handleValueChange };
 
   return (
     <Select
@@ -55,7 +71,7 @@ export function PremiumSelect({
           className
         )}
       >
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={placeholder} className="truncate" />
       </SelectTrigger>
       <SelectContent
         position="popper"
@@ -66,18 +82,20 @@ export function PremiumSelect({
             : "border-outline-variant/35 bg-surface-container-lowest"
         )}
       >
-        {options.map((option) => (
+        {mappedOptions.map((option) => (
           <SelectItem
             key={option.value}
             value={option.value}
             className={cn(
-              "rounded-[var(--radius-control)] px-2 py-2 text-sm",
+              "rounded-[var(--radius-control)] px-2 py-2 text-sm truncate",
               tone === "admin"
                 ? "text-[var(--admin-text)] focus:bg-[var(--admin-bg-soft)] focus:text-[var(--admin-accent)]"
                 : "text-on-surface focus:bg-surface-container focus:text-primary"
             )}
           >
-            {option.label}
+            <span className="truncate block" title={option.label}>
+              {option.label}
+            </span>
           </SelectItem>
         ))}
       </SelectContent>

@@ -1,0 +1,1 @@
+ALTER POLICY profiles_select_own_or_admin ON profiles DISABLE;

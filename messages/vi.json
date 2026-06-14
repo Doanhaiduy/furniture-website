@@ -5,11 +5,14 @@
     "productsTitle": "Danh mục sản phẩm",
     "blogTitle": "Tin tức nội thất",
     "showroomsTitle": "Hệ thống showroom",
-    "contactTitle": "Liên hệ và yêu cầu báo giá"
+    "contactTitle": "Liên hệ và yêu cầu báo giá",
+    "promotionsTitle": "Chương trình ưu đãi & Khuyến mãi - Showroom Phương Đông",
+    "promotionsDescription": "Khám phá các ưu đãi đặc biệt, combo nội thất gỗ óc chó cao cấp và thiết bị vệ sinh nhập khẩu chính hãng."
   },
   "nav": {
     "home": "Trang chủ",
     "products": "Sản phẩm",
+    "promotions": "Khuyến mãi",
     "showrooms": "Showroom",
     "blog": "Tin tức",
     "about": "Giới thiệu",
@@ -21,10 +24,13 @@
     "catalogAll": "Tất cả hãng",
     "catalogHint": "Di chuột vào từng hãng để xem nhóm sản phẩm tiêu biểu và lối tư vấn phù hợp.",
     "catalogPopular": "Sản phẩm tiêu biểu",
-    "catalogViewGroup": "Xem mục này"
+    "catalogViewGroup": "Xem mục này",
+    "zalo": "Chat Zalo",
+    "messenger": "Chat Messenger",
+    "hotline": "Gọi Hotline"
   },
   "common": {
-    "brand": "Phương Đông",
+    "brand": "SHOWROOM NỘI THẤT PHƯƠNG ĐÔNG",
     "tagline": "Heritage Modernism",
     "readMore": "Xem thêm",
     "explore": "Khám phá",
@@ -190,7 +196,7 @@
     "tryAgain": "Thử lại"
   },
   "admin": {
-    "brand": "Phương Đông",
+    "brand": "SHOWROOM NỘI THẤT PHƯƠNG ĐÔNG",
     "panel": "Admin Panel",
     "search": "Tìm kiếm hệ thống...",
     "dashboard": "Tổng quan",

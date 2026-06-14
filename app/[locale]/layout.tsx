@@ -4,6 +4,9 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { isLocale, routing, type Locale } from "@/i18n/routing";
 import { PublicShell } from "@/components/showroom/public-shell";
+import { createClient } from "@/lib/supabase/server";
+import { getPublicSiteSettings } from "@/lib/supabase/queries";
+import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -18,9 +21,12 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
   const t = await getTranslations({ locale, namespace: "meta" });
 
+  const supabase = await createClient();
+  const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
+
   return {
-    title: t("homeTitle"),
-    description: t("homeDescription"),
+    title: siteSettings.seoDefaultTitle || t("homeTitle"),
+    description: siteSettings.seoDefaultDescription || t("homeDescription"),
     alternates: {
       canonical: `/${locale}`,
       languages: {
@@ -45,10 +51,17 @@ export default async function LocaleLayout({
   const nav = await getTranslations("nav");
   const common = await getTranslations("common");
 
+  const supabase = await createClient();
+  const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
+  const brandsRes = await getPublicBrands();
+  const publicBrands = brandsRes.success ? brandsRes.data : [];
+
   return (
     <NextIntlClientProvider messages={messages}>
       <PublicShell
         locale={locale as Locale}
+        siteSettings={siteSettings}
+        brands={publicBrands}
         labels={{
           common: {
             brand: common("brand"),
@@ -58,6 +71,7 @@ export default async function LocaleLayout({
           nav: {
             home: nav("home"),
             products: nav("products"),
+            promotions: nav("promotions"),
             showrooms: nav("showrooms"),
             blog: nav("blog"),
             about: nav("about"),
@@ -70,6 +84,9 @@ export default async function LocaleLayout({
             catalogHint: nav("catalogHint"),
             catalogPopular: nav("catalogPopular"),
             catalogViewGroup: nav("catalogViewGroup"),
+            zalo: nav("zalo"),
+            messenger: nav("messenger"),
+            hotline: nav("hotline"),
           },
         }}
       >

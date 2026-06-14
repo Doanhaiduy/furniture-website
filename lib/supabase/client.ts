@@ -8,6 +8,11 @@ import { env } from "@/lib/env/schema";
 export function createBrowserClient() {
   return createBrowserClientSSR(
     env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookieOptions: {
+        name: "sb-auth-token",
+      },
+    }
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { createBrowserClient } from "@/lib/supabase/client";
 
 interface SearchItem {
   id: string;
@@ -40,7 +41,6 @@ const SEARCH_ITEMS: SearchItem[] = [
 ];
 import Link from "next/link";
 import {
-  Bot,
   ChevronRight,
   ChevronsDown,
   ChevronsLeft,
@@ -49,15 +49,15 @@ import {
   FileText,
   FolderTree,
   Gauge,
-  Image as ImageIcon,
   LayoutDashboard,
   LogOut,
   Package,
   Search,
   Settings,
-  ShieldAlert,
   Store,
+  Tag,
   Users,
+  Percent,
 } from "lucide-react";
 import {
   AdminDateProvider,
@@ -69,13 +69,13 @@ const adminNav = [
   { key: "dashboard", label: "Tổng quan", href: "/admin", icon: LayoutDashboard },
   { key: "products", label: "Sản phẩm", href: "/admin/products", icon: Package },
   { key: "categories", label: "Danh mục", href: "/admin/categories", icon: FolderTree },
+  { key: "brands", label: "Thương hiệu", href: "/admin/brands", icon: Tag },
+  { key: "promotions", label: "Khuyến mãi", href: "/admin/promotions", icon: Percent },
   { key: "blog", label: "Bài viết", href: "/admin/blog", icon: FileText },
   { key: "showrooms", label: "Showroom", href: "/admin/showrooms", icon: Store },
-  { key: "media", label: "Thư viện tệp", href: "/admin/media", icon: ImageIcon },
   { key: "quotes", label: "Yêu cầu báo giá", href: "/admin/quotes", icon: Gauge },
   { key: "users", label: "Người dùng", href: "/admin/users", icon: Users },
   { key: "settings", label: "Cài đặt", href: "/admin/settings", icon: Settings },
-  { key: "ai-assistant", label: "Trợ lý AI", href: "/admin/ai-assistant", icon: Bot },
 ] as const;
 
 export function AdminShell({
@@ -87,13 +87,30 @@ export function AdminShell({
   children: ReactNode;
   role?: "admin" | "editor";
 }) {
+  const router = useRouter();
+  const supabase = createBrowserClient();
   const activeItem = adminNav.find((item) => item.key === active) ?? adminNav[0];
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  async function handleLogout(e: React.MouseEvent) {
+    e.preventDefault();
+    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+    if (useMock) {
+      document.cookie = "pd_mock_admin_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      router.push("/admin/login");
+      router.refresh();
+      return;
+    }
+    
+    await supabase.auth.signOut();
+    router.push("/admin/login");
+    router.refresh();
+  }
+
   const visibleNav = role === "editor"
-    ? adminNav.filter((item) => !["quotes", "users", "settings"].includes(item.key))
+    ? adminNav.filter((item) => !["quotes", "users", "settings", "ai-assistant"].includes(item.key))
     : adminNav;
 
   useEffect(() => {
@@ -175,18 +192,13 @@ export function AdminShell({
               </div>
               {!sidebarCollapsed ? (
                 <div className="mt-3 grid gap-1">
-                  <Link
-                    href="/admin/access-denied"
-                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-white/58 transition hover:bg-white/9 hover:text-white"
-                  >
-                    <ShieldAlert className="size-4" /> Kiểm tra phân quyền
-                  </Link>
-                  <Link
-                    href="/admin/login"
-                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-[#ffd7b0] transition hover:bg-white/9"
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-[#ffd7b0] transition hover:bg-white/9 cursor-pointer"
                   >
                     <LogOut className="size-4" /> Đăng xuất
-                  </Link>
+                  </button>
                 </div>
               ) : null}
             </div>

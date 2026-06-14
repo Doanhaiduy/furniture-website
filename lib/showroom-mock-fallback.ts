@@ -15,8 +15,8 @@ export const products = [
     featured: true,
     image: imageAssets.sofa,
     gallery: [imageAssets.sofa, imageAssets.texture, imageAssets.room],
-    price: { vi: "45.000.000đ", en: "VND 45,000,000" },
-    oldPrice: { vi: "52.000.000đ", en: "VND 52,000,000" },
+    price: { vi: "45,000,000 VND", en: "45,000,000 VND" },
+    oldPrice: { vi: "52,000,000 VND", en: "52,000,000 VND" },
     name: { vi: "Sofa Curve Velour", en: "Sofa Curve Velour" },
     category: { vi: "Sofa", en: "Sofa" },
     summary: {
@@ -48,7 +48,7 @@ export const products = [
     featured: true,
     image: imageAssets.table,
     gallery: [imageAssets.table, imageAssets.room],
-    price: { vi: "12.500.000đ", en: "VND 12,500,000" },
+    price: { vi: "12,500,000 VND", en: "12,500,000 VND" },
     name: { vi: "Bàn Trà Marble Round", en: "Marble Round Coffee Table" },
     category: { vi: "Bàn trà", en: "Coffee table" },
     summary: {
@@ -76,10 +76,10 @@ export const products = [
     toneKey: "dark",
     availabilityKey: "made-to-order",
     status: "published" as const,
-    featured: false,
+    featured: true,
     image: imageAssets.cabinet,
     gallery: [imageAssets.cabinet],
-    price: { vi: "22.000.000đ", en: "VND 22,000,000" },
+    price: { vi: "22,000,000 VND", en: "22,000,000 VND" },
     name: { vi: "Kệ Tivi Minimalist Wood", en: "Minimalist Wood TV Cabinet" },
     category: { vi: "Kệ tivi", en: "TV cabinet" },
     summary: {
@@ -92,8 +92,10 @@ export const products = [
     },
     specs: [
       { label: { vi: "Dài", en: "Length" }, value: { vi: "2200 mm", en: "2200 mm" } },
+      { label: { vi: "Chất liệu", en: "Material" }, value: { vi: "Gỗ veneer walnut", en: "Walnut veneer" } },
+      { label: { vi: "Bảo hành", en: "Warranty" }, value: { vi: "36 tháng", en: "36 months" } },
     ],
-    tags: ["Veneer", "Minimal"],
+    tags: ["Veneer", "Minimal", "Modern"],
   },
   {
     slug: "sen-tam-ma-vang-24k",
@@ -109,7 +111,7 @@ export const products = [
     featured: true,
     image: imageAssets.room,
     gallery: [imageAssets.room],
-    price: { vi: "12.500.000đ", en: "VND 12,500,000" },
+    price: { vi: "12,500,000 VND", en: "12,500,000 VND" },
     name: { vi: "Sen Tắm Mạ Vàng 24K", en: "24K Gold Plated Shower Set" },
     category: { vi: "Thiết bị vệ sinh", en: "Sanitary ware" },
     summary: {
@@ -122,8 +124,43 @@ export const products = [
     },
     specs: [
       { label: { vi: "Chất liệu", en: "Material" }, value: { vi: "Đồng thau", en: "Brass" } },
+      { label: { vi: "Lớp mạ", en: "Plating" }, value: { vi: "Vàng 24K", en: "24K Gold" } },
+      { label: { vi: "Bảo hành", en: "Warranty" }, value: { vi: "60 tháng", en: "60 months" } },
     ],
-    tags: ["Brass", "24K"],
+    tags: ["Brass", "24K", "Luxury"],
+  },
+  {
+    slug: "tu-ao-go-soi-classic",
+    referenceCode: "PD-W2406",
+    categoryKey: "wood",
+    materialKey: "oak",
+    roomKey: "bedroom",
+    styleKey: "classic",
+    collectionKey: "heritage",
+    toneKey: "warm",
+    availabilityKey: "showroom",
+    status: "published" as const,
+    featured: true,
+    image: imageAssets.texture,
+    gallery: [imageAssets.texture, imageAssets.room],
+    price: { vi: "38,000,000 VND", en: "38,000,000 VND" },
+    name: { vi: "Tủ Áo Gỗ Sồi Classic", en: "Classic Oak Wardrobe" },
+    category: { vi: "Tủ áo", en: "Wardrobe" },
+    summary: {
+      vi: "Tủ áo 4 cánh gỗ sồi tự nhiên với hệ thống ray trượt êm ái và ngăn kéo âm tủ cao cấp.",
+      en: "4-door oak wardrobe with smooth sliding system and premium built-in drawers.",
+    },
+    description: {
+      vi: "Tủ áo Classic thuộc bộ sưu tập Heritage, thiết kế cho phòng ngủ master với không gian lưu trữ tối ưu. Bề mặt hoàn thiện tự nhiên giữ được vân gỗ và màu ấm của gỗ sồi Bắc Mỹ.",
+      en: "Classic Wardrobe from Heritage collection designed for master bedrooms with optimal storage. Natural finish preserves the grain and warm tone of North American oak.",
+    },
+    specs: [
+      { label: { vi: "Kích thước", en: "Dimensions" }, value: { vi: "2400 x 600 x 2200 mm", en: "2400 x 600 x 2200 mm" } },
+      { label: { vi: "Chất liệu", en: "Material" }, value: { vi: "Gỗ sồi tự nhiên", en: "Natural oak" } },
+      { label: { vi: "Số cánh", en: "Doors" }, value: { vi: "4 cánh", en: "4 doors" } },
+      { label: { vi: "Bảo hành", en: "Warranty" }, value: { vi: "48 tháng", en: "48 months" } },
+    ],
+    tags: ["Gỗ sồi", "Classic", "Bedroom"],
   },
 ];
 

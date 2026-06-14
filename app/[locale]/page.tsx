@@ -12,7 +12,7 @@ import {
   trustBadges,
   withLocale,
 } from "@/lib/showroom-constants";
-import { showrooms } from "@/lib/showroom-mock-fallback";
+import { showrooms, products as mockProducts } from "@/lib/showroom-mock-fallback";
 import { QuoteForm } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { HeroShowcase } from "@/components/showroom/hero-showcase";
@@ -48,10 +48,10 @@ export default async function HomePage({
 
   // Fetch dynamic data from local database
   const supabase = await createClient();
-  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 4 });
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 6 });
   const featured = dbProducts.length > 0 
     ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
-    : []; // Fallback to empty list or mock if desired
+    : mockProducts.filter((p) => p.featured).slice(0, 6); // Fallback to 6 featured mock products
 
   const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: 3 });
   const editorialPosts = dbBlogPosts.length > 0
@@ -121,6 +121,78 @@ export default async function HomePage({
         playLabel={home("heroPlay")}
       />
 
+      {/* Brand Logo Marquee Section */}
+      <section className="border-y border-outline-variant/30 py-8 overflow-hidden bg-surface-container/20">
+        <div className="container-pd mb-4 flex items-center justify-between">
+          <div>
+            <p className="label-pd text-xs uppercase tracking-wider text-primary">
+              {locale === "vi" ? "Thương hiệu đối tác" : "Partner Brands"}
+            </p>
+            <h3 className="font-heading text-lg font-bold text-primary mt-1">
+              {locale === "vi" ? "Gạch & Thiết bị vệ sinh nhập khẩu" : "Imported Tiles & Sanitary Ware"}
+            </h3>
+          </div>
+        </div>
+        <div className="relative w-full overflow-hidden py-2">
+          {/* Ambient fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
+          
+          <div className="animate-marquee-pd flex items-center gap-6">
+            {/* Loop 1 */}
+            {[
+              { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+              { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "TOTO", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+              { name: "INAX", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+              { name: "AMERICAN STANDARD", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+              { name: "BRAVAT", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "HAFELE", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "BANCOOT", desc: locale === "vi" ? "Ý" : "Italy" },
+              { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
+              { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
+            ].map((brand, i) => (
+              <div
+                key={`marquee-1-${i}`}
+                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
+              >
+                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container">
+                  {brand.name}
+                </span>
+                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
+                  {brand.desc}
+                </span>
+              </div>
+            ))}
+            {/* Loop 2 */}
+            {[
+              { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+              { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "TOTO", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+              { name: "INAX", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+              { name: "AMERICAN STANDARD", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+              { name: "BRAVAT", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "HAFELE", desc: locale === "vi" ? "Đức" : "Germany" },
+              { name: "BANCOOT", desc: locale === "vi" ? "Ý" : "Italy" },
+              { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
+              { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
+            ].map((brand, i) => (
+              <div
+                key={`marquee-2-${i}`}
+                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
+              >
+                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container">
+                  {brand.name}
+                </span>
+                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
+                  {brand.desc}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="container-pd py-20 md:py-24">
         <div className="mb-12 grid gap-6 md:grid-cols-[0.8fr_1fr] md:items-end">
           <div>
@@ -173,7 +245,7 @@ export default async function HomePage({
               {common("viewAll")}
             </Link>
           </div>
-          <div className="motion-stagger grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="motion-stagger grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             {featured.map((product: any) => (
               <ProductCard
                 key={product.slug}

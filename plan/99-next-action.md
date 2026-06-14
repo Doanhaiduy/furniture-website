@@ -1,25 +1,26 @@
 # Next Action Pointer
 
 ## 1. Current State
-- **Phase 05**: In progress (June 8, 2026). Reusable admin table infrastructure is completed with `components/admin/DataTable.tsx`, `components/admin/TableSkeleton.tsx`, and unit tests.
-- **Active Phase**: **Phase 05: Admin Read Integration**
+- **Re-audit Phase 2**: Completed. Brands, Promotions Admin, and Data Model Alignment are successfully integrated.
+- **Docker Admin Login & Logout Hotfix**: Completed. Resolved the `ECONNREFUSED` connection issue, synchronized cookie names, and wired up the real `supabase.auth.signOut()` trigger. Tested & verified QA journey.
+- **Active Phase**: **Re-audit Phase 3: Settings, Secrets & Real Integrations**
 - **Phase Status**: `in-progress`.
 
 ---
 
 ## 2. Immediate Next Step
 
-**Implement role-aware admin dashboard statistics backed by Supabase.**
+**Prepare a Review Mode proposal for Re-audit Phase 3: Settings, Secrets & Real Integrations.**
 
 ### How to Execute:
-1. **Data Queries**: Add `getAdminDashboardStats` in `lib/supabase/admin-queries.ts` for products, blog, showrooms, and admin-only quote/user-sensitive counts.
-2. **Server Binding**: Connect the dashboard route/widgets to those stats.
-3. **Role Filtering**: Ensure `editor` responses omit sensitive quote and user count cards.
-4. **Verification**: Run lint, typecheck, test, build, then Browser MCP on the admin dashboard when real data binding is visible.
+1. **Review Tasks**: Identify remaining settings variables, secret validation procedures, Resend templates, and verify Cloudinary CDN routing in next.config.ts.
+2. **Submit Proposal**: Write a Review Mode proposal in Vietnamese outlining the planned code changes for Phase 3.
+3. **Validation**: Wait for Owner `confirm` to start implementation.
 
 ---
 
 ## 3. Dynamic Checklist Pointer
 For status check:
 - Main Status Board: [execution-status.md](file:///d:/THCode/AI/furniture-website/plan/execution-status.md)
-- Active Phase Checklist: [phases/phase-05-admin-read-integration/checklist.md](file:///d:/THCode/AI/furniture-website/plan/phases/phase-05-admin-read-integration/checklist.md)
+- Master Fix Plan: [MASTER-FIX-PLAN.md](file:///d:/THCode/AI/furniture-website/MASTER-FIX-PLAN.md)
+- Task Board: [task.md](file:///C:/Users/DELL/.gemini/antigravity/brain/71d9b7be-5aed-409e-9866-d883b0739257/task.md)

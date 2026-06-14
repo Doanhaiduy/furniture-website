@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -16,13 +16,9 @@ import {
   Sparkles,
   User,
   Mail,
-  Phone,
-  Calendar,
   Activity,
   FileText,
-  CheckCircle2,
   X,
-  Send,
   Sparkle,
 } from "lucide-react";
 import {
@@ -35,16 +31,16 @@ import {
   type AdminCategory,
   type AdminBlogPost,
   type AdminShowroom,
+  type AdminPromotion,
+  type AdminUser,
+  deleteAdminPromotion,
 } from "@/lib/supabase/admin-queries";
 import {
   PublishWorkflow,
-  QuoteStatusUpdater,
   StatusPill,
-  UnsavedChangesBar,
 } from "./admin-interactions";
 import {
   AdminRouteDialog,
-  AiAssistantWorkspace,
   ContentEditorForm,
   EntityCreateForm,
   SettingsOperationsPanel,
@@ -52,18 +48,21 @@ import {
 import { RemoteImage } from "./remote-image";
 import { PremiumSelect } from "./premium-select";
 import { DashboardInsightChart } from "./admin-dashboard-widgets";
+import { DataTable } from "@/components/admin/DataTable";
+import { BrandsAdmin, type Brand } from "@/components/admin/brands-admin";
 export { AdminLoginPage, AccessDeniedPage } from "./admin-login";
 
 export const adminSections = [
   "products",
   "categories",
+  "brands",
+  "promotions",
   "blog",
   "showrooms",
   "media",
   "quotes",
   "users",
   "settings",
-  "ai-assistant",
 ] as const;
 
 export type AdminSection = (typeof adminSections)[number];
@@ -140,9 +139,12 @@ export function AdminSectionPage({
   uploadMode,
   products,
   categories,
+  promotions,
   blogPosts,
   showrooms,
   quotes,
+  brands,
+  profiles,
 }: {
   section: AdminSection;
   role?: string;
@@ -150,18 +152,22 @@ export function AdminSectionPage({
   uploadMode?: boolean;
   products?: AdminProduct[];
   categories?: AdminCategory[];
+  promotions?: AdminPromotion[];
   blogPosts?: AdminBlogPost[];
   showrooms?: AdminShowroom[];
   quotes?: AdminQuote[];
+  brands?: Brand[];
+  profiles?: AdminUser[];
 }) {
   if (section === "quotes") return <QuotesPage quotes={quotes ?? []} role={role} />;
-  if (section === "ai-assistant") return <AiAssistantPage />;
   if (section === "media") return <MediaPage uploadMode={uploadMode} />;
   if (section === "settings") return <SettingsPage />;
-  if (section === "users") return <UsersPage createMode={createMode} />;
+  if (section === "users") return <UsersPage createMode={createMode} profiles={profiles ?? []} />;
+  if (section === "brands") return <BrandsAdmin initialBrands={brands ?? []} />;
   if (section === "blog") return <BlogPage createMode={createMode} posts={blogPosts ?? []} />;
   if (section === "showrooms") return <ShowroomPage createMode={createMode} showrooms={showrooms ?? []} />;
   if (section === "categories") return <CategoryPage createMode={createMode} categories={categories ?? []} />;
+  if (section === "promotions") return <PromotionsPage createMode={createMode} promotions={promotions ?? []} />;
   return <ProductsPage createMode={createMode} products={products ?? []} />;
 }
 
@@ -169,17 +175,28 @@ export function AdminSectionPage({
 function ProductsPage({ createMode, products = [] }: { createMode?: boolean; products?: AdminProduct[] }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
+  const [filterState, setFilterState] = useState<ProductFilterState>({ category: "all", status: "all", search: "" });
+
+  const filtered = products.filter((p) => {
+    const matchCat = filterState.category === "all" || (p.category_name?.toLowerCase().includes(filterState.category) ?? false);
+    const matchStatus = filterState.status === "all" || (filterState.status === "published" ? p.featured : !p.featured);
+    const matchSearch = filterState.search === "" ||
+      p.name.toLowerCase().includes(filterState.search.toLowerCase()) ||
+      (p.slug ?? "").toLowerCase().includes(filterState.search.toLowerCase()) ||
+      (p.reference_code ?? "").toLowerCase().includes(filterState.search.toLowerCase());
+    return matchCat && matchStatus && matchSearch;
+  });
 
   return (
     <div className="space-y-5">
       <AdminPageHeader
         title="Quản lý sản phẩm"
         description="Vận hành danh mục ưu tiên báo giá: trường song ngữ, ánh xạ danh mục, tệp, thông số, trạng thái giá và mức độ sẵn sàng xuất bản."
-        actionHref="/admin/products?create=1"
+        actionHref="/admin/products/new"
         actionLabel="Thêm sản phẩm"
       />
-      <FilterCard />
-      <ProductOperationsTable products={products} />
+      <ProductFilterCard value={filterState} onChange={setFilterState} />
+      <ProductOperationsTable products={filtered} />
 
       <AdminRouteDialog
         open={Boolean(createMode)}
@@ -205,7 +222,7 @@ function ProductsPage({ createMode, products = [] }: { createMode?: boolean; pro
   );
 }
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: AdminBlogPost[] }) {
   const searchParams = useSearchParams();
@@ -259,7 +276,7 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
       <AdminPageHeader
         title="Quản trị danh mục"
         description="Hai nhóm sản phẩm chính được giữ cố định theo nghiệp vụ. Biên tập viên quản lý danh mục con, tên song ngữ, đường dẫn, thứ tự và SEO."
-        actionHref="/admin/categories?create=1"
+        actionHref="/admin/categories/new"
         actionLabel="Thêm danh mục"
       />
       <div className="grid gap-4 md:grid-cols-3">
@@ -282,7 +299,7 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                <Link href={`/admin/categories?edit=${category.slug}`} className="admin-edit-action">
+                <Link href={`/admin/categories/${category.id || category.slug}/edit`} className="admin-edit-action inline-flex items-center gap-1">
                   <Pencil className="size-3" />
                   Chỉnh sửa
                 </Link>
@@ -312,7 +329,7 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
         description="Chỉnh sửa thông tin chi tiết danh mục, cấu hình song ngữ, mô tả và SEO."
         size="full"
       >
-        <EntityCreateForm kind="category" />
+        <EntityCreateForm kind="category" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
     </div>
   );
@@ -384,93 +401,23 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
         description="Chỉnh sửa thông tin địa chỉ song ngữ, hotline, bản đồ và giờ mở cửa."
         size="full"
       >
-        <EntityCreateForm kind="showroom" />
+        <EntityCreateForm kind="showroom" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
     </div>
   );
 }
 
-interface QuoteRequest {
-  id: string;
-  customer: string;
-  phone: string;
-  email?: string;
-  product: string;
-  date: string;
-  status: "new" | "contacted" | "qualified" | "closed" | "spam" | "archived" | string;
-  showroom?: string;
-  assignedTo?: string;
-  notes?: { date: string; author: string; content: string }[];
-  source?: string;
-}
 
-const initialQuotes: QuoteRequest[] = [
-  {
-    id: "QR-2406-001",
-    customer: "Lê Minh Tuấn",
-    phone: "0812 357 587",
-    email: "tuan.le@gmail.com",
-    product: "Sofa Curve Velour",
-    date: "2026-06-01",
-    status: "new",
-    showroom: "Quận 7 Showroom",
-    assignedTo: "Chưa phân công",
-    notes: [
-      { date: "2026-06-01 10:30", author: "Hệ thống", content: "Yêu cầu báo giá nhận từ trang chi tiết sản phẩm." }
-    ],
-    source: "/products/sofa-curve-velour"
-  },
-  {
-    id: "QR-2406-002",
-    customer: "Nguyễn Thu Hà",
-    phone: "0901 223 456",
-    email: "ha.nguyen@gmail.com",
-    product: "Bàn Trà Marble Round",
-    date: "2026-05-31",
-    status: "contacted",
-    showroom: "Quận 7 Showroom",
-    assignedTo: "Minh Quân",
-    notes: [
-      { date: "2026-05-31 15:45", author: "Hệ thống", content: "Yêu cầu báo giá từ form liên hệ nhanh." },
-      { date: "2026-06-01 09:00", author: "Minh Quân", content: "Đã liên hệ qua điện thoại, khách hàng hẹn cuối tuần ghé showroom Quận 7." }
-    ],
-    source: "/products/ban-tra-marble-round"
-  },
-  {
-    id: "QR-2406-003",
-    customer: "Trần Đại Quang",
-    phone: "0988 776 655",
-    email: "", // Test warning
-    product: "Thiết bị vệ sinh trọn bộ",
-    date: "2026-05-30",
-    status: "qualified",
-    showroom: "Hà Nội Flagship Store",
-    assignedTo: "Hồng Hạnh",
-    notes: [
-      { date: "2026-05-30 11:20", author: "Hệ thống", content: "Khách hàng muốn nhận bảng giá thiết bị vệ sinh Bravat và Kohler." }
-    ],
-    source: "/contact"
-  }
-];
-
-const quoteStatusLabels: Record<string, string> = {
-  new: "Chưa xử lý",
-  contacted: "Đang tư vấn",
-  qualified: "Đủ điều kiện",
-  closed: "Hoàn thành",
-  spam: "Thư rác",
-  archived: "Lưu trữ",
-};
-
-function getQuoteStatusLabel(status: string) {
-  return quoteStatusLabels[status] ?? status;
-}
 
 function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: string }) {
+  const router = useRouter();
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>(quotes[0]?.id ?? "");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showEmailDraft, setShowEmailDraft] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusNote, setStatusNote] = useState("");
+  const [localQuotes, setLocalQuotes] = useState<AdminQuote[]>(quotes);
 
   if (role !== "admin") {
     return (
@@ -481,7 +428,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     );
   }
 
-  const filteredQuotes = quotes.filter((q) => {
+  const filteredQuotes = localQuotes.filter((q) => {
     const matchesStatus = filterStatus === "all" || q.status === filterStatus;
     const keyword = searchQuery.trim().toLowerCase();
     const matchesQuery =
@@ -495,20 +442,76 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
 
   const selectedQuote = filteredQuotes.find((q) => q.id === selectedQuoteId) ?? filteredQuotes[0] ?? null;
 
+  // Quote workflow: trạng thái → actions có thể thực hiện tiếp theo
+  const workflowTransitions: Record<string, { label: string; status: string; variant: string }[]> = {
+    new:        [{ label: "Bắt đầu xử lý", status: "processing", variant: "primary" }],
+    processing: [{ label: "Đã liên hệ", status: "contacted", variant: "primary" }, { label: "Đánh dấu spam", status: "spam", variant: "danger" }],
+    contacted:  [{ label: "Đủ điều kiện", status: "qualified", variant: "primary" }, { label: "Hủy", status: "cancelled", variant: "danger" }],
+    qualified:  [{ label: "Hoàn tất", status: "closed", variant: "success" }, { label: "Hủy", status: "cancelled", variant: "danger" }],
+    closed:     [],
+    cancelled:  [{ label: "Mở lại xử lý", status: "new", variant: "primary" }],
+    spam:       [{ label: "Khôi phục", status: "new", variant: "primary" }],
+  };
+
+  const statusLabels: Record<string, string> = {
+    new:        "Chờ xử lý",
+    processing: "Đang xử lý",
+    contacted:  "Đã liên hệ",
+    qualified:  "Đủ điều kiện",
+    closed:     "Đã hoàn tất",
+    cancelled:  "Đã hủy",
+    spam:       "Thư rác",
+  };
+
+  const statusColors: Record<string, string> = {
+    new:        "status-warning",
+    processing: "status-muted",
+    contacted:  "bg-blue-100 text-blue-700 border-blue-200",
+    qualified:  "bg-purple-100 text-purple-700 border-purple-200",
+    closed:     "status-success",
+    cancelled:  "status-error",
+    spam:       "status-error",
+  };
+
+  async function handleStatusTransition(quoteId: string, newStatus: string) {
+    if (isUpdatingStatus) return;
+    setIsUpdatingStatus(true);
+    try {
+      const { updateQuoteStatus } = await import("@/lib/supabase/admin-queries");
+      const result = await updateQuoteStatus(quoteId, newStatus, statusNote || undefined);
+      if (result.success) {
+        // Update local state optimistically
+        setLocalQuotes((prev) => prev.map((q) => q.id === quoteId ? { ...q, status: newStatus } : q));
+        setStatusNote("");
+        router.refresh();
+      } else {
+        alert("Lỗi cập nhật trạng thái: " + (result.error ?? "Không xác định"));
+      }
+    } catch (err) {
+      alert("Đã xảy ra lỗi: " + String(err));
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  }
+
+  const statusCount = (status: string) => localQuotes.filter((q) => q.status === status).length;
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Quản lý yêu cầu báo giá"
-        description="Kiểm duyệt khách hàng tiềm năng dành cho quản trị viên. Biên tập viên phải bị chặn bằng phân quyền hệ thống, không chỉ ẩn điều hướng."
+        description="Kiểm duyệt và xử lý các yêu cầu từ khách hàng. Theo dõi tiến trình qua workflow trạng thái rõ ràng."
       />
 
+      {/* Status tabs */}
       <div className="flex flex-wrap gap-2 border-b pb-3">
         {[
           { id: "all", label: "Tất cả" },
-          { id: "new", label: "Chưa xử lý" },
-          { id: "contacted", label: "Đang tư vấn" },
+          { id: "new", label: "Chờ xử lý" },
+          { id: "processing", label: "Đang xử lý" },
+          { id: "contacted", label: "Đã liên hệ" },
           { id: "qualified", label: "Đủ điều kiện" },
-          { id: "closed", label: "Hoàn thành" },
+          { id: "closed", label: "Hoàn tất" },
           { id: "spam", label: "Thư rác" },
         ].map((tab) => (
           <button
@@ -522,6 +525,11 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
             onClick={() => setFilterStatus(tab.id)}
           >
             {tab.label}
+            {tab.id !== "all" && statusCount(tab.id) > 0 ? (
+              <span className="ml-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-slate-200 px-1 text-[9px] font-bold text-slate-700">
+                {statusCount(tab.id)}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -539,7 +547,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
           </div>
 
           <div className="surface-soft overflow-hidden rounded-xl border bg-white">
-            <div className="grid grid-cols-[1fr_1.2fr_100px_110px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="grid grid-cols-[1fr_1.2fr_100px_130px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
               <span>Khách hàng</span>
               <span>Nội dung quan tâm</span>
               <span>Ngày yêu cầu</span>
@@ -552,7 +560,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                 <button
                   key={quote.id}
                   type="button"
-                  className={`w-full text-left grid grid-cols-[1fr_1.2fr_100px_110px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
+                  className={`w-full text-left grid grid-cols-[1fr_1.2fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
                     selectedQuote?.id === quote.id ? "bg-indigo-50/30" : ""
                   }`}
                   onClick={() => setSelectedQuoteId(quote.id)}
@@ -566,7 +574,9 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                     <p className="text-[10px] text-slate-400 truncate">{quote.source_path}</p>
                   </div>
                   <span className="text-xs text-slate-500">{new Date(quote.created_at).toLocaleDateString("vi-VN")}</span>
-                  <QuoteStatusPill status={quote.status} />
+                  <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
+                    {statusLabels[quote.status] ?? quote.status}
+                  </span>
                 </button>
               ))
             )}
@@ -575,16 +585,20 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
 
         <div className="space-y-4">
           {selectedQuote ? (
-            <div className="rounded-xl border bg-white shadow-sm overflow-hidden flex flex-col min-h-[480px]">
+            <div className="rounded-xl border bg-white shadow-sm overflow-hidden flex flex-col">
+              {/* Header */}
               <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
                 <div>
                   <span className="text-[10px] font-mono text-slate-400 block">{selectedQuote.id}</span>
                   <h4 className="font-heading font-bold text-sm">Chi tiết yêu cầu báo giá</h4>
                 </div>
-                <QuoteStatusPill status={selectedQuote.status} />
+                <span className={`status-pill text-[11px] leading-none ${statusColors[selectedQuote.status] ?? "status-muted"}`}>
+                  {statusLabels[selectedQuote.status] ?? selectedQuote.status}
+                </span>
               </div>
 
               <div className="p-4 flex-1 space-y-4 text-xs">
+                {/* Missing email warning */}
                 {!selectedQuote.email && (
                   <div className="rounded-lg bg-orange-50 border border-orange-200 p-3 text-orange-700 flex items-start gap-2">
                     <AlertTriangle className="size-4 shrink-0 mt-0.5" />
@@ -595,58 +609,69 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                   </div>
                 )}
 
+                {/* Contact info */}
                 <div className="bg-slate-50 p-3 rounded-lg border space-y-2">
                   <h5 className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <User className="size-3.5 text-slate-400" />
-                    Thông tin liên hệ
+                    <User className="size-3.5 text-slate-400" /> Thông tin liên hệ
                   </h5>
                   <div className="grid gap-2 pl-5">
-                    <div>
-                      <span className="text-slate-400 block">Khách hàng</span>
-                      <strong className="text-sm text-slate-800">{selectedQuote.full_name}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Số điện thoại</span>
-                      <strong className="text-slate-700">{selectedQuote.phone}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Email</span>
-                      <span className="text-slate-700 font-semibold">{selectedQuote.email || "Chưa thiết lập"}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Người phụ trách</span>
-                      <strong className="text-slate-700">{selectedQuote.assigned_to || "Chưa phân công"}</strong>
-                    </div>
+                    <div><span className="text-slate-400 block">Khách hàng</span><strong className="text-sm text-slate-800">{selectedQuote.full_name}</strong></div>
+                    <div><span className="text-slate-400 block">Số điện thoại</span><strong className="text-slate-700">{selectedQuote.phone}</strong></div>
+                    <div><span className="text-slate-400 block">Email</span><span className="text-slate-700 font-semibold">{selectedQuote.email || "Chưa thiết lập"}</span></div>
+                    <div><span className="text-slate-400 block">Người phụ trách</span><strong className="text-slate-700">{selectedQuote.assigned_to || "Chưa phân công"}</strong></div>
                   </div>
                 </div>
 
+                {/* Request info */}
                 <div className="bg-slate-50 p-3 rounded-lg border space-y-2">
                   <h5 className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <FileText className="size-3.5 text-slate-400" />
-                    Nội dung yêu cầu
+                    <FileText className="size-3.5 text-slate-400" /> Nội dung yêu cầu
                   </h5>
                   <div className="grid gap-2 pl-5">
-                    <div>
-                      <span className="text-slate-400 block">Dịch vụ</span>
-                      <strong className="text-slate-800">{selectedQuote.service ?? "Yêu cầu tư vấn"}</strong>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Đường dẫn nguồn</span>
-                      <span className="text-slate-500 font-mono break-all">{selectedQuote.source_path}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block">Ghi chú khách hàng</span>
-                      <p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.message}</p>
-                    </div>
-                    {selectedQuote.admin_notes ? (
-                      <div>
-                        <span className="text-slate-400 block">Ghi chú nội bộ</span>
-                        <p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.admin_notes}</p>
-                      </div>
-                    ) : null}
+                    <div><span className="text-slate-400 block">Dịch vụ</span><strong className="text-slate-800">{selectedQuote.service ?? "Yêu cầu tư vấn"}</strong></div>
+                    <div><span className="text-slate-400 block">Đường dẫn nguồn</span><span className="text-slate-500 font-mono break-all">{selectedQuote.source_path}</span></div>
+                    <div><span className="text-slate-400 block">Ghi chú khách hàng</span><p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.message}</p></div>
+                    {selectedQuote.admin_notes && (
+                      <div><span className="text-slate-400 block">Ghi chú nội bộ</span><p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.admin_notes}</p></div>
+                    )}
                   </div>
                 </div>
 
+                {/* Workflow Actions */}
+                {(workflowTransitions[selectedQuote.status] ?? []).length > 0 && (
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 space-y-3">
+                    <h5 className="font-bold text-[10px] uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
+                      <Activity className="size-3.5" /> Hành động tiếp theo
+                    </h5>
+                    <div>
+                      <input
+                        className="input-pd text-xs mb-2"
+                        placeholder="Ghi chú nội bộ (tùy chọn)..."
+                        value={statusNote}
+                        onChange={(e) => setStatusNote(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(workflowTransitions[selectedQuote.status] ?? []).map((action) => (
+                        <button
+                          key={action.status}
+                          type="button"
+                          disabled={isUpdatingStatus}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition disabled:opacity-60 ${
+                            action.variant === "success" ? "bg-green-600 text-white border-green-600 hover:bg-green-700" :
+                            action.variant === "danger" ? "bg-red-50 text-red-700 border-red-200 hover:bg-red-100" :
+                            "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700"
+                          }`}
+                          onClick={() => handleStatusTransition(selectedQuote.id, action.status)}
+                        >
+                          {isUpdatingStatus ? "Đang xử lý..." : action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
                 <div className="border-t pt-3 flex flex-wrap gap-2 justify-end">
                   <button
                     type="button"
@@ -682,14 +707,8 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
             </div>
 
             <div className="flex-1 overflow-y-auto py-4 space-y-3 text-xs">
-              <div>
-                <span className="text-slate-400 font-bold block">Gửi tới:</span>
-                <span className="text-slate-800 font-semibold">{selectedQuote.email || "Khách hàng (chưa có email)"}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 font-bold block">Tiêu đề:</span>
-                <span className="text-slate-800 font-semibold">Phương Đông Showroom - Phản hồi yêu cầu tư vấn báo giá</span>
-              </div>
+              <div><span className="text-slate-400 font-bold block">Gửi tới:</span><span className="text-slate-800 font-semibold">{selectedQuote.email || "Khách hàng (chưa có email)"}</span></div>
+              <div><span className="text-slate-400 font-bold block">Tiêu đề:</span><span className="text-slate-800 font-semibold">Phương Đông Showroom - Phản hồi yêu cầu tư vấn báo giá</span></div>
               <div className="bg-slate-50 p-3 rounded border font-serif text-slate-700 leading-relaxed select-all whitespace-pre-line">
                 {`Chào anh/chị ${selectedQuote.full_name},
 
@@ -765,7 +784,7 @@ function SettingsPage() {
   );
 }
 
-function UsersPage({ createMode }: { createMode?: boolean }) {
+function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profiles?: AdminUser[] }) {
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -774,19 +793,32 @@ function UsersPage({ createMode }: { createMode?: boolean }) {
         actionHref="/admin/users?create=1"
         actionLabel="Thêm người dùng"
       />
-      <div className="surface-soft overflow-hidden">
-        {[
-          ["admin@phuongdong.vn", "Quản trị viên", "Người dùng, cài đặt, báo giá, tích hợp và toàn bộ nội dung"],
-          ["editor@phuongdong.vn", "Biên tập viên", "Sản phẩm, bài viết, trang chủ, giới thiệu, showroom và tệp có thể xuất bản"],
-        ].map(([email, role, scope], index) => (
-          <div key={email} className="flex flex-col justify-between gap-3 border-t border-outline-variant/25 p-4 transition-colors first:border-t-0 hover:bg-surface-container-lowest/70 md:flex-row md:items-center">
-            <div>
-              <h2 className="font-semibold">{email}</h2>
-              <p className="text-sm text-secondary">{role} - {scope}</p>
-            </div>
-            <StatusPill status={index === 0 ? "published" : "draft"} />
-          </div>
-        ))}
+      <div className="surface-soft overflow-hidden rounded-xl border bg-white divide-y">
+        {profiles.length === 0 ? (
+          <p className="p-8 text-center text-sm text-slate-400">Không có tài khoản quản trị nào.</p>
+        ) : (
+          profiles.map((profile) => {
+            const roleLabel = profile.role === "admin" ? "Quản trị viên" : "Biên tập viên";
+            const scope = profile.role === "admin"
+              ? "Người dùng, cài đặt, báo giá, tích hợp và toàn bộ nội dung"
+              : "Sản phẩm, bài viết, trang chủ, giới thiệu, showroom và tệp có thể xuất bản";
+            return (
+              <div key={profile.id || profile.email} className="flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-slate-50 md:flex-row md:items-center">
+                <div>
+                  <h2 className="font-semibold text-primary">{profile.email}</h2>
+                  {profile.full_name && <p className="text-xs font-medium text-slate-500">{profile.full_name}</p>}
+                  <p className="text-xs text-secondary mt-0.5">{roleLabel} — {scope}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400">
+                    {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
+                  </span>
+                  <StatusPill status={profile.is_active ? "published" : "draft"} />
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
       <AdminRouteDialog
         open={Boolean(createMode)}
@@ -801,17 +833,138 @@ function UsersPage({ createMode }: { createMode?: boolean }) {
   );
 }
 
-function AiAssistantPage() {
+function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean; promotions?: AdminPromotion[] }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editId = searchParams.get("edit");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?")) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteAdminPromotion(id);
+      if (res.success) {
+        alert("Xóa khuyến mãi thành công!");
+        router.refresh();
+      } else {
+        alert("Lỗi khi xóa khuyến mãi: " + res.error);
+      }
+    } catch (err) {
+      alert("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const columns = [
+    {
+      key: "code",
+      header: "Mã",
+      width: "15%",
+      render: (row: AdminPromotion) => <span className="font-semibold">{row.code}</span>,
+    },
+    {
+      key: "title",
+      header: "Tiêu đề",
+      width: "35%",
+      render: (row: AdminPromotion) => (
+        <div>
+          <p className="font-medium text-primary">{row.title_vi || ""}</p>
+          {row.title_en && <p className="text-xs text-slate-400">{row.title_en}</p>}
+        </div>
+      ),
+    },
+    {
+      key: "discount_percentage",
+      header: "Giảm giá",
+      width: "15%",
+      render: (row: AdminPromotion) => (
+        <span className="font-bold text-red-600">-{row.discount_percentage}%</span>
+      ),
+    },
+    {
+      key: "duration",
+      header: "Thời hạn",
+      width: "20%",
+      render: (row: AdminPromotion) => {
+        const start = row.start_at ? new Date(row.start_at).toLocaleDateString("vi-VN") : "—";
+        const end = row.end_at ? new Date(row.end_at).toLocaleDateString("vi-VN") : "—";
+        return <span className="text-xs text-secondary">{start} - {end}</span>;
+      },
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      width: "15%",
+      render: (row: AdminPromotion) => <StatusPill status={row.status as PublishStatus} />,
+    },
+    {
+      key: "actions",
+      header: "Thao tác",
+      width: "10%",
+      render: (row: AdminPromotion) => (
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/promotions?edit=${row.id}`} className="admin-edit-action">
+            <Pencil className="size-3" />
+          </Link>
+          <button
+            onClick={() => handleDelete(row.id)}
+            disabled={isDeleting}
+            className="text-slate-400 hover:text-red-600 transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <AdminPageHeader
-        title="Trợ lý AI"
-        description="Hỗ trợ bản nháp cho dịch nội dung, SEO và dàn ý trong CMS. Con người vẫn phải kiểm duyệt trước khi dùng."
+        title="Quản lý khuyến mãi"
+        description="Vận hành các chương trình khuyến mãi, combo giảm giá, chiết khấu và thiết lập thời hạn hiệu lực."
+        actionHref="/admin/promotions?create=1"
+        actionLabel="Thêm khuyến mãi"
       />
-      <AiAssistantWorkspace />
+      
+      <div className="surface-soft p-4 rounded-xl border bg-white">
+        <DataTable
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          data={promotions as any}
+          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+          columns={columns as any}
+          pageSize={10}
+          emptyMessage="Chưa có chương trình khuyến mãi nào được tạo."
+        />
+      </div>
+
+      {/* Create Dialog */}
+      <AdminRouteDialog
+        open={Boolean(createMode)}
+        returnHref="/admin/promotions"
+        title="Thêm khuyến mãi mới"
+        description="Thiết lập mã code, chiết khấu phần trăm, tiêu đề song ngữ và thời hạn khuyến mãi."
+        size="full"
+      >
+        <EntityCreateForm kind="promotion" />
+      </AdminRouteDialog>
+
+      {/* Edit Dialog */}
+      <AdminRouteDialog
+        open={Boolean(editId)}
+        returnHref="/admin/promotions"
+        title="Hiệu chỉnh khuyến mãi"
+        description="Cập nhật thông tin chi tiết chương trình khuyến mãi và thời hạn hiệu lực."
+        size="full"
+      >
+        <EntityCreateForm kind="promotion" idOrSlug={editId || undefined} />
+      </AdminRouteDialog>
     </div>
   );
 }
+
 
 function DashboardInsight() {
   return (
@@ -871,7 +1024,7 @@ function ProductOperationsTable({ products = [] }: { products?: AdminProduct[] }
               {index < 2 ? "Sẵn sàng" : "Thiếu tiếng Anh/SEO"}
             </span>
             <div className="lg:text-right">
-              <Link href={`/admin/products?edit=${product.slug}`} className="admin-edit-action">
+              <Link href={`/admin/products/${product.id || product.slug}/edit`} className="admin-edit-action">
                 <Pencil className="size-3" />
                 Chỉnh sửa
               </Link>
@@ -961,29 +1114,50 @@ function AdminPageHeader({
   );
 }
 
-function FilterCard() {
+interface ProductFilterState {
+  category: string;
+  status: string;
+  search: string;
+}
+
+function ProductFilterCard({
+  value,
+  onChange,
+  categories,
+}: {
+  value: ProductFilterState;
+  onChange: (val: ProductFilterState) => void;
+  categories?: { value: string; label: string }[];
+}) {
+  const hasActive = value.category !== "all" || value.status !== "all" || value.search !== "";
+
+  const categoryOptions = [
+    { value: "all", label: "Tất cả danh mục" },
+    ...(categories ?? [
+      { value: "wood", label: "Nội thất gỗ" },
+      { value: "sanitary", label: "Thiết bị vệ sinh" },
+    ]),
+  ];
+
   return (
-    <form method="get" className="surface-panel grid gap-4 p-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
+    <div className="surface-panel grid gap-4 p-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
       <label className="grid gap-2">
         <span className="label-pd">Danh mục</span>
         <PremiumSelect
           name="category"
-          defaultValue="all"
+          value={value.category}
           ariaLabel="Danh mục"
           placeholder="Danh mục"
           tone="admin"
-          options={[
-            { value: "all", label: "Tất cả danh mục" },
-            { value: "wood", label: "Nội thất gỗ" },
-            { value: "sanitary", label: "Thiết bị vệ sinh" },
-          ]}
+          options={categoryOptions}
+          onValueChange={(v) => onChange({ ...value, category: v })}
         />
       </label>
       <label className="grid gap-2">
         <span className="label-pd">Trạng thái</span>
         <PremiumSelect
           name="status"
-          defaultValue="all"
+          value={value.status}
           ariaLabel="Trạng thái"
           placeholder="Trạng thái"
           tone="admin"
@@ -993,21 +1167,36 @@ function FilterCard() {
             { value: "published", label: "Đã xuất bản" },
             { value: "archived", label: "Đã lưu trữ" },
           ]}
+          onValueChange={(v) => onChange({ ...value, status: v })}
         />
       </label>
       <label className="grid gap-2">
         <span className="label-pd">Tìm kiếm</span>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-outline" />
-          <input className="input-pd pl-9" name="q" placeholder="Tên, mã, đường dẫn..." />
+          <input
+            className="input-pd pl-9"
+            placeholder="Tên, mã, đường dẫn..."
+            value={value.search}
+            onChange={(e) => onChange({ ...value, search: e.target.value })}
+          />
         </div>
       </label>
-      <button className="button-pd self-end" type="submit">
-        Áp dụng bộ lọc
-      </button>
-    </form>
+      {hasActive ? (
+        <button
+          type="button"
+          className="button-pd-outline self-end"
+          onClick={() => onChange({ category: "all", status: "all", search: "" })}
+        >
+          <X className="size-4" /> Xóa lọc
+        </button>
+      ) : (
+        <div className="self-end h-10" />
+      )}
+    </div>
   );
 }
+
 
 function QuoteTable({ compact, quotes = [] }: { compact?: boolean; quotes?: AdminQuote[] }) {
   return (
@@ -1036,16 +1225,25 @@ function QuoteTable({ compact, quotes = [] }: { compact?: boolean; quotes?: Admi
 }
 
 function QuoteStatusPill({ status }: { status: string }) {
+  const statusLabels: Record<string, string> = {
+    new: "Chờ xử lý",
+    processing: "Đang xử lý",
+    contacted: "Đã liên hệ",
+    qualified: "Đủ điều kiện",
+    closed: "Đã hoàn tất",
+    cancelled: "Đã hủy",
+    spam: "Thư rác",
+  };
   const className =
     status === "new"
       ? "status-warning"
-      : status === "contacted"
+      : status === "contacted" || status === "processing"
         ? "status-muted"
-        : "status-success";
+        : status === "closed" ? "status-success" : "status-muted";
 
   return (
     <span className={`status-pill w-fit text-[11px] leading-none ${className}`}>
-      {getQuoteStatusLabel(status)}
+      {statusLabels[status] ?? status}
     </span>
   );
 }

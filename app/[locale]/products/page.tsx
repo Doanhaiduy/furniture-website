@@ -37,7 +37,7 @@ type ProductSearchParams = {
   sort?: string;
 };
 
-const productPageSize = 9;
+const productPageSize = 8;
 
 export async function generateMetadata({
   params,
@@ -87,7 +87,7 @@ export default async function ProductsPage({
     allOption,
     ...(dbCategories.length > 0 
       ? dbCategories.map((cat: any) => ({
-          value: mapDBProductGroupKeyToUI(cat.groupKey) || cat.slug,
+          value: cat.slug,
           label: cat.name,
         }))
       : productGroups.slice(0, 3).map((group) => ({

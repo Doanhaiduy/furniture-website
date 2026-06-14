@@ -1,0 +1,59 @@
+# Testing reports (not needed for build)
+playwright-report/
+test-results/
+
+# Test files (not needed for build)
+tests/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+playwright.config.ts
+
+# Documentation & design files (not needed for production)
+docs/
+03_Modern_Showroom/
+quote-form-demo-spec.md
+
+# Development & planning (not needed for build)
+.claude/
+plan/
+skills-lock.json
+
+# IDE & editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+
+# Cache & temp
+.cache/
+.turbo/
+.eslintcache
+coverage/
+
+# Docker (not needed for Vercel)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Scripts folder (not needed)
+scripts/
+
+# Local database migrations (use production ones)
+supabase/migrations/
+
+# Git files (already ignored by default)
+.git/
+.gitignore
+
+.agents
+.claude
+.gemini
+.specify
+.vscode
+/plan
+/artifacts

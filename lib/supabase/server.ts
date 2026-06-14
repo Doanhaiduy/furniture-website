@@ -30,6 +30,9 @@ export async function createClient() {
           }
         },
       },
+      cookieOptions: {
+        name: "sb-auth-token",
+      },
     }
   );
 }
@@ -52,6 +55,9 @@ export function createAdminClient() {
         setAll() {
           // No-op for service role client
         },
+      },
+      cookieOptions: {
+        name: "sb-auth-token",
       },
     }
   );

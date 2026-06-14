@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     });
     await supabase
       .from("quote_notifications")
-      .update({ status: notificationStatus, error_detail: emailError })
+      .update({ status: notificationStatus, last_error: emailError })
       .eq("quote_request_id", quote.id);
   }
 
