@@ -2720,11 +2720,20 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
 
+  // N-N products states
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  const [searchVal, setSearchVal] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
   useEffect(() => {
     if (isEdit) {
       const loadPromotion = async () => {
         try {
-          const { getAdminPromotionById } = await import("@/lib/supabase/admin-queries");
+          const { getAdminPromotionById, getProductsByIds } = await import("@/lib/supabase/admin-queries");
           const res = await getAdminPromotionById(editId);
           if (res.success && res.data) {
             const p = res.data;
@@ -2739,6 +2748,12 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setCoverImage(p.cover_image_url || p.cover_image || "");
             setItemsList(p.items && p.items.length > 0 ? p.items : [""]);
             setStatus(p.status || "draft");
+
+            if (p.productIds && p.productIds.length > 0) {
+              setSelectedProductIds(p.productIds);
+              const prods = await getProductsByIds(p.productIds);
+              setSelectedProducts(prods);
+            }
           }
         } catch (e) {
           console.error("Failed to load promotion:", e);
@@ -2768,6 +2783,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         original_price: originalPrice ? Number(originalPrice) : null,
         items: itemsList.filter(i => i.trim() !== ""),
         status,
+        productIds: selectedProductIds,
       };
 
       let res;
@@ -2787,6 +2803,35 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setFormError("Lỗi kết nối.");
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleSearchProducts = async (val: string) => {
+    setSearchVal(val);
+    if (!val.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setSearching(true);
+    try {
+      const { searchAdminProducts } = await import("@/lib/supabase/admin-queries");
+      const results = await searchAdminProducts(val);
+      setSearchResults(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleToggleProduct = (prod: any) => {
+    if (selectedProductIds.includes(prod.id)) {
+      setSelectedProductIds(selectedProductIds.filter(id => id !== prod.id));
+      setSelectedProducts(selectedProducts.filter(p => p.id !== prod.id));
+    } else {
+      setSelectedProductIds([...selectedProductIds, prod.id]);
+      setSelectedProducts([...selectedProducts, prod]);
     }
   };
 
@@ -2864,6 +2909,66 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                 + Thêm sản phẩm
               </button>
             </div>
+          </div>
+
+          <div className="grid gap-2 mt-4 pt-4 border-t border-slate-200">
+            <span className="label-pd">Áp dụng cho các sản phẩm thật (N-N)</span>
+            <div className="flex gap-2">
+              <input
+                className="input-pd bg-white flex-1"
+                type="text"
+                placeholder="Nhập tên hoặc mã sản phẩm để tìm kiếm..."
+                value={searchVal}
+                onChange={(e) => handleSearchProducts(e.target.value)}
+              />
+            </div>
+
+            {/* Search Results */}
+            {searchResults.length > 0 && (
+              <div className="border rounded-lg bg-white divide-y max-h-48 overflow-y-auto mt-2">
+                {searchResults.map((prod) => {
+                  const isChecked = selectedProductIds.includes(prod.id);
+                  return (
+                    <div key={prod.id} className="flex items-center justify-between p-2 hover:bg-slate-50 text-xs">
+                      <div>
+                        <span className="font-semibold text-primary">{prod.name}</span>
+                        <span className="text-slate-400 ml-2 font-mono">({prod.reference_code})</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleProduct(prod)}
+                        className={`px-3 py-1 rounded text-xs font-semibold ${
+                          isChecked ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                        }`}
+                      >
+                        {isChecked ? "Bỏ chọn" : "Chọn"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Selected Products List */}
+            {selectedProducts.length > 0 && (
+              <div className="mt-3">
+                <span className="text-xs font-bold text-slate-500 block mb-1.5 font-heading">Sản phẩm đã chọn ({selectedProducts.length}):</span>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProducts.map((prod) => (
+                    <div key={prod.id} className="flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-900 text-xs px-2.5 py-1 rounded-full">
+                      <span>{prod.name} ({prod.reference_code})</span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleProduct(prod)}
+                        className="text-indigo-400 hover:text-indigo-600 font-bold ml-1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

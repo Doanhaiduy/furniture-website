@@ -819,6 +819,7 @@ export async function createAdminPromotion(data: {
   combo_price?: number | null;
   original_price?: number | null;
   items?: string[];
+  productIds?: string[];
 }): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
@@ -922,6 +923,15 @@ export async function createAdminPromotion(data: {
       { code: data.code, title_vi: data.title_vi }
     );
 
+    // Sync product links (N-N)
+    if (data.productIds && data.productIds.length > 0) {
+      const inserts = data.productIds.map((pid: string) => ({
+        product_id: pid,
+        promotion_id: promo.id,
+      }));
+      await supabase.from("product_promotions").insert(inserts);
+    }
+
     return {
       success: true,
       data: {
@@ -961,6 +971,7 @@ export async function updateAdminPromotion(
     combo_price?: number | null;
     original_price?: number | null;
     items?: string[];
+    productIds?: string[];
   }
 ): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
@@ -1065,6 +1076,16 @@ export async function updateAdminPromotion(
       { code: data.code, title_vi: data.title_vi }
     );
 
+    // Sync product links (N-N)
+    await supabase.from("product_promotions").delete().eq("promotion_id", id);
+    if (data.productIds && data.productIds.length > 0) {
+      const inserts = data.productIds.map((pid: string) => ({
+        product_id: pid,
+        promotion_id: id,
+      }));
+      await supabase.from("product_promotions").insert(inserts);
+    }
+
     return {
       success: true,
       data: {
@@ -1167,6 +1188,13 @@ export async function getAdminPromotionById(id: string): Promise<{ success: bool
       return { success: false, error: error?.message || "Promotion not found" };
     }
 
+    // Query associated products
+    const { data: pLinks } = await supabase
+      .from("product_promotions")
+      .select("product_id")
+      .eq("promotion_id", id);
+    const productIds = pLinks ? pLinks.map((l: any) => l.product_id) : [];
+
     const translations = Array.isArray(promo.promotion_translations) ? promo.promotion_translations : [];
     const viTrans = translations.find((t: any) => t.locale === "vi");
     const enTrans = translations.find((t: any) => t.locale === "en");
@@ -1192,6 +1220,7 @@ export async function getAdminPromotionById(id: string): Promise<{ success: bool
         title_en: enTrans?.title || "",
         description_vi: viTrans?.description || "",
         description_en: enTrans?.description || "",
+        productIds,
       }
     };
   } catch (err) {
@@ -1330,3 +1359,79 @@ export async function getQuoteStatusLogs(quoteId: string): Promise<QuoteStatusLo
     return [];
   }
 }
+
+export async function searchAdminProducts(q: string): Promise<any[]> {
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  if (useMock) {
+    const matched = mockProducts.filter(p => 
+      p.name.vi.toLowerCase().includes(q.toLowerCase()) ||
+      p.reference_code.toLowerCase().includes(q.toLowerCase())
+    );
+    return matched.map(p => ({
+      id: p.id,
+      reference_code: p.reference_code,
+      name: p.name.vi
+    }));
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        reference_code,
+        product_translations!inner (name, locale)
+      `)
+      .eq("product_translations.locale", "vi")
+      .or(`reference_code.ilike.%${q}%,product_translations.name.ilike.%${q}%`)
+      .limit(10);
+    
+    if (error) return [];
+    return data.map(p => ({
+      id: p.id,
+      reference_code: p.reference_code,
+      name: p.product_translations[0]?.name || ""
+    }));
+  } catch (e) {
+    console.error("Failed to search products:", e);
+    return [];
+  }
+}
+
+export async function getProductsByIds(ids: string[]): Promise<any[]> {
+  if (!ids || ids.length === 0) return [];
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  if (useMock) {
+    const matched = mockProducts.filter(p => ids.includes(p.id));
+    return matched.map(p => ({
+      id: p.id,
+      reference_code: p.reference_code,
+      name: p.name.vi
+    }));
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        id,
+        reference_code,
+        product_translations!inner (name, locale)
+      `)
+      .eq("product_translations.locale", "vi")
+      .in("id", ids);
+    
+    if (error) return [];
+    return data.map(p => ({
+      id: p.id,
+      reference_code: p.reference_code,
+      name: p.product_translations[0]?.name || ""
+    }));
+  } catch (e) {
+    console.error("Failed to get products by ids:", e);
+    return [];
+  }
+}
+

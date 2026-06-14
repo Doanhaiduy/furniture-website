@@ -96,12 +96,14 @@ export function PublicShell({
   labels,
   siteSettings,
   brands = [],
+  categories = [],
 }: {
   children: React.ReactNode;
   locale: Locale;
   labels: PublicShellLabels;
   siteSettings?: PublicSiteSettings;
   brands?: any[];
+  categories?: any[];
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -192,26 +194,81 @@ export function PublicShell({
     };
   });
 
-  const typeSections: TypeSection[] = typeCatalogSections.map((section) => {
-    const group = productGroups.find((item) => item.key === section.key) ?? productGroups[0];
-    return {
-      key: section.key,
-      href: withLocale(locale, group.href),
-      image: group.image,
-      title: localized(group.title, locale),
-      summary: localized(group.summary, locale),
-      columns: section.columns.map((column) => ({
-        title: localized(column.title, locale),
-        items: column.items.map((item) => ({
-          href: withLocale(locale, item.href),
-          label: localized(item.label, locale),
-        })),
-      })),
-      products: section.productSlugs
-        .map((slug) => productLinkFromSlug(slug))
-        .filter((item): item is CatalogLink => Boolean(item)),
-    };
-  });
+  const typeSections: TypeSection[] = categories && categories.length > 0
+    ? productGroups.map((group) => {
+        // Map UI group key to DB groupKey
+        let dbGroupKey = "";
+        if (group.key === "wood") dbGroupKey = "wooden_furniture";
+        else if (group.key === "sanitary") dbGroupKey = "sanitary_equipment";
+        else if (group.key === "tiles") dbGroupKey = "tiles";
+        else if (group.key === "solutions") dbGroupKey = "project_solutions";
+
+        const groupCats = categories.filter((cat) => cat.groupKey === dbGroupKey);
+        
+        // Find parent categories (parentId is null/empty)
+        const parentCats = groupCats.filter((cat) => !cat.parentId);
+        
+        const columns = parentCats.map((parent) => {
+          const children = groupCats.filter((cat) => cat.parentId === parent.id);
+          return {
+            title: parent.name,
+            items: children.map((child) => ({
+              href: withLocale(locale, `/products?category=${child.slug}`),
+              label: child.name,
+            })),
+          };
+        });
+
+        // Handle flat categories
+        if (columns.length === 0 && groupCats.length > 0) {
+          columns.push({
+            title: locale === "vi" ? "Danh mục chính" : "Main Categories",
+            items: groupCats.map((cat) => ({
+              href: withLocale(locale, `/products?category=${cat.slug}`),
+              label: cat.name,
+            })),
+          });
+        }
+
+        // Get 3 representative products for this group
+        const groupProducts = products
+          .filter((p) => (p as any).categoryKey === group.key && p.status === "published")
+          .slice(0, 3)
+          .map((p) => ({
+            href: withLocale(locale, `/products/${p.slug}`),
+            label: localized(p.name, locale),
+          }));
+
+        return {
+          key: group.key,
+          href: withLocale(locale, group.href),
+          image: group.image,
+          title: localized(group.title, locale),
+          summary: localized(group.summary, locale),
+          columns,
+          products: groupProducts,
+        };
+      })
+    : typeCatalogSections.map((section) => {
+        const group = productGroups.find((item) => item.key === section.key) ?? productGroups[0];
+        return {
+          key: section.key,
+          href: withLocale(locale, group.href),
+          image: group.image,
+          title: localized(group.title, locale),
+          summary: localized(group.summary, locale),
+          columns: section.columns.map((column) => ({
+            title: localized(column.title, locale),
+            items: column.items.map((item) => ({
+              href: withLocale(locale, item.href),
+              label: localized(item.label, locale),
+            })),
+          })),
+          products: section.productSlugs
+            .map((slug) => productLinkFromSlug(slug))
+            .filter((item): item is CatalogLink => Boolean(item)),
+        };
+      });
 
   const activeBrand = brandSections.find((section) => section.key === activeCatalog.key) ?? brandSections[0];
   const activeType = typeSections.find((section) => section.key === activeCatalog.key) ?? typeSections[0];

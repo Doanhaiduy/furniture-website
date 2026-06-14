@@ -249,7 +249,8 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
     let query = supabase.from("products").select(`
       *,
       product_translations (*),
-      product_media (media_id, is_primary, media:media_assets (public_url))
+      product_media (media_id, is_primary, media:media_assets (public_url)),
+      product_promotions (promotion_id)
     `);
     
     if (idOrSlug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
@@ -301,7 +302,7 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
         price_max: product.price_max ? Number(product.price_max) : null,
         currency: product.currency,
         featured: product.featured,
-        promotion_id: product.promotion_id,
+        promotion_id: product.product_promotions?.[0]?.promotion_id || null,
         promo_price_min: product.promo_price_min ? Number(product.promo_price_min) : null,
         promo_price_max: product.promo_price_max ? Number(product.promo_price_max) : null,
         cover_image: coverImage,
@@ -504,7 +505,6 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
         brand_id: data.brand_id,
         brand_series: data.brand_series,
         featured: data.featured,
-        promotion_id: data.promotion_id,
         promo_price_min: data.promo_price_min,
         promo_price_max: data.promo_price_max,
         created_by: user.id,
@@ -516,6 +516,14 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
 
     if (productError || !product) {
       return { success: false, error: productError?.message || "Failed to create product" };
+    }
+
+    // Insert promotion link
+    if (data.promotion_id) {
+      await supabase.from("product_promotions").insert({
+        product_id: product.id,
+        promotion_id: data.promotion_id,
+      });
     }
 
     // Insert translations
@@ -691,9 +699,7 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
         height: data.height,
         dimension_unit: data.dimension_unit,
         brand_id: data.brand_id,
-        brand_series: data.brand_series,
         featured: data.featured,
-        promotion_id: data.promotion_id,
         promo_price_min: data.promo_price_min,
         promo_price_max: data.promo_price_max,
         updated_by: user.id,
@@ -706,6 +712,15 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
 
     if (productError || !product) {
       return { success: false, error: productError?.message || "Failed to update product" };
+    }
+
+    // Sync promotion links (N-N)
+    await supabase.from("product_promotions").delete().eq("product_id", id);
+    if (data.promotion_id) {
+      await supabase.from("product_promotions").insert({
+        product_id: id,
+        promotion_id: data.promotion_id,
+      });
     }
 
     // Upsert translations

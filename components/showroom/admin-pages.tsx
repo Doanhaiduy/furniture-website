@@ -49,7 +49,14 @@ import { RemoteImage } from "./remote-image";
 import { PremiumSelect } from "./premium-select";
 import { DashboardInsightChart } from "./admin-dashboard-widgets";
 import { DataTable } from "@/components/admin/DataTable";
-import { BrandsAdmin, type Brand } from "@/components/admin/brands-admin";
+export interface Brand {
+  id: string;
+  name: { vi: string; en: string };
+  origin?: string;
+  logo_url?: string;
+  status: "draft" | "published" | "archived";
+  sort_order: number;
+}
 export { AdminLoginPage, AccessDeniedPage } from "./admin-login";
 
 export const adminSections = [
@@ -163,7 +170,7 @@ export function AdminSectionPage({
   if (section === "media") return <MediaPage uploadMode={uploadMode} />;
   if (section === "settings") return <SettingsPage />;
   if (section === "users") return <UsersPage createMode={createMode} profiles={profiles ?? []} />;
-  if (section === "brands") return <BrandsAdmin initialBrands={brands ?? []} />;
+  if (section === "brands") return <BrandsPage createMode={createMode} brands={brands ?? []} />;
   if (section === "blog") return <BlogPage createMode={createMode} posts={blogPosts ?? []} />;
   if (section === "showrooms") return <ShowroomPage createMode={createMode} showrooms={showrooms ?? []} />;
   if (section === "categories") return <CategoryPage createMode={createMode} categories={categories ?? []} />;
@@ -342,6 +349,126 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
         size="full"
       >
         <EntityCreateForm kind="category" idOrSlug={editSlug || undefined} />
+      </AdminRouteDialog>
+    </div>
+  );
+}
+
+function BrandsPage({ createMode, brands = [] }: { createMode?: boolean; brands?: Brand[] }) {
+  const searchParams = useSearchParams();
+  const editSlug = searchParams.get("edit");
+  const [search, setSearch] = useState("");
+
+  const filtered = brands.filter((b) => {
+    const nameVi = b.name?.vi || "";
+    const nameEn = b.name?.en || "";
+    return (
+      search === "" ||
+      nameVi.toLowerCase().includes(search.toLowerCase()) ||
+      nameEn.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
+  const sorted = [...filtered].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
+  return (
+    <div className="space-y-5">
+      <AdminPageHeader
+        title="Quản trị thương hiệu"
+        description="Quản lý thương hiệu đối tác liên kết, logo, nguồn gốc xuất xứ và trạng thái hiển thị."
+        actionHref="/admin/brands?create=1"
+        actionLabel="Thêm thương hiệu"
+      />
+
+      <div className="card-pd p-4 flex items-center justify-between gap-4">
+        <div className="flex-1 max-w-sm relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <input
+            className="input-pd pl-9 w-full bg-white text-sm"
+            placeholder="Tìm kiếm thương hiệu..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {sorted.length === 0 ? (
+          <p className="col-span-full p-8 text-center text-sm text-slate-400">Không tìm thấy thương hiệu nào.</p>
+        ) : (
+          sorted.map((brand) => (
+            <div key={brand.id} className="card-pd interactive-card p-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <p className="label-pd">#{brand.sort_order ?? "—"}</p>
+                  <StatusPill status={brand.status as PublishStatus} />
+                </div>
+                <div className="space-y-2.5 mt-3">
+                  <div className="flex gap-3 items-start">
+                    {brand.logo_url ? (
+                      <img
+                        src={brand.logo_url}
+                        alt={brand.name?.vi || "Logo"}
+                        className="size-12 rounded border object-contain bg-slate-50"
+                      />
+                    ) : (
+                      <div className="size-12 rounded border bg-slate-100 flex items-center justify-center text-xs text-slate-400 font-semibold">
+                        No Logo
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-heading font-semibold text-primary block leading-tight">{brand.name?.vi || "—"}</span>
+                      {brand.name?.en && brand.name?.en !== brand.name?.vi && (
+                        <p className="text-xs text-secondary mt-0.5">{brand.name.en}</p>
+                      )}
+                      {brand.origin && (
+                        <p className="text-[10px] text-slate-500 mt-1 font-semibold uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded inline-block">
+                          {brand.origin}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                <Link href={`/admin/brands?edit=${brand.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
+                  <Pencil className="size-3" />
+                  Chỉnh sửa
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Create Dialog */}
+      <AdminRouteDialog
+        open={Boolean(createMode)}
+        returnHref="/admin/brands"
+        title="Thêm thương hiệu"
+        description="Tạo thương hiệu đối tác mới kèm logo, nguồn gốc xuất xứ và thông tin mô tả."
+        size="full"
+      >
+        <EntityCreateForm kind="brand" />
+      </AdminRouteDialog>
+
+      {/* Edit Dialog */}
+      <AdminRouteDialog
+        open={Boolean(editSlug)}
+        returnHref="/admin/brands"
+        title="Hiệu chỉnh thương hiệu"
+        description="Chỉnh sửa chi tiết thương hiệu đối tác, thay đổi logo và cấu hình hiển thị."
+        size="full"
+      >
+        <EntityCreateForm kind="brand" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
     </div>
   );

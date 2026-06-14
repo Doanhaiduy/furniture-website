@@ -21,7 +21,7 @@ import {
   type AdminUser,
 } from "@/lib/supabase/admin-queries";
 import { getAdminBrands } from "@/lib/supabase/brands-mutations";
-import { type Brand } from "@/components/admin/brands-admin";
+import { type Brand } from "@/components/showroom/admin-pages";
 
 const adminSections = [
   "products",

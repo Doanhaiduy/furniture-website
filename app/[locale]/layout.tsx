@@ -56,12 +56,16 @@ export default async function LocaleLayout({
   const brandsRes = await getPublicBrands();
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 
+  const { getCategories } = await import("@/lib/supabase/queries");
+  const publicCategories = await getCategories(supabase, locale as "vi" | "en");
+
   return (
     <NextIntlClientProvider messages={messages}>
       <PublicShell
         locale={locale as Locale}
         siteSettings={siteSettings}
         brands={publicBrands}
+        categories={publicCategories}
         labels={{
           common: {
             brand: common("brand"),
