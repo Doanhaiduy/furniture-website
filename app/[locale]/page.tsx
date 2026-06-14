@@ -19,6 +19,7 @@ import { HeroShowcase } from "@/components/showroom/hero-showcase";
 import { ProductCard } from "@/components/showroom/product-card";
 import { createClient } from "@/lib/supabase/server";
 import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock } from "@/lib/supabase/queries";
+import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 export async function generateMetadata({
   params,
@@ -73,13 +74,50 @@ export default async function HomePage({
         name: s.name,
         address: s.address,
         hotline: s.hotline,
+        mapUrl: s.map_url,
       }))
-    : showrooms.slice(0, 2).map((s: any) => ({
-        code: s.code,
-        name: localized(s.name, locale),
-        address: localized(s.address, locale),
-        hotline: s.hotline,
-      }));
+    : showrooms.slice(0, 2);
+
+  const { data: dbBrands } = await getPublicBrands().catch(() => ({ data: [] }));
+
+  const staticBrands = [
+    { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+    { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
+    { name: "TOTO", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+    { name: "INAX", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
+    { name: "AMERICAN STANDARD", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
+    { name: "BRAVAT", desc: locale === "vi" ? "Đức" : "Germany" },
+    { name: "HAFELE", desc: locale === "vi" ? "Đức" : "Germany" },
+    { name: "BANCOOT", desc: locale === "vi" ? "Ý" : "Italy" },
+    { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
+    { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
+  ];
+
+  const getBrandDisplayName = (b: any) => {
+    if (!b) return "";
+    if (typeof b.name === "object" && b.name !== null) {
+      return locale === "vi" ? b.name.vi : (b.name.en || b.name.vi);
+    }
+    return b.name || "";
+  };
+
+  const getBrandDisplayOrigin = (b: any) => {
+    if (!b) return "";
+    if (b.desc) return b.desc;
+    const origin = b.origin || "";
+    if (locale === "vi") {
+      if (origin.toUpperCase() === "GERMANY") return "Đức";
+      if (origin.toUpperCase() === "JAPAN") return "Nhật Bản";
+      if (origin.toUpperCase() === "USA") return "Hoa Kỳ";
+      if (origin.toUpperCase() === "ITALY") return "Ý";
+      if (origin.toUpperCase() === "TAIWAN") return "Đài Loan";
+    }
+    return origin;
+  };
+
+  const activeBrands = dbBrands && dbBrands.length > 0
+    ? dbBrands
+    : staticBrands;
 
   const heroGroups = productGroups.slice(0, 2).map((group) => ({
     href: withLocale(locale, group.href),
@@ -140,52 +178,30 @@ export default async function HomePage({
           
           <div className="animate-marquee-pd flex items-center gap-6">
             {/* Loop 1 */}
-            {[
-              { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
-              { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "TOTO", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
-              { name: "INAX", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
-              { name: "AMERICAN STANDARD", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
-              { name: "BRAVAT", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "HAFELE", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "BANCOOT", desc: locale === "vi" ? "Ý" : "Italy" },
-              { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
-              { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
-            ].map((brand, i) => (
+            {activeBrands.map((brand, i) => (
               <div
                 key={`marquee-1-${i}`}
                 className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
               >
-                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container">
-                  {brand.name}
+                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
+                  {getBrandDisplayName(brand)}
                 </span>
                 <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
-                  {brand.desc}
+                  {getBrandDisplayOrigin(brand)}
                 </span>
               </div>
             ))}
             {/* Loop 2 */}
-            {[
-              { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
-              { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "TOTO", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
-              { name: "INAX", desc: locale === "vi" ? "Nhật Bản" : "Japan" },
-              { name: "AMERICAN STANDARD", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
-              { name: "BRAVAT", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "HAFELE", desc: locale === "vi" ? "Đức" : "Germany" },
-              { name: "BANCOOT", desc: locale === "vi" ? "Ý" : "Italy" },
-              { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
-              { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
-            ].map((brand, i) => (
+            {activeBrands.map((brand, i) => (
               <div
                 key={`marquee-2-${i}`}
                 className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
               >
-                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container">
-                  {brand.name}
+                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
+                  {getBrandDisplayName(brand)}
                 </span>
                 <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
-                  {brand.desc}
+                  {getBrandDisplayOrigin(brand)}
                 </span>
               </div>
             ))}

@@ -7,10 +7,10 @@ This is the central status board tracking progress of the Showroom site implemen
 ## 1. Project Overview & Meta Information
 
 - **Current Active Phase**: Re-audit Phase 03: Missing Admin Sections & Services
-- **Last Completed Task**: Tích hợp API settings server-side, sửa lỗi localStorage ở Admin Settings; hoàn thiện UI Quản lý tài khoản CMS (cho phép sửa role và active status thông qua modal); khắc phục cursor-pointer trên Hero Carousel public và căn chỉnh cân đối trục tâm Floating FAB menu. (June 14, 2026)
-- **Next Recommended Task**: Tiếp tục Re-Audit v2 Sprint (refactor Brands admin và Promotions admin).
-- **Last Updated**: 2026-06-14T09:00:00+07:00
-- **Status Summary**: Tích hợp cài đặt hệ thống, quản lý tài khoản và sửa các lỗi UX/UI đã được kiểm chứng hoàn thành (lint + typecheck + test pass).
+- **Last Completed Task**: Triển khai nâng cấp UI/UX: Rich-text editor Markdown với Live Preview cho Blog, Hãng đối tác public page lấy từ DB, Đồng bộ phối màu ấm áp cho trang Promotions, và tối ưu sticky TOC sidebar cho trang chi tiết Blog. (June 14, 2026)
+- **Next Recommended Task**: Chuẩn bị đề xuất trong chế độ REVIEW cho Sprint tiếp theo (Tối ưu hóa bộ lọc sản phẩm server-side RPC).
+- **Last Updated**: 2026-06-14T09:35:00+07:00
+- **Status Summary**: Tích hợp nâng cấp UI/UX cho Blog editor, hiển thị thương hiệu động, phối màu ấm áp cho trang khuyến mãi, và tối ưu cuộn trang blog chi tiết thành công (lint + typecheck + test + build pass).
 
 ---
 

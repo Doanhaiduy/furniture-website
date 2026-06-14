@@ -269,37 +269,35 @@ export default async function BlogDetailPage({
             </div>
           </div>
 
-          <aside className="hidden self-start lg:block">
-            <div className="sticky top-28 space-y-5">
-              <div className="public-content-card p-5">
-                <ArticleToc items={tocItems} title={t("toc")} />
-              </div>
-              <div className="public-content-card p-5">
-                <p className="label-pd">{t("related")}</p>
-                <div className="mt-4 grid gap-4">
-                  {related.map((item) => (
-                    <Link
-                      key={item.slug}
-                      href={withLocale(locale, `/blog/${item.slug}`)}
-                      className="public-related-link group"
-                    >
-                      <RemoteImage
-                        src={item.image}
-                        alt={localized(item.title, locale)}
-                        className="public-media-thumb h-28 w-full object-cover"
-                        sizes="320px"
-                      />
-                      <div>
-                        <h3 className="font-semibold leading-snug text-primary">{localized(item.title, locale)}</h3>
-                        <p className="mt-2 text-sm text-secondary">{localized(item.readTime, locale)}</p>
-                        <span className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-primary">
-                          {t("continueReading")}
-                          <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+          <aside className="hidden lg:block lg:sticky lg:top-28 lg:self-start space-y-5 w-[320px] shrink-0">
+            <div className="public-content-card p-5">
+              <ArticleToc items={tocItems} title={t("toc")} />
+            </div>
+            <div className="public-content-card p-5">
+              <p className="label-pd">{t("related")}</p>
+              <div className="mt-4 grid gap-4">
+                {related.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={withLocale(locale, `/blog/${item.slug}`)}
+                    className="public-related-link group block"
+                  >
+                    <RemoteImage
+                      src={item.image}
+                      alt={localized(item.title, locale)}
+                      className="public-media-thumb h-28 w-full object-cover rounded-lg overflow-hidden"
+                      sizes="320px"
+                    />
+                    <div className="mt-3">
+                      <h3 className="font-semibold leading-snug text-primary text-sm group-hover:text-primary-container transition-colors line-clamp-2">{localized(item.title, locale)}</h3>
+                      <p className="mt-1.5 text-xs text-secondary">{localized(item.readTime, locale)}</p>
+                      <span className="mt-2 inline-flex items-center gap-2 text-xs font-bold text-primary">
+                        {t("continueReading")}
+                        <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                      </span>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </aside>

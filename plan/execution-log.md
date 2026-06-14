@@ -783,3 +783,69 @@ This is a chronological log of all execution sessions performed by the Plan Exec
 - **Result**: **SUCCESS**. Hoàn thành xuất sắc sprint tích hợp cài đặt server-side, quản lý tài khoản và sửa các lỗi UX/UI.
 - **Encountered Blockers**: Không có.
 - **Next Action**: Chuẩn bị Review Mode proposal cho Re-audit Phase A3/C2/C3: Brands, Promotions và Menu DB integration.
+
+---
+
+## [2026-06-14T09:15:00+07:00] - Session 24: Triển khai Re-audit Phase A3/C2/C3: Brands, Promotions và Menu DB integration
+
+- **Agent ID**: Antigravity (Principal Full-stack Engineer + Tech Lead)
+- **Phase**: Re-audit Phase 03: Missing Admin Sections & Services
+- **Tasks Attempted**:
+  - **A3 (Promotions Migration)**: Tạo migration `20260614_product_promotions.sql` tạo bảng join `product_promotions`, bật RLS, migrate dữ liệu cũ và cập nhật helper function `get_active_promotions_for_product` hỗ trợ join table N-N.
+  - **C2 (Brands Admin CRUD)**: Đồng bộ trang quản lý Thương hiệu trong Admin theo mẫu DataTable và mở form biên tập qua `AdminRouteDialog` (modal full-screen overlay), xóa bỏ component cũ `BrandsAdmin` không sử dụng.
+  - **C3/C4 (Promotions & Product Form)**:
+    - Bổ sung UI tìm kiếm và tích chọn gán sản phẩm N-N cho Promotions Form trong `admin-workflows.tsx`.
+    - Đồng bộ mảng `productIds` đã chọn vào bảng `product_promotions` trong `createAdminPromotion` và `updateAdminPromotion`.
+    - Cập nhật mutations `createAdminProduct` và `updateAdminProduct` để hỗ trợ liên kết sản phẩm với các khuyến mãi qua bảng join.
+  - **C3 (Mega Menu)**: Sửa `app/[locale]/layout.tsx` và `components/showroom/public-shell.tsx` để categories và brands được render động chuẩn xác từ dữ liệu DB thay cho dữ liệu tĩnh.
+- **Files Updated**:
+  - `app/[locale]/layout.tsx`
+  - `app/admin/[section]/page.tsx`
+  - `app/admin/brands/page.tsx`
+  - `components/showroom/admin-pages.tsx`
+  - `components/showroom/admin-workflows.tsx`
+  - `components/showroom/public-shell.tsx`
+  - `lib/supabase/admin-queries.ts`
+  - `lib/supabase/mutations.ts`
+  - `supabase/migrations/20260614_product_promotions.sql`
+- **Files Deleted**:
+  - `components/admin/brands-admin.tsx`
+- **Tests/Checks Run**:
+  - `pnpm typecheck` -> Thành công (no errors).
+  - `pnpm lint` -> Thành công (0 errors, 51 warnings).
+  - `pnpm test` -> 32/32 unit tests passed.
+  - `pnpm build` -> Thành công 100% (Turbopack compile and page generation succeeded).
+  - Browser MCP -> Đăng nhập admin thành công; truy cập mục Thương hiệu và Khuyến mãi kiểm chứng giao diện DataTable và form CRUD hiển thị đúng trong full-screen modal overlay.
+- **Result**: **SUCCESS**. Hoàn thành xuất sắc toàn bộ Phase A3/C2/C3, tích hợp thành công quan hệ sản phẩm - khuyến mãi N-N và tải động dữ liệu Mega Menu từ DB.
+- **Encountered Blockers**: Không có.
+- **Next Action**: Tiếp tục rà soát và nâng cấp các phần còn lại của dự án (Rich-text editor cho Blog, Partner brands từ DB, v.v.).
+
+---
+
+## [2026-06-14T09:35:00+07:00] - Session 25: Nâng cấp UI/UX & Tích hợp Dữ liệu Động (C8, E1, E2, E5)
+
+- **Agent ID**: Antigravity (Principal Full-stack Engineer + Tech Lead)
+- **Phase**: Re-audit Phase 03: Missing Admin Sections & Services
+- **Tasks Attempted**:
+  - **C8 (Blog Editor)**: Nâng cấp `RichTextEditorMock` hỗ trợ thanh công cụ Markdown (Bold, Italic, H2, H3, Bullet list, Quote, Link, Image, Table) và tab Live HTML Preview thông qua parser regex an toàn.
+  - **E1 (Partner Brands)**: Tải hãng đối tác ở trang chủ động từ DB qua `getPublicBrands()` với fallback an toàn.
+  - **E2 (Promotions Page)**: Đồng bộ màu sắc slate/blue lam lạc lõng sang tông màu nâu trầm gỗ (`#211816`, be vàng) sang trọng của showroom, hiển thị khuyến mãi động.
+  - **E5 (Blog Detail Sticky TOC)**: Tối ưu sidebar mục lục (TOC) và bài viết liên quan của trang chi tiết blog để sticky hoạt động mượt mà khi cuộn trang bằng cách đưa các thuộc tính `sticky top-28 self-start` trực tiếp lên thẻ `<aside>`.
+  - **Env Restoring**: Khôi phục `NEXT_PUBLIC_USE_MOCK_DATA=false` trong file `.env`.
+- **Files Modified**:
+  - `components/showroom/admin-interactions.tsx`
+  - `app/[locale]/page.tsx`
+  - `app/[locale]/promotions/page.tsx`
+  - `app/[locale]/blog/[slug]/page.tsx`
+  - `.env`
+  - `plan/execution-status.md`
+  - `plan/execution-log.md`
+  - `plan/99-next-action.md`
+- **Tests/Checks Run**:
+  - `pnpm typecheck` -> Thành công (no errors).
+  - `pnpm lint` -> Thành công (0 errors, 52 warnings).
+  - `pnpm test` -> 32/32 unit tests passed.
+  - `pnpm build` -> Thành công 100% (Turbopack compile and page generation succeeded).
+- **Result**: **SUCCESS**. Hoàn thành xuất sắc sprint cải thiện UI/UX và đồng bộ dữ liệu động thực tế.
+- **Encountered Blockers**: Không có.
+- **Next Action**: Chạy Git commit và chuẩn bị Review Mode proposal cho Sprint tiếp theo.

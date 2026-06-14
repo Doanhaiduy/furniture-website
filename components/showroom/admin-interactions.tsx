@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Archive,
   Bot,
@@ -345,53 +345,238 @@ export function RichTextEditorMock({
   onChange?: (val: string) => void;
   placeholder?: string;
 }) {
-  const [bold, setBold] = useState(false);
-  const [italic, setItalic] = useState(false);
-  const [imageInserted, setImageInserted] = useState(false);
+  const [activeMode, setActiveMode] = useState<"write" | "preview">("write");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Function to insert markdown wrappers around selection or at cursor
+  const insertMarkdown = (before: string, after: string = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const selectedText = text.substring(start, end);
+    const replacement = before + selectedText + after;
+
+    const newValue = text.substring(0, start) + replacement + text.substring(end);
+
+    if (onChange) {
+      onChange(newValue);
+    } else {
+      textarea.value = newValue;
+    }
+
+    // Restore focus and update selection range
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + before.length + selectedText.length + after.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  // Safe and lightweight offline Markdown parser
+  const renderMarkdownToHtml = (markdown: string): string => {
+    if (!markdown) return "<p class='text-slate-400 italic'>Chưa có nội dung xem trước...</p>";
+
+    // Basic HTML escaping for safety
+    let html = markdown
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Bold (**text**)
+    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    // Italic (*text*)
+    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+    // Headings
+    html = html.replace(/^### (.*?)$/gm, "<h4 class='text-base font-bold text-slate-800 mt-4 mb-2'>$1</h4>");
+    html = html.replace(/^## (.*?)$/gm, "<h3 class='text-lg font-bold text-slate-900 mt-5 mb-2'>$1</h3>");
+    html = html.replace(/^# (.*?)$/gm, "<h2 class='text-xl font-bold text-slate-950 mt-6 mb-3'>$1</h2>");
+    // Blockquotes (> text)
+    html = html.replace(/^&gt; (.*?)$/gm, "<blockquote class='border-l-4 border-amber-500 pl-4 py-2 italic text-slate-600 my-4 bg-amber-50/20'>$1</blockquote>");
+    // Bullet lists (- text)
+    html = html.replace(/^- (.*?)$/gm, "<li class='list-disc ml-6 text-slate-700 my-1'>$1</li>");
+    // Links ([text](url))
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-indigo-600 underline hover:text-indigo-800' target='_blank' rel='noopener noreferrer'>$1</a>");
+    
+    // Parse tables (| col1 | col2 |)
+    const lines = html.split("\n");
+    let inTable = false;
+    let tableHtml = "";
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith("|") && line.endsWith("|")) {
+        if (!inTable) {
+          inTable = true;
+          tableHtml += "<table class='min-w-full border-collapse border border-slate-200 my-4 text-sm'>";
+        }
+        const cells = line.split("|").map(c => c.trim()).filter((_, index, arr) => index > 0 && index < arr.length - 1);
+
+        // Skip separator row (e.g. |---|---|)
+        if (cells.every(c => c.startsWith("-"))) {
+          continue;
+        }
+
+        tableHtml += "<tr class='border-b border-slate-200 hover:bg-slate-50'>";
+        cells.forEach(c => {
+          tableHtml += `<td class='border border-slate-200 px-3 py-2'>${c}</td>`;
+        });
+        tableHtml += "</tr>";
+      } else {
+        if (inTable) {
+          inTable = false;
+          tableHtml += "</table>";
+          lines[i - 1] = tableHtml;
+          tableHtml = "";
+        }
+      }
+    }
+    if (inTable) {
+      tableHtml += "</table>";
+      lines[lines.length - 1] = tableHtml;
+    }
+
+    html = lines.join("\n");
+    html = html.replace(/\n/g, "<br />");
+
+    return html;
+  };
+
+  const currentValue = value || "";
 
   return (
-    <div className="surface-card overflow-hidden">
-      <div className="flex gap-2 border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-3 py-2">
-        <button
-          type="button"
-          aria-label="In đậm"
-          aria-pressed={bold}
-          className="admin-tab-pd min-h-9 px-3 font-bold"
-          onClick={() => setBold((value) => !value)}
-        >
-          B
-        </button>
-        <button
-          type="button"
-          aria-label="In nghiêng"
-          aria-pressed={italic}
-          className="admin-tab-pd min-h-9 px-3 italic"
-          onClick={() => setItalic((value) => !value)}
-        >
-          I
-        </button>
-        <button
-          type="button"
-          aria-pressed={imageInserted}
-          aria-label="Chèn ảnh"
-          className="admin-tab-pd min-h-9 px-3"
-          onClick={() => setImageInserted((value) => !value)}
-        >
-          <ImageUp className="size-4" />
-        </button>
+    <div className="surface-card overflow-hidden rounded-xl border border-[var(--admin-border)] shadow-sm">
+      {/* Header controls */}
+      <div className="flex items-center justify-between border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-3 py-2">
+        <div className="flex gap-1">
+          <button
+            type="button"
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              activeMode === "write"
+                ? "bg-slate-900 text-white"
+                : "bg-transparent text-slate-600 hover:bg-slate-100"
+            }`}
+            onClick={() => setActiveMode("write")}
+          >
+            Soạn thảo (Markdown)
+          </button>
+          <button
+            type="button"
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              activeMode === "preview"
+                ? "bg-slate-900 text-white"
+                : "bg-transparent text-slate-600 hover:bg-slate-100"
+            }`}
+            onClick={() => setActiveMode("preview")}
+          >
+            Xem trước nội dung
+          </button>
+        </div>
+
+        <span className="text-[11px] font-semibold text-slate-400">
+          {activeMode === "write" ? "Định dạng bằng mã Markdown" : "Chế độ xem trước HTML"}
+        </span>
       </div>
-      {imageInserted ? (
-        <p className="border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-4 py-2 text-xs font-semibold text-secondary">
-          Đã thêm placeholder ảnh vào nội dung nháp.
-        </p>
-      ) : null}
-      <textarea
-        className={`min-h-48 w-full resize-y bg-white p-4 text-sm leading-7 text-[var(--admin-text)] outline-none ${bold ? "font-semibold" : ""} ${italic ? "italic" : ""}`}
-        defaultValue={value === undefined ? defaultValue : undefined}
-        value={value}
-        onChange={onChange ? (event) => onChange(event.target.value) : undefined}
-        placeholder={placeholder}
-      />
+
+      {activeMode === "write" ? (
+        <>
+          {/* Formatting Toolbar */}
+          <div className="flex flex-wrap gap-1 border-b border-[var(--admin-border)] bg-slate-50/50 p-2">
+            <button
+              type="button"
+              title="In đậm (Bold)"
+              className="px-3 py-1.5 text-xs font-extrabold hover:bg-slate-200 rounded text-slate-700 min-w-8"
+              onClick={() => insertMarkdown("**", "**")}
+            >
+              B
+            </button>
+            <button
+              type="button"
+              title="In nghiêng (Italic)"
+              className="px-3 py-1.5 text-xs font-bold italic hover:bg-slate-200 rounded text-slate-700 min-w-8"
+              onClick={() => insertMarkdown("*", "*")}
+            >
+              I
+            </button>
+            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
+            <button
+              type="button"
+              title="Tiêu đề lớn 2 (H2)"
+              className="px-2.5 py-1.5 text-xs font-bold hover:bg-slate-200 rounded text-slate-700"
+              onClick={() => insertMarkdown("\n## ", "\n")}
+            >
+              H2
+            </button>
+            <button
+              type="button"
+              title="Tiêu đề phụ 3 (H3)"
+              className="px-2.5 py-1.5 text-xs font-bold hover:bg-slate-200 rounded text-slate-700"
+              onClick={() => insertMarkdown("\n### ", "\n")}
+            >
+              H3
+            </button>
+            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
+            <button
+              type="button"
+              title="Danh sách (Bullet list)"
+              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-bold"
+              onClick={() => insertMarkdown("\n- ", "\n")}
+            >
+              • Danh sách
+            </button>
+            <button
+              type="button"
+              title="Trích dẫn (Quote)"
+              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-bold"
+              onClick={() => insertMarkdown("\n> ", "\n")}
+            >
+              ” Trích dẫn
+            </button>
+            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
+            <button
+              type="button"
+              title="Liên kết (Link)"
+              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-semibold"
+              onClick={() => insertMarkdown("[Tên liên kết](", ")")}
+            >
+              🔗 Liên kết
+            </button>
+            <button
+              type="button"
+              title="Chèn ảnh (Image)"
+              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 flex items-center gap-1 font-semibold"
+              onClick={() => insertMarkdown("![Chú thích ảnh](", ")")}
+            >
+              🖼️ Ảnh
+            </button>
+            <button
+              type="button"
+              title="Chèn bảng (Table)"
+              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-semibold"
+              onClick={() => insertMarkdown("\n| Cột 1 | Cột 2 |\n|---|---|\n| Giá trị 1 | Giá trị 2 |\n")}
+            >
+              📊 Bảng
+            </button>
+          </div>
+
+          <textarea
+            ref={textareaRef}
+            className="min-h-64 w-full resize-y bg-white p-4 text-sm leading-7 text-[var(--admin-text)] outline-none border-0 focus:ring-0"
+            defaultValue={value === undefined ? defaultValue : undefined}
+            value={value}
+            onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+            placeholder={placeholder || "Nhập chi tiết nội dung bài viết..."}
+          />
+        </>
+      ) : (
+        <div
+          className="min-h-64 w-full bg-white p-6 overflow-y-auto max-h-[500px] text-sm leading-7 text-slate-800"
+          dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(currentValue) }}
+        />
+      )}
     </div>
   );
 }
