@@ -271,6 +271,9 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
 
+  // Sort by sort_order ascending (matches DB default)
+  const sorted = [...categories].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+
   return (
     <div className="space-y-5">
       <AdminPageHeader
@@ -280,22 +283,32 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
         actionLabel="Thêm danh mục"
       />
       <div className="grid gap-4 md:grid-cols-3">
-        {categories.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className="col-span-full p-8 text-center text-sm text-slate-400">Chưa có danh mục nào.</p>
         ) : (
-          categories.map((category, index) => (
+          sorted.map((category) => (
             <div key={category.id} className="card-pd interactive-card p-4 flex flex-col justify-between">
               <div>
-                <p className="label-pd">Nhóm {index + 1}</p>
+                <div className="flex items-center justify-between">
+                  <p className="label-pd">#{category.sort_order ?? "—"}</p>
+                  <StatusPill status={category.status as PublishStatus} />
+                </div>
                 <div className="space-y-2.5 mt-3">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Tên:</span>
                     <span className="font-heading font-semibold text-primary">{category.name}</span>
                     <p className="mt-1 text-xs text-secondary leading-relaxed">{category.description ?? "—"}</p>
                   </div>
-                </div>
-                <div className="mt-4">
-                  <StatusPill status={category.status as PublishStatus} />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Đường dẫn:</span>
+                    <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600">{category.slug}</code>
+                  </div>
+                  {category.product_count !== undefined && (
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Sản phẩm:</span>
+                      <span className="text-xs font-semibold text-primary">{category.product_count}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
@@ -308,7 +321,6 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
           ))
         )}
       </div>
-      <PublishWorkflow />
 
       {/* Create Dialog */}
       <AdminRouteDialog
