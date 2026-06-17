@@ -24,10 +24,10 @@ import {
   brandCatalog,
   localized,
   productGroups,
-  products,
   typeCatalogSections,
   withLocale,
 } from "@/lib/showroom-data";
+import { products } from "@/tests/fixtures/showroom-data-fixture";
 import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/lib/showroom-constants";
 

@@ -48,6 +48,45 @@ export async function POST(request: Request) {
   }
 
   const supabase = createAdminClient();
+
+  // Resolve product UUID from slug if it is not a valid UUID format
+  let resolvedProductId: string | null = null;
+  if (data.productId) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.productId);
+    if (isUuid) {
+      resolvedProductId = data.productId;
+    } else {
+      const { data: prod } = await supabase
+        .from("product_translations")
+        .select("product_id")
+        .eq("slug", data.productId)
+        .limit(1)
+        .maybeSingle();
+      if (prod) {
+        resolvedProductId = prod.product_id;
+      }
+    }
+  }
+
+  // Resolve category UUID from slug if it is not a valid UUID format
+  let resolvedCategoryId: string | null = null;
+  if (data.categoryId) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.categoryId);
+    if (isUuid) {
+      resolvedCategoryId = data.categoryId;
+    } else {
+      const { data: cat } = await supabase
+        .from("product_category_translations")
+        .select("category_id")
+        .eq("slug", data.categoryId)
+        .limit(1)
+        .maybeSingle();
+      if (cat) {
+        resolvedCategoryId = cat.category_id;
+      }
+    }
+  }
+
   const { data: quote, error: insertError } = await supabase
     .from("quote_requests")
     .insert({
@@ -58,8 +97,8 @@ export async function POST(request: Request) {
       service: data.service || null,
       message: data.message,
       preferred_locale: data.locale,
-      product_id: data.productId || null,
-      category_id: data.categoryId || null,
+      product_id: resolvedProductId,
+      category_id: resolvedCategoryId,
       source_path: data.sourcePath,
       source_url: data.sourceUrl || null,
       status: "new",

@@ -1,0 +1,16 @@
+{
+  "hero": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1234567890/showroom/hero.jpg",
+  "showroom": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg",
+  "woodWall": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png",
+  "sofa": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424089/showroom/sofa.jpg",
+  "texture": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424090/showroom/texture.jpg",
+  "room": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424091/showroom/room.jpg",
+  "table": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424092/showroom/table.png",
+  "chair": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424093/showroom/chair.png",
+  "cabinet": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424095/showroom/cabinet.png",
+  "aboutHero": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424096/showroom/aboutHero.png",
+  "factory": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424097/showroom/factory.png",
+  "blog1": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424098/showroom/blog1.png",
+  "blog2": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424100/showroom/blog2.png",
+  "showroom2": "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424101/showroom/showroom2.png"
+}

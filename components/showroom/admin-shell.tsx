@@ -5,40 +5,13 @@ import { useRouter } from "next/navigation";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { createBrowserClient } from "@/lib/supabase/client";
 
-interface SearchItem {
+interface SearchResult {
   id: string;
-  titleVi: string;
-  titleEn: string;
+  title: string;
   type: "product" | "blog" | "category" | "showroom" | "quote";
-  slug?: string;
   subtitle?: string;
   href: string;
 }
-
-const SEARCH_ITEMS: SearchItem[] = [
-  // Products
-  { id: "p1", titleVi: "Sofa Curve Velour", titleEn: "Sofa Curve Velour", type: "product", slug: "sofa-curve-velour", subtitle: "Sofa nhung cong cao cấp", href: "/admin/products?edit=sofa-curve-velour" },
-  { id: "p2", titleVi: "Bàn Trà Marble Round", titleEn: "Marble Round Coffee Table", type: "product", slug: "ban-tra-marble-round", subtitle: "Bàn trà mặt đá cẩm thạch", href: "/admin/products?edit=ban-tra-marble-round" },
-  { id: "p3", titleVi: "Gạch Calacatta", titleEn: "Calacatta Tile", type: "product", slug: "gach-calacatta", subtitle: "Gạch ốp lát vân đá Calacatta", href: "/admin/products?edit=gach-calacatta" },
-  { id: "p4", titleVi: "Chậu Rửa Bravat", titleEn: "Bravat Basin", type: "product", slug: "chau-rua-bravat", subtitle: "Chậu rửa mặt Bravat cao cấp", href: "/admin/products?edit=chau-rua-bravat" },
-  
-  // Categories
-  { id: "c1", titleVi: "Đồ gỗ nội thất", titleEn: "Wooden Furniture", type: "category", slug: "do-go-noi-that", subtitle: "Danh mục đồ gỗ, bàn ghế, giường tủ", href: "/admin/categories?edit=do-go-noi-that" },
-  { id: "c2", titleVi: "Thiết bị vệ sinh", titleEn: "Sanitary Equipment", type: "category", slug: "thiet-bi-ve-sinh", subtitle: "Bồn cầu, chậu rửa, vòi sen, bồn tắm", href: "/admin/categories?edit=thiet-bi-ve-sinh" },
-
-  // Blog Posts
-  { id: "b1", titleVi: "Xu hướng thiết kế 2026", titleEn: "2026 Design Trends", type: "blog", slug: "xu-huong-thiet-ke-2026", subtitle: "Xu hướng thiết kế nội thất tối giản hiện đại", href: "/admin/blog?edit=xu-huong-thiet-ke-2026" },
-  { id: "b2", titleVi: "Cẩm nang chọn sofa", titleEn: "Sofa Buying Guide", type: "blog", slug: "cam-nang-chon-sofa", subtitle: "Cách chọn sofa phù hợp diện tích phòng khách", href: "/admin/blog?edit=cam-nang-chon-sofa" },
-
-  // Showrooms
-  { id: "s1", titleVi: "Quận 7 Showroom", titleEn: "District 7 Showroom", type: "showroom", slug: "quan-7-showroom", subtitle: "Số 12 Nguyễn Văn Linh, Quận 7, TP. HCM", href: "/admin/showrooms?edit=quan-7-showroom" },
-  { id: "s2", titleVi: "Hà Nội Flagship Store", titleEn: "Hanoi Flagship Store", type: "showroom", slug: "ha-noi-flagship-store", subtitle: "Số 45 Cát Linh, Đống Đa, Hà Nội", href: "/admin/showrooms?edit=ha-noi-flagship-store" },
-
-  // Quotes
-  { id: "QR-2406-001", titleVi: "QR-2406-001 - Lê Minh Tuấn", titleEn: "QR-2406-001 - Le Minh Tuan", type: "quote", subtitle: "Sản phẩm: Sofa Curve Velour - SĐT: 0812 357 587", href: "/admin/quotes?id=QR-2406-001" },
-  { id: "QR-2406-002", titleVi: "QR-2406-002 - Nguyễn Thu Hà", titleEn: "QR-2406-002 - Nguyen Thu Ha", type: "quote", subtitle: "Sản phẩm: Bàn Trà Marble Round - SĐT: 0901 223 456", href: "/admin/quotes?id=QR-2406-002" },
-  { id: "QR-2406-003", titleVi: "QR-2406-003 - Trần Đại Quang", titleEn: "QR-2406-003 - Tran Dai Quang", type: "quote", subtitle: "Sản phẩm: Thiết bị vệ sinh trọn bộ - SĐT: 0988 776 655", href: "/admin/quotes?id=QR-2406-003" }
-];
 import Link from "next/link";
 import {
   ChevronRight,
@@ -299,22 +272,24 @@ function AdminSearchPalette({
   const [query, setQuery] = useState("");
   const [selectedScope, setSelectedScope] = useState<"all" | "product" | "blog" | "category" | "showroom" | "quote">("all");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("pd-recent-searches");
       if (saved) {
         try {
           return JSON.parse(saved);
-        } catch (e) {
+        } catch {
           // ignore
         }
       }
-      return ["Sofa", "Bravat", "Lê Minh Tuấn"];
     }
     return [];
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Focus input when open
   useEffect(() => {
@@ -335,6 +310,38 @@ function AdminSearchPalette({
     items[activeIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [activeIndex, open]);
 
+  // Debounced DB search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query || query.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSearchResults([]);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsLoading(false);
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/search?q=${encodeURIComponent(query.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setSearchResults(data.results ?? []);
+        } else {
+          setSearchResults([]);
+        }
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
   const saveRecentSearch = (term: string) => {
     if (!term.trim()) return;
     const cleanTerm = term.trim();
@@ -347,6 +354,7 @@ function AdminSearchPalette({
     if (newOpen) {
       setQuery("");
       setActiveIndex(0);
+      setSearchResults([]);
     }
     onOpenChange(newOpen);
   };
@@ -361,37 +369,16 @@ function AdminSearchPalette({
     setActiveIndex(0);
   };
 
-  // Filter items
-  const rawFilteredItems = useMemo(() => {
-    return SEARCH_ITEMS.filter((item) => {
-      const matchesScope = selectedScope === "all" || item.type === selectedScope;
-      const searchString = `${item.titleVi} ${item.titleEn} ${item.slug || ""} ${item.subtitle || ""}`.toLowerCase();
-      const matchesQuery = searchString.includes(query.toLowerCase());
-      return matchesScope && matchesQuery;
-    });
-  }, [selectedScope, query]);
-
+  // Filter results by selected scope (client-side, since DB returned all)
   const filteredItems = useMemo(() => {
-    if (selectedScope === "all" && query) {
-      const groups: Record<string, SearchItem[]> = {};
-      rawFilteredItems.forEach((item) => {
-        groups[item.type] = groups[item.type] || [];
-        groups[item.type].push(item);
-      });
-      const order: ("product" | "blog" | "category" | "showroom" | "quote")[] = ["product", "blog", "category", "showroom", "quote"];
-      const flattened: SearchItem[] = [];
-      order.forEach((type) => {
-        if (groups[type]) {
-          flattened.push(...groups[type]);
-        }
-      });
-      return flattened;
-    }
-    return rawFilteredItems;
-  }, [rawFilteredItems, selectedScope, query]);
+    const items = searchResults.filter((item) =>
+      selectedScope === "all" || item.type === selectedScope
+    );
+    return items;
+  }, [searchResults, selectedScope]);
 
-  const handleSelect = (item: SearchItem) => {
-    saveRecentSearch(query || item.titleVi);
+  const handleSelect = (item: SearchResult) => {
+    saveRecentSearch(query || item.title);
     onOpenChange(false);
     router.push(item.href);
   };
@@ -407,7 +394,7 @@ function AdminSearchPalette({
       e.preventDefault();
       e.stopPropagation();
       setActiveIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
-    } else if (e.key === "Enter") {
+    } else if (e.key === "Enter" && filteredItems[activeIndex]) {
       e.preventDefault();
       e.stopPropagation();
       handleSelect(filteredItems[activeIndex]);
@@ -528,17 +515,25 @@ function AdminSearchPalette({
             </div>
           )}
 
+          {/* Loading state */}
+          {isLoading && (
+            <div className="py-8 text-center">
+              <div className="mx-auto size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="mt-2 text-sm text-slate-400">Đang tìm kiếm...</p>
+            </div>
+          )}
+
           {/* Results list */}
-          {filteredItems.length > 0 ? (
+          {!isLoading && filteredItems.length > 0 ? (
             <div className="space-y-0.5">
               {(() => {
-                // Group results by type when scope is 'all' and there's a query
+                // Group results by type when scope is 'all'
                 const groupedByType = selectedScope === 'all' && query
                   ? Object.entries(
                       filteredItems.reduce((acc, item) => {
                         (acc[item.type] = acc[item.type] || []).push(item);
                         return acc;
-                      }, {} as Record<string, SearchItem[]>)
+                      }, {} as Record<string, SearchResult[]>)
                     )
                   : null;
 
@@ -549,7 +544,7 @@ function AdminSearchPalette({
                       <div className="admin-search-group-header px-3 pb-1 pt-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         {getTypeLabel(type)}
                       </div>
-                      {items.map((item) => {
+                      {(items as SearchResult[]).map((item) => {
                         const currentIndex = flatIndex++;
                         const isSelected = currentIndex === activeIndex;
                         return (
@@ -570,7 +565,7 @@ function AdminSearchPalette({
                               </div>
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-sm truncate">{item.titleVi}</span>
+                                  <span className="font-semibold text-sm truncate">{item.title}</span>
                                 </div>
                                 {item.subtitle && (
                                   <p className="text-xs text-slate-400 truncate mt-0.5">{item.subtitle}</p>
@@ -608,7 +603,7 @@ function AdminSearchPalette({
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm truncate">{item.titleVi}</span>
+                            <span className="font-semibold text-sm truncate">{item.title}</span>
                           </div>
                           {item.subtitle && (
                             <p className="text-xs text-slate-400 truncate mt-0.5">{item.subtitle}</p>
@@ -624,11 +619,18 @@ function AdminSearchPalette({
               })()}
             </div>
           ) : (
-            <div className="py-12 text-center">
-              <Search className="mx-auto size-8 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-500">Không tìm thấy kết quả phù hợp</p>
-              <p className="text-xs text-slate-400 mt-1">Thử tìm kiếm với từ khóa khác</p>
-            </div>
+            !isLoading && query.trim().length >= 2 ? (
+              <div className="py-12 text-center">
+                <Search className="mx-auto size-8 text-slate-300" />
+                <p className="mt-2 text-sm font-semibold text-slate-500">Không tìm thấy kết quả phù hợp</p>
+                <p className="text-xs text-slate-400 mt-1">Thử tìm kiếm với từ khóa khác</p>
+              </div>
+            ) : !query && (
+              <div className="py-10 text-center">
+                <Search className="mx-auto size-8 text-slate-200" />
+                <p className="mt-2 text-sm text-slate-400">Nhập ít nhất 2 ký tự để tìm kiếm</p>
+              </div>
+            )
           )}
         </div>
 

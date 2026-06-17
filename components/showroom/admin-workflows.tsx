@@ -51,16 +51,19 @@ import {
   MediaUploadPanel,
   PublishWorkflow,
   RichTextEditorMock,
+  MediaPicker,
 } from "./admin-interactions";
+import {
+  localized,
+  productGroups,
+  trustBadges,
+} from "@/lib/showroom-data";
 import {
   blogPosts,
   imageAssets,
-  localized,
-  productGroups,
   products,
   showrooms,
-  trustBadges,
-} from "@/lib/showroom-data";
+} from "@/tests/fixtures/showroom-data-fixture";
 import enMessages from "@/messages/en.json";
 import viMessages from "@/messages/vi.json";
 
@@ -728,6 +731,7 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = idOrSlug || searchParams.get("edit");
   const isEdit = Boolean(editSlug);
@@ -740,79 +744,82 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [seoDescVi, setSeoDescVi] = useState("");
   const [seoTitleEn, setSeoTitleEn] = useState("");
   const [seoDescEn, setSeoDescEn] = useState("");
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [nameVi, setNameVi] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [descriptionVi, setDescriptionVi] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
   const [parentGroup, setParentGroup] = useState("wood");
+  const [parentId, setParentId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [slug, setSlug] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
 
-  const mockCategories = [
-    {
-      slug: "wood",
-      parentGroup: "wood",
-      name: { vi: "Nội thất gỗ & Sofa", en: "Wood furniture & Sofa" },
-      description: {
-        vi: "Nhóm sản phẩm đồ gỗ nội thất, bàn ghế, sofa cho không gian phòng khách, phòng ngủ.",
-        en: "Fixed top-level group for FR-01 and catalog filtering.",
-      },
-    },
-    {
-      slug: "sanitary",
-      parentGroup: "sanitary",
-      name: { vi: "Thiết bị vệ sinh", en: "Sanitary ware" },
-      description: {
-        vi: "Thiết bị phòng tắm cao cấp, sen tắm, lavabo, bồn tắm nhập khẩu.",
-        en: "Fixed top-level group for FR-01 and showroom sales paths.",
-      },
-    },
-    {
-      slug: "tiles",
-      parentGroup: "tiles",
-      name: { vi: "Gạch ốp lát & Bề mặt", en: "Tiles & Finishing surfaces" },
-      description: {
-        vi: "Gạch ceramic, gạch porcelain khổ lớn, đá cẩm thạch cho hoàn thiện bề mặt.",
-        en: "Editable supporting group for finishing-material browsing.",
-      },
-    }
-  ];
+  // Load all categories for parent selector
+  useEffect(() => {
+    import("@/lib/supabase/admin-queries").then(async ({ getAdminCategories }) => {
+      try {
+        const res = await getAdminCategories();
+        setCategoriesList(res || []);
+      } catch (err) {
+        console.error("Failed to load categories list:", err);
+      }
+    });
+  }, []);
 
-  // Sync state with edit entity
+  // Sync state with edit entity from DB
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editSlug) {
-      const match = mockCategories.find(c => c.slug === editSlug);
-      if (match) {
-        setNameVi(match.name.vi);
-        setNameEn(match.name.en);
-        setDescriptionVi(match.description.vi);
-        setDescriptionEn(match.description.en);
-        setParentGroup(match.parentGroup);
-        setSlug(match.slug);
-        
-        if (match.slug === "wood") {
-          setCoverImage("https://lh3.googleusercontent.com/aida-public/AB6AXuAforj3VX-FTBvzBL9xk8xZsyRFeSrCTCZroaw5xiKiW94p97bHwS5p8v7NPz1CEkw5kcZcO8Qhg50HbSL08FWNepcJQvILK7uoRkp-yXAMFVWrODBkXn_ljL5x1r892Y4CCJK6PiLLH_ZVLw-_yvANxLy70jQTG3SyAkhvnKSHdiDphu2VvxBxS50kNU30Klji9hXESZM6sKB-BJixTEwUya_W-dPDnizTqnuvjBX-hpj088KerYWV3pBNhSzQ-mp6IaevUWw-Xg4");
-        } else if (match.slug === "sanitary") {
-          setCoverImage("https://lh3.googleusercontent.com/aida-public/AB6AXuCS7rYc18dpXUFnhvwBuKvVucavZ1sAsE7DxMtRl_98ETvYOUVz44VpAURmwOHZ7J9HuYsw8sBH_O4uP1U_8G2qw0JOtoCI_dTrmqpw2kEsALwRtiBzM2XQx8aKxpcPVlMn34cMjlBmADgZhbyHjyZjYC20RChapDYZk1VETdbY4ce1PYH6BxZ9ILJakNNyTsFOL82tJQs_U_JfvrNJvYA0cgVpj1VZZOzglO4g_SsMvrcrb7dLAz4YUJlC3-e3y-ZwFnQg8bCrdFs");
-        } else {
-          setCoverImage("https://lh3.googleusercontent.com/aida-public/AB6AXuB2q3Ks_6pKPj_ztm3What2dEyztzDtNSvlZcUiPwDiHA_VOusUyXVgYS06-2m4NL9GmKNk3B-7rH9t1GULDEHPvcNX8oCCYUzEeQqXMpXWy4XEp2xsGc_sLEQkb0ZzpymPtbZIE4H8dBJCKulL4NFlX36FFSERPocr8VlgluZIYKCTL_3y35ErKcKsb6O845GEgb3D4JiGYGR4yVoCcOP5UqjQX6ecZiCoYMtFCPAqwW2qx1--TLUZKgOAER2eASmfDpbCWv09h0Q");
-        }
-        
-        setSeoTitleVi(`${match.name.vi} | Đồ Gỗ Phương Đông`);
-        setSeoTitleEn(`${match.name.en} | Phuong Dong Premium Furniture`);
-        setSeoDescVi(`Danh mục ${match.name.vi} cao cấp. ${match.description.vi}`);
-        setSeoDescEn(`Explore ${match.name.en} collections. ${match.description.en}`);
-        setEnglishEnabled(true);
-      }
+      setIsLoadingEdit(true);
+      setLoadError("");
+      import("@/lib/supabase/admin-queries")
+        .then(async ({ getAdminCategories }) => {
+          const cats = await getAdminCategories();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const match = (cats as any[]).find((c: any) => c.slug === editSlug || c.id === editSlug);
+          if (match) {
+            setCategoryId(match.id);
+            setNameVi(match.name || "");
+            setNameEn(match.name_en || "");
+            setDescriptionVi(match.description || "");
+            setDescriptionEn(match.description_en || "");
+            setParentGroup(match.group_key || match.parent_group || "wood");
+            setParentId(match.parent_id || null);
+            setSlug(match.slug || "");
+            setCoverImage(match.cover_image_url || match.image || "");
+            setSeoTitleVi(match.seo_title_vi || `${match.name || ""} | Đồ Gỗ Phương Đông`);
+            setSeoTitleEn(match.seo_title_en || `${match.name_en || match.name || ""} | Phuong Dong`);
+            setSeoDescVi(match.seo_description_vi || match.description || "");
+            setSeoDescEn(match.seo_description_en || match.description_en || "");
+            setEnglishEnabled(Boolean(match.name_en));
+            setStatus(match.status || "draft");
+          } else {
+            setLoadError(`Không tìm thấy danh mục: ${editSlug}`);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load category for edit:", err);
+          setLoadError("Không thể tải dữ liệu danh mục từ máy chủ.");
+        })
+        .finally(() => setIsLoadingEdit(false));
     } else {
       // Clear for create mode
+      setCategoryId(null);
       setNameVi("");
       setNameEn("");
       setDescriptionVi("");
       setDescriptionEn("");
       setParentGroup("wood");
+      setParentId(null);
       setSlug("");
       setCoverImage("");
       setSeoTitleVi("");
@@ -820,26 +827,143 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setSeoTitleEn("");
       setSeoDescEn("");
       setEnglishEnabled(false);
+      setStatus("draft");
     }
   }, [editSlug]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleAiFill = () => {
+  const handleAiFill = async () => {
     if (!nameVi.trim()) return;
     setAiFilling(true);
     setAiFillSuccess(false);
-    setTimeout(() => {
-      setAiFilling(false);
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "generate-content",
+          targetType: "category",
+          inputText: nameVi,
+          targetLocale: englishEnabled ? "en" : "vi",
+        }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        const data = result.data || {};
+        if (data.enTitle) setNameEn(data.enTitle);
+        if (data.enSummary || data.enBody) setDescriptionEn(data.enSummary || data.enBody);
+        if (data.seoTitleVi) setSeoTitleVi(data.seoTitleVi);
+        if (data.seoTitleEn) setSeoTitleEn(data.seoTitleEn);
+        if (data.seoDescVi) setSeoDescVi(data.seoDescVi);
+        if (data.seoDescEn) setSeoDescEn(data.seoDescEn);
+      } else {
+        // Graceful fallback for AI errors — use basic pattern
+        setNameEn(`${nameVi} Collection`);
+        if (descriptionVi) setDescriptionEn(`English: ${descriptionVi}`);
+        setSeoTitleVi(`${nameVi} | Đồ Gỗ Phương Đông`);
+        setSeoTitleEn(`${nameVi} | Phuong Dong Premium Furniture`);
+        setSeoDescVi(`Mua ngay ${nameVi} chính hãng tại Phương Đông.`);
+        setSeoDescEn(`Shop premium ${nameVi} at Phuong Dong.`);
+      }
       setAiFillSuccess(true);
-      setNameEn(`${nameVi} - Premium Collection`);
-      if (descriptionVi) setDescriptionEn(`English translation for: ${descriptionVi}`);
-      
+    } catch {
+      // Graceful fallback
+      setNameEn(`${nameVi} Collection`);
       setSeoTitleVi(`${nameVi} | Đồ Gỗ Phương Đông`);
-      setSeoTitleEn(`${nameVi} | Phuong Dong Premium Furniture`);
-      setSeoDescVi(`Mua ngay ${nameVi} chính hãng giá tốt nhất tại Phương Đông.`);
-      setSeoDescEn(`Shop premium ${nameVi} collections at Phuong Dong for the best offers.`);
-    }, 800);
+      setSeoTitleEn(`${nameVi} | Phuong Dong`);
+      setAiFillSuccess(true);
+    } finally {
+      setAiFilling(false);
+    }
   };
+
+  const handleSave = async (targetStatus?: "draft" | "published" | "archived") => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
+
+    const statusToSave = targetStatus || status;
+
+    const payload = {
+      slug: slug.trim(),
+      name_vi: nameVi.trim(),
+      name_en: englishEnabled ? nameEn.trim() : "",
+      description_vi: descriptionVi.trim() || null,
+      description_en: englishEnabled && descriptionEn.trim() ? descriptionEn.trim() : null,
+      parent_id: parentId || null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      group_key: parentGroup as any,
+      status: statusToSave,
+      sort_order: 0,
+      cover_image: coverImage || null,
+      seo_title_vi: seoTitleVi.trim() || null,
+      seo_title_en: englishEnabled && seoTitleEn.trim() ? seoTitleEn.trim() : null,
+      seo_description_vi: seoDescVi.trim() || null,
+      seo_description_en: englishEnabled && seoDescEn.trim() ? seoDescEn.trim() : null,
+    };
+
+    try {
+      const { categorySchema } = await import("@/lib/validations/admin");
+      const validation = categorySchema.safeParse(payload);
+      if (!validation.success) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const msgs = validation.error.issues.map((e: any) => e.message).join(". ");
+        setSaveError(msgs);
+        setIsSaving(false);
+        return;
+      }
+
+      const { createAdminCategory, updateAdminCategory } = await import("@/lib/supabase/mutations");
+      let res;
+      if (isEdit && categoryId) {
+        res = await updateAdminCategory(categoryId, payload);
+      } else {
+        res = await createAdminCategory(payload);
+      }
+
+      if (res.success) {
+        setSaveSuccess(true);
+        router.push("/admin/categories");
+        router.refresh();
+      } else {
+        setSaveError(res.error || "Không thể lưu danh mục.");
+      }
+    } catch (err) {
+      setSaveError(String(err));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const validationErrors: string[] = [];
+  if (!nameVi.trim()) validationErrors.push("Cần nhập tên danh mục tiếng Việt.");
+  if (!slug.trim()) validationErrors.push("Cần nhập đường dẫn (slug).");
+  if (englishEnabled && !nameEn.trim()) validationErrors.push("Cần nhập tên danh mục tiếng Anh khi đã bật tiếng Anh.");
+
+  if (isLoadingEdit) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-slate-500 font-medium">Đang tải dữ liệu danh mục...</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-6 text-center text-red-700">
+        <p className="font-semibold">{loadError}</p>
+        <button
+          type="button"
+          className="button-pd mt-4"
+          onClick={() => router.push("/admin/categories")}
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -931,7 +1055,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
               />
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <label className="grid gap-2">
                 <span className="label-pd">Nhóm cha</span>
                 <PremiumSelect
@@ -944,6 +1068,25 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                     { value: "wood", label: "Nội thất gỗ" },
                     { value: "sanitary", label: "Thiết bị vệ sinh" },
                     { value: "tiles", label: "Gạch ốp lát" },
+                  ]}
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="label-pd">Danh mục cha</span>
+                <PremiumSelect
+                  value={parentId || ""}
+                  onValueChange={(val) => setParentId(val || null)}
+                  ariaLabel="Danh mục cha"
+                  placeholder="Danh mục cha (Tùy chọn)"
+                  tone="admin"
+                  options={[
+                    { value: "", label: "Không có (Danh mục cấp 1)" },
+                    ...categoriesList
+                      .filter((c) => c.id !== categoryId) // Không chọn chính nó
+                      .map((c) => ({
+                        value: c.id,
+                        label: c.name || c.slug,
+                      })),
                   ]}
                 />
               </label>
@@ -1002,7 +1145,28 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             Xem trước
           </button>
         </section>
-        <PublishWorkflow />
+        
+        {saveError && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
+            <strong className="block font-semibold">Lỗi lưu trữ:</strong>
+            <p className="mt-1">{saveError}</p>
+          </div>
+        )}
+        {saveSuccess && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700">
+            <strong className="block font-semibold">Thành công!</strong>
+            <p className="mt-1">Dữ liệu danh mục đã được lưu trữ vào cơ sở dữ liệu.</p>
+          </div>
+        )}
+
+        <PublishWorkflow 
+          status={status}
+          onStatusChange={setStatus}
+          errors={validationErrors} 
+          onSaveDraft={() => handleSave("draft")}
+          onPublish={() => handleSave("published")}
+          onArchive={() => handleSave("archived")}
+        />
       </aside>
       {previewOpen && (
         <DetailPreviewModal
@@ -5996,152 +6160,12 @@ export function ImageUploadDropzone({
   onChange: (url: string) => void;
   label?: string;
 }) {
-  const inputId = useId();
-  const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
-  const [uploadError, setUploadError] = useState("");
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    event.currentTarget.value = "";
-
-    if (!allowedImageMimeTypes.includes(file.type)) {
-      setUploadError("Chỉ cho phép ảnh JPEG, PNG, WebP hoặc AVIF.");
-      return;
-    }
-
-    if (file.size > maxImageUploadBytes) {
-      setUploadError("Ảnh phải có dung lượng tối đa 10 MB.");
-      return;
-    }
-
-    setUploadError("");
-    setIsUploading(true);
-    setProgress(15);
-    const reader = new FileReader();
-    const interval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 20, 95));
-    }, 150);
-
-    reader.onload = () => {
-      clearInterval(interval);
-      setProgress(100);
-      setFileMeta({ name: file.name, size: formatBytes(file.size) });
-      onChange(String(reader.result));
-      setTimeout(() => setIsUploading(false), 120);
-    };
-
-    reader.onerror = () => {
-      clearInterval(interval);
-      setIsUploading(false);
-      setProgress(0);
-      setUploadError("Không thể đọc ảnh đã chọn. Vui lòng thử tệp khác.");
-    };
-
-    reader.readAsDataURL(file);
-  };
-
-  if (value) {
-    return (
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm group">
-        <input
-          type="file"
-          accept={allowedImageMimeTypes.join(",")}
-          className="hidden"
-          id={inputId}
-          aria-label={label}
-          onChange={handleFileChange}
-          disabled={isUploading}
-        />
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="label-pd">{label}</span>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-            Đã tải lên
-          </span>
-        </div>
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={value}
-            alt={`${label} xem trước`}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <label
-              htmlFor={inputId}
-              className="cursor-pointer rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-sm transition hover:bg-slate-100"
-            >
-              Thay ảnh
-            </label>
-            <button
-              type="button"
-              className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
-              onClick={() => {
-                setFileMeta(null);
-                setUploadError("");
-                onChange("");
-              }}
-              title="Xóa ảnh"
-            >
-              <Trash2 className="size-4" />
-            </button>
-          </div>
-        </div>
-        <div className="mt-2 flex items-center justify-between text-xs text-slate-500 font-medium">
-          <span className="truncate max-w-[180px]">{fileMeta?.name || getAssetName(value)}</span>
-          <span>{fileMeta?.size || "Media CMS"}</span>
-        </div>
-        {uploadError ? <p className="mt-2 text-xs font-semibold text-red-600">{uploadError}</p> : null}
-      </div>
-    );
-  }
-
   return (
-    <div className="relative">
-      <input
-        type="file"
-        accept={allowedImageMimeTypes.join(",")}
-        className="hidden"
-        id={inputId}
-        aria-label={label}
-        onChange={handleFileChange}
-        disabled={isUploading}
-      />
-      <label
-        htmlFor={inputId}
-        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition ${
-          isUploading
-            ? "border-slate-300 bg-slate-50 cursor-not-allowed"
-            : "border-slate-300 bg-white hover:border-indigo-500 hover:bg-indigo-50/10"
-        }`}
-      >
-        {isUploading ? (
-          <div className="space-y-2 w-full max-w-[120px]">
-            <Loader2 className="mx-auto size-6 animate-spin text-indigo-600" />
-            <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-              <div
-                className="bg-indigo-600 h-1.5 rounded-full transition-all duration-150"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <span className="text-[10px] font-bold text-slate-500">{progress}% đang tải</span>
-          </div>
-        ) : (
-          <>
-            <ImageUp className="size-8 text-slate-400 mb-2" />
-            <span className="text-xs font-bold text-slate-700 block">{label}</span>
-            <span className="text-[10px] text-slate-400 font-medium mt-1">
-              Hỗ trợ JPEG, PNG, WebP, AVIF tối đa 10 MB
-            </span>
-          </>
-        )}
-      </label>
-      {uploadError ? <p className="mt-2 text-xs font-semibold text-red-600">{uploadError}</p> : null}
-    </div>
+    <MediaPicker
+      value={value}
+      onChange={(url) => onChange(url)}
+      label={label}
+    />
   );
 }
 
@@ -6153,34 +6177,6 @@ export function MultiImageGalleryUpload({
   value: string[];
   onChange: (urls: string[]) => void;
 }) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  const handleAddImage = () => {
-    setIsUploading(true);
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          const mockGalleryUrls = [
-            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=600&q=80",
-            "https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&w=600&q=80",
-          ];
-          const randomUrl = mockGalleryUrls[Math.floor(Math.random() * mockGalleryUrls.length)];
-          onChange([...value, randomUrl]);
-          return 100;
-        }
-        return prev + 20;
-      });
-    }, 120);
-  };
-
   const handleRemoveImage = (index: number) => {
     onChange(value.filter((_, i) => i !== index));
   };
@@ -6206,23 +6202,15 @@ export function MultiImageGalleryUpload({
         </div>
       ))}
 
-      {isUploading ? (
-        <div className="aspect-square flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-4 text-center">
-          <Loader2 className="size-5 animate-spin text-indigo-600 mb-2" />
-          <div className="w-full bg-slate-200 rounded-full h-1 max-w-[60px] overflow-hidden">
-            <div className="bg-indigo-600 h-1 rounded-full" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={handleAddImage}
-          className="aspect-square flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white hover:border-indigo-500 hover:bg-indigo-50/10 transition text-center"
-        >
-          <Plus className="size-5 text-slate-400 mb-1" />
-          <span className="text-[10px] font-bold text-slate-700">Thêm ảnh</span>
-        </button>
-      )}
+      <div className="flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-white hover:border-indigo-500 hover:bg-indigo-50/10 transition text-center">
+        <MediaPicker
+          value=""
+          onChange={(url) => {
+            if (url) onChange([...value, url]);
+          }}
+          label="Thêm ảnh"
+        />
+      </div>
     </div>
   );
 }

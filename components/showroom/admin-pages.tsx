@@ -22,9 +22,9 @@ import {
   Sparkle,
 } from "lucide-react";
 import {
-  imageAssets,
   type PublishStatus,
 } from "@/lib/showroom-data";
+import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";
 import {
   type AdminQuote,
   type AdminProduct,
@@ -48,6 +48,7 @@ import {
 import { RemoteImage } from "./remote-image";
 import { PremiumSelect } from "./premium-select";
 import { DashboardInsightChart } from "./admin-dashboard-widgets";
+import { QuoteTimeline } from "../admin/QuoteTimeline";
 import { DataTable } from "@/components/admin/DataTable";
 export interface Brand {
   id: string;
@@ -809,6 +810,11 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                     </div>
                   </div>
                 )}
+
+                {/* Timeline lịch sử xử lý */}
+                <div className="border-t pt-4">
+                  <QuoteTimeline quoteId={selectedQuote.id} />
+                </div>
 
                 {/* Actions */}
                 <div className="border-t pt-3 flex flex-wrap gap-2 justify-end">

@@ -13,6 +13,7 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
+      - CI=true
       - SUPABASE_URL_INTERNAL=http://supabase_kong_furniture-website:8000
       - DATABASE_URL=postgresql://postgres:postgres@supabase_db_furniture-website:5432/postgres
     env_file:

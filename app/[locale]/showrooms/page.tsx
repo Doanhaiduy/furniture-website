@@ -98,11 +98,10 @@ export default async function ShowroomsPage({
                 </a>
               </div>
               <div className="public-image-panel mt-6 aspect-[16/8]">
-                <iframe
-                  title={showroom.name}
-                  className="h-full w-full border-0"
-                  loading="lazy"
-                  src={showroom.embedUrl}
+                <ShowroomMap
+                  embedUrl={showroom.embedUrl}
+                  fallbackUrl={showroom.mapUrl}
+                  name={showroom.name}
                 />
               </div>
             </div>
@@ -117,5 +116,50 @@ export default async function ShowroomsPage({
         )}
       </section>
     </main>
+  );
+}
+
+/** Safe Google Maps embed with URL validation. Server-renderable inline component. */
+function ShowroomMap({
+  embedUrl,
+  fallbackUrl,
+  name,
+}: {
+  embedUrl: string;
+  fallbackUrl: string;
+  name: string;
+}) {
+  // Validate: only allow https://www.google.com/maps/embed paths
+  const isValid =
+    typeof embedUrl === "string" &&
+    /^https:\/\/(www\.)?google\.com\/maps\/embed/.test(embedUrl.trim());
+
+  if (!isValid || !embedUrl) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-slate-500">
+        <MapPin className="size-8 text-slate-400" />
+        <p className="text-sm font-medium">{name}</p>
+        <a
+          href={fallbackUrl || "https://www.google.com/maps"}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+        >
+          <ExternalLink className="size-3.5" />
+          Xem trên Google Maps
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <iframe
+      title={name}
+      className="h-full w-full border-0"
+      loading="lazy"
+      src={embedUrl}
+      sandbox="allow-scripts allow-same-origin allow-popups"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
   );
 }

@@ -6,11 +6,11 @@ This is the central status board tracking progress of the Showroom site implemen
 
 ## 1. Project Overview & Meta Information
 
-- **Current Active Phase**: Re-audit Phase 03: Missing Admin Sections & Services
-- **Last Completed Task**: Triển khai tối ưu hóa bộ lọc sản phẩm Catalog server-side: Nâng cấp queries helper getProducts nhận tham số attributeFilters và chuyển tiếp cho RPC public_products; đồng bộ hóa trang Catalog sản phẩm công cộng (/products) thực hiện lọc trực tiếp trên PostgreSQL thay cho lọc JavaScript client-side. (June 14, 2026)
-- **Next Recommended Task**: Chuẩn bị đề xuất trong chế độ REVIEW cho Sprint tiếp theo (Tích hợp Cloudinary signed uploads).
-- **Last Updated**: 2026-06-14T09:45:00+07:00
-- **Status Summary**: Tối ưu hóa bộ lọc sản phẩm catalog server-side chạy trực tiếp qua RPC SQL của Supabase đã hoàn thành và kiểm chứng thành công (lint, typecheck, test, build và UI QA đều pass).
+- **Current Active Phase**: Phase 10: QA Hardening & Launch
+- **Last Completed Task**: Khắc phục lỗi cú pháp SQL và xung đột phiên bản của các file migration cũ, chạy thành công `supabase db reset` để gieo hạt dữ liệu thật từ Cloudinary, dọn dẹp mock data và kiểm thử toàn dự án hoàn tất. (June 14, 2026)
+- **Next Recommended Task**: Thực hiện kiểm thử QA tổng hợp, tối ưu hóa Docker container, kiểm tra hiệu năng Core Web Vitals và rà soát lỗi bảo mật trước khi bàn giao (Phase 10).
+- **Last Updated**: 2026-06-14T21:30:00+07:00
+- **Status Summary**: Phase 08 đã hoàn thành thành công. Hệ thống đã chạy trơn tru với dữ liệu thật, không có lỗi linter/typecheck/build/test nào tồn đọng.
 
 ---
 
@@ -24,9 +24,9 @@ This is the central status board tracking progress of the Showroom site implemen
 | **04** | [Auth & Admin Access Control](file:///d:/THCode/AI/furniture-website/plan/phases/phase-04-auth-and-admin-access/README.md) | **done** | 2026-06-14 | 2026-06-08 | AuthProvider, login form, server helpers, proxy guard (Next 16 proxy.ts), role-aware AdminShell, typecheck+test+build pass |
 | **05** | [Admin Read Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-05-admin-read-integration/README.md) | **done** | 2026-06-16 | 2026-06-09 | Reusable DataTable, admin stats, secure quotes view, QuoteDetailDialog modal integrated |
 | **06** | [Admin Write Integration](file:///d:/THCode/AI/furniture-website/plan/phases/phase-06-admin-write-integration/README.md) | **done** | 2026-06-18 | 2026-06-13 | Product/Category/Blog/Showroom CRUD, audit logs, archive confirmation, Editor role constraints, and focused Playwright backup verification completed |
-| **07** | [Media & Third-Party Services](file:///d:/THCode/AI/furniture-website/plan/phases/phase-07-media-and-third-party-services/README.md) | **in-progress** | 2026-06-20 | - | Sync media mutations and Contact API fix completed; moving to Cloudinary, Resend, and dynamic site settings di |
-| **08** | [Data Migration & Seeding](file:///d:/THCode/AI/furniture-website/plan/phases/phase-08-data-migration-and-seeding/README.md) | **not-started** | 2026-06-21 | - | Local database seeding scripts, final migration validation |
-| **09** | [Missing Admin Sections](file:///d:/THCode/AI/furniture-website/plan/phases/phase-09-missing-admin-sections/README.md) | **not-started** | 2026-06-23 | - | Media library manager, user admin, Gemini configuration screen |
+| **07** | [Media & Third-Party Services](file:///d:/THCode/AI/furniture-website/plan/phases/phase-07-media-and-third-party-services/README.md) | **done** | 2026-06-20 | 2026-06-14 | Sync media mutations, Cloudinary upload widget, Google Maps rendering, and Resend notifications integrated |
+| **08** | [Data Migration & Seeding](file:///d:/THCode/AI/furniture-website/plan/phases/phase-08-data-migration-and-seeding/README.md) | **done** | 2026-06-21 | 2026-06-14 | Local database seeding scripts and migrations complete |
+| **09** | [Missing Admin Sections](file:///d:/THCode/AI/furniture-website/plan/phases/phase-09-missing-admin-sections/README.md) | **done** | 2026-06-23 | 2026-06-14 | Media library manager, user admin role-switching, settings encryption, and Gemini configurations completed |
 | **10** | [QA Hardening & Launch](file:///d:/THCode/AI/furniture-website/plan/phases/phase-10-qa-hardening-and-launch/README.md) | **not-started** | 2026-06-25 | - | Full test runs, Docker optimization, Vercel edge testing, final backup checks |
 
 ### Status Legend

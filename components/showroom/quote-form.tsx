@@ -12,7 +12,6 @@ import {
   type QuoteRequestInput,
 } from "@/lib/validations/quote";
 import { PremiumSelect } from "./premium-select";
-import { products } from "@/lib/showroom-mock-fallback";
 
 type QuoteLabels = {
   formTitle: string;
@@ -29,44 +28,66 @@ type QuoteLabels = {
   submitError: string;
 };
 
+/** Product shape coming from DB via server component (public_products RPC shape) */
+export type ProductForQuote = {
+  slug: string;
+  name: string;
+  summary?: string;
+  category_slug?: string | null;
+  category_name?: string | null;
+};
+
+export type CategoryForQuote = {
+  slug: string;
+  name: string;
+};
+
+function guessServiceFromCategorySlug(categorySlug: string | null | undefined): string {
+  if (!categorySlug) return "interior-consulting";
+  return categorySlug;
+}
+
 export function QuoteForm({
   locale,
   labels,
   productId,
   categoryId,
   sourcePath,
+  productsForQuote = [],
+  categoriesForQuote = [],
 }: {
   locale: Locale;
   labels: QuoteLabels;
   productId?: string;
   categoryId?: string;
   sourcePath: string;
+  productsForQuote?: ProductForQuote[];
+  categoriesForQuote?: CategoryForQuote[];
 }) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
-  
+
   const isVi = locale === "vi";
 
-  // Build product options from mock fallback database
+  // Build product options from DB data passed as prop
   const productOptions = [
     { value: "", label: isVi ? "Khác / Không có trong danh sách" : "Other / Not in list" },
-    ...products.map((p) => ({
+    ...productsForQuote.map((p) => ({
       value: p.slug,
-      label: isVi ? p.name.vi : p.name.en,
+      label: p.name,
     })),
   ];
 
-  // Calculate initial service and categoryId from productId if provided
-  const initialProduct = productId ? products.find((p) => p.slug === productId) : null;
+  // Determine initial values from productId if provided
+  const initialProduct = productId
+    ? productsForQuote.find((p) => p.slug === productId)
+    : null;
+
   const initialService = initialProduct
-    ? initialProduct.categoryKey === "sanitary"
-      ? "sanitary"
-      : initialProduct.categoryKey === "tiles"
-      ? "tiles"
-      : "wood-furniture"
+    ? guessServiceFromCategorySlug(initialProduct.category_slug)
     : "interior-consulting";
-  
-  const initialCategoryId = categoryId || (initialProduct?.categoryKey || "");
+
+  const initialCategoryId = categoryId || (initialProduct?.category_slug ?? "");
 
   const {
     register,
@@ -95,24 +116,17 @@ export function QuoteForm({
 
   // Watch productId changes to auto-update categoryId and service
   const selectedProductId = watch("productId");
-  
+
   // Effect to update category when product changes
   React.useEffect(() => {
     if (selectedProductId) {
-      const matchedProduct = products.find((p) => p.slug === selectedProductId);
+      const matchedProduct = productsForQuote.find((p) => p.slug === selectedProductId);
       if (matchedProduct) {
-        // Auto-update service type based on category
-        if (matchedProduct.categoryKey === "sanitary") {
-          setValue("service", "sanitary");
-        } else if (matchedProduct.categoryKey === "tiles") {
-          setValue("service", "tiles");
-        } else {
-          setValue("service", "wood-furniture");
-        }
-        // Update categoryId (using categoryKey for mock data)
-        setValue("categoryId", matchedProduct.categoryKey || "");
+        setValue("service", guessServiceFromCategorySlug(matchedProduct.category_slug));
+        setValue("categoryId", matchedProduct.category_slug ?? "");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProductId, setValue]);
 
   async function submit(values: QuoteRequestInput) {
@@ -141,7 +155,7 @@ export function QuoteForm({
       <h2 className="type-section-title text-primary">
         {labels.formTitle}
       </h2>
-      
+
       {/* Show selected product info if coming from product page */}
       {productId && initialProduct && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-start gap-3">
@@ -155,15 +169,17 @@ export function QuoteForm({
               {isVi ? "Sản phẩm đã chọn" : "Selected Product"}
             </p>
             <p className="text-sm font-bold text-slate-800 mt-0.5">
-              {isVi ? initialProduct.name.vi : initialProduct.name.en}
+              {initialProduct.name}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
-              {isVi ? "Danh mục" : "Category"}: {isVi ? initialProduct.category.vi : initialProduct.category.en}
-            </p>
+            {initialProduct.category_name && (
+              <p className="text-xs text-slate-500 mt-1">
+                {isVi ? "Danh mục" : "Category"}: {initialProduct.category_name}
+              </p>
+            )}
           </div>
         </div>
       )}
-      
+
       <input type="hidden" {...register("locale")} />
       <input type="hidden" {...register("sourcePath")} />
       <label className="sr-only" aria-hidden="true">
@@ -212,9 +228,10 @@ export function QuoteForm({
                     value: "interior-consulting",
                     label: isVi ? "Thiết kế nội thất trọn gói" : "Full interior consulting",
                   },
-                  { value: "wood-furniture", label: isVi ? "Đồ gỗ nội thất" : "Wood furniture" },
-                  { value: "sanitary", label: isVi ? "Thiết bị vệ sinh" : "Sanitary ware" },
-                  { value: "tiles", label: isVi ? "Gạch ốp lát" : "Tiles" },
+                  ...categoriesForQuote.map((c) => ({
+                    value: c.slug,
+                    label: c.name,
+                  })),
                 ]}
                 placeholder={labels.service}
                 ariaLabel={labels.service}
@@ -235,7 +252,6 @@ export function QuoteForm({
                 value={field.value ?? ""}
                 onValueChange={(val) => {
                   field.onChange(val);
-                  // Auto-update logic is handled by useEffect above
                 }}
                 options={productOptions}
                 placeholder={isVi ? "Chọn sản phẩm..." : "Select product..."}

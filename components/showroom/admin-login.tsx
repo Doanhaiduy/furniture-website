@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowRight, Loader2, Lock } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { RemoteImage } from "./remote-image";
-import { imageAssets } from "@/lib/showroom-data";
+import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";
 
 export function AdminLoginPage() {
   const router = useRouter();

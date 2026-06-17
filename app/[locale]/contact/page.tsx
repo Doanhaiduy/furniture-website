@@ -5,10 +5,10 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { imageAssets } from "@/lib/showroom-constants";
-import { QuoteForm } from "@/components/showroom/quote-form";
+import { QuoteForm, type ProductForQuote } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createClient } from "@/lib/supabase/server";
-import { getShowrooms } from "@/lib/supabase/queries";
+import { getShowrooms, getProducts, getCategories } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
   params,
@@ -44,6 +44,29 @@ export default async function ContactPage({
   const t = await getTranslations("contact");
 
   const supabase = await createClient();
+
+  // Fetch products from DB for the product selector in QuoteForm
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawProducts = await getProducts(supabase, { locale, limit: 200 }).catch(() => []);
+  const productsForQuote: ProductForQuote[] = rawProducts
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((p: any) => p.slug)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((p: any) => ({
+      slug: p.slug as string,
+      name: (p.name as string) || p.slug,
+      summary: p.summary as string | undefined,
+      category_slug: p.category_slug as string | null | undefined,
+      category_name: p.category_name as string | null | undefined,
+    }));
+
+  const dbCategories = await getCategories(supabase, locale).catch(() => []);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const categoriesForQuote = dbCategories.map((c: any) => ({
+    slug: c.slug,
+    name: c.name,
+  }));
+
   const dbShowrooms = await getShowrooms(supabase, locale).catch(() => []);
   const displayShowrooms: DisplayShowroom[] = dbShowrooms.length > 0
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,6 +100,8 @@ export default async function ContactPage({
           locale={locale}
           sourcePath={`/${locale}/contact`}
           productId={product}
+          productsForQuote={productsForQuote}
+          categoriesForQuote={categoriesForQuote}
           labels={{
             formTitle: t("formTitle"),
             name: t("name"),

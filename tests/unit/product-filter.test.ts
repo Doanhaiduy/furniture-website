@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterProducts, paginateItems, sortProducts } from "../../lib/showroom-data";
+import { filterProducts, paginateItems, sortProducts } from "../fixtures/showroom-data-fixture";
 
 describe("filterProducts", () => {
   it("filters by category", () => {

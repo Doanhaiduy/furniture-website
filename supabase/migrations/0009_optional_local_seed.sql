@@ -25,29 +25,77 @@ declare
   v_blog_post_3_id uuid;
   v_showroom_2_id uuid;
   v_showroom_3_id uuid;
+
+  -- Fixed UUIDs for Media Assets
+  v_hero_media_id uuid := '00000000-0000-0000-0000-000000000101';
+  v_showroom_media_id uuid := '00000000-0000-0000-0000-000000000102';
+  v_woodwall_media_id uuid := '00000000-0000-0000-0000-000000000103';
+  v_sofa_media_id uuid := '00000000-0000-0000-0000-000000000104';
+  v_texture_media_id uuid := '00000000-0000-0000-0000-000000000105';
+  v_room_media_id uuid := '00000000-0000-0000-0000-000000000106';
+  v_table_media_id uuid := '00000000-0000-0000-0000-000000000107';
+  v_chair_media_id uuid := '00000000-0000-0000-0000-000000000108';
+  v_cabinet_media_id uuid := '00000000-0000-0000-0000-000000000109';
+  v_abouthero_media_id uuid := '00000000-0000-0000-0000-000000000110';
+  v_factory_media_id uuid := '00000000-0000-0000-0000-000000000111';
+  v_blog1_media_id uuid := '00000000-0000-0000-0000-000000000112';
+  v_blog2_media_id uuid := '00000000-0000-0000-0000-000000000113';
+  v_showroom2_media_id uuid := '00000000-0000-0000-0000-000000000114';
 begin
   -- Seed local data unconditionally in local development environment
   -- if coalesce(current_setting('app.seed_local', true), 'false') <> 'true' then
   --   return;
   -- end if;
 
+  -- 1. SEED MEDIA ASSETS
+  insert into public.media_assets (id, storage_provider, cloudinary_public_id, public_url, resource_type, mime_type, format, size_bytes)
+  values
+    (v_hero_media_id, 'cloudinary', 'showroom/hero', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1234567890/showroom/hero.jpg', 'image', 'image/jpeg', 'jpg', 102400),
+    (v_showroom_media_id, 'cloudinary', 'showroom/showroom', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg', 'image', 'image/jpeg', 'jpg', 102400),
+    (v_woodwall_media_id, 'cloudinary', 'showroom/woodWall', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png', 'image', 'image/png', 'png', 102400),
+    (v_sofa_media_id, 'cloudinary', 'showroom/sofa', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424089/showroom/sofa.jpg', 'image', 'image/jpeg', 'jpg', 102400),
+    (v_texture_media_id, 'cloudinary', 'showroom/texture', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424090/showroom/texture.jpg', 'image', 'image/jpeg', 'jpg', 102400),
+    (v_room_media_id, 'cloudinary', 'showroom/room', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424091/showroom/room.jpg', 'image', 'image/jpeg', 'jpg', 102400),
+    (v_table_media_id, 'cloudinary', 'showroom/table', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424092/showroom/table.png', 'image', 'image/png', 'png', 102400),
+    (v_chair_media_id, 'cloudinary', 'showroom/chair', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424093/showroom/chair.png', 'image', 'image/png', 'png', 102400),
+    (v_cabinet_media_id, 'cloudinary', 'showroom/cabinet', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424095/showroom/cabinet.png', 'image', 'image/png', 'png', 102400),
+    (v_abouthero_media_id, 'cloudinary', 'showroom/aboutHero', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424096/showroom/aboutHero.png', 'image', 'image/png', 'png', 102400),
+    (v_factory_media_id, 'cloudinary', 'showroom/factory', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424097/showroom/factory.png', 'image', 'image/png', 'png', 102400),
+    (v_blog1_media_id, 'cloudinary', 'showroom/blog1', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424098/showroom/blog1.png', 'image', 'image/png', 'png', 102400),
+    (v_blog2_media_id, 'cloudinary', 'showroom/blog2', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424100/showroom/blog2.png', 'image', 'image/png', 'png', 102400),
+    (v_showroom2_media_id, 'cloudinary', 'showroom/showroom2', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424101/showroom/showroom2.png', 'image', 'image/png', 'png', 102400)
+  on conflict (id) do update
+  set
+    public_url = excluded.public_url,
+    updated_at = now();
+
+  -- 2. SEED SITE SETTINGS
   insert into public.site_settings (
     singleton_key,
     contact_phone,
     contact_email,
-    quote_sender_email
+    quote_sender_email,
+    logo_media_id,
+    favicon_media_id,
+    default_og_image_media_id
   )
   values (
     'default',
     '+84 000 000 000',
     'hello@example.test',
-    'quotes@example.test'
+    'quotes@example.test',
+    v_hero_media_id,
+    v_hero_media_id,
+    v_hero_media_id
   )
   on conflict (singleton_key) do update
   set
     contact_phone = excluded.contact_phone,
     contact_email = excluded.contact_email,
     quote_sender_email = excluded.quote_sender_email,
+    logo_media_id = excluded.logo_media_id,
+    favicon_media_id = excluded.favicon_media_id,
+    default_og_image_media_id = excluded.default_og_image_media_id,
     updated_at = now()
   returning id into v_settings_id;
 
@@ -63,10 +111,10 @@ begin
     (
       v_settings_id,
       'vi',
-      'Showroom Noi That Phuong Dong',
-      'Dia chi demo cho phat trien local',
-      'Showroom Noi That Phuong Dong',
-      'Noi that go va thiet bi ve sinh cho khong gian song.'
+      'Showroom Nội Thất Phương Đông',
+      'Địa chỉ demo cho phát triển local',
+      'Showroom Nội Thất Phương Đông',
+      'Nội thất gỗ và thiết bị vệ sinh cho không gian sống.'
     ),
     (
       v_settings_id,
@@ -155,11 +203,11 @@ begin
       v_home_page_id,
       'vi',
       'trang-chu',
-      'Showroom Noi That Phuong Dong',
-      'Noi that go va thiet bi ve sinh cho nha o va cong trinh.',
+      'Showroom Nội Thất Phương Đông',
+      'Nội thất gỗ và thiết bị vệ sinh cho nhà ở và công trình.',
       '{}'::jsonb,
-      'Showroom Noi That Phuong Dong',
-      'Trang demo local cho showroom noi that va thiet bi ve sinh.'
+      'Showroom Nội Thất Phương Đông',
+      'Trang demo local cho showroom nội thất và thiết bị vệ sinh.'
     ),
     (
       v_home_page_id,
@@ -175,11 +223,11 @@ begin
       v_about_page_id,
       'vi',
       'gioi-thieu',
-      'Gioi thieu',
-      'Noi dung demo ve tam nhin, su menh va nang luc.',
+      'Giới thiệu',
+      'Nội dung demo về tầm nhìn, sứ mệnh và năng lực.',
       '{}'::jsonb,
-      'Gioi thieu',
-      'Thong tin demo ve showroom.'
+      'Giới thiệu',
+      'Thông tin demo về showroom.'
     ),
     (
       v_about_page_id,
@@ -205,6 +253,7 @@ begin
   set status = 'published'
   where id in (v_home_page_id, v_about_page_id);
 
+  -- 3. SEED PRODUCT CATEGORIES
   select id into v_wood_category_id
   from public.product_categories
   where parent_id is null and group_key = 'wooden_furniture'
@@ -212,9 +261,13 @@ begin
   limit 1;
 
   if v_wood_category_id is null then
-    insert into public.product_categories (group_key, status, sort_order)
-    values ('wooden_furniture', 'draft', 10)
+    insert into public.product_categories (group_key, status, sort_order, image_media_id)
+    values ('wooden_furniture', 'draft', 10, v_woodwall_media_id)
     returning id into v_wood_category_id;
+  else
+    update public.product_categories
+    set image_media_id = v_woodwall_media_id
+    where id = v_wood_category_id;
   end if;
 
   select id into v_sanitary_category_id
@@ -224,9 +277,13 @@ begin
   limit 1;
 
   if v_sanitary_category_id is null then
-    insert into public.product_categories (group_key, status, sort_order)
-    values ('sanitary_equipment', 'draft', 20)
+    insert into public.product_categories (group_key, status, sort_order, image_media_id)
+    values ('sanitary_equipment', 'draft', 20, v_room_media_id)
     returning id into v_sanitary_category_id;
+  else
+    update public.product_categories
+    set image_media_id = v_room_media_id
+    where id = v_sanitary_category_id;
   end if;
 
   insert into public.product_category_translations (
@@ -243,37 +300,37 @@ begin
       v_wood_category_id,
       'vi',
       'do-go-noi-that',
-      'Do go noi that',
-      'Nhom san pham do go noi that demo.',
-      'Do go noi that',
-      'Danh muc do go noi that demo.'
+      'Đồ gỗ nội thất',
+      'Nhóm sản phẩm đồ gỗ nội thất chất lượng cao.',
+      'Đồ gỗ nội thất',
+      'Danh mục đồ gỗ nội thất cao cấp Phương Đông.'
     ),
     (
       v_wood_category_id,
       'en',
       'wooden-furniture',
       'Wooden furniture',
-      'Demo wooden furniture product group.',
+      'Premium wooden furniture collection.',
       'Wooden furniture',
-      'Demo wooden furniture category.'
+      'Premium wooden furniture category by Phuong Dong.'
     ),
     (
       v_sanitary_category_id,
       'vi',
       'thiet-bi-ve-sinh',
-      'Thiet bi ve sinh',
-      'Nhom san pham thiet bi ve sinh demo.',
-      'Thiet bi ve sinh',
-      'Danh muc thiet bi ve sinh demo.'
+      'Thiết bị vệ sinh',
+      'Nhóm sản phẩm thiết bị vệ sinh nhập khẩu cao cấp.',
+      'Thiết bị vệ sinh',
+      'Danh mục thiết bị vệ sinh showroom Phương Đông.'
     ),
     (
       v_sanitary_category_id,
       'en',
       'sanitary-equipment',
       'Sanitary equipment',
-      'Demo sanitary equipment product group.',
+      'Imported sanitary equipment collection.',
       'Sanitary equipment',
-      'Demo sanitary equipment category.'
+      'Premium sanitary equipment category by Phuong Dong.'
     )
   on conflict (category_id, locale) do update
   set
@@ -291,7 +348,13 @@ begin
   -- Insert demo author profile
   v_author_id := '00000000-0000-0000-0000-000000000001';
   
-  insert into auth.users (id, instance_id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, aud, role)
+  insert into auth.users (
+    id, instance_id, email, encrypted_password, email_confirmed_at, 
+    raw_app_meta_data, raw_user_meta_data, aud, role,
+    confirmation_token, recovery_token, email_change_token_new, 
+    email_change, phone_change, phone_change_token, 
+    email_change_token_current, reauthentication_token, email_change_confirm_status
+  )
   values (
     v_author_id,
     '00000000-0000-0000-0000-000000000000',
@@ -299,9 +362,12 @@ begin
     extensions.crypt('password123', extensions.gen_salt('bf')),
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"full_name":"Tac Gia Demo"}'::jsonb,
+    '{"full_name":"Tác Giả Demo"}'::jsonb,
     'authenticated',
-    'authenticated'
+    'authenticated',
+    '', '', '', 
+    '', '', '', 
+    '', '', 0
   )
   on conflict (id) do nothing;
 
@@ -309,13 +375,13 @@ begin
   values (
     v_author_id,
     'author@phuongdong.vn',
-    'Tac Gia Demo',
+    'Tác Giả Demo',
     'editor',
     true
   )
   on conflict (id) do nothing;
 
-  -- 1. SEED PRODUCTS
+  -- 4. SEED PRODUCTS
   -- Product 1: Sofa Curve Velour
   select id into v_product_id
   from public.products
@@ -336,6 +402,14 @@ begin
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_id;
+
+  -- Seed product media for Sofa Curve Velour
+  insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
+  values
+    (v_product_id, v_sofa_media_id, 'gallery', true, 1),
+    (v_product_id, v_texture_media_id, 'gallery', false, 2),
+    (v_product_id, v_room_media_id, 'gallery', false, 3)
+  on conflict (product_id, media_id) do nothing;
 
   -- Product 2: Bàn Trà Marble Round
   select id into v_product_2_id
@@ -358,6 +432,13 @@ begin
 
   update public.products set status = 'published' where id = v_product_2_id;
 
+  -- Seed product media for Bàn Trà Marble Round
+  insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
+  values
+    (v_product_2_id, v_table_media_id, 'gallery', true, 1),
+    (v_product_2_id, v_room_media_id, 'gallery', false, 2)
+  on conflict (product_id, media_id) do nothing;
+
   -- Product 3: Kệ Tivi Minimalist Wood
   select id into v_product_3_id
   from public.products
@@ -378,6 +459,12 @@ begin
   on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
 
   update public.products set status = 'published' where id = v_product_3_id;
+
+  -- Seed product media for Kệ Tivi Minimalist Wood
+  insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
+  values
+    (v_product_3_id, v_cabinet_media_id, 'gallery', true, 1)
+  on conflict (product_id, media_id) do nothing;
 
   -- Product 4: Sen Tắm Mạ Vàng 24K
   select id into v_product_4_id
@@ -400,7 +487,14 @@ begin
 
   update public.products set status = 'published' where id = v_product_4_id;
 
-  -- 2. SEED SHOWROOMS
+  -- Seed product media for Sen Tắm Mạ Vàng 24K
+  insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
+  values
+    (v_product_4_id, v_room_media_id, 'gallery', true, 1)
+  on conflict (product_id, media_id) do nothing;
+
+
+  -- 5. SEED SHOWROOMS
   -- Showroom 1: Hà Nội - Flagship Store
   select id into v_showroom_id
   from public.showrooms
@@ -421,6 +515,12 @@ begin
   on conflict (showroom_id, locale) do update set name = excluded.name, address = excluded.address, updated_at = now();
 
   update public.showrooms set status = 'published' where id = v_showroom_id;
+
+  -- Seed showroom media for HN Showroom
+  insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
+  values
+    (v_showroom_id, v_showroom_media_id, true, 1)
+  on conflict (showroom_id, media_id) do nothing;
 
   -- Showroom 2: TP. Hồ Chí Minh
   select id into v_showroom_2_id
@@ -443,6 +543,12 @@ begin
 
   update public.showrooms set status = 'published' where id = v_showroom_2_id;
 
+  -- Seed showroom media for HCM Showroom
+  insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
+  values
+    (v_showroom_2_id, v_showroom2_media_id, true, 1)
+  on conflict (showroom_id, media_id) do nothing;
+
   -- Showroom 3: Đà Nẵng Experience Studio
   select id into v_showroom_3_id
   from public.showrooms
@@ -464,7 +570,14 @@ begin
 
   update public.showrooms set status = 'published' where id = v_showroom_3_id;
 
-  -- 3. SEED BLOG CATEGORIES & BLOG POSTS
+  -- Seed showroom media for DN Experience Studio
+  insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
+  values
+    (v_showroom_3_id, v_room_media_id, true, 1)
+  on conflict (showroom_id, media_id) do nothing;
+
+
+  -- 6. SEED BLOG CATEGORIES & BLOG POSTS
   -- Blog Category 1: Wood Knowledge
   select id into v_blog_cat_id
   from public.blog_categories
@@ -493,9 +606,13 @@ begin
   limit 1;
 
   if v_blog_post_1_id is null then
-    insert into public.blog_posts (category_id, author_id, status, featured, published_at)
-    values (v_blog_cat_id, v_author_id, 'draft', true, now())
+    insert into public.blog_posts (category_id, author_id, status, featured, published_at, cover_media_id)
+    values (v_blog_cat_id, v_author_id, 'draft', true, now(), v_blog1_media_id)
     returning id into v_blog_post_1_id;
+  else
+    update public.blog_posts
+    set cover_media_id = v_blog1_media_id
+    where id = v_blog_post_1_id;
   end if;
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)
@@ -514,9 +631,13 @@ begin
   limit 1;
 
   if v_blog_post_2_id is null then
-    insert into public.blog_posts (category_id, author_id, status, featured, published_at)
-    values (v_blog_cat_id, v_author_id, 'draft', false, now() - interval '1 day')
+    insert into public.blog_posts (category_id, author_id, status, featured, published_at, cover_media_id)
+    values (v_blog_cat_id, v_author_id, 'draft', false, now() - interval '1 day', v_blog2_media_id)
     returning id into v_blog_post_2_id;
+  else
+    update public.blog_posts
+    set cover_media_id = v_blog2_media_id
+    where id = v_blog_post_2_id;
   end if;
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)
@@ -535,9 +656,13 @@ begin
   limit 1;
 
   if v_blog_post_3_id is null then
-    insert into public.blog_posts (category_id, author_id, status, featured, published_at)
-    values (v_blog_cat_id, v_author_id, 'draft', false, now() - interval '2 days')
+    insert into public.blog_posts (category_id, author_id, status, featured, published_at, cover_media_id)
+    values (v_blog_cat_id, v_author_id, 'draft', false, now() - interval '2 days', v_texture_media_id)
     returning id into v_blog_post_3_id;
+  else
+    update public.blog_posts
+    set cover_media_id = v_texture_media_id
+    where id = v_blog_post_3_id;
   end if;
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)

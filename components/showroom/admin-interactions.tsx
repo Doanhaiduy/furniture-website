@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+
 import {
   Archive,
   Bot,
@@ -582,21 +583,503 @@ export function RichTextEditorMock({
 }
 
 export function MediaUploadPanel() {
-  const [status, setStatus] = useState<"idle" | "selected">("idle");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState<{ url: string; id: string } | null>(null);
+  const [library, setLibrary] = useState<Array<{ id: string; public_url: string; format?: string }>>([]);
+  const [libLoading, setLibLoading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function loadLibrary() {
+    setLibLoading(true);
+    try {
+      const res = await fetch("/api/admin/media/list");
+      if (res.ok) {
+        const data = await res.json();
+        setLibrary(data.assets ?? []);
+      }
+    } catch {
+      // noop
+    } finally {
+      setLibLoading(false);
+    }
+  }
+
+  // Load library on mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLibrary();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg", "image/png", "image/webp", "image/avif",
+      "image/gif", "image/svg+xml", "video/mp4", "video/webm",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      setError(`Định dạng không hỗ trợ: ${file.type}. Chỉ nhận JPEG, PNG, WebP, AVIF, GIF, SVG, MP4, WebM.`);
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setError("File quá lớn. Tối đa 50MB.");
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
+    setError("");
+    setSuccess(null);
+
+    try {
+      // 1. Get signed upload params
+      const signRes = await fetch("/api/admin/cloudinary-sign", { method: "POST" });
+      if (!signRes.ok) {
+        const errData = await signRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Không thể lấy chữ ký upload");
+      }
+      const { signature, timestamp, folder, apiKey, cloudName } = await signRes.json();
+
+      // 2. Upload to Cloudinary via XHR for progress tracking
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", String(timestamp));
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+
+      const cloudinaryResult = await new Promise<{
+        public_id: string;
+        secure_url: string;
+        format: string;
+        bytes: number;
+        width?: number;
+        height?: number;
+        original_filename?: string;
+        resource_type?: string;
+      }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", uploadUrl);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setProgress(Math.round((e.loaded / e.total) * 80));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            try {
+              const errData = JSON.parse(xhr.responseText);
+              reject(new Error(errData.error?.message || "Upload thất bại"));
+            } catch {
+              reject(new Error("Upload thất bại"));
+            }
+          }
+        };
+        xhr.onerror = () => reject(new Error("Lỗi mạng khi upload"));
+        xhr.send(formData);
+      });
+
+      setProgress(85);
+
+      // 3. Persist media_assets row
+      const persistRes = await fetch("/api/admin/media/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          public_id: cloudinaryResult.public_id,
+          secure_url: cloudinaryResult.secure_url,
+          format: cloudinaryResult.format,
+          bytes: cloudinaryResult.bytes,
+          width: cloudinaryResult.width,
+          height: cloudinaryResult.height,
+          original_filename: cloudinaryResult.original_filename,
+          resource_type: cloudinaryResult.resource_type,
+        }),
+      });
+
+      if (!persistRes.ok) {
+        const errData = await persistRes.json().catch(() => ({}));
+        throw new Error(errData.error || "Không thể lưu vào cơ sở dữ liệu");
+      }
+
+      const persistedAsset = await persistRes.json();
+      setProgress(100);
+      setSuccess({ url: persistedAsset.public_url, id: persistedAsset.id });
+      loadLibrary(); // Refresh library
+    } catch (err) {
+      setError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file);
+    // Reset input
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleUpload(file);
+  }
 
   return (
-    <div className="surface-soft grid min-h-80 place-items-center p-8 text-center">
+    <div className="space-y-5">
+      {/* Upload Zone */}
+      <div
+        className={`surface-soft flex min-h-60 flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
+          dragging ? "border-primary bg-primary/5" : "border-slate-300 hover:border-primary/50"
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+      >
+        <UploadCloud className={`size-12 ${dragging ? "text-primary" : "text-slate-400"}`} />
+        <div>
+          <h3 className="font-heading text-lg font-semibold text-primary">
+            {dragging ? "Thả file vào đây" : "Kéo thả ảnh/video hoặc chọn file"}
+          </h3>
+          <p className="mt-1.5 text-sm text-secondary">
+            JPEG, PNG, WebP, AVIF, GIF, SVG • MP4, WebM • Tối đa 50MB
+          </p>
+        </div>
+
+        <input
+          ref={inputRef}
+          type="file"
+          className="sr-only"
+          id="media-upload-input"
+          accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml,video/mp4,video/webm"
+          onChange={handleFileChange}
+          disabled={uploading}
+        />
+        <label
+          htmlFor="media-upload-input"
+          className="button-pd cursor-pointer"
+        >
+          {uploading ? (
+            <><Loader2 className="size-4 animate-spin" />Đang upload...</>
+          ) : (
+            "Chọn file"
+          )}
+        </label>
+
+        {/* Progress bar */}
+        {uploading && (
+          <div className="w-full max-w-xs">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="mt-1 text-center text-xs text-secondary">{progress}%</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <p className="text-sm font-semibold text-error">{error}</p>
+        )}
+
+        {/* Success */}
+        {success && (
+          <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={success.url} alt="Uploaded" className="h-12 w-12 rounded object-cover" />
+            <div className="text-left">
+              <p className="text-xs font-bold text-green-700">Upload thành công!</p>
+              <p className="text-[10px] text-green-600 break-all">{success.url}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Library */}
       <div>
-        <UploadCloud className="mx-auto size-12 text-primary" />
-        <h2 className="mt-4 font-heading text-xl font-semibold text-primary">Kéo thả ảnh/video</h2>
-        <p className="mt-2 text-sm text-secondary">JPEG, PNG, WebP, AVIF hoặc MP4/WebM theo ngữ cảnh.</p>
-        <button className="button-pd mt-5" type="button" onClick={() => setStatus("selected")}>
-          Chọn file
-        </button>
-        <p className="mt-4 text-sm font-semibold text-secondary">
-          {status === "selected" ? "Đã chọn demo-image.webp. Sẵn sàng kiểm tra siêu dữ liệu." : "Chưa có file được chọn."}
-        </p>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-slate-700">Thư viện media ({library.length})</h3>
+          <button
+            type="button"
+            className="text-xs text-slate-400 hover:text-primary"
+            onClick={loadLibrary}
+            disabled={libLoading}
+          >
+            {libLoading ? "Đang tải..." : "Làm mới"}
+          </button>
+        </div>
+        {library.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-400">
+            {libLoading ? "Đang tải thư viện..." : "Chưa có file nào được upload."}
+          </p>
+        ) : (
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+            {library.map((asset) => (
+              <div
+                key={asset.id}
+                className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 cursor-pointer hover:border-primary transition"
+                onClick={() => {
+                  navigator.clipboard?.writeText(asset.public_url).catch(() => null);
+                }}
+                title={`Nhấn để copy URL: ${asset.public_url}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={asset.public_url}
+                  alt=""
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 flex items-end bg-black/0 opacity-0 transition group-hover:opacity-100 group-hover:bg-black/30">
+                  <span className="w-full bg-black/60 px-1 py-0.5 text-center text-[9px] font-bold text-white">Copy URL</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+/** MediaPicker — inline image picker/uploader for use in admin forms. */
+export function MediaPicker({
+  value,
+  onChange,
+  label = "Chọn ảnh",
+}: {
+  value?: string;
+  onChange: (url: string, mediaId?: string) => void;
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [uploadError, setUploadError] = useState("");
+  const [library, setLibrary] = useState<Array<{ id: string; public_url: string }>>([]);
+  const [libLoaded, setLibLoaded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function loadLibrary() {
+    if (libLoaded) return;
+    const res = await fetch("/api/admin/media/list").catch(() => null);
+    if (res?.ok) {
+      const data = await res.json();
+      setLibrary(data.assets ?? []);
+      setLibLoaded(true);
+    }
+  }
+
+  async function handleUpload(file: File) {
+    if (!file) return;
+    const allowedTypes = [
+      "image/jpeg", "image/png", "image/webp", "image/avif", "image/gif", "image/svg+xml",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError(`Định dạng không hỗ trợ: ${file.type}`);
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setUploadError("File quá lớn. Tối đa 50MB.");
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
+    setUploadError("");
+
+    try {
+      const signRes = await fetch("/api/admin/cloudinary-sign", { method: "POST" });
+      if (!signRes.ok) throw new Error("Không thể lấy chữ ký upload");
+      const { signature, timestamp, folder, apiKey, cloudName } = await signRes.json();
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", String(timestamp));
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
+      const cloudRes = await new Promise<{
+        public_id: string; secure_url: string; format: string;
+        bytes: number; width?: number; height?: number; original_filename?: string; resource_type?: string;
+      }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", uploadUrl);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 80));
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
+          else reject(new Error("Upload thất bại"));
+        };
+        xhr.onerror = () => reject(new Error("Lỗi mạng"));
+        xhr.send(formData);
+      });
+
+      setProgress(85);
+      const persistRes = await fetch("/api/admin/media/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          public_id: cloudRes.public_id,
+          secure_url: cloudRes.secure_url,
+          format: cloudRes.format,
+          bytes: cloudRes.bytes,
+          width: cloudRes.width,
+          height: cloudRes.height,
+          original_filename: cloudRes.original_filename,
+          resource_type: cloudRes.resource_type,
+        }),
+      });
+      if (!persistRes.ok) throw new Error("Không thể lưu vào cơ sở dữ liệu");
+      const asset = await persistRes.json();
+      setProgress(100);
+      onChange(asset.public_url, asset.id);
+      setLibLoaded(false); // invalidate library cache
+      setOpen(false);
+    } catch (err) {
+      setUploadError(String(err instanceof Error ? err.message : err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <>
+      {/* Trigger */}
+      <div className="space-y-2">
+        {value && (
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={value}
+              alt="Ảnh đã chọn"
+              className="h-32 w-full rounded-lg border border-slate-200 object-cover"
+            />
+          </div>
+        )}
+        <button
+          type="button"
+          className="button-pd-outline flex w-full items-center justify-center gap-2 text-sm"
+          onClick={() => { setOpen(true); loadLibrary(); }}
+        >
+          <ImageUp className="size-4" />
+          {value ? "Đổi ảnh" : label}
+        </button>
+        {value && (
+          <button
+            type="button"
+            className="w-full text-center text-xs text-slate-400 hover:text-error transition"
+            onClick={() => onChange("", undefined)}
+          >
+            Xóa ảnh
+          </button>
+        )}
+      </div>
+
+      {/* Dialog */}
+      {open && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
+              <h2 className="font-heading text-lg font-semibold">Chọn ảnh</h2>
+              <button
+                type="button"
+                className="text-slate-400 hover:text-slate-700"
+                onClick={() => setOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Upload new */}
+              <div>
+                <p className="mb-2 text-sm font-semibold text-slate-700">Upload ảnh mới</p>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  className="sr-only"
+                  id="media-picker-input"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUpload(f);
+                    if (inputRef.current) inputRef.current.value = "";
+                  }}
+                  disabled={uploading}
+                />
+                <label
+                  htmlFor="media-picker-input"
+                  className="button-pd-outline cursor-pointer inline-flex items-center gap-2"
+                >
+                  <UploadCloud className="size-4" />
+                  {uploading ? "Đang upload..." : "Chọn file từ máy tính"}
+                </label>
+                {uploading && (
+                  <div className="mt-2 h-2 rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                )}
+                {uploadError && <p className="mt-2 text-xs text-error font-semibold">{uploadError}</p>}
+              </div>
+
+              {/* Library */}
+              <div>
+                <p className="mb-2 text-sm font-semibold text-slate-700">Thư viện ({library.length})</p>
+                {library.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-slate-400">Chưa có file nào trong thư viện.</p>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                    {library.map((asset) => (
+                      <button
+                        key={asset.id}
+                        type="button"
+                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 transition ${
+                          value === asset.public_url
+                            ? "border-primary"
+                            : "border-slate-200 hover:border-primary"
+                        }`}
+                        onClick={() => {
+                          onChange(asset.public_url, asset.id);
+                          setOpen(false);
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={asset.public_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
