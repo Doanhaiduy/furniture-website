@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getProducts, getBlogPosts } from "@/lib/supabase/queries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   // Fetch published products and blog posts from DB for sitemap
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbProducts = await getProducts(supabase, { limit: 1000 }).catch(() => []);
   const dbBlogPosts = await getBlogPosts(supabase, { limit: 1000 }).catch(() => []);
 

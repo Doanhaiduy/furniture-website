@@ -3,8 +3,11 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { isLocale, routing, type Locale } from "@/i18n/routing";
+
+export const dynamic = "force-dynamic";
+
 import { PublicShell } from "@/components/showroom/public-shell";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getPublicSiteSettings } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
@@ -21,7 +24,7 @@ export async function generateMetadata({
   if (!isLocale(locale)) return {};
   const t = await getTranslations({ locale, namespace: "meta" });
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
 
   return {
@@ -51,13 +54,17 @@ export default async function LocaleLayout({
   const nav = await getTranslations("nav");
   const common = await getTranslations("common");
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
   const brandsRes = await getPublicBrands();
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 
-  const { getCategories } = await import("@/lib/supabase/queries");
+  const { getCategories, getProducts } = await import("@/lib/supabase/queries");
   const publicCategories = await getCategories(supabase, locale as "vi" | "en");
+  const publicProducts = await getProducts(supabase, {
+    locale: locale as "vi" | "en",
+    limit: 1000,
+  });
 
   return (
     <NextIntlClientProvider messages={messages}>
@@ -66,6 +73,7 @@ export default async function LocaleLayout({
         siteSettings={siteSettings}
         brands={publicBrands}
         categories={publicCategories}
+        products={publicProducts}
         labels={{
           common: {
             brand: common("brand"),

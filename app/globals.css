@@ -704,10 +704,10 @@
   }
 
   .type-hero-title {
-    max-width: 12ch;
+    max-width: 15ch;
     color: var(--text-on-brand);
     font-family: var(--font-heading);
-    font-size: clamp(2.35rem, 9vw, 5.15rem);
+    font-size: clamp(1.5rem, 7vw, 4.25rem);
     font-weight: 700;
     line-height: 0.98;
     letter-spacing: var(--tracking-normal);
@@ -1626,4 +1626,20 @@
     min-height: auto !important;
     margin-top: 0 !important;
   }
+}
+
+@layer utilities {
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Reset focus rings/outlines on premium line-variant tabs */
+[data-variant="line"] [data-slot="tabs-trigger"] {
+  outline: none !important;
+  box-shadow: none !important;
 }

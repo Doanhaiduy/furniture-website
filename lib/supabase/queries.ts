@@ -34,6 +34,7 @@ export async function getProducts(
     featured?: boolean;
     limit?: number;
     offset?: number;
+    brandId?: string;
   }
 ) {
   const locale = params.locale || "vi";
@@ -55,13 +56,17 @@ export async function getProducts(
       });
 
       if (!error && data && data.length > 0) {
-        return data;
+        let results = data;
+        if (params.brandId && params.brandId !== "all") {
+          results = results.filter((p: any) => p.brand_id === params.brandId || p.brandId === params.brandId);
+        }
+        return results;
       }
       if (error) {
-        console.warn("Error fetching products via RPC, falling back to mock data:", error);
+        console.error("[ERROR getProducts RPC]", error);
       }
     } catch (e) {
-      console.warn("Exception fetching products, falling back to mock data:", e);
+      console.error("[ERROR getProducts Exception]", e);
     }
   }
 
@@ -104,6 +109,9 @@ export async function getProducts(
   }
   if (params.featured !== undefined && params.featured !== null) {
     filtered = filtered.filter((p) => p.featured === params.featured);
+  }
+  if (params.brandId && params.brandId !== "all") {
+    filtered = filtered.filter((p) => p.brand_id === params.brandId);
   }
   const priceMin = params.priceMin;
   if (priceMin !== undefined && priceMin !== null) {
@@ -268,6 +276,7 @@ export async function getCategories(
           parent_id,
           group_key,
           sort_order,
+          image_media:media_assets!fk_product_categories_image_media(public_url),
           product_category_translations!inner (
             slug,
             name,
@@ -283,6 +292,12 @@ export async function getCategories(
       if (!error && data && data.length > 0) {
         return data.map((cat: any) => {
           const translation = cat.product_category_translations[0];
+          const groupKey = cat.group_key;
+          let fallbackImage = imageAssets.showroom;
+          if (groupKey === "wooden_furniture" || groupKey === "wood") fallbackImage = imageAssets.woodWall;
+          else if (groupKey === "sanitary_equipment" || groupKey === "sanitary") fallbackImage = imageAssets.room;
+          else if (groupKey === "tiles") fallbackImage = imageAssets.texture;
+
           return {
             id: cat.id,
             parentId: cat.parent_id,
@@ -291,6 +306,7 @@ export async function getCategories(
             slug: translation?.slug || "",
             name: translation?.name || "",
             description: translation?.description || "",
+            image: cat.image_media?.public_url || fallbackImage,
           };
         });
       }
@@ -302,15 +318,23 @@ export async function getCategories(
   // Fallback to local mock categories
   return mockCategories
     .filter((cat) => cat.status === "published")
-    .map((cat) => ({
-      id: cat.id,
-      parentId: cat.parent_id,
-      groupKey: cat.group_key,
-      sortOrder: cat.sort_order,
-      slug: cat.slug,
-      name: cat.name[locale],
-      description: cat.description?.[locale] || "",
-    }));
+    .map((cat) => {
+      let fallbackImage = imageAssets.showroom;
+      if (cat.group_key === "wood") fallbackImage = imageAssets.woodWall;
+      else if (cat.group_key === "sanitary") fallbackImage = imageAssets.room;
+      else if (cat.group_key === "tiles") fallbackImage = imageAssets.texture;
+
+      return {
+        id: cat.id,
+        parentId: cat.parent_id,
+        groupKey: cat.group_key,
+        sortOrder: cat.sort_order,
+        slug: cat.slug,
+        name: cat.name[locale],
+        description: cat.description?.[locale] || "",
+        image: fallbackImage,
+      };
+    });
 }
 
 /**
@@ -445,6 +469,9 @@ export async function getProductBySlug(
     media: Array.isArray(product.media) ? product.media : [],
     attributes: Array.isArray(product.attributes) ? product.attributes : [],
     specs: product.specs,
+    // Promo pricing passthrough
+    promo_price_min: product.promo_price_min ?? null,
+    promo_price_max: product.promo_price_max ?? null,
   };
 }
 
@@ -575,6 +602,22 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     return attributes.find((a: any) => a.key === key)?.value || "";
   };
 
+  // ---- Discount / promo pricing ----
+  const priceMin = dbProduct.price_min ?? dbProduct.priceMin ?? null;
+  const promoPriceMin = dbProduct.promo_price_min ?? dbProduct.promoPriceMin ?? null;
+  const promoPriceMax = dbProduct.promo_price_max ?? dbProduct.promoPriceMax ?? null;
+
+  let discountPercentage: number | null = null;
+  let displayPrice = { vi: priceVi, en: priceEn };
+  let oldPrice: { vi: string; en: string } | null = null;
+
+  if (promoPriceMin !== null && priceMin !== null && Number(promoPriceMin) < Number(priceMin)) {
+    discountPercentage = Math.round((1 - Number(promoPriceMin) / Number(priceMin)) * 100);
+    const formattedPromo = Number(promoPriceMin).toLocaleString("vi-VN") + " VND";
+    displayPrice = { vi: formattedPromo, en: formattedPromo };
+    oldPrice = { vi: priceVi, en: priceEn };
+  }
+
   return {
     slug: dbProduct.slug,
     referenceCode,
@@ -585,11 +628,15 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     collectionKey: dbProduct.collection_key || dbProduct.collectionKey || findAttrValue("collection") || "",
     toneKey: dbProduct.tone_key || dbProduct.toneKey || findAttrValue("tone") || "",
     availabilityKey: dbProduct.availability_key || dbProduct.availabilityKey || findAttrValue("availability") || "",
+    brand_id: dbProduct.brand_id || dbProduct.brandId || null,
+    brand_name: dbProduct.brand_name || dbProduct.brandName || null,
     status: "published" as const,
     featured: dbProduct.featured || false,
     image: primaryMedia?.url || media[0]?.url || "/placeholder.jpg",
     gallery: media.map((item: any) => item.url).filter(Boolean),
-    price: { vi: priceVi, en: priceEn },
+    price: displayPrice,
+    oldPrice,
+    discountPercentage,
     name: { vi: nameVi, en: nameEn },
     category: { vi: categoryNameVi, en: categoryNameEn },
     summary: { vi: summaryVi, en: summaryEn },
@@ -597,8 +644,8 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     specs,
     tags: Array.isArray(dbProduct.tags) ? dbProduct.tags : [],
     promotionId: dbProduct.promotion_id || dbProduct.promotionId || null,
-    promoPriceMin: dbProduct.promo_price_min || dbProduct.promoPriceMin || null,
-    promoPriceMax: dbProduct.promo_price_max || dbProduct.promoPriceMax || null,
+    promoPriceMin,
+    promoPriceMax,
   };
 }
 
@@ -620,16 +667,27 @@ export async function getPromotions(
       if (!error && data && data.length > 0) {
         return data.map((d: any) => {
           const meta = d.metadata_jsonb || {};
+          const rawTagVi = meta.tag_vi || "";
+          const rawTagEn = meta.tag_en || "";
+          // Override legacy "Combo" or "Package" tags to individual-purchase friendly labels
+          const tagVi = rawTagVi.toLowerCase().includes("combo") || rawTagVi.toLowerCase().includes("package")
+            ? "Chương Trình Ưu Đãi"
+            : rawTagVi || "Khuyến mãi";
+          const tagEn = rawTagEn.toLowerCase().includes("combo") || rawTagEn.toLowerCase().includes("package")
+            ? "Special Offer"
+            : rawTagEn || "Promotion";
           return {
             id: d.id,
             code: d.code,
             discount_percentage: d.discount_percentage || d.discountPercentage || 0,
+            startAt: d.start_at,
+            endAt: d.end_at,
             title: d.title,
             description: d.description,
             comboPrice: d.combo_price,
             originalPrice: d.original_price,
             coverImageUrl: d.cover_image_url,
-            tag: locale === "vi" ? meta.tag_vi : meta.tag_en,
+            tag: locale === "vi" ? tagVi : tagEn,
             items: locale === "vi" ? (meta.items_vi || []) : (meta.items_en || []),
             color: meta.color || "from-amber-500/20 to-orange-500/5",
             badgeColor: meta.badgeColor || "bg-amber-500 text-black",
@@ -651,12 +709,14 @@ export async function getPromotions(
       id: "11111111-1111-1111-1111-111111111111",
       code: "heritage-walnut-combo",
       discount_percentage: 15.00,
+      startAt: "2026-06-01T00:00:00+07:00",
+      endAt: "2026-08-31T23:59:59+07:00",
       title: locale === "vi" ? "Không Gian Phòng Khách Walnut Heritage" : "Heritage Walnut Living Room Package",
       description: locale === "vi" ? "Tinh tuyển gỗ óc chó tự nhiên cho căn hộ cao cấp" : "Curated natural walnut for premium apartments",
       comboPrice: 68000000,
       originalPrice: 79500000,
       coverImageUrl: imageAssets.sofa,
-      tag: locale === "vi" ? "Combo Độc Quyền" : "Exclusive Package",
+      tag: locale === "vi" ? "Chương Trình Ưu Đãi" : "Special Offer",
       items: locale === "vi" 
         ? [
             "Sofa Curve Velour bọc vải cao cấp",
@@ -676,12 +736,14 @@ export async function getPromotions(
       id: "22222222-2222-2222-2222-222222222222",
       code: "wellness-bath-set",
       discount_percentage: 18.00,
+      startAt: "2026-06-01T00:00:00+07:00",
+      endAt: "2026-09-30T23:59:59+07:00",
       title: locale === "vi" ? "Trọn Bộ Thiết Bị Phòng Tắm Wellness" : "Wellness Master Bathroom Suite",
       description: locale === "vi" ? "Không gian spa thư giãn nhập khẩu chính hãng tiêu chuẩn Châu Âu" : "Relaxing spa suite with European standards",
       comboPrice: 34500000,
       originalPrice: 42000000,
       coverImageUrl: imageAssets.room,
-      tag: locale === "vi" ? "Gói Sức Khỏe" : "Wellness Package",
+      tag: locale === "vi" ? "Chương Trình Sức Khỏe" : "Wellness Offer",
       items: locale === "vi" 
         ? [
             "Sen Tắm Mạ Vàng 24K với van điều nhiệt cao cấp",
@@ -701,6 +763,8 @@ export async function getPromotions(
       id: "33333333-3333-3333-3333-333333333333",
       code: "porcelain-surface-pack",
       discount_percentage: 20.00,
+      startAt: "2026-06-01T00:00:00+07:00",
+      endAt: "2026-12-31T23:59:59+07:00",
       title: locale === "vi" ? "Gói Gạch Ốp Lát Toàn Diện Grand Surface" : "Grand Surface Porcelain Tile Package",
       description: locale === "vi" ? "Vật liệu cao cấp hoàn thiện bề mặt sang trọng, bền vững" : "Premium materials for luxury and durable surfaces",
       comboPrice: 1200000,

@@ -13,18 +13,24 @@ export interface Product {
   collectionKey: string | null;
   toneKey: string | null;
   availabilityKey: string | null;
+  brand_id?: string | null;
+  brand_name?: string | null;
   status: PublishStatus;
   featured: boolean;
   image: string;
   gallery: string[];
   price: LocalizedText;
-  oldPrice?: LocalizedText;
+  oldPrice?: LocalizedText | null;
+  discountPercentage?: number | null;
   name: LocalizedText;
   category: LocalizedText;
   summary: LocalizedText;
   description: LocalizedText;
   specs: Array<{ label: LocalizedText; value: LocalizedText }>;
   tags: string[];
+  promotionId?: string | null;
+  promoPriceMin?: number | null;
+  promoPriceMax?: number | null;
 }
 
 export type ProductSort = "newest" | "featured";
@@ -107,7 +113,7 @@ export const productGroups = [
   },
   {
     key: "solutions",
-    href: "/contact",
+    href: "/products?category=other",
     image: "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg",
     title: { vi: "Thiết kế khác", en: "Project solutions" },
     summary: {

@@ -126,35 +126,9 @@ export function HeroShowcase({
           <ChevronRight className="size-6" />
         </button>
 
-        <div className="absolute right-4 top-4 z-50 md:right-[max(1rem,calc(50%-590px))]">
-          <div className="public-hero-dots flex items-center gap-2 px-3 py-2">
-            <div className="flex gap-1.5">
-              {slides.map((slide, index) => (
-                <button
-                  key={slide.title}
-                  type="button"
-                  aria-label={slide.title}
-                  aria-current={active === index}
-                  className="public-hero-dot cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
-                  onClick={() => setActive(index)}
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              className="cursor-pointer inline-flex size-8 items-center justify-center rounded-full border border-white/18 text-white/78 transition hover:border-white/45 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35"
-              aria-label={paused ? playLabel : pauseLabel}
-              aria-pressed={paused}
-              onClick={() => setPaused((value) => !value)}
-            >
-              {paused ? <Play className="size-4" /> : <Pause className="size-4" />}
-            </button>
-          </div>
-        </div>
-
         <div className="pointer-events-none absolute inset-0 z-40">
           <div className="container-pd flex h-full items-center justify-center pb-16 pt-20 md:pb-20">
-            <div className="mx-auto max-w-5xl text-center">
+            <div className="mx-auto max-w-5xl text-center px-6 md:px-8">
               <p className="label-pd text-white/74">{activeSlide.eyebrow}</p>
               <h1 className="type-hero-title mx-auto mt-4 max-w-4xl drop-shadow-[0_18px_34px_rgba(0,0,0,0.28)]">
                 {activeSlide.title}

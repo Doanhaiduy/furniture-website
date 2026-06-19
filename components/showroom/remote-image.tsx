@@ -13,9 +13,13 @@ export function RemoteImage({
   loading?: "eager" | "lazy";
   sizes?: string;
 }) {
+  const sanitizedSrc = src?.startsWith("http://local-assets") 
+    ? src.replace("http://local-assets", "") 
+    : src;
+
   return (
     <img
-      src={src}
+      src={sanitizedSrc}
       alt={alt}
       className={className}
       loading={loading ?? (priority ? "eager" : "lazy")}

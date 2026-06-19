@@ -3,6 +3,10 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  devIndicators: {
+    // @ts-expect-error - appIsrStatus is supported in Next.js 15 runtime but types definition is outdated
+    appIsrStatus: false,
+  },
   images: {
     remotePatterns: [
       {

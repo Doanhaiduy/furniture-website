@@ -6,7 +6,7 @@ import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { imageAssets, localized, trustBadges, withLocale } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getContentPage } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
@@ -33,7 +33,7 @@ export default async function AboutPage({
   setRequestLocale(locale);
   const t = await getTranslations("about");
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const pageData = await getContentPage(supabase, "about", locale);
   const pageTitle = pageData?.title || t("title");
   const pageLead = pageData?.lead || t("lead");

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Layers3, Ruler } from "lucide-react";
+import { ArrowRight, Layers3, Ruler, Tag } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import type { Product } from "@/lib/showroom-data";
 import { localized, withLocale } from "@/lib/showroom-data";
@@ -23,6 +23,8 @@ export function ProductCard({
   const primarySpec = product.specs[0];
   const secondarySpec = product.specs[1];
   const isCatalog = density === "catalog";
+  const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0 && product.oldPrice;
+
   const imageClass = compact
     ? "relative h-48 overflow-hidden sm:h-52"
     : isCatalog
@@ -55,7 +57,22 @@ export function ProductCard({
         <div className={isCatalog ? "reference-chip-pd absolute left-3 top-3 px-2.5 py-0.5 text-[0.68rem]" : "reference-chip-pd absolute left-4 top-4"}>
           {product.referenceCode}
         </div>
-        {product.featured ? <div className={isCatalog ? "absolute bottom-3 left-3 h-1 w-10 rounded-full bg-white/85" : "absolute bottom-4 left-4 h-1 w-14 rounded-full bg-white/85"} /> : null}
+        {/* Discount badge */}
+        {hasDiscount ? (
+          <div
+            className={
+              isCatalog
+                ? "absolute right-3 top-3 flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2 py-0.5 text-[0.65rem] font-bold text-white shadow-lg"
+                : "absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-3 py-1 text-xs font-bold text-white shadow-lg"
+            }
+          >
+            <Tag className={isCatalog ? "size-2.5" : "size-3"} />
+            -{product.discountPercentage}%
+          </div>
+        ) : null}
+        {product.featured && !hasDiscount ? (
+          <div className={isCatalog ? "absolute bottom-3 left-3 h-1 w-10 rounded-full bg-white/85" : "absolute bottom-4 left-4 h-1 w-14 rounded-full bg-white/85"} />
+        ) : null}
       </div>
       <div className={bodyClass}>
         <div>
@@ -86,7 +103,16 @@ export function ProductCard({
           </div>
         ) : null}
         <div className={compact || isCatalog ? "flex items-center justify-between gap-3 border-t border-outline-variant/25 pt-3" : "flex items-center justify-between gap-3 border-t border-outline-variant/25 pt-4"}>
-          <p className={isCatalog ? "min-w-0 truncate text-sm font-bold text-primary" : "min-w-0 truncate font-bold text-primary"}>{localized(product.price, locale)}</p>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className={isCatalog ? "min-w-0 truncate text-sm font-bold text-primary" : "min-w-0 truncate font-bold text-primary"}>
+              {localized(product.price, locale)}
+            </p>
+            {hasDiscount && product.oldPrice ? (
+              <p className="min-w-0 truncate text-xs text-secondary line-through opacity-60">
+                {localized(product.oldPrice, locale)}
+              </p>
+            ) : null}
+          </div>
           <span className={isCatalog ? "inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-primary" : "inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary"}>
             {detailsLabel}
             <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />

@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { imageAssets } from "@/lib/showroom-constants";
 import { QuoteForm, type ProductForQuote } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getShowrooms, getProducts, getCategories } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
@@ -43,7 +43,7 @@ export default async function ContactPage({
   setRequestLocale(locale);
   const t = await getTranslations("contact");
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   // Fetch products from DB for the product selector in QuoteForm
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,10 +54,10 @@ export default async function ContactPage({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((p: any) => ({
       slug: p.slug as string,
-      name: (p.name as string) || p.slug,
-      summary: p.summary as string | undefined,
+      name: (typeof p.name === "object" && p.name ? (p.name[locale] || p.name.vi || p.name.en) : (p.name as string)) || p.slug,
+      summary: (typeof p.summary === "object" && p.summary ? (p.summary[locale] || p.summary.vi) : p.summary) as string | undefined,
       category_slug: p.category_slug as string | null | undefined,
-      category_name: p.category_name as string | null | undefined,
+      category_name: (typeof p.category_name === "object" && p.category_name ? (p.category_name[locale] || p.category_name.vi) : p.category_name) as string | null | undefined,
     }));
 
   const dbCategories = await getCategories(supabase, locale).catch(() => []);

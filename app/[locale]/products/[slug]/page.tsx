@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { type Locale, isLocale } from "@/i18n/routing";
+
+export const dynamic = "force-dynamic";
+
 import { getProductBySlug as getMockProductBySlug, products } from "@/lib/showroom-mock-fallback";
 import { localized } from "@/lib/showroom-constants";
 import { QuoteForm } from "@/components/showroom/quote-form";
@@ -14,7 +17,7 @@ import {
   ProductActionGroup,
   ProductTrustMetrics,
 } from "@/components/showroom/product-detail-experience";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
 
@@ -25,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
   let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
   if (!product) {
@@ -48,7 +51,7 @@ export default async function ProductDetailPage({
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
   let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
   if (!product) {
@@ -238,7 +241,21 @@ export default async function ProductDetailPage({
             locale={locale}
             sourcePath={`/${locale}/products/${product.slug}`}
             productId={product.slug}
-            categoryId={typeof product.category === "object" && "id" in product.category ? String(product.category.id) : ""}
+            categoryId={product.categoryKey}
+            hideTitle={true}
+            productsForQuote={[
+              {
+                slug: product.slug,
+                name: localized(product.name, locale),
+                category_slug: product.categoryKey,
+                category_name: localized(product.category, locale),
+              }
+            ]}
+            categoriesForQuote={
+              product.categoryKey
+                ? [{ slug: product.categoryKey, name: localized(product.category, locale) }]
+                : []
+            }
             labels={{
               formTitle: contact("formTitle"),
               name: contact("name"),

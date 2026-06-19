@@ -38,6 +38,33 @@ export async function createClient() {
 }
 
 /**
+ * Creates a clean, cookie-free server-side Supabase client for public queries.
+ * This prevents auth token/session verification from failing with 401 errors
+ * on public pages when the browser has invalid or expired admin tokens.
+ */
+export function createPublicClient() {
+  const supabaseUrl = process.env.SUPABASE_URL_INTERNAL || env.NEXT_PUBLIC_SUPABASE_URL;
+
+  return createServerClientSSR(
+    supabaseUrl,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return [];
+        },
+        setAll() {
+          // No-op for public client
+        },
+      },
+      cookieOptions: {
+        name: "sb-auth-token",
+      },
+    }
+  );
+}
+
+/**
  * Privileged admin client using the service role key.
  * This client bypasses RLS and must NEVER be exposed to the client.
  */

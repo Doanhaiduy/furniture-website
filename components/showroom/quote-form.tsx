@@ -55,6 +55,7 @@ export function QuoteForm({
   sourcePath,
   productsForQuote = [],
   categoriesForQuote = [],
+  hideTitle = false,
 }: {
   locale: Locale;
   labels: QuoteLabels;
@@ -63,16 +64,48 @@ export function QuoteForm({
   sourcePath: string;
   productsForQuote?: ProductForQuote[];
   categoriesForQuote?: CategoryForQuote[];
+  hideTitle?: boolean;
 }) {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
 
   const isVi = locale === "vi";
 
-  // Build product options from DB data passed as prop
+  const [dynamicProducts, setDynamicProducts] = React.useState<ProductForQuote[]>(productsForQuote);
+  const [dynamicCategories, setDynamicCategories] = React.useState<CategoryForQuote[]>(categoriesForQuote);
+
+  React.useEffect(() => {
+    if (productsForQuote.length > 0) {
+      setDynamicProducts(productsForQuote);
+    }
+  }, [productsForQuote]);
+
+  React.useEffect(() => {
+    if (categoriesForQuote.length > 0) {
+      setDynamicCategories(categoriesForQuote);
+    }
+  }, [categoriesForQuote]);
+
+  React.useEffect(() => {
+    if (dynamicProducts.length <= 1 || dynamicCategories.length <= 1) {
+      fetch(`/api/quote-options?locale=${locale}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.products && data.products.length > 0 && dynamicProducts.length <= 1) {
+            setDynamicProducts(data.products);
+          }
+          if (data.categories && data.categories.length > 0 && dynamicCategories.length <= 1) {
+            setDynamicCategories(data.categories);
+          }
+        })
+        .catch((err) => console.warn("Failed to load quote options:", err));
+    }
+  }, [locale]);
+
+  // Build product options from DB data
   const productOptions = [
     { value: "", label: isVi ? "Khác / Không có trong danh sách" : "Other / Not in list" },
-    ...productsForQuote.map((p) => ({
+    ...dynamicProducts.map((p) => ({
       value: p.slug,
       label: p.name,
     })),
@@ -80,12 +113,12 @@ export function QuoteForm({
 
   // Determine initial values from productId if provided
   const initialProduct = productId
-    ? productsForQuote.find((p) => p.slug === productId)
+    ? dynamicProducts.find((p) => p.slug === productId)
     : null;
 
   const initialService = initialProduct
     ? guessServiceFromCategorySlug(initialProduct.category_slug)
-    : "interior-consulting";
+    : (categoryId || "interior-consulting");
 
   const initialCategoryId = categoryId || (initialProduct?.category_slug ?? "");
 
@@ -120,14 +153,25 @@ export function QuoteForm({
   // Effect to update category when product changes
   React.useEffect(() => {
     if (selectedProductId) {
-      const matchedProduct = productsForQuote.find((p) => p.slug === selectedProductId);
+      const matchedProduct = dynamicProducts.find((p) => p.slug === selectedProductId);
       if (matchedProduct) {
         setValue("service", guessServiceFromCategorySlug(matchedProduct.category_slug));
         setValue("categoryId", matchedProduct.category_slug ?? "");
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProductId, setValue]);
+  }, [selectedProductId, setValue, dynamicProducts]);
+
+  // Sync state if initialProduct resolves later
+  React.useEffect(() => {
+    if (initialProduct) {
+      if (!watch("categoryId")) {
+        setValue("categoryId", initialProduct.category_slug ?? "");
+      }
+      if (watch("service") === "interior-consulting" && initialProduct.category_slug) {
+        setValue("service", guessServiceFromCategorySlug(initialProduct.category_slug));
+      }
+    }
+  }, [initialProduct, setValue]);
 
   async function submit(values: QuoteRequestInput) {
     setServerError("");
@@ -152,9 +196,11 @@ export function QuoteForm({
       onSubmit={handleSubmit(submit)}
       noValidate
     >
-      <h2 className="type-section-title text-primary">
-        {labels.formTitle}
-      </h2>
+      {!hideTitle && (
+        <h2 className="type-section-title text-primary">
+          {labels.formTitle}
+        </h2>
+      )}
 
       {/* Show selected product info if coming from product page */}
       {productId && initialProduct && (
@@ -228,7 +274,7 @@ export function QuoteForm({
                     value: "interior-consulting",
                     label: isVi ? "Thiết kế nội thất trọn gói" : "Full interior consulting",
                   },
-                  ...categoriesForQuote.map((c) => ({
+                  ...dynamicCategories.map((c) => ({
                     value: c.slug,
                     label: c.name,
                   })),

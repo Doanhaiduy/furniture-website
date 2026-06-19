@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRef, useState, useEffect } from "react";
 import {
   ArrowRight,
   ChevronDown,
@@ -27,7 +27,7 @@ import {
   typeCatalogSections,
   withLocale,
 } from "@/lib/showroom-data";
-import { products } from "@/tests/fixtures/showroom-data-fixture";
+import { products as fixtureProducts } from "@/tests/fixtures/showroom-data-fixture";
 import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/lib/showroom-constants";
 
@@ -97,6 +97,7 @@ export function PublicShell({
   siteSettings,
   brands = [],
   categories = [],
+  products = [],
 }: {
   children: React.ReactNode;
   locale: Locale;
@@ -104,54 +105,113 @@ export function PublicShell({
   siteSettings?: PublicSiteSettings;
   brands?: any[];
   categories?: any[];
+  products?: any[];
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+
+  useEffect(() => {
+    const hideDevBadge = () => {
+      const portal = document.querySelector("nextjs-portal");
+      if (portal && portal.shadowRoot) {
+        if (!portal.shadowRoot.querySelector("#custom-hide-badge-style")) {
+          const style = document.createElement("style");
+          style.id = "custom-hide-badge-style";
+          style.textContent = "#devtools-indicator { display: none !important; }";
+          portal.shadowRoot.appendChild(style);
+        }
+      }
+    };
+    hideDevBadge();
+    const interval = setInterval(hideDevBadge, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getLocalizedValue = (val: any, currentLocale: Locale): string => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    if (typeof val === "object") {
+      return val[currentLocale] || val.vi || val.en || "";
+    }
+    return String(val);
+  };
+
+  const finalProducts = products && products.length > 0 ? products : fixtureProducts;
+
   const [activeCatalog, setActiveCatalog] = useState<{ mode: CatalogMode; key: string }>({
     mode: "brands",
     key: brands && brands.length > 0 ? brands[0].id : (brandCatalog[0]?.key ?? "all"),
   });
   const [newsletterSent, setNewsletterSent] = useState(false);
   const catalogCloseTimer = useRef<number | null>(null);
+  const catalogSwitchTimer = useRef<number | null>(null);
 
   const localeHref = (targetLocale: Locale) => {
     const parts = pathname.split("/");
+    let path = "";
     if (parts[1] === "vi" || parts[1] === "en") {
       parts[1] = targetLocale;
-      return parts.join("/") || `/${targetLocale}`;
+      path = parts.join("/") || `/${targetLocale}`;
+    } else {
+      path = `/${targetLocale}`;
     }
-    return `/${targetLocale}`;
+    const params = searchParams.toString();
+    return params ? `${path}?${params}` : path;
   };
 
   const linkHref = (href: string) => `/${locale}${href}`;
+  
   const cancelCatalogClose = () => {
     if (catalogCloseTimer.current) {
       window.clearTimeout(catalogCloseTimer.current);
       catalogCloseTimer.current = null;
     }
   };
-  const openCatalog = (mode: CatalogMode, key: string) => {
-    cancelCatalogClose();
-    setActiveCatalog({ mode, key });
-    setCatalogOpen(true);
+
+  const cancelCatalogSwitch = () => {
+    if (catalogSwitchTimer.current) {
+      window.clearTimeout(catalogSwitchTimer.current);
+      catalogSwitchTimer.current = null;
+    }
   };
+
+  const openCatalog = (mode: CatalogMode, key: string, immediate = false) => {
+    cancelCatalogClose();
+    cancelCatalogSwitch();
+    
+    if (immediate || !catalogOpen || activeCatalog.mode !== mode) {
+      setActiveCatalog({ mode, key });
+      setCatalogOpen(true);
+    } else {
+      catalogSwitchTimer.current = window.setTimeout(() => {
+        setActiveCatalog({ mode, key });
+      }, 120);
+    }
+  };
+
   const closeCatalog = () => {
     cancelCatalogClose();
+    cancelCatalogSwitch();
     setCatalogOpen(false);
   };
+
   const scheduleCatalogClose = () => {
     cancelCatalogClose();
-    catalogCloseTimer.current = window.setTimeout(() => setCatalogOpen(false), 150);
+    catalogCloseTimer.current = window.setTimeout(() => {
+      cancelCatalogSwitch();
+      setCatalogOpen(false);
+    }, 150);
   };
 
   const productLinkFromSlug = (slug: string): CatalogLink | null => {
-    const product = products.find((item) => item.slug === slug && item.status !== "archived");
+    const product = finalProducts.find((item) => item.slug === slug && item.status !== "archived");
     if (!product) return null;
     return {
       href: withLocale(locale, `/products/${product.slug}`),
-      label: localized(product.name, locale),
+      label: getLocalizedValue(product.name, locale),
     };
   };
 
@@ -160,9 +220,10 @@ export function PublicShell({
         const staticMatch = brandCatalog.find(
           (item) => item.key.toLowerCase() === b.name.en?.toLowerCase() || item.key.toLowerCase() === b.id
         );
+        const brandSlug = b.name.en?.toLowerCase().replace(/\s+/g, "-") || b.id;
         return {
           key: b.id,
-          href: `/products?brand=${b.id}`,
+          href: `/products?brand=${brandSlug}`,
           image: b.logo_url || staticMatch?.image || imageAssets.room,
           groupKey: staticMatch?.groupKey || "sanitary",
           title: b.name,
@@ -175,100 +236,135 @@ export function PublicShell({
 
   const brandSections: BrandSection[] = finalBrandCatalog.map((brand) => {
     const group = productGroups.find((item) => item.key === brand.groupKey);
-    const productLinks = brand.productSlugs
-      .map((slug) => productLinkFromSlug(slug))
-      .filter((item): item is CatalogLink => Boolean(item));
-    const categoryLinks = brand.items.map((item) => ({
-      href: withLocale(locale, item.href),
-      label: localized(item.label, locale),
+    
+    // Dynamically fetch products of this brand from DB
+    const brandProducts = finalProducts.filter(
+      (p) => p.brand_id === brand.key || p.brandId === brand.key
+    );
+
+    const productLinks = brandProducts.map((p) => ({
+      href: withLocale(locale, `/products/${p.slug}`),
+      label: getLocalizedValue(p.name, locale),
     }));
 
     return {
       key: brand.key,
       href: withLocale(locale, brand.href),
       image: brand.image,
-      title: localized(brand.title, locale),
-      summary: localized(brand.summary, locale),
-      groupTitle: group ? localized(group.title, locale) : labels.nav.products,
-      items: [...productLinks, ...categoryLinks].slice(0, 6),
+      title: getLocalizedValue(brand.title, locale),
+      summary: getLocalizedValue(brand.summary, locale),
+      groupTitle: group ? getLocalizedValue(group.title, locale) : labels.nav.products,
+      items: productLinks.slice(0, 6),
     };
   });
 
-  const typeSections: TypeSection[] = categories && categories.length > 0
-    ? productGroups.map((group) => {
-        // Map UI group key to DB groupKey
-        let dbGroupKey = "";
-        if (group.key === "wood") dbGroupKey = "wooden_furniture";
-        else if (group.key === "sanitary") dbGroupKey = "sanitary_equipment";
-        else if (group.key === "tiles") dbGroupKey = "tiles";
-        else if (group.key === "solutions") dbGroupKey = "project_solutions";
+  // Calculate dynamic root categories based on product counts
+  const rootCats = categories.filter((cat) => !cat.parentId);
+  const rootCatsWithProducts = rootCats.map((root) => {
+    const children = categories.filter((cat) => cat.parentId === root.id);
+    const allCatIds = [root.id, ...children.map((c) => c.id)];
+    const associatedProducts = finalProducts.filter(
+      (p) => allCatIds.includes(p.category_id) || allCatIds.includes(p.categoryId)
+    );
+    return {
+      root,
+      children,
+      associatedProducts,
+      count: associatedProducts.length,
+    };
+  });
 
-        const groupCats = categories.filter((cat) => cat.groupKey === dbGroupKey);
-        
-        // Find parent categories (parentId is null/empty)
-        const parentCats = groupCats.filter((cat) => !cat.parentId);
-        
-        const columns = parentCats.map((parent) => {
-          const children = groupCats.filter((cat) => cat.parentId === parent.id);
-          return {
-            title: parent.name,
-            items: children.map((child) => ({
+  const sortedRoots = [...rootCatsWithProducts].sort((a, b) => b.count - a.count);
+  const top3Roots = sortedRoots.slice(0, 3);
+  const otherRoots = sortedRoots.slice(3);
+
+  const dynamicTypeSections = top3Roots.map((item) => {
+    const root = item.root;
+    const children = item.children;
+
+    const columns = children.map((child) => {
+      const childProducts = finalProducts.filter(
+        (p) => p.category_id === child.id || p.categoryId === child.id
+      );
+      return {
+        title: child.name,
+        items: childProducts.length > 0
+          ? childProducts.slice(0, 5).map((p) => ({
+              href: withLocale(locale, `/products/${p.slug}`),
+              label: getLocalizedValue(p.name, locale),
+            }))
+          : [{
+              href: withLocale(locale, `/products?category=${child.slug}`),
+              label: locale === "vi" ? "Xem tất cả" : "View all",
+            }],
+      };
+    });
+
+    const finalColumns = columns.length > 0
+      ? columns
+      : [{
+          title: root.name,
+          items: item.associatedProducts.slice(0, 6).map((p) => ({
+            href: withLocale(locale, `/products/${p.slug}`),
+            label: getLocalizedValue(p.name, locale),
+          })),
+        }];
+
+    const groupProducts = item.associatedProducts.slice(0, 3).map((p) => ({
+      href: withLocale(locale, `/products/${p.slug}`),
+      label: getLocalizedValue(p.name, locale),
+    }));
+
+    return {
+      key: root.id,
+      href: withLocale(locale, `/products?category=${root.slug}`),
+      image: root.image || imageAssets.showroom,
+      title: root.name,
+      summary: root.description || (locale === "vi" ? "Sản phẩm chất lượng cao." : "High quality products."),
+      columns: finalColumns,
+      products: groupProducts,
+    };
+  });
+
+  if (otherRoots.length > 0) {
+    const otherProducts = otherRoots.flatMap((item) => item.associatedProducts);
+    
+    const columns = otherRoots.map((item) => {
+      const root = item.root;
+      const children = item.children;
+      return {
+        title: root.name,
+        items: children.length > 0
+          ? children.map((child) => ({
               href: withLocale(locale, `/products?category=${child.slug}`),
               label: child.name,
-            })),
-          };
-        });
+            }))
+          : [{
+              href: withLocale(locale, `/products?category=${root.slug}`),
+              label: locale === "vi" ? "Xem tất cả" : "View all",
+            }],
+      };
+    });
 
-        // Handle flat categories
-        if (columns.length === 0 && groupCats.length > 0) {
-          columns.push({
-            title: locale === "vi" ? "Danh mục chính" : "Main Categories",
-            items: groupCats.map((cat) => ({
-              href: withLocale(locale, `/products?category=${cat.slug}`),
-              label: cat.name,
-            })),
-          });
-        }
+    const groupProducts = otherProducts.slice(0, 3).map((p) => ({
+      href: withLocale(locale, `/products/${p.slug}`),
+      label: getLocalizedValue(p.name, locale),
+    }));
 
-        // Get 3 representative products for this group
-        const groupProducts = products
-          .filter((p) => (p as any).categoryKey === group.key && p.status === "published")
-          .slice(0, 3)
-          .map((p) => ({
-            href: withLocale(locale, `/products/${p.slug}`),
-            label: localized(p.name, locale),
-          }));
+    dynamicTypeSections.push({
+      key: "solutions",
+      href: withLocale(locale, "/products?category=other"),
+      image: imageAssets.showroom,
+      title: locale === "vi" ? "Thiết kế khác" : "Other designs",
+      summary: locale === "vi"
+        ? "Các giải pháp và thiết kế độc đáo khác cho không gian của bạn."
+        : "Other unique solutions and designs for your space.",
+      columns,
+      products: groupProducts,
+    });
+  }
 
-        return {
-          key: group.key,
-          href: withLocale(locale, group.href),
-          image: group.image,
-          title: localized(group.title, locale),
-          summary: localized(group.summary, locale),
-          columns,
-          products: groupProducts,
-        };
-      })
-    : typeCatalogSections.map((section) => {
-        const group = productGroups.find((item) => item.key === section.key) ?? productGroups[0];
-        return {
-          key: section.key,
-          href: withLocale(locale, group.href),
-          image: group.image,
-          title: localized(group.title, locale),
-          summary: localized(group.summary, locale),
-          columns: section.columns.map((column) => ({
-            title: localized(column.title, locale),
-            items: column.items.map((item) => ({
-              href: withLocale(locale, item.href),
-              label: localized(item.label, locale),
-            })),
-          })),
-          products: section.productSlugs
-            .map((slug) => productLinkFromSlug(slug))
-            .filter((item): item is CatalogLink => Boolean(item)),
-        };
-      });
+  const typeSections = dynamicTypeSections;
 
   const activeBrand = brandSections.find((section) => section.key === activeCatalog.key) ?? brandSections[0];
   const activeType = typeSections.find((section) => section.key === activeCatalog.key) ?? typeSections[0];
@@ -285,17 +381,17 @@ export function PublicShell({
           <Link href={`/${locale}`} className="group flex shrink-0 items-center gap-3">
             <div className="logo-wrapper-shine rounded-lg">
               <img
-                src={siteSettings?.logoUrl || "/logo-final.svg"}
+                src={siteSettings?.logoUrl ? (siteSettings.logoUrl.startsWith("http://local-assets") ? siteSettings.logoUrl.replace("http://local-assets", "") : siteSettings.logoUrl) : "/logo-final.svg"}
                 alt={siteSettings?.brandName || labels.common.brand}
                 className="h-14 w-14 object-contain transition-transform group-hover:scale-[1.03]"
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading text-sm sm:text-base md:text-lg font-bold leading-tight text-primary transition-colors group-hover:text-primary-container max-w-[180px] md:max-w-none">
-                {siteSettings?.brandName || labels.common.brand}
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-on-surface-variant/80">
+                {locale === "vi" ? "Showroom Nội Thất" : "Interior Showroom"}
               </span>
-              <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.2em] text-on-surface-variant">
-                {labels.common.tagline}
+              <span className="font-heading text-base sm:text-lg md:text-xl font-extrabold leading-none text-primary transition-colors group-hover:text-primary-container tracking-wider">
+                {locale === "vi" ? "PHƯƠNG ĐÔNG" : "PHUONG DONG"}
               </span>
             </div>
           </Link>
@@ -329,7 +425,7 @@ export function PublicShell({
           </nav>
 
           <div className="flex items-center gap-3">
-            <div className="chip-pd hidden md:flex">
+            <div className="chip-pd flex">
               <Link href={localeHref("vi")} className={`transition-colors ${locale === "vi" ? "text-primary" : "text-outline hover:text-primary"}`}>
                 VI
               </Link>
@@ -448,7 +544,7 @@ export function PublicShell({
                     </div>
                   </aside>
 
-                  <div className="py-5 pl-6">
+                  <div className="py-5 pl-6" onMouseEnter={cancelCatalogSwitch}>
                     {activeCatalog.key === "all" ? (
                       <>
                         <div className="mb-5 flex items-end justify-between gap-6">
@@ -467,8 +563,6 @@ export function PublicShell({
                               key={section.key}
                               href={section.href}
                               className="surface-card interactive-card group grid grid-cols-[88px_1fr] overflow-hidden"
-                              onMouseEnter={() => openCatalog("brands", section.key)}
-                              onFocus={() => openCatalog("brands", section.key)}
                               onClick={closeCatalog}
                             >
                               <RemoteImage src={section.image} alt={section.title} className="image-lift h-full min-h-24 w-full object-cover" sizes="8vw" />
@@ -491,7 +585,7 @@ export function PublicShell({
                   </div>
                 </div>
               ) : (
-                <div className="container-pd grid min-h-[292px] gap-6 py-5 lg:grid-cols-[0.78fr_1.22fr]">
+                <div className="container-pd grid min-h-[292px] gap-6 py-5 lg:grid-cols-[0.78fr_1.22fr]" onMouseEnter={cancelCatalogSwitch}>
                   <div className="public-image-panel relative min-h-[250px] bg-primary text-white">
                     <RemoteImage src={activeType.image} alt={activeType.title} className="absolute inset-0 h-full w-full object-cover opacity-78" sizes="36vw" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/38 to-transparent" />
@@ -505,45 +599,61 @@ export function PublicShell({
                       </Link>
                     </div>
                   </div>
-                  <div className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {activeType.columns.map((column) => (
-                        <div key={column.title}>
-                          <p className="label-pd">{column.title}</p>
-                          <div className="mt-3 grid gap-2">
-                            {column.items.map((item) => (
-                              <Link
-                                key={`${activeType.key}-${item.href}`}
-                                href={item.href}
-                                className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface"
-                                onClick={closeCatalog}
-                              >
-                                <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
-                                {item.label}
-                              </Link>
+                  <div className="w-full">
+                    {activeType.columns.length === 0 && activeType.products.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] p-6 text-center bg-surface-container-low rounded-[var(--radius-control)] border border-outline-variant/15">
+                        <Layers3 className="size-10 text-outline/40 mb-3" />
+                        <p className="text-sm font-semibold text-secondary">
+                          {locale === "vi" ? "Chưa có sản phẩm nào cho danh mục này" : "No products available in this category"}
+                        </p>
+                        <p className="text-xs text-outline mt-1">
+                          {locale === "vi" ? "Vui lòng quay lại sau." : "Please check back later."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className={`grid gap-5 ${activeType.products.length > 0 ? "xl:grid-cols-[1.3fr_0.7fr]" : "xl:grid-cols-1"}`}>
+                        {activeType.columns.length > 0 ? (
+                          <div className={`grid gap-4 ${activeType.columns.length > 1 ? "md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
+                            {activeType.columns.map((column) => (
+                              <div key={column.title}>
+                                <p className="label-pd">{column.title}</p>
+                                <div className="mt-3 grid gap-2">
+                                  {column.items.map((item) => (
+                                    <Link
+                                      key={`${activeType.key}-${item.href}-${item.label}`}
+                                      href={item.href}
+                                      className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface hover:text-primary transition-colors"
+                                      onClick={closeCatalog}
+                                    >
+                                      <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
+                                      {item.label}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
                             ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                    {activeType.products.length > 0 ? (
-                      <div>
-                        <p className="label-pd">{labels.nav.catalogPopular}</p>
-                        <div className="mt-3 grid gap-2">
-                          {activeType.products.map((item) => (
-                            <Link
-                              key={`${activeType.key}-${item.href}`}
-                              href={item.href}
-                              className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-primary"
-                              onClick={closeCatalog}
-                            >
-                              {item.label}
-                              <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                            </Link>
-                          ))}
-                        </div>
+                        ) : null}
+                        {activeType.products.length > 0 ? (
+                          <div>
+                            <p className="label-pd">{labels.nav.catalogPopular}</p>
+                            <div className="mt-3 grid gap-2">
+                              {activeType.products.map((item) => (
+                                <Link
+                                  key={`${activeType.key}-${item.href}`}
+                                  href={item.href}
+                                  className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-primary hover:text-primary-container transition-colors"
+                                  onClick={closeCatalog}
+                                >
+                                  <span className="line-clamp-2 pr-2 font-medium">{item.label}</span>
+                                  <ArrowRight className="size-4 shrink-0 transition group-hover:translate-x-0.5" />
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               )}
@@ -594,14 +704,34 @@ export function PublicShell({
                   ))}
                 </div>
               </div>
-              <div className="chip-pd flex min-h-11 justify-between px-3 py-3">
-                <span className="flex items-center gap-2 text-sm font-semibold text-outline">
+              <div className="mt-4 border-t border-outline-variant/30 pt-6 px-3">
+                <p className="label-pd mb-3 flex items-center gap-2">
                   <Globe2 className="size-4" />
-                  VI / EN
-                </span>
-                <div className="flex gap-2 text-sm font-bold">
-                  <Link href={localeHref("vi")}>VI</Link>
-                  <Link href={localeHref("en")}>EN</Link>
+                  {locale === "vi" ? "Ngôn ngữ" : "Language"}
+                </p>
+                <div className="grid grid-cols-2 gap-1.5 bg-surface-container-low p-1 rounded-xl border border-outline-variant/20">
+                  <Link
+                    href={localeHref("vi")}
+                    className={`flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-bold uppercase transition-all duration-200 ${
+                      locale === "vi"
+                        ? "bg-primary text-white shadow-sm scale-[1.02]"
+                        : "text-secondary hover:text-primary hover:bg-surface-container"
+                    }`}
+                    onClick={() => setOpen(false)}
+                  >
+                    Tiếng Việt
+                  </Link>
+                  <Link
+                    href={localeHref("en")}
+                    className={`flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-bold uppercase transition-all duration-200 ${
+                      locale === "en"
+                        ? "bg-primary text-white shadow-sm scale-[1.02]"
+                        : "text-secondary hover:text-primary hover:bg-surface-container"
+                    }`}
+                    onClick={() => setOpen(false)}
+                  >
+                    English
+                  </Link>
                 </div>
               </div>
               {/* Mobile contact CTA removed to move to FAB */}
@@ -617,7 +747,7 @@ export function PublicShell({
           <div>
             <div className="flex items-center gap-3">
               <img
-                src={siteSettings?.logoUrl || "/logo-final.svg"}
+                src={siteSettings?.logoUrl ? (siteSettings.logoUrl.startsWith("http://local-assets") ? siteSettings.logoUrl.replace("http://local-assets", "") : siteSettings.logoUrl) : "/logo-final.svg"}
                 alt={siteSettings?.brandName || labels.common.brand}
                 className="h-10 w-10 rounded-md object-contain bg-[#fdebbf] p-0.5"
               />
@@ -690,14 +820,14 @@ export function PublicShell({
         </div>
       </footer>
       {/* Floating Quick Contact FAB Menu */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 font-sans">
+      <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-40 flex flex-col items-end gap-3 font-sans">
         {/* Contact list options */}
         {fabOpen && (
           <div className="flex flex-col items-end gap-3 mb-1 animate-in fade-in slide-in-from-bottom-5 duration-200">
             {/* Hotline Option */}
             <a
               href={`tel:${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
-              className="group flex items-center gap-3 mr-[6px]"
+              className="group flex items-center gap-3 mr-[2px] md:mr-[6px]"
               aria-label={labels.nav.hotline}
             >
               <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
@@ -713,7 +843,7 @@ export function PublicShell({
               href={`https://zalo.me/${(siteSettings?.contactPhone || "08172357587").replace(/\s+/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3 mr-[6px]"
+              className="group flex items-center gap-3 mr-[2px] md:mr-[6px]"
               aria-label={labels.nav.zalo}
             >
               <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
@@ -729,7 +859,7 @@ export function PublicShell({
               href="https://m.me/phuongdongshowroom"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3 mr-[6px]"
+              className="group flex items-center gap-3 mr-[2px] md:mr-[6px]"
               aria-label={labels.nav.messenger}
             >
               <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
@@ -743,7 +873,7 @@ export function PublicShell({
             {/* Contact Form Option */}
             <Link
               href={`/${locale}/contact`}
-              className="group flex items-center gap-3 mr-[6px]"
+              className="group flex items-center gap-3 mr-[2px] md:mr-[6px]"
               onClick={() => setFabOpen(false)}
               aria-label={labels.nav.contact}
             >
@@ -761,7 +891,7 @@ export function PublicShell({
         <button
           type="button"
           onClick={() => setFabOpen((open) => !open)}
-          className={`flex size-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
+          className={`flex size-12 md:size-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 ${
             fabOpen
               ? "bg-surface-container text-primary rotate-90"
               : "bg-primary hover:bg-primary/90 text-white hover:scale-105 active:scale-95"
@@ -807,6 +937,7 @@ function BrandMegaContent({
   closeCatalog: () => void;
 }) {
   if (!section) return null;
+  const hasProducts = section.items && section.items.length > 0;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1fr]">
@@ -825,19 +956,31 @@ function BrandMegaContent({
       </div>
       <div>
         <p className="label-pd">{labels.nav.catalogPopular}</p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
-          {section.items.map((item) => (
-            <Link
-              key={`${section.key}-${item.href}-${item.label}`}
-              href={item.href}
-              className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface"
-              onClick={closeCatalog}
-            >
-              <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
-              {item.label}
-            </Link>
-          ))}
-        </div>
+        {hasProducts ? (
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {section.items.map((item) => (
+              <Link
+                key={`${section.key}-${item.href}-${item.label}`}
+                href={item.href}
+                className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-on-surface hover:text-primary transition-colors"
+                onClick={closeCatalog}
+              >
+                <span className="line-clamp-2 pr-2 font-medium">{item.label}</span>
+                <ChevronRight className="size-4 text-primary shrink-0 transition group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-[calc(100%-24px)] min-h-[200px] p-6 text-center bg-surface-container-low rounded-[var(--radius-control)] border border-outline-variant/15">
+            <Layers3 className="size-10 text-outline/40 mb-3" />
+            <p className="text-sm font-semibold text-secondary">
+              Chưa có sản phẩm nào cho hãng này
+            </p>
+            <p className="text-xs text-outline mt-1">
+              Vui lòng quay lại sau.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

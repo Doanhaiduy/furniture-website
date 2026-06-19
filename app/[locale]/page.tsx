@@ -17,8 +17,8 @@ import { QuoteForm } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { HeroShowcase } from "@/components/showroom/hero-showcase";
 import { ProductCard } from "@/components/showroom/product-card";
-import { createClient } from "@/lib/supabase/server";
-import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock } from "@/lib/supabase/queries";
+import { createPublicClient } from "@/lib/supabase/server";
+import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock, getCategories } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 export async function generateMetadata({
@@ -48,11 +48,11 @@ export default async function HomePage({
   const contact = await getTranslations("contact");
 
   // Fetch dynamic data from local database
-  const supabase = await createClient();
-  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 6 });
+  const supabase = createPublicClient();
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 5 });
   const featured = dbProducts.length > 0 
     ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
-    : mockProducts.filter((p) => p.featured).slice(0, 6); // Fallback to 6 featured mock products
+    : mockProducts.filter((p) => p.featured).slice(0, 5); // Fallback to 5 featured mock products
 
   const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: 3 });
   const editorialPosts = dbBlogPosts.length > 0
@@ -78,8 +78,6 @@ export default async function HomePage({
       }))
     : showrooms.slice(0, 2);
 
-  const { data: dbBrands } = await getPublicBrands().catch(() => ({ data: [] }));
-
   const staticBrands = [
     { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },
     { name: "GROHE", desc: locale === "vi" ? "Đức" : "Germany" },
@@ -92,6 +90,30 @@ export default async function HomePage({
     { name: "EUROTILE", desc: locale === "vi" ? "Gạch Cao Cấp" : "Premium Tiles" },
     { name: "TAICERA", desc: locale === "vi" ? "Đài Loan" : "Taiwan" }
   ];
+
+  const { data: dbBrands } = await getPublicBrands().catch(() => ({ data: [] }));
+
+  // Fetch dynamic categories for Lĩnh vực chủ chốt (Key sectors)
+  const dbCategories = await getCategories(supabase, locale);
+  const rootCategories = dbCategories.filter((cat: any) => !cat.parentId);
+  const displayCategories = rootCategories.slice(0, 4);
+  const categoryCount = displayCategories.length;
+
+  let gridClass = "motion-stagger grid gap-5";
+  if (categoryCount === 1) {
+    gridClass += " grid-cols-1 md:grid-cols-2";
+  } else if (categoryCount === 2) {
+    gridClass += " grid-cols-1 md:grid-cols-3";
+  } else if (categoryCount === 3) {
+    gridClass += " grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.8fr]";
+  } else {
+    gridClass += " grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+  }
+
+  const activeBrands = dbBrands && dbBrands.length > 0
+    ? dbBrands
+    : staticBrands;
+  const displayBrands = activeBrands.slice(0, 7);
 
   const getBrandDisplayName = (b: any) => {
     if (!b) return "";
@@ -115,9 +137,7 @@ export default async function HomePage({
     return origin;
   };
 
-  const activeBrands = dbBrands && dbBrands.length > 0
-    ? dbBrands
-    : staticBrands;
+  // activeBrands and displayBrands defined above
 
   const heroGroups = productGroups.slice(0, 2).map((group) => ({
     href: withLocale(locale, group.href),
@@ -159,55 +179,7 @@ export default async function HomePage({
         playLabel={home("heroPlay")}
       />
 
-      {/* Brand Logo Marquee Section */}
-      <section className="border-y border-outline-variant/30 py-8 overflow-hidden bg-surface-container/20">
-        <div className="container-pd mb-4 flex items-center justify-between">
-          <div>
-            <p className="label-pd text-xs uppercase tracking-wider text-primary">
-              {locale === "vi" ? "Thương hiệu đối tác" : "Partner Brands"}
-            </p>
-            <h3 className="font-heading text-lg font-bold text-primary mt-1">
-              {locale === "vi" ? "Gạch & Thiết bị vệ sinh nhập khẩu" : "Imported Tiles & Sanitary Ware"}
-            </h3>
-          </div>
-        </div>
-        <div className="relative w-full overflow-hidden py-2">
-          {/* Ambient fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
-          
-          <div className="animate-marquee-pd flex items-center gap-6">
-            {/* Loop 1 */}
-            {activeBrands.map((brand, i) => (
-              <div
-                key={`marquee-1-${i}`}
-                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
-              >
-                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
-                  {getBrandDisplayName(brand)}
-                </span>
-                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
-                  {getBrandDisplayOrigin(brand)}
-                </span>
-              </div>
-            ))}
-            {/* Loop 2 */}
-            {activeBrands.map((brand, i) => (
-              <div
-                key={`marquee-2-${i}`}
-                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white"
-              >
-                <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
-                  {getBrandDisplayName(brand)}
-                </span>
-                <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
-                  {getBrandDisplayOrigin(brand)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Brands marquee relocated below */}
 
       <section className="container-pd py-20 md:py-24">
         <div className="mb-12 grid gap-6 md:grid-cols-[0.8fr_1fr] md:items-end">
@@ -221,27 +193,57 @@ export default async function HomePage({
             {home("groupsLead")}
           </p>
         </div>
-        <div className="motion-stagger grid gap-5 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
-          {productGroups.map((group) => (
-            <Link
-              key={group.key}
-              href={withLocale(locale, group.href)}
-              className={`interactive-card public-image-panel group relative min-h-72 ${
-                group.key === "wood" ? "lg:row-span-2 lg:min-h-[560px]" : ""
-              }`}
-            >
-              <RemoteImage src={group.image} alt={localized(group.title, locale)} className="image-lift h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-              <div className="absolute bottom-0 p-5 text-white">
-                <h3 className="type-card-title text-2xl text-white">{localized(group.title, locale)}</h3>
-                <p className="mt-2 text-sm text-white/80">{localized(group.summary, locale)}</p>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
-                  {common("explore")}
-                  <ArrowRight className="size-4" />
-                </span>
-              </div>
-            </Link>
-          ))}
+        <div className={gridClass}>
+          {displayCategories.map((cat: any, index: number) => {
+            const cardClass = 
+              categoryCount === 3 && index === 0 
+                ? "interactive-card public-image-panel group relative min-h-72 lg:row-span-2 lg:min-h-[560px]"
+                : categoryCount === 4 && index === 0
+                  ? "interactive-card public-image-panel group relative min-h-72 lg:col-span-2 lg:row-span-2 lg:min-h-[560px]"
+                  : "interactive-card public-image-panel group relative min-h-72";
+
+            return (
+              <Link
+                key={cat.id}
+                href={withLocale(locale, `/products?category=${cat.slug}`)}
+                className={cardClass}
+              >
+                <RemoteImage src={cat.image} alt={cat.name} className="image-lift h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                <div className="absolute bottom-0 p-5 text-white">
+                  <h3 className="type-card-title text-2xl text-white">{cat.name}</h3>
+                  <p className="mt-2 text-sm text-white/80">{cat.description}</p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
+                    {common("explore")}
+                    <ArrowRight className="size-4" />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+
+          {/* Static Thiết kế khác card */}
+          <Link
+            href={withLocale(locale, "/contact")}
+            className="interactive-card public-image-panel group relative min-h-72"
+          >
+            <RemoteImage src={imageAssets.showroom} alt={locale === "vi" ? "Thiết kế khác" : "Project solutions"} className="image-lift h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+            <div className="absolute bottom-0 p-5 text-white">
+              <h3 className="type-card-title text-2xl text-white">
+                {locale === "vi" ? "Thiết kế khác" : "Project solutions"}
+              </h3>
+              <p className="mt-2 text-sm text-white/80">
+                {locale === "vi" 
+                  ? "Giải pháp tổng thể cho nhà ở và công trình." 
+                  : "Complete solutions for homes and projects."}
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
+                {common("explore")}
+                <ArrowRight className="size-4" />
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 
@@ -261,13 +263,14 @@ export default async function HomePage({
               {common("viewAll")}
             </Link>
           </div>
-          <div className="motion-stagger grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+          <div className="motion-stagger grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {featured.map((product: any) => (
               <ProductCard
                 key={product.slug}
                 product={product}
                 locale={locale}
                 detailsLabel={common("explore")}
+                compact={true}
               />
             ))}
           </div>
@@ -399,6 +402,80 @@ export default async function HomePage({
             {common("readMore")}
             <ArrowRight className="size-5" />
           </Link>
+        </div>
+      </section>
+
+      {/* Relocated Brand Logo Marquee Section */}
+      <section className="border-y border-outline-variant/30 py-8 overflow-hidden bg-surface-container/20">
+        <div className="container-pd mb-4 flex items-center justify-between">
+          <div>
+            <p className="label-pd text-xs uppercase tracking-wider text-primary">
+              {locale === "vi" ? "Thương hiệu đối tác" : "Partner Brands"}
+            </p>
+            <h3 className="font-heading text-lg font-bold text-primary mt-1">
+              {locale === "vi" ? "Gạch & Thiết bị vệ sinh nhập khẩu" : "Imported Tiles & Sanitary Ware"}
+            </h3>
+          </div>
+        </div>
+        <div className="relative w-full overflow-hidden py-2">
+          {/* Ambient fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
+          
+          <div className="animate-marquee-pd flex items-center gap-6">
+            {/* Loop 1 */}
+            {displayBrands.map((brand, i) => (
+              <div
+                key={`marquee-1-${i}`}
+                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white p-2 group"
+              >
+                {brand.logo_url ? (
+                  <div className="relative h-10 w-32 flex items-center justify-center">
+                    <img
+                      src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url}
+                      alt={getBrandDisplayName(brand)}
+                      className="max-h-full max-w-full object-contain filter grayscale opacity-75 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
+                      {getBrandDisplayName(brand)}
+                    </span>
+                    <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
+                      {getBrandDisplayOrigin(brand)}
+                    </span>
+                  </>
+                )}
+              </div>
+            ))}
+            {/* Loop 2 */}
+            {displayBrands.map((brand, i) => (
+              <div
+                key={`marquee-2-${i}`}
+                className="surface-card interactive-card flex h-16 w-44 shrink-0 flex-col items-center justify-center rounded-xl border border-outline-variant/40 bg-white/70 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-container/40 hover:shadow-md hover:bg-white p-2 group"
+              >
+                {brand.logo_url ? (
+                  <div className="relative h-10 w-32 flex items-center justify-center">
+                    <img
+                      src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url}
+                      alt={getBrandDisplayName(brand)}
+                      className="max-h-full max-w-full object-contain filter grayscale opacity-75 transition-all duration-300 group-hover:grayscale-0 group-hover:opacity-100"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <span className="font-heading text-sm font-extrabold tracking-widest text-primary-container text-center px-2">
+                      {getBrandDisplayName(brand)}
+                    </span>
+                    <span className="mt-1 text-[8px] font-bold uppercase tracking-wider text-outline">
+                      {getBrandDisplayOrigin(brand)}
+                    </span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

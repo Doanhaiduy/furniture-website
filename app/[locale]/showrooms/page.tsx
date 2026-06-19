@@ -5,7 +5,7 @@ import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { imageAssets } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getShowrooms } from "@/lib/supabase/queries";
 
 type PublicShowroomRecord = {
@@ -46,7 +46,7 @@ export default async function ShowroomsPage({
   setRequestLocale(locale);
   const t = await getTranslations("showrooms");
   const common = await getTranslations("common");
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbShowrooms = await getShowrooms(supabase, locale).catch(() => []);
   const showroomFallbackImages = [imageAssets.showroom, imageAssets.showroom2, imageAssets.room];
   const displayShowrooms = (dbShowrooms as PublicShowroomRecord[]).map((showroom, index) => ({

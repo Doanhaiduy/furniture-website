@@ -17,7 +17,7 @@ import {
 import { SocialShare } from "@/components/showroom/social-share";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { ArticleToc } from "@/components/showroom/article-toc";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getBlogBySlug as getDBBlogBySlug, getBlogPosts } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
 
@@ -40,7 +40,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
   
   let title = "";
@@ -81,7 +81,7 @@ export default async function BlogDetailPage({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
   
   let post: any = null;

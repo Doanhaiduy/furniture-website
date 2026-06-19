@@ -41,6 +41,7 @@ declare
   v_blog1_media_id uuid := '00000000-0000-0000-0000-000000000112';
   v_blog2_media_id uuid := '00000000-0000-0000-0000-000000000113';
   v_showroom2_media_id uuid := '00000000-0000-0000-0000-000000000114';
+  v_logo_media_id uuid := '00000000-0000-0000-0000-000000000115';
 begin
   -- Seed local data unconditionally in local development environment
   -- if coalesce(current_setting('app.seed_local', true), 'false') <> 'true' then
@@ -50,6 +51,7 @@ begin
   -- 1. SEED MEDIA ASSETS
   insert into public.media_assets (id, storage_provider, cloudinary_public_id, public_url, resource_type, mime_type, format, size_bytes)
   values
+    (v_logo_media_id, 'cloudinary', 'showroom/logo', '/logo-final.svg', 'image', 'image/svg+xml', 'svg', 29612),
     (v_hero_media_id, 'cloudinary', 'showroom/hero', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1234567890/showroom/hero.jpg', 'image', 'image/jpeg', 'jpg', 102400),
     (v_showroom_media_id, 'cloudinary', 'showroom/showroom', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg', 'image', 'image/jpeg', 'jpg', 102400),
     (v_woodwall_media_id, 'cloudinary', 'showroom/woodWall', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png', 'image', 'image/png', 'png', 102400),
@@ -84,8 +86,8 @@ begin
     '+84 000 000 000',
     'hello@example.test',
     'quotes@example.test',
-    v_hero_media_id,
-    v_hero_media_id,
+    v_logo_media_id,
+    v_logo_media_id,
     v_hero_media_id
   )
   on conflict (singleton_key) do update

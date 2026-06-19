@@ -416,7 +416,7 @@ function BrandsPage({ createMode, brands = [] }: { createMode?: boolean; brands?
                   <div className="flex gap-3 items-start">
                     {brand.logo_url ? (
                       <img
-                        src={brand.logo_url}
+                        src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url}
                         alt={brand.name?.vi || "Logo"}
                         className="size-12 rounded border object-contain bg-slate-50"
                       />

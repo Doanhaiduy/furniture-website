@@ -4,6 +4,9 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { type Locale, isLocale } from "@/i18n/routing";
+
+export const dynamic = "force-dynamic";
+
 import { notFound } from "next/navigation";
 import {
   imageAssets,
@@ -20,8 +23,9 @@ import { RemoteImage } from "@/components/showroom/remote-image";
 import { ProductCard } from "@/components/showroom/product-card";
 import { ProductFilterPanel } from "@/components/showroom/product-filter-panel";
 import { ProductSortSelect } from "@/components/showroom/product-sort-select";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getProducts, getCategories, mapDBProductGroupKeyToUI, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
+import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 type ProductSearchParams = {
   category?: string;
@@ -35,6 +39,7 @@ type ProductSearchParams = {
   q?: string;
   page?: string;
   sort?: string;
+  brand?: string;
 };
 
 const productPageSize = 8;
@@ -68,7 +73,7 @@ export default async function ProductsPage({
   const common = await getTranslations("common");
 
   // Fetch dynamic catalog data from database
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   
   // Extract and build database filters
   const attributeFilters: Record<string, string> = {};
@@ -80,21 +85,99 @@ export default async function ProductsPage({
     }
   });
 
+  const getLocalizedValue = (val: any, loc: string) => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    if (typeof val === "object") return val[loc] || val.vi || val.en || "";
+    return String(val);
+  };
+
+  // Load categories and brands from database
+  const dbCategories = await getCategories(supabase, locale);
+  const brandsRes = await getPublicBrands();
+  const publicBrands = (brandsRes.success && brandsRes.data) ? brandsRes.data : [];
+
+  let brandId = typeof query.brand === "string" && query.brand !== "all" ? query.brand : undefined;
+
+  // Resolve brand slug or name to database UUID if it is not already a UUID
+  if (brandId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(brandId)) {
+    const searchStr = brandId.toLowerCase();
+    const matchedBrand = publicBrands.find(
+      (b: any) =>
+        b.id === brandId ||
+        b.name?.en?.toLowerCase() === searchStr ||
+        b.name?.vi?.toLowerCase() === searchStr
+    );
+    if (matchedBrand) {
+      brandId = matchedBrand.id;
+    }
+  }
+
+  // Normalize query.brand to the resolved UUID so that option selection works
+  if (brandId) {
+    query.brand = brandId;
+  }
+
   const categorySlug = typeof query.category === "string" && query.category !== "all" ? query.category : undefined;
   const q = typeof query.q === "string" && query.q ? query.q : undefined;
   const featured = query.featured === "true" ? true : undefined;
 
+  // For products query, if category is "other", we fetch all products and exclude top 3 categories in JS
+  let productsCategorySlug = categorySlug === "other" ? undefined : categorySlug;
+  let productsGroupKey: string | undefined = undefined;
+
+  if (productsCategorySlug === "wood") {
+    productsGroupKey = "wooden_furniture";
+    productsCategorySlug = undefined;
+  } else if (productsCategorySlug === "sanitary") {
+    productsGroupKey = "sanitary_equipment";
+    productsCategorySlug = undefined;
+  } else if (productsCategorySlug === "tiles") {
+    productsGroupKey = "tiles";
+    productsCategorySlug = undefined;
+  }
+
   const dbProducts = await getProducts(supabase, {
     locale,
-    categorySlug,
+    categorySlug: productsCategorySlug,
+    groupKey: productsGroupKey,
     q,
     featured,
     attributeFilters,
+    brandId,
     limit: 1000,
   });
   const dbProductsMapped = dbProducts.map((p: any) => mapDBProductToPublicProduct(p, locale));
 
-  const filteredResults = filterProducts(query, dbProductsMapped);
+  // If category is "other", filter products to exclude top 3 root categories
+  let categoryFilteredProducts = dbProductsMapped;
+  let top3CatIds: string[] = [];
+
+  const rootCats = dbCategories.filter((cat: any) => !cat.parentId);
+  const rootCatCounts = rootCats.map((root: any) => {
+    const children = dbCategories.filter((cat: any) => cat.parentId === root.id);
+    const allCatIds = [root.id, ...children.map((c: any) => c.id)];
+    const count = dbProductsMapped.filter((p: any) => allCatIds.includes(p.category_id) || allCatIds.includes(p.categoryId)).length;
+    return { root, allCatIds, count };
+  });
+  const sortedRoots = [...rootCatCounts].sort((a, b) => b.count - a.count);
+  const top3Roots = sortedRoots.slice(0, 3);
+  top3CatIds = top3Roots.flatMap((item) => item.allCatIds);
+
+  if (categorySlug === "other") {
+    categoryFilteredProducts = dbProductsMapped.filter((p: any) => {
+      const orig = dbProducts.find((dp: any) => dp.slug === p.slug);
+      const categoryId = orig?.category_id || orig?.categoryId;
+      return categoryId && !top3CatIds.includes(categoryId);
+    });
+  }
+
+  // Bypass double filtering for category & brand since they are already filtered correctly
+  const filterQuery = { ...query };
+  delete filterQuery.category;
+  delete filterQuery.brand;
+
+  const filteredResults = filterProducts(filterQuery, categoryFilteredProducts);
   const sort: ProductSort = query.sort === "featured" ? "featured" : "newest";
   const results = sortProducts(filteredResults, sort);
   const requestedPage = Number.parseInt(query.page ?? "1", 10);
@@ -103,19 +186,28 @@ export default async function ProductsPage({
   const optionLabel = (value: { vi: string; en: string }) => localized(value, locale);
   const allOption = { value: "all", label: t("all") };
   
-  // Load categories from database
-  const dbCategories = await getCategories(supabase, locale);
   const categoryOptions = [
     allOption,
     ...(dbCategories.length > 0 
-      ? dbCategories.map((cat: any) => ({
-          value: cat.slug,
-          label: cat.name,
-        }))
+      ? [
+          ...dbCategories.map((cat: any) => ({
+            value: cat.slug,
+            label: cat.name,
+          })),
+          { value: "other", label: locale === "vi" ? "Thiết kế khác" : "Other designs" }
+        ]
       : productGroups.slice(0, 3).map((group) => ({
           value: group.key,
           label: localized(group.title, locale),
         }))),
+  ];
+
+  const brandOptions = [
+    { value: "all", label: locale === "vi" ? "Tất cả thương hiệu" : "All brands" },
+    ...publicBrands.map((b: any) => ({
+      value: b.id,
+      label: getLocalizedValue(b.name, locale),
+    })),
   ];
 
   const materialOptions = [
@@ -137,6 +229,7 @@ export default async function ProductsPage({
   ];
   const activeFilterSources: Array<[string, string | undefined, Array<{ value: string; label: string }>]> = [
     ["category", query.category, categoryOptions],
+    ["brand", query.brand, brandOptions],
     ["material", query.material, materialOptions],
     ["room", query.room, roomOptions],
     ["style", query.style, styleOptions],
@@ -238,6 +331,7 @@ export default async function ProductsPage({
             tone: toneOptions,
             availability: availabilityOptions,
             featured: featuredOptions,
+            brand: brandOptions,
           }}
           resetHref={withLocale(locale, "/products")}
           defaultExpanded={advancedFilterActive}

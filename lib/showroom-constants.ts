@@ -79,7 +79,7 @@ export const productGroups = [
   },
   {
     key: "solutions",
-    href: "/contact",
+    href: "/products?category=other",
     image: imageAssets.showroom,
     title: { vi: "Thiết kế khác", en: "Project solutions" },
     summary: {

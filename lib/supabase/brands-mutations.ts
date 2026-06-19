@@ -478,14 +478,14 @@ export async function getPublicBrands(): Promise<{
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data: brands, error } = await supabase
       .from("brands")
       .select(`
         id,
         origin,
         sort_order,
-        logo_media:media_assets!brands_logo_media_id_fkey(public_url),
+        logo_media:media_assets!fk_brands_logo_media(public_url),
         brand_translations (locale, name, description)
       `)
       .eq("status", "published")

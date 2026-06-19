@@ -6,7 +6,7 @@ import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { localized, withLocale, imageAssets } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { getBlogPosts } from "@/lib/supabase/queries";
 
 function formatBlogDate(date: string, locale: Locale) {
@@ -56,7 +56,7 @@ export default async function BlogPage({
   const t = await getTranslations("blog");
   const common = await getTranslations("common");
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const dbPosts = await getBlogPosts(supabase, { locale, limit: 12 }).catch(() => []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
