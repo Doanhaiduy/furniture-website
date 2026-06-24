@@ -1370,8 +1370,7 @@ export async function createAdminShowroom(data: ShowroomInput): Promise<{ succes
     ...validation.data,
     google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
   };
-  
-  
+
 
   const supabase = createAdminClient();
 
@@ -1488,8 +1487,7 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
     ...validation.data,
     google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
   };
-  
-  
+
 
   try {
     const supabase = createAdminClient();
