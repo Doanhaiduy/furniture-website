@@ -1,9 +1,14 @@
+// @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DataTable } from "../../components/admin/DataTable";
 import { ErrorFallback, TableSkeleton } from "../../components/admin/TableSkeleton";
+
+afterEach(() => {
+  cleanup();
+});
 
 type SampleRow = {
   id: string;

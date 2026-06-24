@@ -32,7 +32,7 @@ export function ProductSortSelect({
         }
 
         const query = params.toString();
-        router.push(query ? `${pathname}?${query}` : pathname);
+        router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
       }}
       options={options}
       placeholder={placeholder}

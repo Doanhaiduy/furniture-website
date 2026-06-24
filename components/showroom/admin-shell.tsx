@@ -222,7 +222,7 @@ export function AdminShell({
                   >
                     {headerCollapsed ? <ChevronsDown className="size-4" /> : <ChevronsUp className="size-4" />}
                   </button>
-                  <NotificationButton />
+                  <NotificationButton role={role as "admin" | "editor"} />
                   <Link href="/admin/users" className="admin-icon-button-pd bg-[var(--state-warning-soft)] font-bold text-[var(--admin-sidebar-bg)]">A</Link>
                 </div>
               </header>

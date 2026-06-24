@@ -1,3 +1,4 @@
+import { createAdminClient } from "./server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -18,7 +19,8 @@ export async function writeAuditLog(
 ) {
   const { actorId, action, entityType, entityId, metadata } = params;
   
-  const { error } = await supabase
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
     .from("audit_logs")
     .insert({
       actor_id: actorId,

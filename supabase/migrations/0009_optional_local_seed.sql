@@ -13,6 +13,7 @@ declare
   v_about_page_id uuid;
   v_wood_category_id uuid;
   v_sanitary_category_id uuid;
+  v_tiles_category_id uuid;
   v_product_id uuid;
   v_showroom_id uuid;
   v_author_id uuid;
@@ -20,11 +21,13 @@ declare
   v_product_2_id uuid;
   v_product_3_id uuid;
   v_product_4_id uuid;
+  v_product_5_id uuid;
   v_blog_post_1_id uuid;
   v_blog_post_2_id uuid;
   v_blog_post_3_id uuid;
   v_showroom_2_id uuid;
   v_showroom_3_id uuid;
+  v_admin_id uuid;
 
   -- Fixed UUIDs for Media Assets
   v_hero_media_id uuid := '00000000-0000-0000-0000-000000000101';
@@ -51,7 +54,7 @@ begin
   -- 1. SEED MEDIA ASSETS
   insert into public.media_assets (id, storage_provider, cloudinary_public_id, public_url, resource_type, mime_type, format, size_bytes)
   values
-    (v_logo_media_id, 'cloudinary', 'showroom/logo', '/logo-final.svg', 'image', 'image/svg+xml', 'svg', 29612),
+    (v_logo_media_id, 'cloudinary', 'showroom/logo', 'http://local-assets/logo-final.svg', 'image', 'image/svg+xml', 'svg', 29612),
     (v_hero_media_id, 'cloudinary', 'showroom/hero', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1234567890/showroom/hero.jpg', 'image', 'image/jpeg', 'jpg', 102400),
     (v_showroom_media_id, 'cloudinary', 'showroom/showroom', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg', 'image', 'image/jpeg', 'jpg', 102400),
     (v_woodwall_media_id, 'cloudinary', 'showroom/woodWall', 'https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png', 'image', 'image/png', 'png', 102400),
@@ -343,9 +346,36 @@ begin
     seo_description = excluded.seo_description,
     updated_at = now();
 
+  -- Seed tiles category
+  select id into v_tiles_category_id
+  from public.product_categories
+  where group_key = 'tiles'
+  order by created_at
+  limit 1;
+
+  if v_tiles_category_id is null then
+    v_tiles_category_id := 'a1111111-1111-1111-1111-111111111111';
+    insert into public.product_categories (id, group_key, status, sort_order)
+    values (v_tiles_category_id, 'tiles', 'draft', 30)
+    on conflict (id) do nothing;
+  end if;
+
+  insert into public.product_category_translations (category_id, locale, slug, name, description, seo_title, seo_description)
+  values
+    (v_tiles_category_id, 'vi', 'gach-op-lat', 'Gạch ốp lát', 'Gạch ốp lát chất lượng cao', 'Gạch ốp lát', 'Gạch ốp lát cao cấp Phương Đông'),
+    (v_tiles_category_id, 'en', 'tiles', 'Tiles', 'Premium floor and wall tiles', 'Tiles', 'Premium floor and wall tiles')
+  on conflict (category_id, locale) do update
+  set
+    slug = excluded.slug,
+    name = excluded.name,
+    description = excluded.description,
+    seo_title = excluded.seo_title,
+    seo_description = excluded.seo_description,
+    updated_at = now();
+
   update public.product_categories
   set status = 'published'
-  where id in (v_wood_category_id, v_sanitary_category_id);
+  where id in (v_wood_category_id, v_sanitary_category_id, v_tiles_category_id);
 
   -- Insert demo author profile
   v_author_id := '00000000-0000-0000-0000-000000000001';
@@ -355,7 +385,8 @@ begin
     raw_app_meta_data, raw_user_meta_data, aud, role,
     confirmation_token, recovery_token, email_change_token_new, 
     email_change, phone_change, phone_change_token, 
-    email_change_token_current, reauthentication_token, email_change_confirm_status
+    email_change_token_current, reauthentication_token, email_change_confirm_status,
+    created_at, updated_at
   )
   values (
     v_author_id,
@@ -369,7 +400,8 @@ begin
     'authenticated',
     '', '', '', 
     '', '', '', 
-    '', '', 0
+    '', '', 0,
+    now(), now()
   )
   on conflict (id) do nothing;
 
@@ -379,6 +411,44 @@ begin
     'author@phuongdong.vn',
     'Tác Giả Demo',
     'editor',
+    true
+  )
+  on conflict (id) do nothing;
+
+  -- Insert admin profile
+  v_admin_id := '00000000-0000-0000-0000-000000000002';
+  
+  insert into auth.users (
+    id, instance_id, email, encrypted_password, email_confirmed_at, 
+    raw_app_meta_data, raw_user_meta_data, aud, role,
+    confirmation_token, recovery_token, email_change_token_new, 
+    email_change, phone_change, phone_change_token, 
+    email_change_token_current, reauthentication_token, email_change_confirm_status,
+    created_at, updated_at
+  )
+  values (
+    v_admin_id,
+    '00000000-0000-0000-0000-000000000000',
+    'admin@phuongdong.vn',
+    extensions.crypt('admin123', extensions.gen_salt('bf')),
+    now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"full_name":"Admin Phuong Dong"}'::jsonb,
+    'authenticated',
+    'authenticated',
+    '', '', '', 
+    '', '', '', 
+    '', '', 0,
+    now(), now()
+  )
+  on conflict (id) do nothing;
+
+  insert into public.profiles (id, email, full_name, role, is_active)
+  values (
+    v_admin_id,
+    'admin@phuongdong.vn',
+    'Admin Phuong Dong',
+    'admin',
     true
   )
   on conflict (id) do nothing;
@@ -406,6 +476,7 @@ begin
   update public.products set status = 'published' where id = v_product_id;
 
   -- Seed product media for Sofa Curve Velour
+  delete from public.product_media where product_id = v_product_id;
   insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
   values
     (v_product_id, v_sofa_media_id, 'gallery', true, 1),
@@ -435,6 +506,7 @@ begin
   update public.products set status = 'published' where id = v_product_2_id;
 
   -- Seed product media for Bàn Trà Marble Round
+  delete from public.product_media where product_id = v_product_2_id;
   insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
   values
     (v_product_2_id, v_table_media_id, 'gallery', true, 1),
@@ -463,6 +535,7 @@ begin
   update public.products set status = 'published' where id = v_product_3_id;
 
   -- Seed product media for Kệ Tivi Minimalist Wood
+  delete from public.product_media where product_id = v_product_3_id;
   insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
   values
     (v_product_3_id, v_cabinet_media_id, 'gallery', true, 1)
@@ -490,9 +563,39 @@ begin
   update public.products set status = 'published' where id = v_product_4_id;
 
   -- Seed product media for Sen Tắm Mạ Vàng 24K
+  delete from public.product_media where product_id = v_product_4_id;
   insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
   values
     (v_product_4_id, v_room_media_id, 'gallery', true, 1)
+  on conflict (product_id, media_id) do nothing;
+
+  -- Product 5: Gạch Eurotile Hoàng Gia (c3e1ae4d-b971-4668-b8f9-4bbfd4bf5a29)
+  -- This product is used by tests/integration/slugResolver.test.ts
+  select id into v_product_5_id
+  from public.products
+  where id = 'c3e1ae4d-b971-4668-b8f9-4bbfd4bf5a29'
+    and deleted_at is null
+  limit 1;
+
+  if v_product_5_id is null then
+    insert into public.products (id, category_id, reference_code, status, price_min, price_max, currency, brand_series, featured, sort_order)
+    values ('c3e1ae4d-b971-4668-b8f9-4bbfd4bf5a29', v_tiles_category_id, 'PD-T-ROYAL', 'draft', 15000000, 15000000, 'VND', 'Royal Collection', true, 50)
+    returning id into v_product_5_id;
+  end if;
+
+  insert into public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text, seo_title, seo_description)
+  values
+    (v_product_5_id, 'vi', 'gach-eurotile-hoang-gia', 'Gạch Eurotile Hoàng Gia', 'Gạch Eurotile cao cấp vân đá Hoàng Gia.', '{"type":"doc","content":[]}'::jsonb, 'Porcelain', '15,000,000 VND', '800 x 800 mm', 'Gạch Eurotile Hoàng Gia', 'Gạch Eurotile Hoàng Gia'),
+    (v_product_5_id, 'en', 'eurotile-royal-tile', 'Eurotile Royal Tile', 'Premium Eurotile Royal marble look porcelain tile.', '{"type":"doc","content":[]}'::jsonb, 'Porcelain', '$600', '800 x 800 mm', 'Eurotile Royal Tile', 'Eurotile Royal Tile')
+  on conflict (product_id, locale) do update set slug = excluded.slug, name = excluded.name, summary = excluded.summary, updated_at = now();
+
+  update public.products set status = 'published' where id = v_product_5_id;
+
+  -- Seed product media for Gạch Eurotile Hoàng Gia
+  delete from public.product_media where product_id = v_product_5_id;
+  insert into public.product_media (product_id, media_id, context, is_primary, sort_order)
+  values
+    (v_product_5_id, v_texture_media_id, 'gallery', true, 1)
   on conflict (product_id, media_id) do nothing;
 
 
@@ -519,6 +622,7 @@ begin
   update public.showrooms set status = 'published' where id = v_showroom_id;
 
   -- Seed showroom media for HN Showroom
+  delete from public.showroom_media where showroom_id = v_showroom_id;
   insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
   values
     (v_showroom_id, v_showroom_media_id, true, 1)
@@ -546,6 +650,7 @@ begin
   update public.showrooms set status = 'published' where id = v_showroom_2_id;
 
   -- Seed showroom media for HCM Showroom
+  delete from public.showroom_media where showroom_id = v_showroom_2_id;
   insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
   values
     (v_showroom_2_id, v_showroom2_media_id, true, 1)
@@ -573,6 +678,7 @@ begin
   update public.showrooms set status = 'published' where id = v_showroom_3_id;
 
   -- Seed showroom media for DN Experience Studio
+  delete from public.showroom_media where showroom_id = v_showroom_3_id;
   insert into public.showroom_media (showroom_id, media_id, is_primary, sort_order)
   values
     (v_showroom_3_id, v_room_media_id, true, 1)
@@ -619,9 +725,9 @@ begin
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)
   values
-    (v_blog_post_1_id, 'vi', 'bi-quyet-chon-go-oc-cho', 'Bí quyết chọn gỗ óc chó cho nội thất bền vững', 'Nhận biết vân gỗ, độ ẩm và quy trình xử lý bề mặt trước khi đầu tư.', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Gỗ óc chó cao cấp luôn là lựa chọn hàng đầu..."}]}]}'::jsonb, 'Bí quyết chọn gỗ óc chó', 'Bí quyết chọn gỗ óc chó cho nội thất'),
-    (v_blog_post_1_id, 'en', 'bi-quyet-chon-go-oc-cho', 'How to choose walnut wood for lasting interiors', 'Understand grain, moisture and finishing process before investing.', '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Premium walnut wood is always a top choice..."}]}]}'::jsonb, 'How to choose walnut wood', 'How to choose walnut wood for interiors')
-  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt;
+    (v_blog_post_1_id, 'vi', 'bi-quyet-chon-go-oc-cho', 'Bí quyết chọn gỗ óc chó cho nội thất bền vững', 'Nhận biết vân gỗ, độ ẩm và quy trình xử lý bề mặt trước khi đầu tư.', '{"takeaways":["Ưu tiên nguồn gỗ rõ ràng, độ ẩm ổn định và quy trình sấy phù hợp khí hậu Việt Nam.","Quan sát vân gỗ, màu sắc và độ hoàn thiện dưới ánh sáng tự nhiên lẫn ánh sáng showroom.","Yêu cầu tư vấn bảo hành, chăm sóc bề mặt và điều kiện lắp đặt trước khi chốt vật liệu."],"quote":{"vi":"Một món đồ gỗ tốt không chỉ đẹp ở ngày bàn giao; nó phải giữ được nhịp sống của gia đình trong nhiều năm.","en":"A good wooden piece is not only beautiful on handover day; it should keep pace with family life for years."},"sections":[{"id":"nguon-goc","title":{"vi":"Bắt đầu từ nguồn gốc và độ ổn định","en":"Start with sourcing and stability"},"body":{"vi":"Gỗ óc chó cao cấp cần có hồ sơ nguồn gốc, thông tin sấy và kiểm soát độ ẩm rõ ràng. Khi khí hậu thay đổi theo mùa, vật liệu chưa ổn định dễ cong vênh, nứt chân chim hoặc lệch màu sau một thời gian sử dụng.","en":"Premium walnut should come with clear sourcing, drying and moisture control information. When seasonal humidity changes, unstable material can warp, crack or shift color after use."}},{"id":"van-go","title":{"vi":"Đọc vân gỗ như một lớp thiết kế","en":"Read the grain as a design layer"},"body":{"vi":"Vân gỗ đẹp phải có nhịp điệu tự nhiên, không bị ghép vá thiếu chủ đích. Với các bề mặt lớn như bàn, tủ hoặc vách, cách đảo vân và nối tấm quyết định cảm giác cao cấp của toàn bộ không gian.","en":"Beautiful grain has a natural rhythm, not a patched look. On large tables, cabinets or wall panels, grain matching and board joining define the premium feel of the entire space."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png"},{"id":"hoan-thien","title":{"vi":"Bề mặt hoàn thiện phải phục vụ đời sống thật","en":"Finishing must serve real living"},"body":{"vi":"Một lớp hoàn thiện tốt cân bằng giữa cảm giác chạm, độ bền và khả năng bảo trì. Hãy kiểm tra cạnh, góc, mặt sau, ray trượt và những chi tiết ít thấy, vì đó là nơi thể hiện tay nghề và tiêu chuẩn sản xuất.","en":"A good finish balances touch, durability and maintainability. Inspect edges, corners, backs, runners and hidden details because they reveal craft and production standards."}},{"id":"showroom","title":{"vi":"So sánh trực tiếp tại showroom","en":"Compare directly in the showroom"},"body":{"vi":"Mẫu vật liệu cần được xem cạnh đá, gạch, ánh sáng và thiết bị đi kèm. Tại showroom, đội ngũ tư vấn có thể đặt các mẫu cạnh nhau để kiểm tra tông màu, tỷ lệ và ngân sách trước khi lên phương án.","en":"Material samples should be viewed beside stone, tile, lighting and accompanying fixtures. In the showroom, consultants can compare samples for tone, proportion and budget before planning."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg"}]}'::jsonb, 'Bí quyết chọn gỗ óc chó', 'Bí quyết chọn gỗ óc chó cho nội thất'),
+    (v_blog_post_1_id, 'en', 'bi-quyet-chon-go-oc-cho', 'How to choose walnut wood for lasting interiors', 'Understand grain, moisture and finishing process before investing.', '{"takeaways":["Prioritize clear sourcing, stable moisture and drying suitable for Vietnamese climate.","Check grain, color and finishing under both daylight and showroom lighting.","Confirm warranty, surface care and installation conditions before finalizing materials."],"quote":{"vi":"Một món đồ gỗ tốt không chỉ đẹp ở ngày bàn giao; nó phải giữ được nhịp sống của gia đình trong nhiều năm.","en":"A good wooden piece is not only beautiful on handover day; it should keep pace with family life for years."},"sections":[{"id":"nguon-goc","title":{"vi":"Bắt đầu từ nguồn gốc và độ ổn định","en":"Start with sourcing and stability"},"body":{"vi":"Gỗ óc chó cao cấp cần có hồ sơ nguồn gốc, thông tin sấy và kiểm soát độ ẩm rõ ràng. Khi khí hậu thay đổi theo mùa, vật liệu chưa ổn định dễ cong vênh, nứt chân chim hoặc lệch màu sau một thời gian sử dụng.","en":"Premium walnut should come with clear sourcing, drying and moisture control information. When seasonal humidity changes, unstable material can warp, crack or shift color after use."}},{"id":"van-go","title":{"vi":"Đọc vân gỗ như một lớp thiết kế","en":"Read the grain as a design layer"},"body":{"vi":"Vân gỗ đẹp phải có nhịp điệu tự nhiên, không bị ghép vá thiếu chủ đích. Với các bề mặt lớn như bàn, tủ hoặc vách, cách đảo vân và nối tấm quyết định cảm giác cao cấp của toàn bộ không gian.","en":"Beautiful grain has a natural rhythm, not a patched look. On large tables, cabinets or wall panels, grain matching and board joining define the premium feel of the entire space."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png"},{"id":"hoan-thien","title":{"vi":"Bề mặt hoàn thiện phải phục vụ đời sống thật","en":"Finishing must serve real living"},"body":{"vi":"Một lớp hoàn thiện tốt cân bằng giữa cảm giác chạm, độ bền và khả năng bảo trì. Hãy kiểm tra cạnh, góc, mặt sau, ray trượt và những chi tiết ít thấy, vì đó là nơi thể hiện tay nghề và tiêu chuẩn sản xuất.","en":"A good finish balances touch, durability and maintainability. Inspect edges, corners, backs, runners and hidden details because they reveal craft and production standards."}},{"id":"showroom","title":{"vi":"So sánh trực tiếp tại showroom","en":"Compare directly in the showroom"},"body":{"vi":"Mẫu vật liệu cần được xem cạnh đá, gạch, ánh sáng và thiết bị đi kèm. Tại showroom, đội ngũ tư vấn có thể đặt các mẫu cạnh nhau để kiểm tra tông màu, tỷ lệ và ngân sách trước khi lên phương án.","en":"Material samples should be viewed beside stone, tile, lighting and accompanying fixtures. In the showroom, consultants can compare samples for tone, proportion and budget before planning."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424086/showroom/showroom.jpg"}]}'::jsonb, 'How to choose walnut wood', 'How to choose walnut wood for interiors')
+  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt, body_json = excluded.body_json;
 
   update public.blog_posts set status = 'published' where id = v_blog_post_1_id;
 
@@ -644,9 +750,9 @@ begin
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)
   values
-    (v_blog_post_2_id, 'vi', 'xu-huong-phong-tam-2026', 'Xu hướng phòng tắm khách sạn trong nhà ở hiện đại', 'Các lớp vật liệu, ánh sáng và phụ kiện giúp phòng tắm trở thành nghỉ dưỡng.', '{"type":"doc","content":[]}'::jsonb, 'Xu hướng phòng tắm khách sạn', 'Xu hướng phòng tắm khách sạn 2026'),
-    (v_blog_post_2_id, 'en', 'xu-huong-phong-tam-2026', 'Hotel-inspired bathroom trends for modern homes', 'Material layers, lighting and accessories that turn bathrooms into wellness spaces.', '{"type":"doc","content":[]}'::jsonb, 'Hotel-inspired bathroom trends', 'Hotel-inspired bathroom trends')
-  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt;
+    (v_blog_post_2_id, 'vi', 'xu-huong-phong-tam-2026', 'Xu hướng phòng tắm khách sạn trong nhà ở hiện đại', 'Các lớp vật liệu, ánh sáng và phụ kiện giúp phòng tắm trở thành nghỉ dưỡng.', '{"takeaways":["Phòng tắm cao cấp đang chuyển từ chức năng thuần túy sang trải nghiệm wellness tại nhà.","Ánh sáng, lớp vật liệu và thiết bị tiết kiệm nước quyết định cảm giác sử dụng hằng ngày.","Nên chốt thiết bị chính trước khi hoàn thiện đường nước, điện và bề mặt ốp lát."],"quote":{"vi":"Phòng tắm tốt giống một suite nhỏ: yên tĩnh, dễ chăm sóc và tạo cảm giác nghỉ ngơi mỗi ngày.","en":"A good bathroom feels like a small suite: quiet, easy to maintain and restorative every day."},"sections":[{"id":"wellness","title":{"vi":"Wellness trở thành tiêu chuẩn mới","en":"Wellness becomes the new standard"},"body":{"vi":"Sen tắm nhiệt, bồn tắm độc lập, bề mặt chống bám cặn và ánh sáng dịu đang giúp phòng tắm trở thành không gian hồi phục năng lượng sau ngày dài.","en":"Thermostatic showers, freestanding tubs, anti-scale surfaces and soft lighting are turning bathrooms into places to recover after long days."}},{"id":"vat-lieu","title":{"vi":"Lớp vật liệu tạo chiều sâu","en":"Material layers create depth"},"body":{"vi":"Đá, gạch khổ lớn, gỗ chịu ẩm và kim loại ấm có thể phối cùng nhau nếu kiểm soát đúng tông màu và độ phản chiếu.","en":"Stone, large-format tile, moisture-resistant wood and warm metal can work together when tone and reflectivity are controlled."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424091/showroom/room.jpg"},{"id":"lap-dat","title":{"vi":"Thiết kế kỹ thuật phải đi trước","en":"Technical planning comes first"},"body":{"vi":"Vị trí thoát sàn, chiều cao vòi, áp lực nước và khe co giãn cần được kiểm tra sớm để tránh phát sinh khi lắp đặt.","en":"Floor drains, tap height, water pressure and expansion joints should be checked early to prevent installation issues."}}]}'::jsonb, 'Xu hướng phòng tắm khách sạn', 'Xu hướng phòng tắm khách sạn 2026'),
+    (v_blog_post_2_id, 'en', 'xu-huong-phong-tam-2026', 'Hotel-inspired bathroom trends for modern homes', 'Material layers, lighting and accessories that turn bathrooms into wellness spaces.', '{"takeaways":["Premium bathrooms are moving from pure function toward at-home wellness experiences.","Lighting, material layers and water-efficient fixtures define daily comfort.","Confirm key fixtures before finalizing plumbing, electrical and tile surfaces."],"quote":{"vi":"Phòng tắm tốt giống một suite nhỏ: yên tĩnh, dễ chăm sóc và tạo cảm giác nghỉ ngơi mỗi ngày.","en":"A good bathroom feels like a small suite: quiet, easy to maintain and restorative every day."},"sections":[{"id":"wellness","title":{"vi":"Wellness trở thành tiêu chuẩn mới","en":"Wellness becomes the new standard"},"body":{"vi":"Sen tắm nhiệt, bồn tắm độc lập, bề mặt chống bám cặn và ánh sáng dịu đang giúp phòng tắm trở thành không gian hồi phục năng lượng sau ngày dài.","en":"Thermostatic showers, freestanding tubs, anti-scale surfaces and soft lighting are turning bathrooms into places to recover after long days."}},{"id":"vat-lieu","title":{"vi":"Lớp vật liệu tạo chiều sâu","en":"Material layers create depth"},"body":{"vi":"Đá, gạch khổ lớn, gỗ chịu ẩm và kim loại ấm có thể phối cùng nhau nếu kiểm soát đúng tông màu và độ phản chiếu.","en":"Stone, large-format tile, moisture-resistant wood and warm metal can work together when tone and reflectivity are controlled."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424091/showroom/room.jpg"},{"id":"lap-dat","title":{"vi":"Thiết kế kỹ thuật phải đi trước","en":"Technical planning comes first"},"body":{"vi":"Vị trí thoát sàn, chiều cao vòi, áp lực nước và khe co giãn cần được kiểm tra sớm để tránh phát sinh khi lắp đặt.","en":"Floor drains, tap height, water pressure and expansion joints should be checked early to prevent installation issues."}}]}'::jsonb, 'Hotel-inspired bathroom trends', 'Hotel-inspired bathroom trends')
+  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt, body_json = excluded.body_json;
 
   update public.blog_posts set status = 'published' where id = v_blog_post_2_id;
 
@@ -669,9 +775,9 @@ begin
 
   insert into public.blog_post_translations (post_id, locale, slug, title, excerpt, body_json, seo_title, seo_description)
   values
-    (v_blog_post_3_id, 'vi', 'phoi-gach-go-va-da', 'Phối gạch, gỗ và đá để không gian có chiều sâu', 'Cách cân bằng bề mặt lạnh và ấm để không gian sang trọng nhưng vẫn gần gũi.', '{"type":"doc","content":[]}'::jsonb, 'Phối gạch gỗ và đá', 'Phối gạch gỗ và đá'),
-    (v_blog_post_3_id, 'en', 'phoi-gach-go-va-da', 'Combining tile, wood and stone for visual depth', 'Balance cool and warm surfaces to keep spaces premium yet welcoming.', '{"type":"doc","content":[]}'::jsonb, 'Combining tile wood and stone', 'Combining tile wood and stone')
-  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt;
+    (v_blog_post_3_id, 'vi', 'phoi-gach-go-va-da', 'Phối gạch, gỗ và đá để không gian có chiều sâu', 'Cách cân bằng bề mặt lạnh và ấm để không gian sang trọng nhưng vẫn gần gũi.', '{"takeaways":["Một bảng vật liệu tốt cần có điểm ấm, điểm lạnh và bề mặt trung hòa để tạo chiều sâu.","Không nên phối quá nhiều vân mạnh trong cùng một trường nhìn.","Ánh sáng quyết định cách gạch, gỗ và đá đọc màu trong không gian thật."],"quote":{"vi":"Sang trọng không đến từ vật liệu đắt nhất, mà từ cách các bề mặt lắng nghe nhau.","en":"Luxury does not come from the most expensive material, but from surfaces that listen to each other."},"sections":[{"id":"bang-vat-lieu","title":{"vi":"Xây bảng vật liệu theo lớp","en":"Build the palette in layers"},"body":{"vi":"Hãy chọn một bề mặt chính, một bề mặt nhấn và một bề mặt nền. Cách phân vai này giúp không gian có chiều sâu mà không bị rối.","en":"Choose one primary surface, one accent surface and one background surface. This hierarchy adds depth without visual noise."}},{"id":"ti-le","title":{"vi":"Tỷ lệ quan trọng hơn số lượng","en":"Proportion matters more than quantity"},"body":{"vi":"Gỗ có thể làm ấm đá, còn gạch sáng giúp cân bằng mảng tối. Điều quan trọng là kiểm soát diện tích từng vật liệu trong trường nhìn chính.","en":"Wood can warm stone, while light tile balances darker planes. The key is controlling how much of each material appears in the main view."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424090/showroom/texture.jpg"},{"id":"anh-sang","title":{"vi":"Kiểm tra dưới ánh sáng thật","en":"Test under real lighting"},"body":{"vi":"Cùng một mẫu đá hoặc gạch có thể đổi sắc dưới ánh sáng vàng, trắng hoặc ánh sáng tự nhiên. Mẫu nên được xem tại nhiều thời điểm trước khi chốt.","en":"The same stone or tile can shift under warm, cool or daylight conditions. Samples should be reviewed at multiple times before approval."}}]}'::jsonb, 'Phối gạch gỗ và đá', 'Phối gạch gỗ và đá'),
+    (v_blog_post_3_id, 'en', 'phoi-gach-go-va-da', 'Combining tile, wood and stone for visual depth', 'Balance cool and warm surfaces to keep spaces premium yet welcoming.', '{"takeaways":["A strong material palette needs warmth, coolness and neutral surfaces for depth.","Avoid combining too many strong grains or veins in the same sightline.","Lighting determines how tile, wood and stone read in the real space."],"quote":{"vi":"Sang trọng không đến từ vật liệu đắt nhất, mà từ cách các bề mặt lắng nghe nhau.","en":"Luxury does not come from the most expensive material, but from surfaces that listen to each other."},"sections":[{"id":"bang-vat-lieu","title":{"vi":"Xây bảng vật liệu theo lớp","en":"Build the palette in layers"},"body":{"vi":"Hãy chọn một bề mặt chính, một bề mặt nhấn và một bề mặt nền. Cách phân vai này giúp không gian có chiều sâu mà không bị rối.","en":"Choose one primary surface, one accent surface and one background surface. This hierarchy adds depth without visual noise."}},{"id":"ti-le","title":{"vi":"Tỷ lệ quan trọng hơn số lượng","en":"Proportion matters more than quantity"},"body":{"vi":"Gỗ có thể làm ấm đá, còn gạch sáng giúp cân bằng mảng tối. Điều quan trọng là kiểm soát diện tích từng vật liệu trong trường nhìn chính.","en":"Wood can warm stone, while light tile balances darker planes. The key is controlling how much of each material appears in the main view."},"image":"https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424090/showroom/texture.jpg"},{"id":"anh-sang","title":{"vi":"Kiểm tra dưới ánh sáng thật","en":"Test under real lighting"},"body":{"vi":"Cùng một mẫu đá hoặc gạch có thể đổi sắc dưới ánh sáng vàng, trắng hoặc ánh sáng tự nhiên. Mẫu nên được xem tại nhiều thời điểm trước khi chốt.","en":"The same stone or tile can shift under warm, cool or daylight conditions. Samples should be reviewed at multiple times before approval."}}]}'::jsonb, 'Combining tile wood and stone', 'Combining tile wood and stone')
+  on conflict (post_id, locale) do update set title = excluded.title, slug = excluded.slug, excerpt = excluded.excerpt, body_json = excluded.body_json;
 
   update public.blog_posts set status = 'published' where id = v_blog_post_3_id;
 

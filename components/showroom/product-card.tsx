@@ -26,13 +26,13 @@ export function ProductCard({
   const hasDiscount = product.discountPercentage != null && product.discountPercentage > 0 && product.oldPrice;
 
   const imageClass = compact
-    ? "relative h-48 overflow-hidden sm:h-52"
+    ? "relative h-36 sm:h-52 overflow-hidden"
     : isCatalog
-      ? "relative h-40 overflow-hidden sm:h-44 lg:h-48"
+      ? "relative h-32 sm:h-40 lg:h-48 overflow-hidden"
       : "relative aspect-[4/5] overflow-hidden";
-  const bodyClass = compact || isCatalog ? "grid gap-3 p-4" : "grid gap-4 p-5";
+  const bodyClass = compact || isCatalog ? "grid gap-2.5 p-3 sm:p-4" : "grid gap-4 p-5";
   const titleClass = compact || isCatalog
-    ? "type-card-title mt-1.5 line-clamp-2 text-lg transition group-hover:text-primary"
+    ? "type-card-title mt-1.5 line-clamp-2 text-sm sm:text-base md:text-lg transition group-hover:text-primary"
     : "type-card-title mt-2 text-2xl transition group-hover:text-primary";
   const summaryClass = isCatalog
     ? "type-caption mt-2 line-clamp-2"
@@ -102,20 +102,20 @@ export function ProductCard({
             ) : null}
           </div>
         ) : null}
-        <div className={compact || isCatalog ? "flex items-center justify-between gap-3 border-t border-outline-variant/25 pt-3" : "flex items-center justify-between gap-3 border-t border-outline-variant/25 pt-4"}>
+        <div className={compact || isCatalog ? "flex items-center justify-between gap-2 border-t border-outline-variant/25 pt-2.5" : "flex items-center justify-between gap-3 border-t border-outline-variant/25 pt-4"}>
           <div className="flex min-w-0 flex-col gap-0.5">
-            <p className={isCatalog ? "min-w-0 truncate text-sm font-bold text-primary" : "min-w-0 truncate font-bold text-primary"}>
+            <p className={isCatalog || compact ? "min-w-0 truncate text-xs sm:text-sm font-bold text-primary" : "min-w-0 truncate font-bold text-primary"}>
               {localized(product.price, locale)}
             </p>
             {hasDiscount && product.oldPrice ? (
-              <p className="min-w-0 truncate text-xs text-secondary line-through opacity-60">
+              <p className="min-w-0 truncate text-[10px] sm:text-xs text-secondary line-through opacity-60">
                 {localized(product.oldPrice, locale)}
               </p>
             ) : null}
           </div>
-          <span className={isCatalog ? "inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-primary" : "inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary"}>
+          <span className={isCatalog || compact ? "inline-flex shrink-0 items-center gap-1 text-xs font-bold text-primary" : "inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary"}>
             {detailsLabel}
-            <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+            <ArrowRight className={isCatalog || compact ? "size-3.5 transition group-hover:translate-x-0.5" : "size-4 transition group-hover:translate-x-0.5"} />
           </span>
         </div>
       </div>

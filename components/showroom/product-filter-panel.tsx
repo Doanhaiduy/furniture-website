@@ -21,6 +21,11 @@ type ProductFilterLabels = {
   reset: string;
   expand: string;
   collapse: string;
+  brand: string;
+  discount: string;
+  discountAll: string;
+  discountActive: string;
+  brandAll: string;
 };
 
 export type ProductFilterPanelProps = {
@@ -88,7 +93,7 @@ export function ProductFilterPanel({
 
     const query = params.toString();
     startTransition(() => {
-      router.push(query ? `${pathname}?${query}` : pathname);
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
     });
   }
 
@@ -102,17 +107,17 @@ export function ProductFilterPanel({
 
   function handleClear() {
     if (searchRef.current) searchRef.current.value = "";
-    router.push(resetHref);
+    router.push(resetHref, { scroll: false });
   }
 
   const discountOptions: PremiumSelectOption[] = [
-    { value: "all", label: "Tất cả sản phẩm" },
-    { value: "true", label: "Đang giảm giá" },
+    { value: "all", label: labels.discountAll },
+    { value: "true", label: labels.discountActive },
   ];
 
   const brandOptions: PremiumSelectOption[] = options.brand && options.brand.length > 1
     ? options.brand
-    : [{ value: "all", label: "Tất cả thương hiệu" }];
+    : [{ value: "all", label: labels.brandAll }];
 
   return (
     <div className="surface-panel mb-8 p-5">
@@ -161,26 +166,26 @@ export function ProductFilterPanel({
 
         {/* Discount / Giảm giá */}
         <label className="grid gap-2">
-          <span className="field-label-pd">Giảm giá</span>
+          <span className="field-label-pd">{labels.discount}</span>
           <PremiumSelect
             name="featured"
             value={query.featured || "all"}
             options={discountOptions}
-            placeholder="Giảm giá"
-            ariaLabel="Giảm giá"
+            placeholder={labels.discount}
+            ariaLabel={labels.discount}
             onValueChange={(v) => navigate({ featured: v })}
           />
         </label>
 
         {/* Brand / Thương hiệu */}
         <label className="grid gap-2">
-          <span className="field-label-pd">Thương hiệu</span>
+          <span className="field-label-pd">{labels.brand}</span>
           <PremiumSelect
             name="brand"
             value={query.brand || "all"}
             options={brandOptions}
-            placeholder="Thương hiệu"
-            ariaLabel="Thương hiệu"
+            placeholder={labels.brand}
+            ariaLabel={labels.brand}
             onValueChange={(v) => navigate({ brand: v })}
           />
         </label>

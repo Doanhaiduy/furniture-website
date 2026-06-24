@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 import { PublicShell } from "@/components/showroom/public-shell";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getPublicSiteSettings } from "@/lib/supabase/queries";
+import { getPublicSiteSettings, getPublicSocialLinks } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 export function generateStaticParams() {
@@ -56,6 +56,7 @@ export default async function LocaleLayout({
 
   const supabase = createPublicClient();
   const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
+  const socialLinks = await getPublicSocialLinks(supabase);
   const brandsRes = await getPublicBrands();
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 
@@ -63,7 +64,7 @@ export default async function LocaleLayout({
   const publicCategories = await getCategories(supabase, locale as "vi" | "en");
   const publicProducts = await getProducts(supabase, {
     locale: locale as "vi" | "en",
-    limit: 1000,
+    limit: 100,
   });
 
   return (
@@ -74,6 +75,7 @@ export default async function LocaleLayout({
         brands={publicBrands}
         categories={publicCategories}
         products={publicProducts}
+        socialLinks={socialLinks}
         labels={{
           common: {
             brand: common("brand"),

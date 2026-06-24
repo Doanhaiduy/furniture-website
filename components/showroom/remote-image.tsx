@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function RemoteImage({
   src,
   alt,
@@ -13,16 +15,22 @@ export function RemoteImage({
   loading?: "eager" | "lazy";
   sizes?: string;
 }) {
-  const sanitizedSrc = src?.startsWith("http://local-assets") 
+  if (!src) return null;
+  const sanitizedSrc = src.startsWith("http://local-assets") 
     ? src.replace("http://local-assets", "") 
     : src;
 
   return (
-    <img
-      src={sanitizedSrc}
-      alt={alt}
-      className={className}
-      loading={loading ?? (priority ? "eager" : "lazy")}
-    />
+    <div className={`relative overflow-hidden ${className || ""}`}>
+      <Image
+        src={sanitizedSrc}
+        alt={alt || ""}
+        fill
+        sizes={sizes || "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+        priority={priority}
+        loading={priority ? undefined : (loading ?? "lazy")}
+        style={{ objectFit: "cover" }}
+      />
+    </div>
   );
 }

@@ -269,7 +269,7 @@ export default async function BlogDetailPage({
             </div>
           </div>
 
-          <aside className="hidden lg:block lg:sticky lg:top-28 lg:self-start space-y-5 w-[320px] shrink-0">
+          <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-5 w-[320px] shrink-0">
             <div className="public-content-card p-5">
               <ArticleToc items={tocItems} title={t("toc")} />
             </div>

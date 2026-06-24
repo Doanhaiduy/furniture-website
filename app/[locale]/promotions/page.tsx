@@ -28,6 +28,43 @@ export async function generateMetadata({
   };
 }
 
+const getCampaignColors = (code: string) => {
+  switch (code) {
+    case "SUMMER-SALE-2026":
+      return {
+        accent: "bg-[#b28a5b]", // Warm bronze/gold
+        textAccent: "text-[#9a7344]",
+        bgAccent: "bg-[#b28a5b]/5",
+        borderColor: "border-[#b28a5b]/20",
+        badge: "bg-[#b28a5b] text-white",
+      };
+    case "WELLNESS-BATH-SET":
+      return {
+        accent: "bg-[#4a6b6c]", // Soft sage/teal
+        textAccent: "text-[#3f5d5e]",
+        bgAccent: "bg-[#4a6b6c]/5",
+        borderColor: "border-[#4a6b6c]/20",
+        badge: "bg-[#4a6b6c] text-white",
+      };
+    case "FINISHING-TILES-DEAL":
+      return {
+        accent: "bg-[#8c7b75]", // Earthy stone grey/warm slate
+        textAccent: "text-[#73635d]",
+        bgAccent: "bg-[#8c7b75]/5",
+        borderColor: "border-[#8c7b75]/20",
+        badge: "bg-[#8c7b75] text-white",
+      };
+    default:
+      return {
+        accent: "bg-primary",
+        textAccent: "text-primary",
+        bgAccent: "bg-primary/5",
+        borderColor: "border-primary/20",
+        badge: "bg-primary text-white",
+      };
+  }
+};
+
 export default async function PromotionsPage({
   params,
   searchParams,
@@ -125,8 +162,8 @@ export default async function PromotionsPage({
     }
   };
 
-  // Campaign Status Calculator relative to metadata date: 2026-06-19T10:08:08+07:00
-  const now = new Date("2026-06-19T10:08:08+07:00");
+  // Campaign Status Calculator relative to current system date
+  const now = new Date();
 
   const getCampaignStatus = (startStr: string | null | undefined, endStr: string | null | undefined) => {
     if (!startStr || !endStr) {
@@ -230,7 +267,7 @@ export default async function PromotionsPage({
     if (p.code === "SUMMER-SALE-2026") {
       campaignPerks = isVi
         ? [
-            "Áp dụng giảm ngay 20% trên từng sản phẩm lẻ",
+            "Áp dụng giảm ngay 20% trên từng sản phẩm",
             "Miễn phí vận chuyển & lắp đặt hoàn thiện",
             "Bảo hành chất lượng gỗ óc chó tự nhiên 5 năm"
           ]
@@ -324,7 +361,10 @@ export default async function PromotionsPage({
       <section className="relative overflow-hidden bg-[#211816] py-20 text-white lg:py-28 border-b border-outline-variant/20">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#b28a5b]/15 via-[#211816] to-[#211816]" />
         <div className="container-pd relative z-10 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+          <span 
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-sm"
+            style={{ backgroundColor: '#f59e0b', color: '#0f172a' }}
+          >
             <BadgePercent className="size-4" />
             {isVi ? "Ưu đãi giới hạn" : "Limited Offers"}
           </span>
@@ -333,7 +373,7 @@ export default async function PromotionsPage({
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/76">
             {isVi 
-              ? "Trải nghiệm không gian sống thượng lưu với các đợt ưu đãi đặc biệt áp dụng trực tiếp cho từng sản phẩm lẻ thuộc bộ sưu tập nội thất gỗ óc chó cao cấp và thiết bị vệ sinh nhập khẩu Châu Âu."
+              ? "Trải nghiệm không gian sống thượng lưu với các đợt ưu đãi đặc biệt áp dụng trực tiếp cho từng sản phẩm thuộc bộ sưu tập nội thất gỗ óc chó cao cấp và thiết bị vệ sinh nhập khẩu Châu Âu."
               : "Experience refined living with special seasonal discounts applied directly to individual purchases from our premium walnut furniture and European-standard sanitary collections."}
           </p>
           <div className="mt-10 flex justify-center gap-4">
@@ -357,9 +397,9 @@ export default async function PromotionsPage({
       {/* Promotions List Grid */}
       <section className="container-pd py-16">
         <div className="mb-16 text-center">
-          <span className="label-pd">{isVi ? "Sản phẩm theo đợt" : "Campaign packages"}</span>
+          <span className="label-pd">{isVi ? "Sản phẩm theo đợt" : "Campaign Items"}</span>
           <h2 className="type-section-title mt-2 text-primary">
-            {isVi ? "Chi Tiết Các Đợt Khuyến Mãi" : "Campaign Bundles Details"}
+            {isVi ? "Chi Tiết Sản Phẩm Ưu Đãi Theo Đợt" : "Campaign Products Details"}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-secondary text-sm">
             {isVi 
@@ -373,24 +413,31 @@ export default async function PromotionsPage({
             const isEven = idx % 2 === 0;
             const isExpired = promo.statusInfo.status === "expired";
             const minPromoPrice = promo.minPromoPrice;
+            const colors = getCampaignColors(promo.code);
             return (
               <div 
                 key={promo.id} 
                 id={`campaign-${promo.id}`}
-                className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] items-start border-b border-outline-variant/20 pb-20 last:border-b-0 last:pb-0 scroll-mt-24"
+                className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] items-start border-b border-slate-100 pb-20 last:border-b-0 last:pb-0 scroll-mt-24"
               >
                 {/* Campaign Info Card Column */}
                 <div 
-                  className={`flex flex-col justify-between p-8 md:p-10 rounded-3xl bg-gradient-to-br ${promo.color || "from-amber-500/10 to-orange-500/2"} border border-outline-variant/30 shadow-md relative overflow-hidden group ${!isEven ? 'lg:order-2' : ''} ${isExpired ? 'opacity-85 filter grayscale-[20%]' : ''}`}
+                  className={`flex flex-col justify-between p-8 md:p-10 rounded-3xl bg-white border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all duration-300 relative overflow-hidden group ${!isEven ? 'lg:order-2' : ''} ${isExpired ? 'opacity-85 filter grayscale-[20%]' : ''}`}
                 >
+                  {/* Elegant top accent line using campaign color */}
+                  <div className={`absolute top-0 left-0 right-0 h-1.5 ${colors.accent}`} />
+
                   {/* Floating Discount Badge */}
-                  <span className="absolute top-5 right-5 flex items-center justify-center rounded-full bg-red-650 px-4 py-3 text-sm font-black text-white shadow-lg tracking-tight">
+                  <span 
+                    className="absolute top-6 right-6 flex items-center justify-center rounded-full px-4 py-2.5 text-xs font-black shadow-md tracking-tight z-10"
+                    style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+                  >
                     {isVi ? `GIẢM ${promo.discount}` : `${promo.discount} OFF`}
                   </span>
 
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full ${promo.badgeColor || "bg-amber-500 text-black"} px-3 py-1 text-[10px] font-bold uppercase tracking-wider`}>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full ${colors.badge} px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider`}>
                         {promo.tag}
                       </span>
                       <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${promo.statusInfo.badgeColor}`}>
@@ -404,15 +451,15 @@ export default async function PromotionsPage({
                     </h3>
 
                     {/* Clarification banner that products can be bought separately */}
-                    <div className="bg-red-500/5 border border-red-500/15 rounded-2xl p-4 text-xs text-slate-800 space-y-1.5 shadow-sm">
-                      <div className="flex items-center gap-1.5 font-bold text-red-750 uppercase tracking-wider text-[11px]">
-                        <BadgePercent className="size-4 shrink-0 text-red-650" />
-                        {isVi ? "Ưu đãi mua lẻ từng món" : "Individual item discount"}
+                    <div className={`${colors.bgAccent} border ${colors.borderColor} rounded-2xl p-4 text-xs text-slate-800 space-y-1.5 shadow-sm`}>
+                      <div className={`flex items-center gap-1.5 font-bold ${colors.textAccent} uppercase tracking-wider text-[11px]`}>
+                        <BadgePercent className="size-4 shrink-0" />
+                        {isVi ? "Áp dụng cho từng sản phẩm" : "Applied to each product"}
                       </div>
                       <p className="leading-relaxed font-light opacity-90">
                         {isVi 
-                          ? `Giảm ngay ${promo.discount} trên từng sản phẩm lẻ bên dưới khi mua riêng biệt. Không bắt buộc phải mua trọn bộ.`
-                          : `${promo.discount} discount is applied to each individual item below when purchased separately. No package purchase required.`}
+                          ? `Giảm ngay ${promo.discount} trên từng sản phẩm bên dưới.`
+                          : `${promo.discount} discount on each product below.`}
                       </p>
                     </div>
 
@@ -421,7 +468,7 @@ export default async function PromotionsPage({
                     </p>
 
                     {/* Timeline Date Ranges & Progress Tracker */}
-                    <div className="space-y-3.5 pt-4 border-t border-outline-variant/20">
+                    <div className="space-y-3.5 pt-4 border-t border-slate-100">
                       <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-outline">
                         <span className="flex items-center gap-1">
                           <CalendarRange className="size-3.5 text-primary" />
@@ -433,12 +480,12 @@ export default async function PromotionsPage({
                       </div>
                       
                       {/* Visual Start & End Date Labels */}
-                      <div className="grid grid-cols-2 gap-2 bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-outline-variant/15 text-center">
+                      <div className="grid grid-cols-2 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100 text-center">
                         <div>
                           <span className="block text-[10px] text-outline font-semibold uppercase">{isVi ? "Bắt đầu" : "Starts"}</span>
                           <span className="text-xs font-bold text-slate-700 block mt-0.5">{promo.startFormatted || "01/06/2026"}</span>
                         </div>
-                        <div className="border-l border-outline-variant/20">
+                        <div className="border-l border-slate-200">
                           <span className="block text-[10px] text-outline font-semibold uppercase">{isVi ? "Kết thúc" : "Ends"}</span>
                           <span className="text-xs font-bold text-slate-700 block mt-0.5">{promo.endFormatted || "31/08/2026"}</span>
                         </div>
@@ -450,7 +497,7 @@ export default async function PromotionsPage({
                           <span>{isVi ? "Tiến độ đợt khuyến mãi" : "Campaign Progress"}</span>
                           <span>{promo.statusInfo.percent}%</span>
                         </div>
-                        <div className="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden border border-outline-variant/10">
+                        <div className="w-full bg-slate-150 rounded-full h-2 overflow-hidden border border-slate-200">
                           <div 
                             className={`h-full rounded-full transition-all duration-700 ${isExpired ? 'bg-slate-400' : 'bg-gradient-to-r from-primary to-amber-500'}`} 
                             style={{ width: `${promo.statusInfo.percent}%` }}
@@ -476,7 +523,7 @@ export default async function PromotionsPage({
                   </div>
 
                   {/* Copy Coupon Trigger */}
-                  <div className="mt-8 pt-4 border-t border-outline-variant/20 flex flex-wrap items-center justify-between gap-3">
+                  <div className="mt-8 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs font-semibold text-secondary">
                       {isVi ? "Mã chương trình:" : "Promo Code:"}
                     </span>
@@ -488,13 +535,13 @@ export default async function PromotionsPage({
                   </div>
 
                   {/* Price info and Inquiry trigger */}
-                  <div className="mt-8 border-t border-outline-variant/30 pt-6 flex items-center justify-between">
+                  <div className="mt-8 border-t border-slate-100 pt-6 flex items-center justify-between">
                     <div>
                       <span className="block text-[10px] font-bold uppercase tracking-wider text-outline">
                         {isVi ? "Giá ưu đãi mua lẻ từng món" : "Promo price per item"}
                       </span>
                       {minPromoPrice ? (
-                        <span className="mt-1 block text-2xl font-black text-red-650 tracking-tight">
+                        <span className="mt-1 block text-2xl font-black text-red-600 tracking-tight">
                           {isVi ? "chỉ từ " : "from "}{formatPrice(minPromoPrice, isVi)}
                         </span>
                       ) : (
@@ -524,12 +571,12 @@ export default async function PromotionsPage({
                 <div className={`${!isEven ? 'lg:order-1' : ''}`}>
                   <div className="space-y-4">
                     {/* Header informing user they can buy individually */}
-                    <div className="flex items-center justify-between border-b border-outline-variant/25 pb-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                       <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                         {isVi ? "Sản phẩm ưu đãi áp dụng lẻ" : "Eligible Promo Products"}
                       </h4>
                       <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-full px-2.5 py-0.5 animate-pulse">
-                        {isVi ? "Có thể mua lẻ từng món" : "Available individually"}
+                        {isVi ? "Áp dụng mua lẻ từng món" : "Available individually"}
                       </span>
                     </div>
 
@@ -538,19 +585,16 @@ export default async function PromotionsPage({
                         promo.products.map((product: any) => (
                           <div key={product.slug} className="relative group/card">
                             <ProductCard
-                              product={product}
-                              locale={locale}
-                              detailsLabel={common("explore")}
-                              compact={true}
+                               product={product}
+                               locale={locale}
+                               detailsLabel={common("explore")}
+                               compact={true}
                             />
                             {/* Custom promotion discount display on card */}
-                            <div className="absolute top-3 left-3 bg-red-650 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-sm z-10 tracking-wider">
-                              {isVi ? `Giảm ${promo.discount}` : `${promo.discount} OFF`}
-                            </div>
                           </div>
                         ))
                       ) : (
-                        <div className="col-span-full py-24 text-center border border-dashed border-outline-variant/35 rounded-3xl bg-slate-50/50 flex flex-col items-center justify-center gap-2">
+                        <div className="col-span-full py-24 text-center border border-dashed border-slate-200 rounded-3xl bg-slate-50/50 flex flex-col items-center justify-center gap-2">
                           <HelpCircle className="size-8 text-outline animate-pulse" />
                           <p className="text-sm text-secondary font-light">
                             {isVi ? "Không tìm thấy sản phẩm tương ứng trong đợt khuyến mãi này." : "No matching products found for this campaign."}
@@ -570,7 +614,10 @@ export default async function PromotionsPage({
       <section className="bg-[#211816] py-16 text-white border-y border-outline-variant/15">
         <div className="container-pd grid gap-10 md:grid-cols-2 lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded bg-white/10 px-3 py-1 text-xs font-semibold tracking-wider text-primary">
+            <span 
+              className="inline-flex items-center gap-2 rounded px-3 py-1 text-xs font-bold tracking-wider shadow-sm"
+              style={{ backgroundColor: '#f59e0b', color: '#0f172a' }}
+            >
               <Sparkles className="size-3.5" />
               {isVi ? "Đặc quyền Phương Đông" : "Exclusive privileges"}
             </span>

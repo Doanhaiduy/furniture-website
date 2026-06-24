@@ -35,6 +35,8 @@ export async function getProducts(
     limit?: number;
     offset?: number;
     brandId?: string;
+    brandSlug?: string;
+    hasDiscount?: boolean;
   }
 ) {
   const locale = params.locale || "vi";
@@ -42,6 +44,18 @@ export async function getProducts(
 
   if (!useMock) {
     try {
+      let resolvedBrandSlug = params.brandSlug || null;
+      if (params.brandId && params.brandId !== "all" && !resolvedBrandSlug) {
+        const { data: brandData } = await supabase
+          .from("brands")
+          .select("slug")
+          .eq("id", params.brandId)
+          .maybeSingle();
+        if (brandData?.slug) {
+          resolvedBrandSlug = brandData.slug;
+        }
+      }
+
       const { data, error } = await supabase.rpc("public_products", {
         p_locale: locale,
         p_category_slug: params.categorySlug || null,
@@ -53,20 +67,28 @@ export async function getProducts(
         p_featured: params.featured !== undefined ? params.featured : null,
         p_limit: params.limit || 24,
         p_offset: params.offset || 0,
+        p_brand_slug: resolvedBrandSlug,
+        p_has_discount: params.hasDiscount !== undefined ? params.hasDiscount : null,
       });
 
       if (!error && data && data.length > 0) {
         let results = data;
-        if (params.brandId && params.brandId !== "all") {
-          results = results.filter((p: any) => p.brand_id === params.brandId || p.brandId === params.brandId);
+        if (resolvedBrandSlug) {
+          results = results.filter((p: any) => p.brand_slug === resolvedBrandSlug || p.brandSlug === resolvedBrandSlug);
         }
         return results;
       }
       if (error) {
         console.error("[ERROR getProducts RPC]", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
       }
     } catch (e) {
       console.error("[ERROR getProducts Exception]", e);
+      if (process.env.NODE_ENV === "production") {
+        throw e;
+      }
     }
   }
 
@@ -169,9 +191,15 @@ export async function getBlogPosts(
       }
       if (error) {
         console.warn("Error fetching blog posts via RPC, falling back to mock:", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
       }
     } catch (e) {
       console.warn("Exception fetching blog posts, falling back to mock:", e);
+      if (process.env.NODE_ENV === "production") {
+        throw e;
+      }
     }
   }
 
@@ -233,9 +261,15 @@ export async function getShowrooms(
       }
       if (error) {
         console.warn("Error fetching showrooms via RPC, falling back to mock:", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
       }
     } catch (e) {
       console.warn("Exception fetching showrooms, falling back to mock:", e);
+      if (process.env.NODE_ENV === "production") {
+        throw e;
+      }
     }
   }
 
@@ -310,8 +344,17 @@ export async function getCategories(
           };
         });
       }
+      if (error) {
+        console.warn("Error fetching categories from DB, falling back to mock:", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
+      }
     } catch (e) {
       console.warn("Exception fetching categories, falling back to mock:", e);
+      if (process.env.NODE_ENV === "production") {
+        throw e;
+      }
     }
   }
 
@@ -384,8 +427,17 @@ export async function getContentPage(
           seoDescription: translation?.seo_description || "",
         };
       }
+      if (error) {
+        console.warn("Error fetching content page, falling back to mock:", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
+      }
     } catch (e) {
       console.warn("Exception fetching content page, falling back to mock:", e);
+      if (process.env.NODE_ENV === "production") {
+        throw e;
+      }
     }
   }
 
@@ -433,6 +485,30 @@ export async function getProductBySlug(
     if (product || rows.length < publicProductLookupPageSize) break;
 
     offset += publicProductLookupPageSize;
+  }
+
+  if (!product) {
+    const { data: transData } = await supabase
+      .from("product_translations")
+      .select("product_id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (transData?.product_id) {
+      offset = 0;
+      while (offset < maxPublicProductLookupRows) {
+        const rows = await getProducts(supabase, {
+          locale,
+          limit: publicProductLookupPageSize,
+          offset,
+        });
+
+        product = rows.find((row: any) => row.id === transData.product_id) || null;
+        if (product || rows.length < publicProductLookupPageSize) break;
+
+        offset += publicProductLookupPageSize;
+      }
+    }
   }
 
   if (!product) return null;
@@ -497,6 +573,30 @@ export async function getBlogBySlug(
     if (post || rows.length < publicBlogLookupPageSize) break;
 
     offset += publicBlogLookupPageSize;
+  }
+
+  if (!post) {
+    const { data: transData } = await supabase
+      .from("blog_post_translations")
+      .select("post_id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (transData?.post_id) {
+      offset = 0;
+      while (offset < maxPublicBlogLookupRows) {
+        const rows = await getBlogPosts(supabase, {
+          locale,
+          limit: publicBlogLookupPageSize,
+          offset,
+        });
+
+        post = rows.find((row: any) => row.id === transData.post_id) || null;
+        if (post || rows.length < publicBlogLookupPageSize) break;
+
+        offset += publicBlogLookupPageSize;
+      }
+    }
   }
 
   if (!post) return null;
@@ -738,7 +838,7 @@ export async function getPromotions(
       discount_percentage: 18.00,
       startAt: "2026-06-01T00:00:00+07:00",
       endAt: "2026-09-30T23:59:59+07:00",
-      title: locale === "vi" ? "Trọn Bộ Thiết Bị Phòng Tắm Wellness" : "Wellness Master Bathroom Suite",
+      title: locale === "vi" ? "Thiết Bị Phòng Tắm Wellness Luxury" : "Wellness Luxury Bathroom Suite",
       description: locale === "vi" ? "Không gian spa thư giãn nhập khẩu chính hãng tiêu chuẩn Châu Âu" : "Relaxing spa suite with European standards",
       comboPrice: 34500000,
       originalPrice: 42000000,
@@ -765,7 +865,7 @@ export async function getPromotions(
       discount_percentage: 20.00,
       startAt: "2026-06-01T00:00:00+07:00",
       endAt: "2026-12-31T23:59:59+07:00",
-      title: locale === "vi" ? "Gói Gạch Ốp Lát Toàn Diện Grand Surface" : "Grand Surface Porcelain Tile Package",
+      title: locale === "vi" ? "Gạch Ốp Lát Luxury Calacatta" : "Luxury Calacatta Tile Deal",
       description: locale === "vi" ? "Vật liệu cao cấp hoàn thiện bề mặt sang trọng, bền vững" : "Premium materials for luxury and durable surfaces",
       comboPrice: 1200000,
       originalPrice: 1500000,
@@ -855,6 +955,9 @@ export async function getPublicSiteSettings(
     if (error || !data) {
       if (error) {
         console.warn("Error fetching site settings from DB, using defaults:", error);
+        if (process.env.NODE_ENV === "production") {
+          throw error;
+        }
       }
       return defaults;
     }
@@ -872,7 +975,62 @@ export async function getPublicSiteSettings(
     };
   } catch (e) {
     console.warn("Exception fetching site settings, using defaults:", e);
+    if (process.env.NODE_ENV === "production") {
+      throw e;
+    }
     return defaults;
   }
 }
+
+export interface PublicSocialLink {
+  platform: string;
+  label: string;
+  url: string;
+  isEnabled: boolean;
+}
+
+/**
+ * Fetches enabled social links from DB, with fallback to defaults.
+ */
+export async function getPublicSocialLinks(
+  supabase: SupabaseClient
+): Promise<PublicSocialLink[]> {
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+
+  const defaults: PublicSocialLink[] = [
+    { platform: "facebook", label: "Facebook", url: "https://facebook.com", isEnabled: true },
+    { platform: "instagram", label: "Instagram", url: "https://instagram.com", isEnabled: true },
+    { platform: "zalo", label: "Zalo", url: "https://zalo.me", isEnabled: true },
+  ];
+
+  if (useMock) {
+    return defaults;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("social_links")
+      .select("platform, label, url, is_enabled, sort_order")
+      .eq("is_enabled", true)
+      .order("sort_order");
+
+    if (error || !data) {
+      if (error) {
+        console.warn("Error fetching social links from DB, using defaults:", error);
+      }
+      return defaults;
+    }
+
+    return data.map((d: any) => ({
+      platform: d.platform,
+      label: d.label || d.platform,
+      url: d.url,
+      isEnabled: d.is_enabled,
+    }));
+  } catch (e) {
+    console.warn("Exception fetching social links, using defaults:", e);
+    return defaults;
+  }
+}
+
 

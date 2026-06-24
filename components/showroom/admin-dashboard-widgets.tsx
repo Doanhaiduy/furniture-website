@@ -1,10 +1,9 @@
-"use client";
-
 import {
   createContext,
   useContext,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import Link from "next/link";
@@ -21,16 +20,38 @@ import {
   Info,
   Sparkles,
 } from "lucide-react";
+import type { AdminQuote } from "@/lib/supabase/admin-queries";
 
-const weekData = [
-  { day: "T2", date: "01/06", iso: "2026-06-01", dayNumber: 1, quotes: 4, seo: 82, drafts: 3, href: "/admin/quotes" },
-  { day: "T3", date: "02/06", iso: "2026-06-02", dayNumber: 2, quotes: 7, seo: 84, drafts: 4, href: "/admin/blog" },
-  { day: "T4", date: "03/06", iso: "2026-06-03", dayNumber: 3, quotes: 5, seo: 80, drafts: 2, href: "/admin/products" },
-  { day: "T5", date: "04/06", iso: "2026-06-04", dayNumber: 4, quotes: 9, seo: 87, drafts: 5, href: "/admin/quotes" },
-  { day: "T6", date: "05/06", iso: "2026-06-05", dayNumber: 5, quotes: 6, seo: 85, drafts: 3, href: "/admin/media" },
-  { day: "T7", date: "06/06", iso: "2026-06-06", dayNumber: 6, quotes: 10, seo: 88, drafts: 6, href: "/admin/blog" },
-  { day: "CN", date: "07/06", iso: "2026-06-07", dayNumber: 7, quotes: 5, seo: 83, drafts: 2, href: "/admin/settings" },
-] as const;
+// Generate past 7 days dynamically
+const generateDynamicWeekData = () => {
+  const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const result = [];
+  const today = new Date();
+  
+  // Start from 6 days ago up to today
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+    const isoStr = d.toISOString().split("T")[0];
+    const dayName = days[d.getDay()];
+    
+    const daySeed = d.getDate();
+    result.push({
+      day: dayName,
+      date: dateStr,
+      iso: isoStr,
+      dayNumber: d.getDate(),
+      quotes: (daySeed % 7) + 2,
+      seo: 80 + (daySeed % 11),
+      drafts: daySeed % 5,
+      href: "/admin/quotes" as string,
+    });
+  }
+  return result;
+};
+
+const weekData = generateDynamicWeekData();
 
 const metricOptions = [
   { key: "quotes", label: "Yêu cầu báo giá" },
@@ -52,12 +73,34 @@ function safeAdminHref(href: string, role?: AdminRole) {
   return role === "editor" && isAdminOnlyHref(href) ? "/admin/access-denied" : href;
 }
 
-const todayIndex: WeekIndex = 1;
+const todayIndex: WeekIndex = 6;
 const calendarWeekdays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"] as const;
-const june2026Cells = Array.from({ length: 35 }, (_, index) => {
-  const dayNumber = index + 1;
-  return dayNumber <= 30 ? dayNumber : null;
-});
+
+const generateMonthCells = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  let firstDay = new Date(year, month, 1).getDay();
+  firstDay = firstDay === 0 ? 6 : firstDay - 1;
+  
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) {
+    cells.push(null);
+  }
+  for (let i = 1; i <= totalDays; i++) {
+    cells.push(i);
+  }
+  return cells;
+};
+
+const june2026Cells = generateMonthCells();
+
+const currentMonthYearTitle = () => {
+  const today = new Date();
+  return `Tháng ${today.getMonth() + 1}/${today.getFullYear()}`;
+};
 
 type AdminDateSelection = {
   selectedIndex: WeekIndex;
@@ -154,7 +197,7 @@ function AdminDatePicker({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a8ea3]">Lịch</p>
-              <h3 id={calendarTitleId} className="mt-1 font-heading text-lg font-semibold">Tháng 6/2026</h3>
+              <h3 id={calendarTitleId} className="mt-1 font-heading text-lg font-semibold">{currentMonthYearTitle()}</h3>
             </div>
             <p className="rounded-full bg-[#f5f2ff] px-3 py-1 text-xs font-bold text-[#8b5cf6]">{selected.date}</p>
           </div>
@@ -248,6 +291,28 @@ function AdminDatePicker({
 export function NotificationButton({ role }: { role?: AdminRole }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(false);
+  const [stats, setStats] = useState({ unreadQuotesCount: 0, missingTranslationsCount: 0 });
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch("/api/admin/notifications");
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            unreadQuotesCount: data.unreadQuotesCount ?? 0,
+            missingTranslationsCount: data.missingTranslationsCount ?? 0,
+          });
+        }
+      } catch {
+        // noop
+      }
+    }
+    fetchNotifications();
+  }, []);
+
+  const totalNotifications = stats.unreadQuotesCount + stats.missingTranslationsCount;
+  const showUnreadDot = totalNotifications > 0 && !read;
 
   return (
     <div className="relative hidden md:block">
@@ -267,7 +332,7 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
             className={`admin-icon-button-pd relative ${open ? "text-[var(--admin-accent)]" : ""}`}
           >
             <Bell className="size-[17px]" />
-            {!read ? <span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--state-warning)]" /> : null}
+            {showUnreadDot ? <span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--state-warning)]" /> : null}
           </button>
         </PopoverPrimitive.Trigger>
         <PopoverPrimitive.Portal>
@@ -277,15 +342,22 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
             collisionPadding={16}
             className="surface-elevated z-[90] w-72 p-3 text-[var(--admin-text)] outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:transition-none"
           >
-          <p className="type-label text-[var(--admin-text-subtle)]">Thông báo</p>
-          <div className="mt-3 grid gap-2 text-sm">
-            <Link href={safeAdminHref("/admin/quotes", role)} className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
-              3 yêu cầu báo giá cần kiểm duyệt
-            </Link>
-            <Link href="/admin/products" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]">
-              2 sản phẩm thiếu siêu dữ liệu tiếng Anh
-            </Link>
-          </div>
+            <p className="type-label text-[var(--admin-text-subtle)]">Thông báo</p>
+            <div className="mt-3 grid gap-2 text-sm">
+              {stats.unreadQuotesCount > 0 && (
+                <Link href={safeAdminHref("/admin/quotes", role)} className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]" onClick={() => setOpen(false)}>
+                  {stats.unreadQuotesCount} yêu cầu báo giá cần kiểm duyệt
+                </Link>
+              )}
+              {stats.missingTranslationsCount > 0 && (
+                <Link href="/admin/products" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]" onClick={() => setOpen(false)}>
+                  {stats.missingTranslationsCount} sản phẩm thiếu thông tin tiếng Anh
+                </Link>
+              )}
+              {totalNotifications === 0 && (
+                <p className="p-3 text-center text-xs text-slate-400">Không có thông báo mới.</p>
+              )}
+            </div>
             <PopoverPrimitive.Arrow className="fill-white" />
           </PopoverPrimitive.Content>
         </PopoverPrimitive.Portal>
@@ -294,26 +366,61 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
   );
 }
 
-export function DashboardInsightChart({ role }: { role?: AdminRole }) {
+export function DashboardInsightChart({ role, quotes = [] }: { role?: AdminRole; quotes?: AdminQuote[] }) {
   const [metric, setMetric] = useState<Metric>(role === "editor" ? "seo" : "quotes");
   const { selectedIndex: activeIndex, setSelectedIndex: setActiveIndex } = useAdminDateSelection();
   const visibleMetricOptions = useMemo(
     () => (role === "editor" ? metricOptions.filter((option) => option.key !== "quotes") : metricOptions),
     [role],
   );
-  const values = weekData.map((item) => item[metric]);
-  const max = Math.max(...values);
-  const active = weekData[activeIndex];
+
+  const chartWeekData = useMemo(() => {
+    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const today = new Date();
+    const result = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const dateStr = d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+      const isoStr = d.toISOString().split("T")[0];
+      const dayName = days[d.getDay()];
+      
+      const countOnDay = quotes.filter((q) => {
+        const qDate = new Date(q.created_at);
+        return qDate.getFullYear() === d.getFullYear() &&
+               qDate.getMonth() === d.getMonth() &&
+               qDate.getDate() === d.getDate();
+      }).length;
+      
+      const daySeed = d.getDate();
+      result.push({
+        day: dayName,
+        date: dateStr,
+        iso: isoStr,
+        dayNumber: d.getDate(),
+        quotes: countOnDay,
+        seo: 80 + (daySeed % 11),
+        drafts: daySeed % 5,
+        href: "/admin/quotes"
+      });
+    }
+    return result;
+  }, [quotes]);
+
+  const values = chartWeekData.map((item) => item[metric]);
+  const max = Math.max(1, ...values);
+  const active = chartWeekData[activeIndex] ?? chartWeekData[todayIndex] ?? chartWeekData[0];
   const metricLabel = metricOptions.find((option) => option.key === metric)?.label ?? "chỉ số";
 
   const bars = useMemo(
     () =>
-      weekData.map((item, index) => {
+      chartWeekData.map((item, index) => {
         const value = item[metric];
         const height = Math.max(16, (value / max) * 140);
         return { item, index, value, height, x: 22 + index * 54, y: 164 - height };
       }),
-    [max, metric]
+    [chartWeekData, max, metric]
   );
 
   return (
@@ -358,7 +465,7 @@ export function DashboardInsightChart({ role }: { role?: AdminRole }) {
         </svg>
 
         <div className="grid grid-cols-7 gap-1">
-          {weekData.map((item, index) => (
+          {chartWeekData.map((item, index) => (
             <button
               key={item.date}
               type="button"

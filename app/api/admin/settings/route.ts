@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/auth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { encryptSecret, generateMaskedHint } from "@/lib/security/encryption";
 import { env } from "@/lib/env/schema";
+import { settingsSchema } from "@/lib/validations/admin";
 
 // Helper to resolve media URLs to DB IDs
 async function resolveMediaId(supabase: any, url: string | null): Promise<string | null> {
@@ -24,7 +25,7 @@ async function resolveMediaId(supabase: any, url: string | null): Promise<string
       resource_type: "image",
       mime_type: "image/png",
       format: "png",
-      size_bytes: 0,
+      size_bytes: 1,
     })
     .select("id")
     .single();
@@ -116,7 +117,6 @@ export async function GET() {
     seoDescEn: enTrans.seo_default_description || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.",
     resendKey: secretsMap.get("resend_api_key") || "",
     geminiKey: secretsMap.get("gemini_api_key") || "",
-    openaiKey: secretsMap.get("gemini_api_key") || "",
     cloudinaryPreset: secretsMap.get("cloudinary_preset") || "phuongdong_unsigned_preset",
     slaHours: "24",
 
@@ -182,7 +182,15 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const rawBody = await request.json();
+  const validationResult = settingsSchema.safeParse(rawBody);
+  if (!validationResult.success) {
+    return NextResponse.json(
+      { error: "Dữ liệu cấu hình không hợp lệ", details: validationResult.error.format() },
+      { status: 400 }
+    );
+  }
+  const body = validationResult.data;
   const supabase = createAdminClient();
 
   // Validate AI_SECRET_ENCRYPTION_KEY length
@@ -266,7 +274,7 @@ export async function PUT(request: Request) {
   // 3. Upsert integration secrets
   const secretsToSave = [
     { key: "resend_api_key", value: body.resendKey },
-    { key: "gemini_api_key", value: body.geminiKey || body.openaiKey },
+    { key: "gemini_api_key", value: body.geminiKey },
     { key: "cloudinary_preset", value: body.cloudinaryPreset },
   ];
 

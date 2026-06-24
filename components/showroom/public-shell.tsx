@@ -22,9 +22,7 @@ import type { Locale } from "@/i18n/routing";
 import type { PublicSiteSettings } from "@/lib/supabase/queries";
 import {
   brandCatalog,
-  localized,
   productGroups,
-  typeCatalogSections,
   withLocale,
 } from "@/lib/showroom-data";
 import { products as fixtureProducts } from "@/tests/fixtures/showroom-data-fixture";
@@ -80,15 +78,6 @@ type BrandSection = {
   groupTitle: string;
   items: CatalogLink[];
 };
-type TypeSection = {
-  key: string;
-  href: string;
-  image: string;
-  title: string;
-  summary: string;
-  columns: CatalogColumn[];
-  products: CatalogLink[];
-};
 
 export function PublicShell({
   children,
@@ -98,6 +87,7 @@ export function PublicShell({
   brands = [],
   categories = [],
   products = [],
+  socialLinks = [],
 }: {
   children: React.ReactNode;
   locale: Locale;
@@ -106,6 +96,7 @@ export function PublicShell({
   brands?: any[];
   categories?: any[];
   products?: any[];
+  socialLinks?: any[];
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -129,6 +120,17 @@ export function PublicShell({
     const interval = setInterval(hideDevBadge, 500);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const getLocalizedValue = (val: any, currentLocale: Locale): string => {
     if (!val) return "";
@@ -206,14 +208,7 @@ export function PublicShell({
     }, 150);
   };
 
-  const productLinkFromSlug = (slug: string): CatalogLink | null => {
-    const product = finalProducts.find((item) => item.slug === slug && item.status !== "archived");
-    if (!product) return null;
-    return {
-      href: withLocale(locale, `/products/${product.slug}`),
-      label: getLocalizedValue(product.name, locale),
-    };
-  };
+
 
   const finalBrandCatalog = brands && brands.length > 0
     ? brands.map((b: any) => {
@@ -585,7 +580,7 @@ export function PublicShell({
                   </div>
                 </div>
               ) : (
-                <div className="container-pd grid min-h-[292px] gap-6 py-5 lg:grid-cols-[0.78fr_1.22fr]" onMouseEnter={cancelCatalogSwitch}>
+                <div className="container-pd grid min-h-[292px] gap-6 py-5 lg:grid-cols-[260px_1fr]" onMouseEnter={cancelCatalogSwitch}>
                   <div className="public-image-panel relative min-h-[250px] bg-primary text-white">
                     <RemoteImage src={activeType.image} alt={activeType.title} className="absolute inset-0 h-full w-full object-cover opacity-78" sizes="36vw" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/38 to-transparent" />
@@ -611,7 +606,7 @@ export function PublicShell({
                         </p>
                       </div>
                     ) : (
-                      <div className={`grid gap-5 ${activeType.products.length > 0 ? "xl:grid-cols-[1.3fr_0.7fr]" : "xl:grid-cols-1"}`}>
+                      <div className={`grid gap-5 ${activeType.products.length > 0 ? "xl:grid-cols-[1.45fr_0.55fr]" : "xl:grid-cols-1"}`}>
                         {activeType.columns.length > 0 ? (
                           <div className={`grid gap-4 ${activeType.columns.length > 1 ? "md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"}`}>
                             {activeType.columns.map((column) => (
@@ -622,10 +617,10 @@ export function PublicShell({
                                     <Link
                                       key={`${activeType.key}-${item.href}-${item.label}`}
                                       href={item.href}
-                                      className="nav-link-pd surface-card group flex min-h-11 items-center gap-3 px-4 py-3 text-on-surface hover:text-primary transition-colors"
+                                      className="nav-link-pd surface-card group flex min-h-11 items-center gap-1.5 px-3 py-2 text-[13px] text-on-surface hover:text-primary transition-colors leading-snug"
                                       onClick={closeCatalog}
                                     >
-                                      <ChevronRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
+                                      <ChevronRight className="size-3.5 text-primary transition group-hover:translate-x-0.5" />
                                       {item.label}
                                     </Link>
                                   ))}
@@ -642,7 +637,7 @@ export function PublicShell({
                                 <Link
                                   key={`${activeType.key}-${item.href}`}
                                   href={item.href}
-                                  className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-primary hover:text-primary-container transition-colors"
+                                  className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-3 py-2 text-primary hover:text-primary-container transition-colors text-[13px]"
                                   onClick={closeCatalog}
                                 >
                                   <span className="line-clamp-2 pr-2 font-medium">{item.label}</span>
@@ -662,7 +657,7 @@ export function PublicShell({
         </div>
 
         {open ? (
-          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden">
+          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden absolute top-full left-0 right-0 max-h-[calc(100vh-5rem)] overflow-y-auto">
             <nav className="container-pd grid gap-2 py-4" aria-label="Mobile">
               {navItems.map((item) => (
                 <Link
@@ -704,36 +699,6 @@ export function PublicShell({
                   ))}
                 </div>
               </div>
-              <div className="mt-4 border-t border-outline-variant/30 pt-6 px-3">
-                <p className="label-pd mb-3 flex items-center gap-2">
-                  <Globe2 className="size-4" />
-                  {locale === "vi" ? "Ngôn ngữ" : "Language"}
-                </p>
-                <div className="grid grid-cols-2 gap-1.5 bg-surface-container-low p-1 rounded-xl border border-outline-variant/20">
-                  <Link
-                    href={localeHref("vi")}
-                    className={`flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-bold uppercase transition-all duration-200 ${
-                      locale === "vi"
-                        ? "bg-primary text-white shadow-sm scale-[1.02]"
-                        : "text-secondary hover:text-primary hover:bg-surface-container"
-                    }`}
-                    onClick={() => setOpen(false)}
-                  >
-                    Tiếng Việt
-                  </Link>
-                  <Link
-                    href={localeHref("en")}
-                    className={`flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-bold uppercase transition-all duration-200 ${
-                      locale === "en"
-                        ? "bg-primary text-white shadow-sm scale-[1.02]"
-                        : "text-secondary hover:text-primary hover:bg-surface-container"
-                    }`}
-                    onClick={() => setOpen(false)}
-                  >
-                    English
-                  </Link>
-                </div>
-              </div>
               {/* Mobile contact CTA removed to move to FAB */}
             </nav>
           </div>
@@ -759,15 +724,38 @@ export function PublicShell({
                 : "Premium furniture, sanitary ware and tiles for refined living spaces."}
             </p>
             <div className="mt-5 flex gap-3">
-              <a className="public-social-link" href="https://facebook.com" aria-label="Facebook">
-                <Globe2 className="size-4" />
-              </a>
-              <a className="public-social-link" href="https://instagram.com" aria-label="Instagram">
-                <Share2 className="size-4" />
-              </a>
-              <a className="public-social-link" href="https://zalo.me" aria-label="Zalo">
-                <Share2 className="size-4" />
-              </a>
+              {socialLinks && socialLinks.length > 0 ? (
+                socialLinks.map((link, idx) => {
+                  const platformLower = (link.platform || "").toLowerCase();
+                  let Icon = Share2;
+                  if (platformLower === "facebook") Icon = Globe2;
+                  else if (platformLower === "zalo") Icon = MessageCircle;
+                  return (
+                    <a
+                      key={idx}
+                      className="public-social-link"
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={link.label || link.platform}
+                    >
+                      <Icon className="size-4" />
+                    </a>
+                  );
+                })
+              ) : (
+                <>
+                  <a className="public-social-link" href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <Globe2 className="size-4" />
+                  </a>
+                  <a className="public-social-link" href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <Share2 className="size-4" />
+                  </a>
+                  <a className="public-social-link" href="https://zalo.me" target="_blank" rel="noopener noreferrer" aria-label="Zalo">
+                    <Share2 className="size-4" />
+                  </a>
+                </>
+              )}
             </div>
           </div>
           <FooterColumn
@@ -962,11 +950,11 @@ function BrandMegaContent({
               <Link
                 key={`${section.key}-${item.href}-${item.label}`}
                 href={item.href}
-                className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-4 py-3 text-on-surface hover:text-primary transition-colors"
+                className="nav-link-pd surface-card group flex min-h-11 items-center justify-between px-3 py-2 text-[13px] text-on-surface hover:text-primary transition-colors leading-snug"
                 onClick={closeCatalog}
               >
                 <span className="line-clamp-2 pr-2 font-medium">{item.label}</span>
-                <ChevronRight className="size-4 text-primary shrink-0 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="size-3.5 text-primary shrink-0 transition group-hover:translate-x-0.5" />
               </Link>
             ))}
           </div>

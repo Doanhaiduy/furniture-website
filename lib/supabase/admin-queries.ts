@@ -21,7 +21,7 @@ function isUuid(value: string) {
 async function getOrCreateMediaAssetId(
   supabase: any,
   urlOrUuid: string | null | undefined,
-  userId: string
+  _userId: string
 ): Promise<string | null> {
   if (!urlOrUuid) return null;
   const value = urlOrUuid.trim();
@@ -37,24 +37,8 @@ async function getOrCreateMediaAssetId(
 
   if (existing?.id) return existing.id;
 
-  const { data: inserted, error } = await supabase
-    .from("media_assets")
-    .insert({
-      storage_provider: "cloudinary",
-      public_url: value,
-      size_bytes: 0,
-      mime_type: "image/png",
-      format: "png",
-      uploaded_by: userId,
-    })
-    .select("id")
-    .single();
-
-  if (error || !inserted) {
-    console.error("Failed to create media asset:", error);
-    return null;
-  }
-  return inserted.id;
+  console.warn("Media asset not found in DB for URL:", value);
+  return null;
 }
 
 interface RawProductCategory {
@@ -339,6 +323,12 @@ export async function getAdminProducts(params: {
           currency,
           featured,
           published_at,
+          width,
+          depth,
+          height,
+          dimension_unit,
+          brand_id,
+          brand_series,
           product_translations (
             slug,
             name,
@@ -352,7 +342,20 @@ export async function getAdminProducts(params: {
             id,
             slug,
             name,
+            group_key,
             product_category_translations (name)
+          ),
+          product_media (
+            media_id,
+            is_primary,
+            sort_order,
+            media:media_assets (
+              id,
+              public_url,
+              format,
+              size_bytes,
+              mime_type
+            )
           )
         `)
         .order("sort_order", { ascending: true })
@@ -369,8 +372,24 @@ export async function getAdminProducts(params: {
           const translation = Array.isArray(row.product_translations)
             ? row.product_translations[0]
             : row.product_translations;
-          const category = row.product_categories as unknown as RawProductCategory;
+          const category = row.product_categories as any;
           const categoryTranslation = category?.product_category_translations?.[0];
+
+          // Parse product_media associations
+          const rawMedia = (row as any).product_media || [];
+          const mediaList = Array.isArray(rawMedia)
+            ? rawMedia.map((m: any) => ({
+                id: m.media?.id || m.media_id,
+                url: m.media?.public_url || "",
+                is_primary: m.is_primary,
+                sort_order: m.sort_order
+              })).filter((m: any) => m.url)
+            : [];
+
+          const primaryMediaItem = mediaList.find((m: any) => m.is_primary) || mediaList[0] || null;
+          const primaryMedia = primaryMediaItem ? { url: primaryMediaItem.url, id: primaryMediaItem.id } : null;
+          const media = mediaList.map((m: any) => ({ url: m.url, id: m.id }));
+
           return {
             id: row.id,
             reference_code: row.reference_code ?? null,
@@ -384,19 +403,20 @@ export async function getAdminProducts(params: {
             category_id: category?.id ?? "",
             category_slug: category?.slug ?? "",
             category_name: categoryTranslation?.name ?? category?.name ?? "",
-            group_key: null,
+            group_key: category?.group_key || null,
             price_min: row.price_min,
             price_max: row.price_max,
             currency: row.currency,
-            width: null,
-            depth: null,
-            height: null,
-            dimension_unit: "mm",
-            brand_series: null,
+            width: row.width,
+            depth: row.depth,
+            height: row.height,
+            dimension_unit: row.dimension_unit || "mm",
+            brand_id: row.brand_id || null,
+            brand_series: row.brand_series || null,
             featured: row.featured,
             published_at: row.published_at ?? null,
-            primary_media: null,
-            media: [],
+            primary_media: primaryMedia,
+            media: media,
             attributes: [],
           };
         });
@@ -466,11 +486,10 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
         .from("product_categories")
         .select(`
           id,
-          slug,
           status,
           sort_order,
           parent_id,
-          product_category_translations (name, description)
+          product_category_translations (slug, name, description)
         `)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
@@ -487,10 +506,11 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
           const translation = Array.isArray(row.product_category_translations)
             ? row.product_category_translations[0]
             : row.product_category_translations;
+          const slugVal = translation?.slug ?? "";
           return {
             id: row.id as string,
-            slug: row.slug as string,
-            name: translation?.name ?? row.slug,
+            slug: slugVal,
+            name: translation?.name ?? slugVal,
             description: translation?.description ?? null,
             status: row.status as string,
             sort_order: row.sort_order,
@@ -536,6 +556,10 @@ export async function getAdminBlogPosts(params: { limit?: number; offset?: numbe
           featured,
           published_at,
           created_by,
+          cover_media:media_assets!cover_media_id (
+            id,
+            public_url
+          ),
           blog_post_translations (
             slug,
             title,
@@ -577,7 +601,9 @@ export async function getAdminBlogPosts(params: { limit?: number; offset?: numbe
             status: row.status as string,
             featured: row.featured,
             published_at: row.published_at ?? null,
-            cover_media: null,
+            cover_media: row.cover_media
+              ? { url: Array.isArray(row.cover_media) ? (row.cover_media[0] as any)?.public_url : (row.cover_media as any).public_url }
+              : null,
           };
         });
       }
@@ -726,8 +752,8 @@ let mockPromotions: AdminPromotion[] = [
     status: "published",
     start_at: null,
     end_at: null,
-    title_vi: "Trọn Bộ Thiết Bị Phòng Tắm Wellness",
-    title_en: "Wellness Master Bathroom Suite",
+    title_vi: "Thiết Bị Phòng Tắm Wellness Luxury",
+    title_en: "Wellness Luxury Bathroom Suite",
     description_vi: "Không gian spa thư giãn nhập khẩu chính hãng tiêu chuẩn Châu Âu",
     description_en: "Relaxing spa suite with European standards",
     created_at: new Date().toISOString(),
@@ -740,8 +766,8 @@ let mockPromotions: AdminPromotion[] = [
     status: "published",
     start_at: null,
     end_at: null,
-    title_vi: "Gói Gạch Ốp Lát Toàn Diện Grand Surface",
-    title_en: "Grand Surface Porcelain Tile Package",
+    title_vi: "Gạch Ốp Lát Luxury Calacatta",
+    title_en: "Luxury Calacatta Tile Deal",
     description_vi: "Vật liệu cao cấp hoàn thiện bề mặt sang trọng, bền vững",
     description_en: "Premium materials for luxury and durable surfaces",
     created_at: new Date().toISOString(),
@@ -1306,7 +1332,7 @@ export async function updateQuoteStatus(
 
   try {
     await requireEditorOrAdmin();
-    const supabase = await createAdminClient();
+    const supabase = await createClient();
     const { data, error } = await supabase.rpc("update_quote_status", {
       p_quote_id: quoteId,
       p_new_status: newStatus,

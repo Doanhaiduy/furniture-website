@@ -34,7 +34,7 @@ export function PromotionCouponButton({
       <span className="font-mono">{code}</span>
       <span className="h-4 w-px bg-primary/20" />
       {copied ? (
-        <span className="flex items-center gap-1 text-emerald-650 font-sans normal-case">
+        <span className="flex items-center gap-1 text-emerald-600 font-sans normal-case">
           <Check className="size-3.5" />
           {copiedLabel}
         </span>
@@ -84,7 +84,7 @@ export function PromotionQuickJump({
   };
 
   return (
-    <div className="sticky top-20 z-40 w-full border-y border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-md py-3 shadow-sm select-none">
+    <div className="w-full border-y border-outline-variant/20 bg-surface-container-lowest py-3 shadow-sm select-none">
       <div className="container-pd flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex items-center gap-2 shrink-0">
           <span className="relative flex h-2 w-2">

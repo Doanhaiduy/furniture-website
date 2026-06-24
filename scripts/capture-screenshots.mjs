@@ -276,7 +276,7 @@ async function startAppServer(project) {
   );
   const child = spawn(command.command, command.args, {
     cwd: rootDir,
-    env: { ...process.env, PORT: defaultPort },
+    env: { ...process.env, PORT: defaultPort, NEXT_PUBLIC_USE_MOCK_DATA: "true" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   const logs = captureProcessLogs(child);
@@ -514,6 +514,32 @@ async function discoverAppRoutes(context) {
     });
   }
 
+  // Explicitly add all CRUD creation and editing pages to ensure they are captured
+  const crudRoutes = [
+    "/admin/products?new=1",
+    "/admin/categories?new=1",
+    "/admin/brands?new=1",
+    "/admin/showrooms?new=1",
+    "/admin/promotions?new=1",
+    "/admin/blog?new=1",
+    "/admin/users?new=1",
+    "/admin/products?edit=sofa-curve-velour",
+    "/admin/categories?edit=cat-sofa",
+    "/admin/brands?edit=american",
+    "/admin/showrooms?edit=HN",
+    "/admin/promotions?edit=PHUONGDONG10",
+    "/admin/blog?edit=bi-quyet-chon-go-oc-cho"
+  ];
+
+  for (const route of crudRoutes) {
+    routes.set(route, {
+      route: route,
+      source: "manual-crud-route",
+      params: {},
+      type: "app-route",
+    });
+  }
+
   return {
     routes: [...routes.values()].sort((a, b) => a.route.localeCompare(b.route)),
     unresolved,
@@ -550,7 +576,7 @@ async function detectProject() {
     Object.keys(allDeps).some((dep) => dep.includes("storybook")) ||
     Boolean(storybookScript);
   const routingSource = await readTextIfExists(path.join(rootDir, "i18n", "routing.ts"));
-  const dataSource = await readTextIfExists(path.join(rootDir, "lib", "showroom-data.ts"));
+  const dataSource = await readTextIfExists(path.join(rootDir, "lib", "showroom-mock-fallback.ts"));
   const adminSource = await readTextIfExists(path.join(rootDir, "components", "showroom", "admin-pages.tsx"));
   const nextConfigFiles = [];
   for (const file of ["next.config.ts", "next.config.mjs", "next.config.js"]) {
@@ -592,7 +618,7 @@ async function detectProject() {
 
   const discoveryContext = {
     locales: parseLocales(routingSource),
-    productSlugs: parseSlugs(dataSource, /export const products\s*=\s*\[/, /export type Product/),
+    productSlugs: parseSlugs(dataSource, /export const products\s*=\s*\[/, /export const blogPosts/),
     blogSlugs: parseSlugs(dataSource, /export const blogPosts\s*=\s*\[/, /export const blogArticleContent/),
     adminSections: parseAdminSections(adminSource),
     adminCreateLinks: parseAdminCreateLinks(adminSource),
@@ -742,6 +768,20 @@ async function capturePage(browser, route, profile, serverBaseURL) {
     ...profile.context,
     baseURL: serverBaseURL,
   });
+  await context.addCookies([
+    {
+      name: "pd_mock_admin_role",
+      value: "admin",
+      domain: "127.0.0.1",
+      path: "/",
+    },
+    {
+      name: "pd_mock_admin_role",
+      value: "admin",
+      domain: "localhost",
+      path: "/",
+    }
+  ]);
   const page = await context.newPage();
   const pageErrors = [];
   const consoleErrors = [];

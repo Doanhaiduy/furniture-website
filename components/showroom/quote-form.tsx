@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { ArrowRight, Loader2 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import {
-  quoteRequestSchema,
+  getQuoteRequestSchema,
   type QuoteRequestInput,
 } from "@/lib/validations/quote";
 import { PremiumSelect } from "./premium-select";
@@ -102,15 +102,6 @@ export function QuoteForm({
     }
   }, [locale]);
 
-  // Build product options from DB data
-  const productOptions = [
-    { value: "", label: isVi ? "Khác / Không có trong danh sách" : "Other / Not in list" },
-    ...dynamicProducts.map((p) => ({
-      value: p.slug,
-      label: p.name,
-    })),
-  ];
-
   // Determine initial values from productId if provided
   const initialProduct = productId
     ? dynamicProducts.find((p) => p.slug === productId)
@@ -130,7 +121,7 @@ export function QuoteForm({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<QuoteRequestInput>({
-    resolver: zodResolver(quoteRequestSchema),
+    resolver: zodResolver(getQuoteRequestSchema(locale)),
     defaultValues: {
       locale,
       fullName: "",
@@ -147,6 +138,25 @@ export function QuoteForm({
     },
   });
 
+  const selectedService = watch("service");
+
+  // Filter products based on selected service/category
+  const filteredProducts = React.useMemo(() => {
+    if (!selectedService || selectedService === "interior-consulting") {
+      return dynamicProducts;
+    }
+    return dynamicProducts.filter((p) => p.category_slug === selectedService);
+  }, [dynamicProducts, selectedService]);
+
+  // Build product options from DB data
+  const productOptions = [
+    { value: "", label: isVi ? "Khác / Không có trong danh sách" : "Other / Not in list" },
+    ...filteredProducts.map((p) => ({
+      value: p.slug,
+      label: p.name,
+    })),
+  ];
+
   // Watch productId changes to auto-update categoryId and service
   const selectedProductId = watch("productId");
 
@@ -160,6 +170,19 @@ export function QuoteForm({
       }
     }
   }, [selectedProductId, setValue, dynamicProducts]);
+
+  // Effect to reset/clear product selection if it doesn't belong to the newly selected category
+  React.useEffect(() => {
+    if (selectedService && selectedService !== "interior-consulting") {
+      const currentProductId = watch("productId");
+      if (currentProductId) {
+        const currentProduct = dynamicProducts.find((p) => p.slug === currentProductId);
+        if (currentProduct && currentProduct.category_slug !== selectedService) {
+          setValue("productId", "");
+        }
+      }
+    }
+  }, [selectedService, setValue, dynamicProducts, watch]);
 
   // Sync state if initialProduct resolves later
   React.useEffect(() => {

@@ -65,7 +65,7 @@ async function getOrCreateMediaAssetId(
       resource_type: "image",
       mime_type: "image/png",
       format: "png",
-      size_bytes: 0,
+      size_bytes: 1,
       uploaded_by: userId,
     })
     .select("id")
@@ -564,7 +564,7 @@ export async function getAdminBrands(): Promise<any[]> {
         origin,
         sort_order,
         status,
-        logo_media:media_assets!brands_logo_media_id_fkey(public_url),
+        logo_media:media_assets!fk_brands_logo_media(public_url),
         brand_translations (locale, name)
       `)
       .is("deleted_at", null)

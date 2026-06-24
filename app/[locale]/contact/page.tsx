@@ -8,7 +8,7 @@ import { imageAssets } from "@/lib/showroom-constants";
 import { QuoteForm, type ProductForQuote } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getShowrooms, getProducts, getCategories } from "@/lib/supabase/queries";
+import { getShowrooms, getProducts, getCategories, getPublicSiteSettings } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
   params,
@@ -44,6 +44,7 @@ export default async function ContactPage({
   const t = await getTranslations("contact");
 
   const supabase = createPublicClient();
+  const settings = await getPublicSiteSettings(supabase, locale);
 
   // Fetch products from DB for the product selector in QuoteForm
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,11 +126,11 @@ export default async function ContactPage({
             <div className="mt-6 space-y-5">
               <p className="flex gap-3">
                 <Phone className="size-5 text-primary" />
-                <span><strong>Hotline</strong><br />08172 357 587</span>
+                <span><strong>Hotline</strong><br />{settings.contactPhone}</span>
               </p>
               <p className="flex gap-3">
                 <Mail className="size-5 text-primary" />
-                <span><strong>Email</strong><br />contact@phuongdong.com</span>
+                <span><strong>Email</strong><br />{settings.contactEmail}</span>
               </p>
               <div className="flex gap-3">
                 <MapPin className="size-5 text-primary" />

@@ -18,7 +18,7 @@ import {
   ProductTrustMetrics,
 } from "@/components/showroom/product-detail-experience";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
+import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -52,6 +52,7 @@ export default async function ProductDetailPage({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   const supabase = createPublicClient();
+  const settings = await getPublicSiteSettings(supabase, locale);
   const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
   let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
   if (!product) {
@@ -229,7 +230,7 @@ export default async function ProductDetailPage({
             <p className="text-brand-wood-soft uppercase tracking-widest font-mono text-[9px]">
               {locale === "vi" ? "ĐƯỜNG DÂY NÓNG HỖ TRỢ" : "HOTLINE SUPPORT"}
             </p>
-            <p className="text-base font-bold text-white">1800 6089</p>
+            <p className="text-base font-bold text-white">{settings.contactPhone}</p>
             <p className="text-brand-wood-soft/80 font-light">
               {locale === "vi" ? "Tất cả các ngày từ 8:00 - 21:00" : "Open daily from 8:00 AM to 9:00 PM"}
             </p>

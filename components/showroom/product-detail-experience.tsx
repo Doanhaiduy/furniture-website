@@ -201,11 +201,10 @@ export function ProductGallery({
               )}
 
               <div className="relative max-h-full max-w-full flex items-center justify-center">
-                <RemoteImage
-                  src={activeImage}
+                <img
+                  src={activeImage.startsWith("http://local-assets") ? activeImage.replace("http://local-assets", "") : activeImage}
                   alt={localized(product.name, locale)}
-                  className="max-h-[82vh] md:max-h-[88vh] max-w-full rounded-lg object-contain select-none shadow-2xl border border-white/5"
-                  sizes="90vw"
+                  className="max-h-[82vh] md:max-h-[88vh] max-w-[90vw] md:max-w-[85vw] rounded-lg object-contain select-none shadow-2xl border border-white/5"
                 />
               </div>
 
@@ -490,7 +489,7 @@ export function ProductInformationTabs({
             </div>
             
             <div className="relative pl-6 border-l-2 border-primary/30 py-2">
-              <p className="text-slate-650 leading-relaxed text-sm sm:text-base font-light italic text-justify">
+              <p className="text-slate-600 leading-relaxed text-sm sm:text-base font-light italic text-justify">
                 &ldquo;{localized(product.description, locale)}&rdquo;
               </p>
             </div>

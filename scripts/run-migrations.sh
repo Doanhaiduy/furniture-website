@@ -3,11 +3,12 @@
 # Force standard ASCII collation for reliable file sorting (0001 -> 20260618)
 export LC_ALL=C
 
-# Script to run all Supabase migrations in order on local Docker or remote Production DB
-MIGRATIONS_DIR="supabase/migrations"
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MIGRATIONS_DIR="$SCRIPT_DIR/../supabase/migrations"
 
 # Fallback defaults for local Docker
-DB_CONTAINER="supabase-db"
+DB_CONTAINER="${DB_CONTAINER:-supabase_db_furniture-website}"
 DB_USER="${DB_USER:-postgres}"
 DB_NAME="${DB_NAME:-postgres}"
 

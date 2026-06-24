@@ -57,7 +57,29 @@ export const productSchema = z.object({
   seo_title_en: optionalText,
   seo_description_vi: optionalText,
   seo_description_en: optionalText,
-});
+}).refine(
+  (data) => {
+    if (data.price_min !== null && data.price_min !== undefined && data.price_max !== null && data.price_max !== undefined) {
+      return data.price_min <= data.price_max;
+    }
+    return true;
+  },
+  {
+    message: "Giá tối thiểu phải nhỏ hơn hoặc bằng giá tối đa",
+    path: ["price_min"],
+  }
+).refine(
+  (data) => {
+    if (data.promo_price_min !== null && data.promo_price_min !== undefined && data.price_min !== null && data.price_min !== undefined) {
+      return data.promo_price_min < data.price_min;
+    }
+    return true;
+  },
+  {
+    message: "Giá khuyến mãi phải nhỏ hơn giá gốc",
+    path: ["promo_price_min"],
+  }
+);
 
 export const categorySchema = z.object({
   slug: slugSchema,
@@ -148,6 +170,101 @@ export const promotionSchema = z.object({
   badge_color: optionalText,
   tag_vi: optionalText,
   tag_en: optionalText,
+}).refine(
+  (data) => {
+    if (data.start_at && data.end_at) {
+      return new Date(data.start_at) < new Date(data.end_at);
+    }
+    return true;
+  },
+  {
+    message: "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc",
+    path: ["end_at"],
+  }
+).refine(
+  (data) => {
+    if (data.combo_price !== null && data.combo_price !== undefined && data.original_price !== null && data.original_price !== undefined) {
+      return data.combo_price < data.original_price;
+    }
+    return true;
+  },
+  {
+    message: "Giá combo phải nhỏ hơn giá gốc",
+    path: ["combo_price"],
+  }
+);
+
+export const settingsSchema = z.object({
+  brandNameVi: requiredText("Tên thương hiệu tiếng Việt là bắt buộc"),
+  brandNameEn: optionalText,
+  logoUrl: optionalText,
+  faviconUrl: optionalText,
+  contactPhone: requiredText("Số điện thoại liên hệ là bắt buộc"),
+  contactEmail: z.string().trim().email("Email liên hệ không hợp lệ").min(1, "Email liên hệ là bắt buộc"),
+  quoteSenderEmail: z.string().trim().email("Email gửi báo giá không hợp lệ").optional().or(z.string().max(0)),
+  addressVi: requiredText("Địa chỉ tiếng Việt là bắt buộc"),
+  addressEn: optionalText,
+  defaultLocale: z.string().optional().default("vi"),
+  seoTitleVi: optionalText,
+  seoTitleEn: optionalText,
+  seoDescVi: optionalText,
+  seoDescEn: optionalText,
+  resendKey: optionalText,
+  cloudinaryPreset: optionalText,
+  geminiKey: optionalText,
+  slaHours: z.union([z.string(), z.number()]).optional(),
+  heroHeadlineVi: optionalText,
+  heroHeadlineEn: optionalText,
+  heroSubtitleVi: optionalText,
+  heroSubtitleEn: optionalText,
+  heroCtaLabel: optionalText,
+  heroCtaLink: optionalText,
+  heroVisible: z.boolean().optional().default(true),
+  heroImage1: optionalText,
+  aboutVisible: z.boolean().optional().default(true),
+  slide2TitleVi: optionalText,
+  slide2TitleEn: optionalText,
+  slide2LeadVi: optionalText,
+  slide2LeadEn: optionalText,
+  slide2Image: optionalText,
+  slide3TitleVi: optionalText,
+  slide3TitleEn: optionalText,
+  slide3LeadVi: optionalText,
+  slide3LeadEn: optionalText,
+  slide3Image: optionalText,
+  aboutHeadingVi: optionalText,
+  aboutHeadingEn: optionalText,
+  aboutLeadVi: optionalText,
+  aboutLeadEn: optionalText,
+  aboutImage: optionalText,
+  featuredVisible: z.boolean().optional().default(true),
+  featuredMaxItems: z.union([z.string(), z.number()]).optional(),
+  blogSectionVisible: z.boolean().optional().default(true),
+  blogMaxPosts: z.union([z.string(), z.number()]).optional(),
+  blogHeadingVi: optionalText,
+  blogHeadingEn: optionalText,
+  trustBadgesVisible: z.boolean().optional().default(true),
+  badge1ValueVi: optionalText,
+  badge1ValueEn: optionalText,
+  badge1DescVi: optionalText,
+  badge1DescEn: optionalText,
+  badge2ValueVi: optionalText,
+  badge2ValueEn: optionalText,
+  badge2DescVi: optionalText,
+  badge2DescEn: optionalText,
+  showroomVisible: z.boolean().optional().default(true),
+  showroomHeadingVi: optionalText,
+  showroomHeadingEn: optionalText,
+  showroomLeadVi: optionalText,
+  showroomLeadEn: optionalText,
+  showroomCtaVi: optionalText,
+  showroomCtaEn: optionalText,
+  showroomBgImage: optionalText,
+  quoteVisible: z.boolean().optional().default(true),
+  quoteHeadingVi: optionalText,
+  quoteHeadingEn: optionalText,
+  quoteLeadVi: optionalText,
+  quoteLeadEn: optionalText,
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
@@ -156,3 +273,4 @@ export type BlogPostInput = z.infer<typeof blogPostSchema>;
 export type ShowroomInput = z.infer<typeof showroomSchema>;
 export type BrandInput = z.infer<typeof brandSchema>;
 export type PromotionInput = z.infer<typeof promotionSchema>;
+export type SettingsInput = z.infer<typeof settingsSchema>;

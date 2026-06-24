@@ -17,7 +17,7 @@ export async function GET() {
     .select("id, public_url, format, size_bytes, width, height, original_filename, created_at")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .limit(60);
+    .limit(1000);
 
   if (error) {
     return NextResponse.json({ error: "Failed to fetch media assets" }, { status: 500 });

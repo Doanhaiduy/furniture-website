@@ -25,6 +25,10 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SUPABASE_URL=http://placeholder.supabase.url
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder_anon_key
+ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_service_role_key
+ENV RESEND_API_KEY=re_placeholder_key
 RUN pnpm build
 
 # Production runner stage

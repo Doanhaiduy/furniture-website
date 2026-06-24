@@ -20,7 +20,7 @@ async function createAdmin() {
     await client.connect();
 
     const adminId = "00000000-0000-0000-0000-000000000002";
-    const email = "admin@showroomphuongdong.vn";
+    const email = "admin@phuongdong.vn";
     const password = "admin123";
 
     // Insert into auth.users
@@ -30,7 +30,8 @@ async function createAdmin() {
         raw_app_meta_data, raw_user_meta_data, aud, role,
         confirmation_token, recovery_token, email_change_token_new, 
         email_change, phone_change, phone_change_token, 
-        email_change_token_current, reauthentication_token, email_change_confirm_status
+        email_change_token_current, reauthentication_token, email_change_confirm_status,
+        created_at, updated_at
       )
       VALUES (
         $1,
@@ -44,12 +45,14 @@ async function createAdmin() {
         'authenticated',
         '', '', '', 
         '', '', '', 
-        '', '', 0
+        '', '', 0,
+        now(), now()
       )
       ON CONFLICT (id) DO UPDATE SET 
         email = EXCLUDED.email,
         encrypted_password = EXCLUDED.encrypted_password,
-        email_confirmed_at = now();
+        email_confirmed_at = now(),
+        updated_at = now();
     `, [adminId, email, password]);
 
     // Insert into public.profiles

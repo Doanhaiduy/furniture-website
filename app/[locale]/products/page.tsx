@@ -292,6 +292,7 @@ export default async function ProductsPage({
             <Link
               key={group.key}
               href={withLocale(locale, group.href)}
+              scroll={false}
               className="interactive-card surface-card group grid grid-cols-[92px_1fr] gap-4 p-3"
             >
               <RemoteImage src={group.image} alt={localized(group.title, locale)} className="public-media-thumb h-24 w-full object-cover" sizes="92px" />
@@ -320,6 +321,11 @@ export default async function ProductsPage({
             reset: common("reset"),
             expand: t("showMoreFilters"),
             collapse: t("collapseFilters"),
+            brand: t("brand"),
+            discount: t("discount"),
+            discountAll: t("discountAll"),
+            discountActive: t("discountActive"),
+            brandAll: t("brandAll"),
           }}
           query={query}
           options={{
@@ -376,6 +382,7 @@ export default async function ProductsPage({
                   aria-disabled={page.currentPage === 1}
                   tabIndex={page.currentPage === 1 ? -1 : undefined}
                   href={page.currentPage === 1 ? makeProductHref({ page: page.currentPage }) : makeProductHref({ page: page.currentPage - 1 })}
+                  scroll={false}
                   className="button-pd-outline public-pagination-control min-w-11 px-3"
                 >
                   <ArrowLeft className="size-4" />
@@ -385,6 +392,7 @@ export default async function ProductsPage({
                   <Link
                     key={pageNumber}
                     href={makeProductHref({ page: pageNumber })}
+                    scroll={false}
                     aria-current={page.currentPage === pageNumber ? "page" : undefined}
                     className="public-pagination-link"
                   >
@@ -395,6 +403,7 @@ export default async function ProductsPage({
                   aria-disabled={page.currentPage === page.totalPages}
                   tabIndex={page.currentPage === page.totalPages ? -1 : undefined}
                   href={page.currentPage === page.totalPages ? makeProductHref({ page: page.currentPage }) : makeProductHref({ page: page.currentPage + 1 })}
+                  scroll={false}
                   className="button-pd-outline public-pagination-control min-w-11 px-3"
                 >
                   {t("nextPage")}
@@ -434,6 +443,7 @@ export default async function ProductsPage({
               <Link
                 key={group.key}
                 href={withLocale(locale, group.href)}
+                scroll={false}
                 className="interactive-card surface-card group grid min-h-52 overflow-hidden"
               >
                 <span className="relative h-28 overflow-hidden">

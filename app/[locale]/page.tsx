@@ -18,7 +18,7 @@ import { RemoteImage } from "@/components/showroom/remote-image";
 import { HeroShowcase } from "@/components/showroom/hero-showcase";
 import { ProductCard } from "@/components/showroom/product-card";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock, getCategories } from "@/lib/supabase/queries";
+import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock, getCategories, getContentPage } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 export async function generateMetadata({
@@ -49,12 +49,26 @@ export default async function HomePage({
 
   // Fetch dynamic data from local database
   const supabase = createPublicClient();
-  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 5 });
-  const featured = dbProducts.length > 0 
-    ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
-    : mockProducts.filter((p) => p.featured).slice(0, 5); // Fallback to 5 featured mock products
+  const homePageContent = await getContentPage(supabase, "home", locale).catch(() => null);
+  const bodyJson = homePageContent?.bodyJson || {};
 
-  const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: 3 });
+  const featuredLimit = parseInt(bodyJson.featuredMaxItems || "6", 10) || 6;
+  const blogLimit = parseInt(bodyJson.blogMaxPosts || "3", 10) || 3;
+
+  const featuredVisible = bodyJson.featuredVisible !== undefined ? bodyJson.featuredVisible : true;
+  const blogSectionVisible = bodyJson.blogSectionVisible !== undefined ? bodyJson.blogSectionVisible : true;
+  const trustBadgesVisible = bodyJson.trustBadgesVisible !== undefined ? bodyJson.trustBadgesVisible : true;
+  const showroomVisible = bodyJson.showroomVisible !== undefined ? bodyJson.showroomVisible : true;
+  const aboutVisible = bodyJson.aboutVisible !== undefined ? bodyJson.aboutVisible : true;
+  const quoteVisible = bodyJson.quoteVisible !== undefined ? bodyJson.quoteVisible : true;
+  const heroVisible = bodyJson.heroVisible !== undefined ? bodyJson.heroVisible : true;
+
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 4 });
+  const featured = (dbProducts.length > 0 
+    ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
+    : mockProducts.filter((p) => p.featured)).slice(0, 4);
+
+  const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: blogLimit });
   const editorialPosts = dbBlogPosts.length > 0
     ? dbBlogPosts.map((post: any) => ({
         slug: post.slug,
@@ -146,38 +160,57 @@ export default async function HomePage({
     summary: localized(group.summary, locale),
     ctaLabel: common("explore"),
   }));
+  const displayTrustBadges = [
+    {
+      value: locale === "vi" ? (bodyJson.badge1ValueVi || "20+") : (bodyJson.badge1ValueEn || "20+"),
+      label: {
+        vi: bodyJson.badge1DescVi || "Năm kinh nghiệm",
+        en: bodyJson.badge1DescEn || "Years of experience"
+      }
+    },
+    {
+      value: locale === "vi" ? (bodyJson.badge2ValueVi || "5000+") : (bodyJson.badge2ValueEn || "5000+"),
+      label: {
+        vi: bodyJson.badge2DescVi || "Khách hàng hài lòng",
+        en: bodyJson.badge2DescEn || "Happy clients"
+      }
+    }
+  ];
+
   const heroSlides = [
     {
       eyebrow: home("heroEyebrow"),
-      title: home("heroTitle"),
-      lead: home("heroLead"),
-      image: imageAssets.aboutHero,
+      title: locale === "vi" ? (bodyJson.heroHeadlineVi || home("heroTitle")) : (bodyJson.heroHeadlineEn || home("heroTitle")),
+      lead: locale === "vi" ? (bodyJson.heroSubtitleVi || home("heroLead")) : (bodyJson.heroSubtitleEn || home("heroLead")),
+      image: bodyJson.heroImage1 || imageAssets.aboutHero,
       meta: common("tagline"),
     },
     {
       eyebrow: localized(productGroups[0].title, locale),
-      title: home("heroSlide2Title"),
-      lead: home("heroSlide2Lead"),
-      image: imageAssets.showroom,
+      title: locale === "vi" ? (bodyJson.slide2TitleVi || home("heroSlide2Title")) : (bodyJson.slide2TitleEn || home("heroSlide2Title")),
+      lead: locale === "vi" ? (bodyJson.slide2LeadVi || home("heroSlide2Lead")) : (bodyJson.slide2LeadEn || home("heroSlide2Lead")),
+      image: bodyJson.slide2Image || imageAssets.showroom,
       meta: home("groupsTitle"),
     },
     {
       eyebrow: localized(productGroups[3].title, locale),
-      title: home("heroSlide3Title"),
-      lead: home("heroSlide3Lead"),
-      image: imageAssets.room,
+      title: locale === "vi" ? (bodyJson.slide3TitleVi || home("heroSlide3Title")) : (bodyJson.slide3TitleEn || home("heroSlide3Title")),
+      lead: locale === "vi" ? (bodyJson.slide3LeadVi || home("heroSlide3Lead")) : (bodyJson.slide3LeadEn || home("heroSlide3Lead")),
+      image: bodyJson.slide3Image || imageAssets.room,
       meta: home("storyTitle"),
     },
   ];
 
   return (
     <main>
-      <HeroShowcase
-        slides={heroSlides}
-        groups={heroGroups}
-        pauseLabel={home("heroPause")}
-        playLabel={home("heroPlay")}
-      />
+      {heroVisible && (
+        <HeroShowcase
+          slides={heroSlides}
+          groups={heroGroups}
+          pauseLabel={home("heroPause")}
+          playLabel={home("heroPlay")}
+        />
+      )}
 
       {/* Brands marquee relocated below */}
 
@@ -247,163 +280,199 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="bg-surface-container-low py-24">
-        <div className="container-pd">
-          <div className="mb-10 flex items-end justify-between gap-4">
-            <div>
-              <p className="label-pd">{common("tagline")}</p>
-              <h2 className="type-section-title mt-3 text-primary md:text-4xl">
-                {home("featuredTitle")}
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-secondary">
-                {home("featuredLead")}
-              </p>
-            </div>
-            <Link href={withLocale(locale, "/products")} className="hidden font-bold text-primary md:inline-flex">
-              {common("viewAll")}
-            </Link>
-          </div>
-          <div className="motion-stagger grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {featured.map((product: any) => (
-              <ProductCard
-                key={product.slug}
-                product={product}
-                locale={locale}
-                detailsLabel={common("explore")}
-                compact={true}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="container-pd grid gap-10 py-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-        <div>
-          <p className="label-pd">{home("editorialTitle")}</p>
-          <h2 className="type-section-title mt-3 max-w-2xl text-primary md:text-4xl">
-            {home("editorialLead")}
-          </h2>
-          <div className="mt-8 grid gap-4">
-            {editorialPosts.map((post: any) => (
-              <Link
-                key={post.slug}
-                href={withLocale(locale, `/blog/${post.slug}`)}
-                className="card-pd interactive-card group grid gap-4 overflow-hidden p-3 sm:grid-cols-[180px_1fr]"
-              >
-                <RemoteImage
-                  src={post.image}
-                  alt={localized(post.title, locale)}
-                  className="h-44 w-full rounded-lg object-cover sm:h-full"
-                  sizes="(min-width: 768px) 180px, 100vw"
-                />
-                <span className="p-2">
-                  <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-outline">
-                    <BookOpen className="size-4" />
-                    {localized(post.readTime, locale)}
-                  </span>
-                  <span className="type-card-title mt-3 block text-2xl text-primary">
-                    {localized(post.title, locale)}
-                  </span>
-                  <span className="mt-3 line-clamp-2 block text-sm leading-6 text-secondary">
-                    {localized(post.excerpt, locale)}
-                  </span>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="surface-soft p-6 md:p-8">
-          <p className="label-pd">{home("trustTitle")}</p>
-          <h2 className="type-section-title mt-3 text-primary">
-            {home("trustLead")}
-          </h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2">
-            {trustBadges.map((badge) => (
-              <div
-                key={badge.value}
-                className="surface-card p-6"
-              >
-                <BadgeCheck className="size-8 text-primary" />
-                <strong className="type-section-title mt-5 block text-primary">{badge.value}</strong>
-                <p className="mt-2 text-sm text-secondary">{localized(badge.label, locale)}</p>
+      {featuredVisible && (
+        <section className="bg-surface-container-low py-24">
+          <div className="container-pd">
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <div>
+                <p className="label-pd">{common("tagline")}</p>
+                <h2 className="type-section-title mt-3 text-primary md:text-4xl">
+                  {home("featuredTitle")}
+                </h2>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-secondary">
+                  {home("featuredLead")}
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="sticky-reveal-section relative isolate overflow-hidden bg-surface-inverse text-white lg:min-h-[120vh]">
-        <div className="sticky-reveal-bg absolute inset-0 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
-          <RemoteImage src={imageAssets.showroom} alt="" className="h-full w-full object-cover opacity-70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-surface-inverse/92 via-surface-inverse/64 to-surface-inverse/24" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-surface-inverse to-transparent" />
-        </div>
-        <div className="sticky-reveal-content container-pd relative z-10 grid gap-10 py-20 lg:-mt-[calc(100vh-5rem)] lg:min-h-[120vh] lg:grid-cols-[1fr_1.1fr] lg:items-center lg:py-28">
-          <div>
-            <p className="label-pd text-white/65">{common("tagline")}</p>
-            <h2 className="type-section-title mt-3 text-white">{home("showroomTitle")}</h2>
-            <p className="mt-4 max-w-xl text-lg leading-8 text-white/75">{home("showroomLead")}</p>
-            <div className="mt-8 space-y-6">
-              {displayShowrooms.map((showroom: any) => (
-                <div key={showroom.code} className="border-l border-white/25 pl-5">
-                  <h3 className="type-card-title text-xl text-white">{showroom.name}</h3>
-                  <p className="mt-2 flex gap-2 text-sm text-white/75">
-                    <MapPin className="mt-0.5 size-4 shrink-0" />
-                    {showroom.address}
-                  </p>
-                  <p className="mt-2 flex gap-2 text-sm text-white/75">
-                    <Phone className="mt-0.5 size-4 shrink-0" />
-                    {home("hotlineLabel")}: {showroom.hotline}
-                  </p>
-                </div>
+              <Link href={withLocale(locale, "/products")} className="hidden font-bold text-primary md:inline-flex">
+                {common("viewAll")}
+              </Link>
+            </div>
+            <div className="motion-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featured.map((product: any) => (
+                <ProductCard
+                  key={product.slug}
+                  product={product}
+                  locale={locale}
+                  detailsLabel={common("explore")}
+                  compact={true}
+                />
               ))}
             </div>
-            <Link href={withLocale(locale, "/showrooms")} className="public-inverse-button mt-8">
-              {home("showroomCta")}
-            </Link>
           </div>
-          <div className="grid gap-5">
-            <div className="public-glass-panel p-6">
-              <p className="label-pd text-white/60">{home("showroomCta")}</p>
-              <p className="type-section-title mt-4 text-white">{displayShowrooms[0]?.name || ""}</p>
-              <p className="mt-3 flex gap-2 text-sm leading-6 text-white/72">
-                <MapPin className="mt-0.5 size-4 shrink-0" />
-                {displayShowrooms[0]?.address || ""}
+        </section>
+      )}
+
+      {(blogSectionVisible || trustBadgesVisible) && (
+        <section className={`container-pd grid gap-10 py-24 ${
+          blogSectionVisible && trustBadgesVisible 
+            ? "lg:grid-cols-[1.05fr_0.95fr] lg:items-start" 
+            : "grid-cols-1"
+        }`}>
+          {blogSectionVisible && (
+            <div>
+              <p className="label-pd">
+                {locale === "vi" ? (bodyJson.blogHeadingVi || home("editorialTitle")) : (bodyJson.blogHeadingEn || home("editorialTitle"))}
+              </p>
+              <h2 className="type-section-title mt-3 max-w-2xl text-primary md:text-4xl">
+                {locale === "vi" ? (bodyJson.blogHeadingVi || home("editorialLead")) : (bodyJson.blogHeadingEn || home("editorialLead"))}
+              </h2>
+              <div className="mt-8 grid gap-4">
+                {editorialPosts.map((post: any) => (
+                  <Link
+                    key={post.slug}
+                    href={withLocale(locale, `/blog/${post.slug}`)}
+                    className="card-pd interactive-card group grid gap-4 overflow-hidden p-3 sm:grid-cols-[180px_1fr]"
+                  >
+                    <RemoteImage
+                      src={post.image}
+                      alt={localized(post.title, locale)}
+                      className="h-44 w-full rounded-lg object-cover sm:h-full"
+                      sizes="(min-width: 768px) 180px, 100vw"
+                    />
+                    <span className="p-2">
+                      <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-outline">
+                        <BookOpen className="size-4" />
+                        {localized(post.readTime, locale)}
+                      </span>
+                      <span className="type-card-title mt-3 block text-2xl text-primary">
+                        {localized(post.title, locale)}
+                      </span>
+                      <span className="mt-3 line-clamp-2 block text-sm leading-6 text-secondary">
+                        {localized(post.excerpt, locale)}
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {trustBadgesVisible && (
+            <div className="surface-soft p-6 md:p-8">
+              <p className="label-pd">{home("trustTitle")}</p>
+              <h2 className="type-section-title mt-3 text-primary">
+                {home("trustLead")}
+              </h2>
+              <div className="mt-8 grid gap-5 sm:grid-cols-2">
+                {displayTrustBadges.map((badge) => (
+                  <div
+                    key={badge.value}
+                    className="surface-card p-6"
+                  >
+                    <BadgeCheck className="size-8 text-primary" />
+                    <strong className="type-section-title mt-5 block text-primary">{badge.value}</strong>
+                    <p className="mt-2 text-sm text-secondary">{localized(badge.label, locale)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {showroomVisible && (
+        <section className="sticky-reveal-section relative isolate overflow-hidden bg-surface-inverse text-white lg:min-h-[120vh]">
+          <div className="sticky-reveal-bg absolute inset-0 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)]">
+            <RemoteImage src={bodyJson.showroomBgImage || imageAssets.showroom} alt="" className="h-full w-full object-cover opacity-70" />
+            <div className="absolute inset-0 bg-gradient-to-r from-surface-inverse/92 via-surface-inverse/64 to-surface-inverse/24" />
+            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-surface-inverse to-transparent" />
+          </div>
+          <div className="sticky-reveal-content container-pd relative z-10 grid gap-10 py-20 lg:-mt-[calc(100vh-5rem)] lg:min-h-[120vh] lg:grid-cols-[1fr_1.1fr] lg:items-center lg:py-28">
+            <div>
+              <p className="label-pd text-white/65">{common("tagline")}</p>
+              <h2 className="type-section-title mt-3 text-white">
+                {locale === "vi" ? (bodyJson.showroomHeadingVi || home("showroomTitle")) : (bodyJson.showroomHeadingEn || home("showroomTitle"))}
+              </h2>
+              <p className="mt-4 max-w-xl text-lg leading-8 text-white/75">
+                {locale === "vi" ? (bodyJson.showroomLeadVi || home("showroomLead")) : (bodyJson.showroomLeadEn || home("showroomLead"))}
+              </p>
+              <div className="mt-8 space-y-6">
+                {displayShowrooms.map((showroom: any) => (
+                  <div key={showroom.code} className="border-l border-white/25 pl-5">
+                    <h3 className="type-card-title text-xl text-white">{showroom.name}</h3>
+                    <p className="mt-2 flex gap-2 text-sm text-white/75">
+                      <MapPin className="mt-0.5 size-4 shrink-0" />
+                      {showroom.address}
+                    </p>
+                    <p className="mt-2 flex gap-2 text-sm text-white/75">
+                      <Phone className="mt-0.5 size-4 shrink-0" />
+                      {home("hotlineLabel")}: {showroom.hotline}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <Link href={withLocale(locale, "/showrooms")} className="public-inverse-button mt-8">
+                {locale === "vi" ? (bodyJson.showroomCtaVi || home("showroomCta")) : (bodyJson.showroomCtaEn || home("showroomCta"))}
+              </Link>
+            </div>
+            <div className="grid gap-5">
+              <div className="public-glass-panel p-6">
+                <p className="label-pd text-white/60">
+                  {locale === "vi" ? (bodyJson.showroomCtaVi || home("showroomCta")) : (bodyJson.showroomCtaEn || home("showroomCta"))}
+                </p>
+                <p className="type-section-title mt-4 text-white">{displayShowrooms[0]?.name || ""}</p>
+                <p className="mt-3 flex gap-2 text-sm leading-6 text-white/72">
+                  <MapPin className="mt-0.5 size-4 shrink-0" />
+                  {displayShowrooms[0]?.address || ""}
+                </p>
+              </div>
+              <div className="surface-card p-5 text-primary">
+                <p className="type-card-title text-2xl text-primary">
+                  {locale === "vi" ? (bodyJson.quoteHeadingVi || home("quoteTitle")) : (bodyJson.quoteHeadingEn || home("quoteTitle"))}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-secondary">
+                  {locale === "vi" ? (bodyJson.quoteLeadVi || home("quoteLead")) : (bodyJson.quoteLeadEn || home("quoteLead"))}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {aboutVisible && (
+        <section className="container-pd grid gap-10 py-24 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="surface-inverse relative min-h-[520px] overflow-hidden text-white">
+            <RemoteImage src={bodyJson.aboutImage || imageAssets.texture} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/72 to-primary/20" />
+            <div className="absolute bottom-0 p-8 md:p-10">
+              <p className="label-pd text-white/65">
+                {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
+              </p>
+              <h2 className="type-section-title mt-4 max-w-lg text-white">
+                {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
+              </h2>
+              <p className="mt-5 max-w-md text-sm leading-7 text-white/76">
+                {locale === "vi" ? (bodyJson.aboutLeadVi || home("storyLead")) : (bodyJson.aboutLeadEn || home("storyLead"))}
               </p>
             </div>
-            <div className="surface-card p-5 text-primary">
-              <p className="type-card-title text-2xl text-primary">{home("quoteTitle")}</p>
-              <p className="mt-2 text-sm leading-6 text-secondary">{home("quoteLead")}</p>
-            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="container-pd grid gap-10 py-24 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-        <div className="surface-inverse relative min-h-[520px] overflow-hidden text-white">
-          <RemoteImage src={imageAssets.texture} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55" />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/72 to-primary/20" />
-          <div className="absolute bottom-0 p-8 md:p-10">
-            <p className="label-pd text-white/65">{home("storyTitle")}</p>
-            <h2 className="type-section-title mt-4 max-w-lg text-white">
-              {home("heroSlide3Title")}
+          <div>
+            <p className="label-pd">
+              {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
+            </p>
+            <h2 className="type-section-title mt-4 text-primary">
+              {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
             </h2>
-            <p className="mt-5 max-w-md text-sm leading-7 text-white/76">{home("storyLead")}</p>
+            <p className="mt-5 text-lg leading-8 text-secondary">
+              {locale === "vi" ? (bodyJson.aboutLeadVi || home("storyLead")) : (bodyJson.aboutLeadEn || home("storyLead"))}
+            </p>
+            <Link href={withLocale(locale, "/about")} className="button-pd-outline mt-8">
+              {common("readMore")}
+              <ArrowRight className="size-5" />
+            </Link>
           </div>
-        </div>
-        <div>
-          <p className="label-pd">{home("storyTitle")}</p>
-          <h2 className="type-section-title mt-4 text-primary">
-            {home("heroSlide3Title")}
-          </h2>
-          <p className="mt-5 text-lg leading-8 text-secondary">{home("storyLead")}</p>
-          <Link href={withLocale(locale, "/about")} className="button-pd-outline mt-8">
-            {common("readMore")}
-            <ArrowRight className="size-5" />
-          </Link>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Relocated Brand Logo Marquee Section */}
       <section className="border-y border-outline-variant/30 py-8 overflow-hidden bg-surface-container/20">
@@ -479,28 +548,30 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="container-pd py-20">
-        <div className="mx-auto max-w-4xl">
-          <QuoteForm
-            locale={locale}
-            sourcePath={`/${locale}`}
-            labels={{
-              formTitle: home("quoteTitle"),
-              name: contact("name"),
-              phone: contact("phone"),
-              email: contact("email"),
-              company: contact("company"),
-              service: contact("service"),
-              message: contact("message"),
-              submit: contact("submit"),
-              sending: contact("sending"),
-              responseTime: contact("responseTime"),
-              honeypot: contact("honeypot"),
-        submitError: contact("submitError"),
-            }}
-          />
-        </div>
-      </section>
+      {quoteVisible && (
+        <section className="container-pd py-20">
+          <div className="mx-auto max-w-4xl">
+            <QuoteForm
+              locale={locale}
+              sourcePath={`/${locale}`}
+              labels={{
+                formTitle: locale === "vi" ? (bodyJson.quoteHeadingVi || home("quoteTitle")) : (bodyJson.quoteHeadingEn || home("quoteTitle")),
+                name: contact("name"),
+                phone: contact("phone"),
+                email: contact("email"),
+                company: contact("company"),
+                service: contact("service"),
+                message: contact("message"),
+                submit: contact("submit"),
+                sending: contact("sending"),
+                responseTime: contact("responseTime"),
+                honeypot: contact("honeypot"),
+                submitError: contact("submitError"),
+              }}
+            />
+          </div>
+        </section>
+      )}
     </main>
   );
 }

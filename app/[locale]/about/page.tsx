@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowRight, Diamond, Eye, Shield, Sparkles } from "lucide-react";
 import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
-import { imageAssets, localized, trustBadges, withLocale } from "@/lib/showroom-constants";
+import { imageAssets, localized, withLocale } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getContentPage } from "@/lib/supabase/queries";
@@ -35,6 +35,20 @@ export default async function AboutPage({
 
   const supabase = createPublicClient();
   const pageData = await getContentPage(supabase, "about", locale);
+  const homePageContent = await getContentPage(supabase, "home", locale).catch(() => null);
+  const homeBodyJson = homePageContent?.bodyJson || {};
+
+  const displayTrustBadges = [
+    {
+      value: locale === "vi" ? (homeBodyJson.badge1ValueVi || "20+") : (homeBodyJson.badge1ValueEn || "20+"),
+      label: locale === "vi" ? (homeBodyJson.badge1DescVi || "năm kinh nghiệm") : (homeBodyJson.badge1DescEn || "years of experience")
+    },
+    {
+      value: locale === "vi" ? (homeBodyJson.badge2ValueVi || "5000+") : (homeBodyJson.badge2ValueEn || "5000+"),
+      label: locale === "vi" ? (homeBodyJson.badge2DescVi || "khách hàng hài lòng") : (homeBodyJson.badge2DescEn || "happy clients")
+    }
+  ];
+
   const pageTitle = pageData?.title || t("title");
   const pageLead = pageData?.lead || t("lead");
 
@@ -107,11 +121,11 @@ export default async function AboutPage({
             <h2 className="type-section-title mt-4 text-primary">
               {locale === "vi" ? "Quy mô đủ sâu cho tiêu chuẩn công trình." : "Scale and depth for project standards."}
             </h2>
-            <div className="mt-8 grid gap-5 sm:grid-cols-3">
-              {trustBadges.map((badge) => (
-                <div key={badge.value}>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2">
+              {displayTrustBadges.map((badge, idx) => (
+                <div key={idx}>
                   <strong className="type-card-title text-3xl text-primary">{badge.value}</strong>
-                  <p className="mt-1 text-sm text-secondary">{localized(badge.label, locale)}</p>
+                  <p className="mt-1 text-sm text-secondary">{badge.label}</p>
                 </div>
               ))}
             </div>

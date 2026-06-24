@@ -1,18 +1,42 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+
+// Tiptap WYSIWYG
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
 
 import {
   Archive,
   Bot,
+  Bold,
   CheckCircle2,
   ImageUp,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
   Loader2,
   RefreshCcw,
   Rocket,
   Save,
+  Strikethrough,
+  UnderlineIcon,
   UploadCloud,
   WandSparkles,
+  Trash2,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Heading2,
+  Heading3,
+  Quote,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import {
   Dialog,
@@ -23,6 +47,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PremiumSelect } from "./premium-select";
+import { Pagination } from "./admin-pages";
 
 export function PublishWorkflow({
   status: propStatus,
@@ -340,244 +365,233 @@ export function RichTextEditorMock({
   value,
   onChange,
   placeholder,
+  disabled,
 }: {
   defaultValue?: string;
   value?: string;
   onChange?: (val: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 }) {
-  const [activeMode, setActiveMode] = useState<"write" | "preview">("write");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const initialContent = value !== undefined ? value : (defaultValue ?? "");
 
-  // Function to insert markdown wrappers around selection or at cursor
-  const insertMarkdown = (before: string, after: string = "") => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-
-    const selectedText = text.substring(start, end);
-    const replacement = before + selectedText + after;
-
-    const newValue = text.substring(0, start) + replacement + text.substring(end);
-
-    if (onChange) {
-      onChange(newValue);
-    } else {
-      textarea.value = newValue;
-    }
-
-    // Restore focus and update selection range
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + before.length + selectedText.length + after.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
-
-  // Safe and lightweight offline Markdown parser
-  const renderMarkdownToHtml = (markdown: string): string => {
-    if (!markdown) return "<p class='text-slate-400 italic'>Chưa có nội dung xem trước...</p>";
-
-    // Basic HTML escaping for safety
-    let html = markdown
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-    // Bold (**text**)
-    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    // Italic (*text*)
-    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-    // Headings
-    html = html.replace(/^### (.*?)$/gm, "<h4 class='text-base font-bold text-slate-800 mt-4 mb-2'>$1</h4>");
-    html = html.replace(/^## (.*?)$/gm, "<h3 class='text-lg font-bold text-slate-900 mt-5 mb-2'>$1</h3>");
-    html = html.replace(/^# (.*?)$/gm, "<h2 class='text-xl font-bold text-slate-950 mt-6 mb-3'>$1</h2>");
-    // Blockquotes (> text)
-    html = html.replace(/^&gt; (.*?)$/gm, "<blockquote class='border-l-4 border-amber-500 pl-4 py-2 italic text-slate-600 my-4 bg-amber-50/20'>$1</blockquote>");
-    // Bullet lists (- text)
-    html = html.replace(/^- (.*?)$/gm, "<li class='list-disc ml-6 text-slate-700 my-1'>$1</li>");
-    // Links ([text](url))
-    html = html.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-indigo-600 underline hover:text-indigo-800' target='_blank' rel='noopener noreferrer'>$1</a>");
-    
-    // Parse tables (| col1 | col2 |)
-    const lines = html.split("\n");
-    let inTable = false;
-    let tableHtml = "";
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (line.startsWith("|") && line.endsWith("|")) {
-        if (!inTable) {
-          inTable = true;
-          tableHtml += "<table class='min-w-full border-collapse border border-slate-200 my-4 text-sm'>";
-        }
-        const cells = line.split("|").map(c => c.trim()).filter((_, index, arr) => index > 0 && index < arr.length - 1);
-
-        // Skip separator row (e.g. |---|---|)
-        if (cells.every(c => c.startsWith("-"))) {
-          continue;
-        }
-
-        tableHtml += "<tr class='border-b border-slate-200 hover:bg-slate-50'>";
-        cells.forEach(c => {
-          tableHtml += `<td class='border border-slate-200 px-3 py-2'>${c}</td>`;
-        });
-        tableHtml += "</tr>";
-      } else {
-        if (inTable) {
-          inTable = false;
-          tableHtml += "</table>";
-          lines[i - 1] = tableHtml;
-          tableHtml = "";
-        }
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [2, 3] },
+        bulletList: {},
+        orderedList: {},
+        blockquote: {},
+        code: false,
+        codeBlock: false,
+      }),
+      Underline,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: { class: "text-indigo-600 underline cursor-pointer" },
+      }),
+      Placeholder.configure({
+        placeholder: placeholder || "Nhập chi tiết nội dung ở đây. Hỗ trợ Ctrl+B (đậm), Ctrl+I (nghiêng), Ctrl+U (gạch chân)...",
+      }),
+    ],
+    content: initialContent,
+    editable: !disabled,
+    onUpdate({ editor }) {
+      if (onChange) {
+        onChange(editor.getHTML());
       }
-    }
-    if (inTable) {
-      tableHtml += "</table>";
-      lines[lines.length - 1] = tableHtml;
-    }
+    },
+  });
 
-    html = lines.join("\n");
-    html = html.replace(/\n/g, "<br />");
+  // Sync external value changes into editor (e.g. AI fill)
+  useEffect(() => {
+    if (!editor) return;
+    const currentHtml = editor.getHTML();
+    const newVal = value ?? "";
+    // Only update if meaningfully different to avoid cursor jumps
+    if (newVal !== currentHtml && newVal !== "<p></p>") {
+      editor.commands.setContent(newVal, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, editor]);
 
-    return html;
+  useEffect(() => {
+    if (!editor) return;
+    editor.setEditable(!disabled);
+  }, [disabled, editor]);
+
+  function ToolbarBtn({
+    onClick,
+    active,
+    title,
+    children,
+  }: {
+    onClick: () => void;
+    active?: boolean;
+    title: string;
+    children: React.ReactNode;
+  }) {
+    return (
+      <button
+        type="button"
+        title={title}
+        onClick={onClick}
+        className={`flex items-center justify-center rounded p-1.5 text-slate-600 transition-all hover:bg-slate-200 ${
+          active ? "bg-slate-900 text-white hover:bg-slate-800" : ""
+        }`}
+      >
+        {children}
+      </button>
+    );
+  }
+
+
+  const handleLinkInsert = () => {
+    if (!editor) return;
+    const url = window.prompt("Nhập URL liên kết:");
+    if (url) {
+      editor.chain().focus().setLink({ href: url }).run();
+    }
   };
 
-  const currentValue = value || "";
+  if (!editor) return null;
 
   return (
-    <div className="surface-card overflow-hidden rounded-xl border border-[var(--admin-border)] shadow-sm">
-      {/* Header controls */}
-      <div className="flex items-center justify-between border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-3 py-2">
-        <div className="flex gap-1">
-          <button
-            type="button"
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              activeMode === "write"
-                ? "bg-slate-900 text-white"
-                : "bg-transparent text-slate-600 hover:bg-slate-100"
-            }`}
-            onClick={() => setActiveMode("write")}
-          >
-            Soạn thảo (Markdown)
-          </button>
-          <button
-            type="button"
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              activeMode === "preview"
-                ? "bg-slate-900 text-white"
-                : "bg-transparent text-slate-600 hover:bg-slate-100"
-            }`}
-            onClick={() => setActiveMode("preview")}
-          >
-            Xem trước nội dung
-          </button>
-        </div>
+    <div className={`tiptap-editor-wrapper overflow-hidden rounded-xl border border-[var(--admin-border)] shadow-sm bg-white ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-[var(--admin-border)] bg-slate-50/80 p-2">
+        {/* History */}
+        <ToolbarBtn title="Hoàn tác (Ctrl+Z)" onClick={() => editor.chain().focus().undo().run()}>
+          <Undo2 className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn title="Làm lại (Ctrl+Y)" onClick={() => editor.chain().focus().redo().run()}>
+          <Redo2 className="size-3.5" />
+        </ToolbarBtn>
 
-        <span className="text-[11px] font-semibold text-slate-400">
-          {activeMode === "write" ? "Định dạng bằng mã Markdown" : "Chế độ xem trước HTML"}
-        </span>
+        <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
+
+        {/* Text format */}
+        <ToolbarBtn
+          title="In đậm (Ctrl+B)"
+          active={editor.isActive("bold")}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
+          <Bold className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="In nghiêng (Ctrl+I)"
+          active={editor.isActive("italic")}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
+          <Italic className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Gạch chân (Ctrl+U)"
+          active={editor.isActive("underline")}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+        >
+          <UnderlineIcon className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Gạch ngang"
+          active={editor.isActive("strike")}
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+        >
+          <Strikethrough className="size-3.5" />
+        </ToolbarBtn>
+
+        <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
+
+        {/* Headings */}
+        <ToolbarBtn
+          title="Tiêu đề H2"
+          active={editor.isActive("heading", { level: 2 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        >
+          <Heading2 className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Tiêu đề H3"
+          active={editor.isActive("heading", { level: 3 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        >
+          <Heading3 className="size-3.5" />
+        </ToolbarBtn>
+
+        <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
+
+        {/* Lists */}
+        <ToolbarBtn
+          title="Danh sách chấm"
+          active={editor.isActive("bulletList")}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        >
+          <List className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Danh sách số"
+          active={editor.isActive("orderedList")}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        >
+          <ListOrdered className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Trích dẫn"
+          active={editor.isActive("blockquote")}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
+          <Quote className="size-3.5" />
+        </ToolbarBtn>
+
+        <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
+
+        {/* Alignment */}
+        <ToolbarBtn
+          title="Căn trái"
+          active={editor.isActive({ textAlign: "left" })}
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        >
+          <AlignLeft className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Căn giữa"
+          active={editor.isActive({ textAlign: "center" })}
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        >
+          <AlignCenter className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Căn phải"
+          active={editor.isActive({ textAlign: "right" })}
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        >
+          <AlignRight className="size-3.5" />
+        </ToolbarBtn>
+
+        <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
+
+        {/* Link */}
+        <ToolbarBtn
+          title="Chèn liên kết"
+          active={editor.isActive("link")}
+          onClick={handleLinkInsert}
+        >
+          <Link2 className="size-3.5" />
+        </ToolbarBtn>
+
+        <div className="ml-auto flex items-center">
+          <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded">
+            WYSIWYG Editor
+          </span>
+        </div>
       </div>
 
-      {activeMode === "write" ? (
-        <>
-          {/* Formatting Toolbar */}
-          <div className="flex flex-wrap gap-1 border-b border-[var(--admin-border)] bg-slate-50/50 p-2">
-            <button
-              type="button"
-              title="In đậm (Bold)"
-              className="px-3 py-1.5 text-xs font-extrabold hover:bg-slate-200 rounded text-slate-700 min-w-8"
-              onClick={() => insertMarkdown("**", "**")}
-            >
-              B
-            </button>
-            <button
-              type="button"
-              title="In nghiêng (Italic)"
-              className="px-3 py-1.5 text-xs font-bold italic hover:bg-slate-200 rounded text-slate-700 min-w-8"
-              onClick={() => insertMarkdown("*", "*")}
-            >
-              I
-            </button>
-            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
-            <button
-              type="button"
-              title="Tiêu đề lớn 2 (H2)"
-              className="px-2.5 py-1.5 text-xs font-bold hover:bg-slate-200 rounded text-slate-700"
-              onClick={() => insertMarkdown("\n## ", "\n")}
-            >
-              H2
-            </button>
-            <button
-              type="button"
-              title="Tiêu đề phụ 3 (H3)"
-              className="px-2.5 py-1.5 text-xs font-bold hover:bg-slate-200 rounded text-slate-700"
-              onClick={() => insertMarkdown("\n### ", "\n")}
-            >
-              H3
-            </button>
-            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
-            <button
-              type="button"
-              title="Danh sách (Bullet list)"
-              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-bold"
-              onClick={() => insertMarkdown("\n- ", "\n")}
-            >
-              • Danh sách
-            </button>
-            <button
-              type="button"
-              title="Trích dẫn (Quote)"
-              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-bold"
-              onClick={() => insertMarkdown("\n> ", "\n")}
-            >
-              ” Trích dẫn
-            </button>
-            <div className="w-px h-5 bg-slate-200 self-center mx-1" />
-            <button
-              type="button"
-              title="Liên kết (Link)"
-              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-semibold"
-              onClick={() => insertMarkdown("[Tên liên kết](", ")")}
-            >
-              🔗 Liên kết
-            </button>
-            <button
-              type="button"
-              title="Chèn ảnh (Image)"
-              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 flex items-center gap-1 font-semibold"
-              onClick={() => insertMarkdown("![Chú thích ảnh](", ")")}
-            >
-              🖼️ Ảnh
-            </button>
-            <button
-              type="button"
-              title="Chèn bảng (Table)"
-              className="px-2.5 py-1.5 text-xs hover:bg-slate-200 rounded text-slate-700 font-semibold"
-              onClick={() => insertMarkdown("\n| Cột 1 | Cột 2 |\n|---|---|\n| Giá trị 1 | Giá trị 2 |\n")}
-            >
-              📊 Bảng
-            </button>
-          </div>
-
-          <textarea
-            ref={textareaRef}
-            className="min-h-64 w-full resize-y bg-white p-4 text-sm leading-7 text-[var(--admin-text)] outline-none border-0 focus:ring-0"
-            defaultValue={value === undefined ? defaultValue : undefined}
-            value={value}
-            onChange={onChange ? (event) => onChange(event.target.value) : undefined}
-            placeholder={placeholder || "Nhập chi tiết nội dung bài viết..."}
-          />
-        </>
-      ) : (
-        <div
-          className="min-h-64 w-full bg-white p-6 overflow-y-auto max-h-[500px] text-sm leading-7 text-slate-800"
-          dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(currentValue) }}
-        />
-      )}
+      {/* Editor content area */}
+      <EditorContent
+        editor={editor}
+        className="min-h-64 max-h-[600px] overflow-y-auto bg-white"
+      />
     </div>
   );
 }
@@ -587,9 +601,12 @@ export function MediaUploadPanel() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState<{ url: string; id: string } | null>(null);
-  const [library, setLibrary] = useState<Array<{ id: string; public_url: string; format?: string }>>([]);
+  const [library, setLibrary] = useState<Array<{ id: string; public_url: string; format?: string; original_filename?: string }>>([]);
   const [libLoading, setLibLoading] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 24;
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function loadLibrary() {
@@ -613,6 +630,24 @@ export function MediaUploadPanel() {
     loadLibrary();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const filteredLibrary = library.filter((asset) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      (asset.original_filename ?? "").toLowerCase().includes(term) ||
+      (asset.public_url ?? "").toLowerCase().includes(term) ||
+      (asset.format ?? "").toLowerCase().includes(term)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredLibrary.length / pageSize);
+  const paginatedLibrary = filteredLibrary.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
 
   async function handleUpload(file: File) {
@@ -809,45 +844,92 @@ export function MediaUploadPanel() {
       </div>
 
       {/* Library */}
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-slate-700">Thư viện media ({library.length})</h3>
-          <button
-            type="button"
-            className="text-xs text-slate-400 hover:text-primary"
-            onClick={loadLibrary}
-            disabled={libLoading}
-          >
-            {libLoading ? "Đang tải..." : "Làm mới"}
-          </button>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-3">
+          <h3 className="text-sm font-bold text-slate-700">
+            Thư viện media ({filteredLibrary.length} / {library.length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Tìm theo tên file, định dạng..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 max-w-xs"
+            />
+            <button
+              type="button"
+              className="text-xs text-slate-400 hover:text-primary whitespace-nowrap"
+              onClick={loadLibrary}
+              disabled={libLoading}
+            >
+              {libLoading ? "Đang tải..." : "Làm mới"}
+            </button>
+          </div>
         </div>
-        {library.length === 0 ? (
+        {filteredLibrary.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-400">
-            {libLoading ? "Đang tải thư viện..." : "Chưa có file nào được upload."}
+            {libLoading ? "Đang tải thư viện..." : "Không tìm thấy file nào khớp."}
           </p>
         ) : (
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
-            {library.map((asset) => (
-              <div
-                key={asset.id}
-                className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 cursor-pointer hover:border-primary transition"
-                onClick={() => {
-                  navigator.clipboard?.writeText(asset.public_url).catch(() => null);
-                }}
-                title={`Nhấn để copy URL: ${asset.public_url}`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={asset.public_url}
-                  alt=""
-                  className="h-full w-full object-cover transition group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 flex items-end bg-black/0 opacity-0 transition group-hover:opacity-100 group-hover:bg-black/30">
-                  <span className="w-full bg-black/60 px-1 py-0.5 text-center text-[9px] font-bold text-white">Copy URL</span>
+          <div className="space-y-4">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+              {paginatedLibrary.map((asset) => (
+                <div
+                  key={asset.id}
+                  className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200 bg-slate-100 cursor-pointer hover:border-primary transition"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(asset.public_url).catch(() => null);
+                  }}
+                  title={`Nhấn để copy URL: ${asset.public_url}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={asset.public_url}
+                    alt=""
+                    className="h-full w-full object-cover transition group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  
+                  {/* Delete Button */}
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation(); // prevent copying URL
+                      if (confirm("Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?")) {
+                        try {
+                          const res = await fetch(`/api/admin/media/${asset.id}`, {
+                            method: "DELETE",
+                          });
+                          if (res.ok) {
+                            loadLibrary();
+                          } else {
+                            const err = await res.json().catch(() => ({}));
+                            alert("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                          }
+                        } catch (err) {
+                          alert("Lỗi kết nối khi xóa tệp: " + String(err));
+                        }
+                      }
+                    }}
+                    className="absolute right-1 top-1 z-10 hidden rounded bg-red-600 p-1 text-white hover:bg-red-700 group-hover:block transition shadow-sm"
+                    title="Xóa tệp"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+
+                  <div className="absolute inset-0 flex items-end bg-black/0 opacity-0 transition group-hover:opacity-100 group-hover:bg-black/30">
+                    <span className="w-full bg-black/60 px-1 py-0.5 text-center text-[9px] font-bold text-white">Copy URL</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

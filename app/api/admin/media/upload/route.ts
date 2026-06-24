@@ -93,8 +93,9 @@ export async function POST(request: NextRequest) {
     .from("media_assets")
     .insert({
       storage_provider: "cloudinary",
-      public_id,
+      cloudinary_public_id: public_id,
       public_url: secure_url,
+      resource_type: (resource_type === "video" ? "video" : "image") as "image" | "video",
       size_bytes: bytes ?? 0,
       mime_type: mimeType,
       format: normalizedFormat,

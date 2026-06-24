@@ -63,7 +63,7 @@ async function getOrCreateMediaAssetId(
       resource_type: "image",
       mime_type: "image/jpeg",
       format: "jpg",
-      size_bytes: 0,
+      size_bytes: 1,
       uploaded_by: userId,
     })
     .select("id")
@@ -421,6 +421,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
 export async function createAdminProduct(data: ProductInput): Promise<{ success: boolean; id?: string; error?: string }> {
   const user = await requireEditorOrAdmin();
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  console.log("MUTATIONS: createAdminProduct: useMock =", useMock, "process.env.NEXT_PUBLIC_USE_MOCK_DATA =", process.env.NEXT_PUBLIC_USE_MOCK_DATA);
 
   if (useMock) {
     const mockId = `prod-${Date.now()}`;
@@ -488,13 +489,16 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
   try {
     const supabase = await createClient();
     
-    // Insert products row
+    const requestedStatus = data.status;
+    const isPublishing = requestedStatus === "published";
+
+    // Insert products row as draft first to avoid require_publish_translations trigger abort
     const { data: product, error: productError } = await supabase
       .from("products")
       .insert({
         category_id: data.category_id,
         reference_code: data.reference_code,
-        status: data.status,
+        status: "draft",
         price_min: data.price_min,
         price_max: data.price_max,
         currency: data.currency,
@@ -509,7 +513,7 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
         promo_price_max: data.promo_price_max,
         created_by: user.id,
         updated_by: user.id,
-        published_at: data.status === "published" ? new Date().toISOString() : null,
+        published_at: null,
       })
       .select()
       .single();
@@ -599,6 +603,22 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
       }
       if (galleryInserts.length > 0) {
         await supabase.from("product_media").insert(galleryInserts);
+      }
+    }
+
+    // Now update status to published if requested
+    if (isPublishing) {
+      const { error: publishError } = await supabase
+        .from("products")
+        .update({
+          status: "published",
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", product.id);
+
+      if (publishError) {
+        await supabase.from("products").delete().eq("id", product.id);
+        return { success: false, error: publishError.message };
       }
     }
 
@@ -860,6 +880,12 @@ export async function deleteAdminProduct(id: string): Promise<{ success: boolean
   }
 }
 
+function mapGroupKeyToDb(groupKey: string | null | undefined): any {
+  if (groupKey === "wood") return "wooden_furniture";
+  if (groupKey === "sanitary") return "sanitary_equipment";
+  return groupKey || null;
+}
+
 export async function createAdminCategory(data: CategoryInput): Promise<{ success: boolean; id?: string; error?: string }> {
   const user = await requireEditorOrAdmin();
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
@@ -885,18 +911,21 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
     
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
 
-    // Insert product_categories
+    const requestedStatus = data.status;
+    const isPublishing = requestedStatus === "published";
+
+    // Insert product_categories as draft first to avoid require_publish_translations trigger abort
     const { data: cat, error: catError } = await supabase
       .from("product_categories")
       .insert({
         parent_id: data.parent_id || null,
-        group_key: data.group_key || null,
+        group_key: mapGroupKeyToDb(data.group_key),
         image_media_id: coverMediaId,
-        status: data.status,
+        status: "draft",
         sort_order: data.sort_order,
         created_by: user.id,
         updated_by: user.id,
-        published_at: data.status === "published" ? new Date().toISOString() : null,
+        published_at: null,
       })
       .select()
       .single();
@@ -937,6 +966,22 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
       return { success: false, error: transError.message };
     }
 
+    // Now update status to published if requested
+    if (isPublishing) {
+      const { error: publishError } = await supabase
+        .from("product_categories")
+        .update({
+          status: "published",
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", cat.id);
+
+      if (publishError) {
+        await supabase.from("product_categories").delete().eq("id", cat.id);
+        return { success: false, error: publishError.message };
+      }
+    }
+
     // Write audit log
     await writeAuditLog(supabase, {
       actorId: user.id,
@@ -953,11 +998,44 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
   }
 }
 
+function checkCircularCategory(
+  id: string,
+  parentId: string,
+  categories: { id: string; parent_id: string | null }[]
+): boolean {
+  let currentParentId: string | null = parentId;
+  const visited = new Set<string>();
+  visited.add(id);
+
+  while (currentParentId) {
+    if (currentParentId === id) {
+      return true;
+    }
+    if (visited.has(currentParentId)) {
+      break;
+    }
+    visited.add(currentParentId);
+    const parent = categories.find((c) => c.id === currentParentId);
+    currentParentId = parent?.parent_id || null;
+  }
+  return false;
+}
+
 export async function updateAdminCategory(id: string, data: CategoryInput): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
+  if (data.parent_id && data.parent_id === id) {
+    return { success: false, error: "Circular parent-child relationship detected" };
+  }
+
   if (useMock) {
+    if (data.parent_id) {
+      const simplified = mockCategories.map((c) => ({ id: c.id, parent_id: c.parent_id }));
+      if (checkCircularCategory(id, data.parent_id, simplified)) {
+        return { success: false, error: "Circular parent-child relationship detected" };
+      }
+    }
     const idx = mockCategories.findIndex((c) => c.id === id);
     if (idx !== -1) {
       mockCategories[idx] = {
@@ -979,6 +1057,19 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
   try {
     const supabase = await createClient();
     
+    if (data.parent_id) {
+      const { data: allCategories, error: fetchError } = await supabase
+        .from("product_categories")
+        .select("id, parent_id")
+        .is("deleted_at", null);
+
+      if (!fetchError && allCategories) {
+        if (checkCircularCategory(id, data.parent_id, allCategories)) {
+          return { success: false, error: "Circular parent-child relationship detected" };
+        }
+      }
+    }
+
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
     
     // Update product_categories
@@ -986,7 +1077,7 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
       .from("product_categories")
       .update({
         parent_id: data.parent_id || null,
-        group_key: data.group_key || null,
+        group_key: mapGroupKeyToDb(data.group_key),
         image_media_id: coverMediaId,
         status: data.status,
         sort_order: data.sort_order,

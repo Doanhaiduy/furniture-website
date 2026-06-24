@@ -2,6 +2,7 @@
 -- Date: 20260617
 -- Purpose: Fix SQL logic error where p.group_key should be pc.group_key
 -- Issue: Column p.group_key does not exist, should use pc.group_key from product_categories table
+DROP FUNCTION IF EXISTS public.public_products(text, text, text, text, numeric, numeric, jsonb, boolean, integer, integer, text, boolean);
 
 CREATE OR REPLACE FUNCTION public_products(
   p_locale          text      DEFAULT 'vi',

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { rateLimitCheck } from "@/lib/quotes/rate-limit";
-import { quoteRequestSchema } from "@/lib/validations/quote";
+import { getQuoteRequestSchema } from "@/lib/validations/quote";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getQuoteRecipients } from "@/lib/quotes/recipients";
 import { resend } from "@/lib/resend/client";
@@ -27,7 +27,8 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => null);
-  const parsed = quoteRequestSchema.safeParse(body);
+  const locale = body?.locale === "en" ? "en" : "vi";
+  const parsed = getQuoteRequestSchema(locale).safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -113,6 +114,17 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+
+  // Insert initial event into quote_request_events for audit trail
+  await supabase
+    .from("quote_request_events")
+    .insert({
+      quote_request_id: quote.id,
+      actor_id: null,
+      old_status: null,
+      new_status: "new",
+      note: "Yêu cầu báo giá mới được gửi từ trang liên hệ.",
+    });
 
   const recipients = await getQuoteRecipients();
   const notificationRows = recipients.map((r) => ({

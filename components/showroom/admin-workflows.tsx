@@ -71,6 +71,63 @@ type ContentKind = "product" | "blog" | "category" | "showroom";
 type EntityKind = "category" | "showroom" | "user" | "media" | "promotion" | "brand";
 type SettingsTab = "identity" | "contact" | "seo" | "integrations" | "sections";
 
+// --- Utilities ---
+
+/** Slugify function that handles Vietnamese diacritics */
+function slugify(text: string): string {
+  const vi = "àáâãäåèéêëìíîïòóôõöùúûüýăđĩũơƠƯảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝĂĐĨŨƠảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ";
+  const en = "aaaaaaeeeeiiiioooooouuuuyadiuoouaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy aaaaaeeeeiiiioooooouuuuyadiuooaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy";
+  let result = text.toLowerCase();
+  for (let i = 0; i < vi.length; i++) {
+    result = result.split(vi[i]).join(en[i]);
+  }
+  return result
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Format number with Vietnamese thousand separators */
+function formatVnNumber(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (!digits) return "";
+  return Number(digits).toLocaleString("vi-VN");
+}
+
+/** Read Vietnamese number as words (supports up to hundreds of billions) */
+function readVnNumber(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (!digits) return "";
+  const n = parseInt(digits, 10);
+  if (isNaN(n) || n <= 0) return "";
+  const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+  const readGroup = (num: number): string => {
+    const h = Math.floor(num / 100);
+    const t = Math.floor((num % 100) / 10);
+    const u = num % 10;
+    let result = "";
+    if (h > 0) result += units[h] + " trăm ";
+    if (t === 0 && u > 0 && h > 0) result += "linh " + units[u];
+    else if (t === 1) result += "mười " + (u > 0 ? units[u] : "");
+    else if (t > 1) result += units[t] + " mươi " + (u > 0 ? units[u] : "");
+    else result += units[u] ?? "";
+    return result.trim();
+  };
+  const ty = Math.floor(n / 1_000_000_000);
+  const trieu = Math.floor((n % 1_000_000_000) / 1_000_000);
+  const ngan = Math.floor((n % 1_000_000) / 1_000);
+  const don = n % 1_000;
+  const parts: string[] = [];
+  if (ty > 0) parts.push(readGroup(ty) + " tỷ");
+  if (trieu > 0) parts.push(readGroup(trieu) + " triệu");
+  if (ngan > 0) parts.push(readGroup(ngan) + " nghìn");
+  if (don > 0) parts.push(readGroup(don));
+  if (parts.length === 0) return "";
+  const reading = parts.join(" ").trim();
+  return reading.charAt(0).toUpperCase() + reading.slice(1) + " đồng";
+}
+
 const productReadiness = [
   { label: "Đã hoàn tất trường nội dung gốc tiếng Việt", state: "ready" },
   { label: "Đã bật bản dịch tiếng Anh hoặc xác nhận không cần dịch", state: "warning" },
@@ -321,8 +378,8 @@ export function EntityCreateForm({ kind, idOrSlug }: { kind: EntityKind; idOrSlu
 }
 
 function UserCreateEntityForm() {
-  const [fullName, setFullName] = useState("Nguyễn Minh Quân");
-  const [email, setEmail] = useState("editor@phuongdong.vn");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("editor");
   const [isActive, setIsActive] = useState(true);
@@ -1213,7 +1270,7 @@ export function SettingsOperationsPanel() {
 
   const [resendKey, setResendKey] = useState("re_123456789abcdef");
   const [cloudinaryPreset, setCloudinaryPreset] = useState("phuongdong_unsigned_preset");
-  const [openaiKey, setOpenaiKey] = useState("sk-proj-••••••••••••••••");
+  const [geminiKey, setGeminiKey] = useState("AIzaSy••••••••••••••••");
   const [slaHours, setSlaHours] = useState("24");
 
   // Site Sections State
@@ -1317,7 +1374,7 @@ export function SettingsOperationsPanel() {
         if (data.seoDescEn !== undefined) setSeoDescEn(data.seoDescEn);
         if (data.resendKey !== undefined) setResendKey(data.resendKey);
         if (data.cloudinaryPreset !== undefined) setCloudinaryPreset(data.cloudinaryPreset);
-        if (data.openaiKey !== undefined) setOpenaiKey(data.openaiKey);
+        if (data.geminiKey !== undefined) setGeminiKey(data.geminiKey);
         if (data.slaHours !== undefined) setSlaHours(data.slaHours);
         if (data.heroHeadlineVi !== undefined) setHeroHeadlineVi(data.heroHeadlineVi);
         if (data.heroHeadlineEn !== undefined) setHeroHeadlineEn(data.heroHeadlineEn);
@@ -1407,7 +1464,7 @@ export function SettingsOperationsPanel() {
         seoDescEn,
         resendKey,
         cloudinaryPreset,
-        openaiKey, // Sẽ được API Route giải thích là gemini_api_key
+        geminiKey,
         slaHours,
         heroHeadlineVi,
         heroHeadlineEn,
@@ -1482,7 +1539,7 @@ export function SettingsOperationsPanel() {
         if (getRes.ok) {
           const freshData = await getRes.json();
           if (freshData.resendKey !== undefined) setResendKey(freshData.resendKey);
-          if (freshData.openaiKey !== undefined) setOpenaiKey(freshData.openaiKey);
+          if (freshData.geminiKey !== undefined) setGeminiKey(freshData.geminiKey);
         }
       } else {
         alert("Lỗi lưu cấu hình: " + (resData.error || "Không rõ nguyên nhân"));
@@ -1517,7 +1574,7 @@ export function SettingsOperationsPanel() {
       setSeoDescEn(data.seoDescEn || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
       setResendKey(data.resendKey || "re_123456789abcdef");
       setCloudinaryPreset(data.cloudinaryPreset || "phuongdong_unsigned_preset");
-      setOpenaiKey(data.openaiKey || "sk-proj-••••••••••••••••");
+      setGeminiKey(data.geminiKey || "AIzaSy••••••••••••••••");
       setSlaHours(data.slaHours || "24");
       
       setHeroHeadlineVi(data.heroHeadlineVi || settingsHomepageDefaults.heroHeadlineVi);
@@ -1906,6 +1963,7 @@ export function SettingsOperationsPanel() {
                   name="resend-key" 
                   value={resendKey} 
                   onChange={(val) => { setResendKey(val); markDirty(); }} 
+                  inputType="password"
                 />
                 <AdminField 
                   label="Preset tải lên Cloudinary" 
@@ -1917,10 +1975,11 @@ export function SettingsOperationsPanel() {
               <div className="grid gap-4 md:grid-cols-2">
                 <AdminField 
                   label="Khóa API Google Gemini" 
-                  name="openai-key" 
-                  value={openaiKey} 
-                  onChange={(val) => { setOpenaiKey(val); markDirty(); }} 
+                  name="gemini-key" 
+                  value={geminiKey} 
+                  onChange={(val) => { setGeminiKey(val); markDirty(); }} 
                   placeholder="AIzaSy..." 
+                  inputType="password"
                 />
                 <AdminField 
                   label="Giới hạn SLA phản hồi (giờ)" 
@@ -2734,6 +2793,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isEdit) {
@@ -2764,8 +2824,9 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     e.preventDefault();
     setFormLoading(true);
     setFormError("");
+    setFieldErrors({});
+
     try {
-      const { createAdminBrand, updateAdminBrand } = await import("@/lib/supabase/brands-mutations");
       const brandData = {
         name_vi: nameVi,
         name_en: nameEn,
@@ -2776,6 +2837,24 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         sort_order: Number(sortOrder),
         status,
       };
+
+      const { brandSchema } = await import("@/lib/validations/admin");
+      const validation = brandSchema.safeParse(brandData);
+      if (!validation.success) {
+        const errors: Record<string, string> = {};
+        validation.error.issues.forEach((issue) => {
+          const path = issue.path[0];
+          if (typeof path === "string") {
+            errors[path] = issue.message;
+          }
+        });
+        setFieldErrors(errors);
+        setFormError("Vui lòng sửa các lỗi nhập liệu bên dưới.");
+        setFormLoading(false);
+        return;
+      }
+
+      const { createAdminBrand, updateAdminBrand } = await import("@/lib/supabase/brands-mutations");
 
       let res;
       if (isEdit) {
@@ -2807,38 +2886,65 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         />
         {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
         <div className="mt-5 grid gap-4">
-          <label className="grid gap-2">
-            <span className="label-pd">Tên thương hiệu (VI) *</span>
-            <input className="input-pd bg-white" type="text" value={nameVi} onChange={(e) => setNameVi(e.target.value)} required />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Tên thương hiệu (EN)</span>
-            <input className="input-pd bg-white" type="text" value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Mô tả tiếng Việt</span>
-            <textarea className="input-pd bg-white min-h-20" value={descriptionVi} onChange={(e) => setDescriptionVi(e.target.value)} />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Mô tả tiếng Anh</span>
-            <textarea className="input-pd bg-white min-h-20" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Xuất xứ</span>
-            <input className="input-pd bg-white" type="text" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Ví dụ: Đức, Mỹ, Nhật Bản" />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Đường dẫn Logo (Cloudinary URL hoặc ID)</span>
-            <input className="input-pd bg-white" type="text" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://res.cloudinary.com/..." />
-          </label>
+          <AdminField
+            label="Tên thương hiệu (VI) *"
+            name="name_vi"
+            value={nameVi}
+            onChange={setNameVi}
+            error={fieldErrors.name_vi}
+          />
+          <AdminField
+            label="Tên thương hiệu (EN)"
+            name="name_en"
+            value={nameEn}
+            onChange={setNameEn}
+            error={fieldErrors.name_en}
+          />
+          <AdminField
+            label="Mô tả tiếng Việt"
+            name="description_vi"
+            value={descriptionVi}
+            onChange={setDescriptionVi}
+            multiline
+            error={fieldErrors.description_vi}
+          />
+          <AdminField
+            label="Mô tả tiếng Anh"
+            name="description_en"
+            value={descriptionEn}
+            onChange={setDescriptionEn}
+            multiline
+            error={fieldErrors.description_en}
+          />
+          <AdminField
+            label="Xuất xứ"
+            name="origin"
+            value={origin}
+            onChange={setOrigin}
+            placeholder="Ví dụ: Đức, Mỹ, Nhật Bản"
+            error={fieldErrors.origin}
+          />
+          <div className="grid gap-2">
+            <span className="label-pd">Logo thương hiệu</span>
+            <ImageUploadDropzone
+              value={logoUrl}
+              onChange={(url) => setLogoUrl(url)}
+              label="Tải logo thương hiệu lên"
+            />
+            {fieldErrors.logo_url && <span className="text-red-600 text-xs font-medium">{fieldErrors.logo_url}</span>}
+          </div>
         </div>
       </section>
       <div className="space-y-5">
         <section className="surface-soft p-4">
-          <label className="grid gap-2">
-            <span className="label-pd">Thứ tự hiển thị</span>
-            <input className="input-pd bg-white" type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
-          </label>
+          <AdminField
+            label="Thứ tự hiển thị"
+            name="sort_order"
+            inputType="number"
+            value={String(sortOrder)}
+            onChange={(val) => setSortOrder(Number(val))}
+            error={fieldErrors.sort_order}
+          />
           <label className="grid gap-2 mt-4">
             <span className="label-pd">Trạng thái</span>
             <PremiumSelect
@@ -2879,10 +2985,13 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [comboPrice, setComboPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  const [startAt, setStartAt] = useState("");
+  const [endAt, setEndAt] = useState("");
   const [itemsList, setItemsList] = useState<string[]>([""]);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // N-N products states
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -2910,6 +3019,8 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setComboPrice(p.combo_price ? String(p.combo_price) : "");
             setOriginalPrice(p.original_price ? String(p.original_price) : "");
             setCoverImage(p.cover_image_url || p.cover_image || "");
+            setStartAt(p.start_at ? p.start_at.substring(0, 16) : "");
+            setEndAt(p.end_at ? p.end_at.substring(0, 16) : "");
             setItemsList(p.items && p.items.length > 0 ? p.items : [""]);
             setStatus(p.status || "draft");
 
@@ -2931,8 +3042,8 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     e.preventDefault();
     setFormLoading(true);
     setFormError("");
+    setFieldErrors({});
     try {
-      const { createAdminPromotion, updateAdminPromotion } = await import("@/lib/supabase/admin-queries");
       const promotionData = {
         code,
         discount_percentage: Number(discountPercentage),
@@ -2942,13 +3053,31 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         description_en: descriptionEn,
         cover_image: coverImage,
         combo_price: comboPrice ? Number(comboPrice) : null,
-        start_at: null,
-        end_at: null,
+        start_at: startAt ? new Date(startAt).toISOString() : null,
+        end_at: endAt ? new Date(endAt).toISOString() : null,
         original_price: originalPrice ? Number(originalPrice) : null,
         items: itemsList.filter(i => i.trim() !== ""),
         status,
         productIds: selectedProductIds,
       };
+
+      const { promotionSchema } = await import("@/lib/validations/admin");
+      const validation = promotionSchema.safeParse(promotionData);
+      if (!validation.success) {
+        const errors: Record<string, string> = {};
+        validation.error.issues.forEach((issue) => {
+          const path = issue.path[0];
+          if (typeof path === "string") {
+            errors[path] = issue.message;
+          }
+        });
+        setFieldErrors(errors);
+        setFormError("Vui lòng sửa các lỗi nhập liệu bên dưới.");
+        setFormLoading(false);
+        return;
+      }
+
+      const { createAdminPromotion, updateAdminPromotion } = await import("@/lib/supabase/admin-queries");
 
       let res;
       if (isEdit) {
@@ -3018,47 +3147,106 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
         <div className="mt-5 grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="label-pd">Mã khuyến mãi *</span>
-              <input className="input-pd bg-white" type="text" value={code} onChange={(e) => setCode(e.target.value)} required placeholder="Ví dụ: VALENTINE-COMBO" />
-            </label>
-            <label className="grid gap-2">
-              <span className="label-pd">Phần trăm chiết khấu (%) *</span>
-              <input className="input-pd bg-white" type="number" min={0} max={100} value={discountPercentage} onChange={(e) => setDiscountPercentage(Number(e.target.value))} required />
-            </label>
+            <AdminField
+              label="Mã khuyến mãi *"
+              name="code"
+              value={code}
+              onChange={setCode}
+              error={fieldErrors.code}
+              placeholder="Ví dụ: VALENTINE-COMBO"
+            />
+            <AdminField
+              label="Phần trăm chiết khấu (%) *"
+              name="discount_percentage"
+              inputType="number"
+              value={String(discountPercentage)}
+              onChange={(val) => setDiscountPercentage(Number(val))}
+              error={fieldErrors.discount_percentage}
+            />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2">
-              <span className="label-pd">Tiêu đề (VI) *</span>
-              <input className="input-pd bg-white" type="text" value={titleVi} onChange={(e) => setTitleVi(e.target.value)} required />
-            </label>
-            <label className="grid gap-2">
-              <span className="label-pd">Tiêu đề (EN)</span>
-              <input className="input-pd bg-white" type="text" value={titleEn} onChange={(e) => setTitleEn(e.target.value)} />
-            </label>
+            <AdminField
+              label="Tiêu đề (VI) *"
+              name="title_vi"
+              value={titleVi}
+              onChange={setTitleVi}
+              error={fieldErrors.title_vi}
+            />
+            <AdminField
+              label="Tiêu đề (EN)"
+              name="title_en"
+              value={titleEn}
+              onChange={setTitleEn}
+              error={fieldErrors.title_en}
+            />
           </div>
-          <label className="grid gap-2">
-            <span className="label-pd">Mô tả ngắn (VI)</span>
-            <textarea className="input-pd bg-white min-h-20" value={descriptionVi} onChange={(e) => setDescriptionVi(e.target.value)} />
-          </label>
-          <label className="grid gap-2">
-            <span className="label-pd">Mô tả ngắn (EN)</span>
-            <textarea className="input-pd bg-white min-h-20" value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
-          </label>
+          <AdminField
+            label="Mô tả ngắn (VI)"
+            name="description_vi"
+            value={descriptionVi}
+            onChange={setDescriptionVi}
+            multiline
+            error={fieldErrors.description_vi}
+          />
+          <AdminField
+            label="Mô tả ngắn (EN)"
+            name="description_en"
+            value={descriptionEn}
+            onChange={setDescriptionEn}
+            multiline
+            error={fieldErrors.description_en}
+          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField
+              label="Giá Combo (VND)"
+              name="combo_price"
+              inputType="number"
+              value={comboPrice}
+              onChange={setComboPrice}
+              error={fieldErrors.combo_price}
+            />
+            <AdminField
+              label="Giá gốc tổng cộng (VND)"
+              name="original_price"
+              inputType="number"
+              value={originalPrice}
+              onChange={setOriginalPrice}
+              error={fieldErrors.original_price}
+            />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
-              <span className="label-pd">Giá Combo (VND)</span>
-              <input className="input-pd bg-white" type="number" value={comboPrice} onChange={(e) => setComboPrice(e.target.value)} />
+              <span className="label-pd">Thời gian bắt đầu</span>
+              <input
+                className={`input-pd bg-white ${fieldErrors.start_at ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                type="datetime-local"
+                value={startAt}
+                onChange={(e) => setStartAt(e.target.value)}
+              />
+              {fieldErrors.start_at && <span className="text-red-600 text-xs font-medium -mt-1">{fieldErrors.start_at}</span>}
             </label>
             <label className="grid gap-2">
-              <span className="label-pd">Giá gốc tổng cộng (VND)</span>
-              <input className="input-pd bg-white" type="number" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} />
+              <span className="label-pd">Thời gian kết thúc</span>
+              <input
+                className={`input-pd bg-white ${fieldErrors.end_at ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+                type="datetime-local"
+                value={endAt}
+                onChange={(e) => setEndAt(e.target.value)}
+              />
+              {fieldErrors.end_at && <span className="text-red-600 text-xs font-medium -mt-1">{fieldErrors.end_at}</span>}
             </label>
           </div>
-          <label className="grid gap-2">
-            <span className="label-pd">Ảnh bìa Combo (Cloudinary URL)</span>
-            <input className="input-pd bg-white" type="text" value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://res.cloudinary.com/..." />
-          </label>
+
+          <div className="grid gap-2">
+            <span className="label-pd">Ảnh bìa Combo</span>
+            <ImageUploadDropzone
+              value={coverImage}
+              onChange={(url) => setCoverImage(url)}
+              label="Tải ảnh combo khuyến mãi lên"
+            />
+            {fieldErrors.cover_image && <span className="text-red-600 text-xs font-medium">{fieldErrors.cover_image}</span>}
+          </div>
 
           <div className="grid gap-2">
             <span className="label-pd">Các sản phẩm đi kèm trong Combo</span>
@@ -3172,6 +3360,8 @@ export function ContentEditorForm({
   mode?: "create" | "edit";
   idOrSlug?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isProduct = kind === "product";
 
   // --- Form State ---
@@ -3195,10 +3385,9 @@ export function ContentEditorForm({
   const [seoDescEn, setSeoDescEn] = useState(mode === "edit" ? "Short, specific search description with a quote request path." : "");
 
   // --- Product-specific fields ---
-  const [priceMin, setPriceMin] = useState("18000000");
-  const [priceMax, setPriceMax] = useState("42000000");
+  const [price, setPrice] = useState(""); // stored as raw digits string
   const [quoteOnly, setQuoteOnly] = useState(true);
-  const [category, setCategory] = useState("wood");
+  const [category, setCategory] = useState(isProduct ? "wood" : "wood-knowledge");
   const [brand, setBrand] = useState("Atelier Select");
   const [refCode, setRefCode] = useState("PD-SF-184");
   const [showroom, setShowroom] = useState("district-7");
@@ -3299,6 +3488,127 @@ export function ContentEditorForm({
     return "";
   });
 
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const editSlug = idOrSlug || searchParams.get("edit");
+
+  // Sync state with edit entity from DB
+  useEffect(() => {
+    if (mode === "edit" && editSlug) {
+      setIsLoadingEdit(true);
+      setLoadError("");
+      
+      if (isProduct) {
+        import("@/lib/supabase/mutations")
+          .then(async ({ getAdminProductByIdOrSlug }) => {
+            const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
+            const cats = await getAdminCategories();
+            const res = await getAdminProductByIdOrSlug(editSlug);
+            if (res.success && res.data) {
+              const p = res.data;
+              setViTitle(p.name_vi || "");
+              setEnTitle(p.name_en || "");
+              setViSlug(p.slug || "");
+              setEnSlug(p.slug || "");
+              setViSummary(p.summary_vi || "");
+              setEnSummary(p.summary_en || "");
+              setViBody(p.description_json_vi || "");
+              setEnBody(p.description_json_en || "");
+              setEnglishEnabled(!!p.name_en);
+              
+              setPrice(p.price_min ? String(p.price_min) : "");
+              setQuoteOnly(p.price_display_text_vi === "Liên hệ" || !p.price_min);
+              
+              const catSlug = cats.find(c => c.id === p.category_id)?.slug || "wood";
+              setCategory(catSlug);
+              setBrand(p.brand_id || "Atelier Select");
+              setRefCode(p.reference_code || "");
+              setFeatured(p.featured || false);
+              setStatus(p.status || "draft");
+              
+              setMaterialsVi(p.material_vi || "");
+              setMaterialsEn(p.material_en || "");
+              setDimensionsVi(p.dimension_display_text_vi || "");
+              setDimensionsEn(p.dimension_display_text_en || "");
+              
+              if (p.specifications) {
+                setSpecMaterialVi(p.specifications.material_vi || "");
+                setSpecMaterialEn(p.specifications.material_en || "");
+                setSpecFinishVi(p.specifications.finish_vi || "");
+                setSpecFinishEn(p.specifications.finish_en || "");
+                setSpecCareVi(p.specifications.care_vi || "");
+                setSpecCareEn(p.specifications.care_en || "");
+              }
+              
+              setCoverImage(p.cover_image || "");
+              setGalleryImages(p.gallery_images || []);
+              
+              setSeoTitleVi(p.seo_title_vi || "");
+              setSeoTitleEn(p.seo_title_en || "");
+              setSeoDescVi(p.seo_description_vi || "");
+              setSeoDescEn(p.seo_description_en || "");
+              
+              if (p.custom_attributes) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setCustomAttributes(p.custom_attributes.map((a: any, idx: number) => ({
+                  id: String(idx + 1),
+                  nameVi: a.name_vi,
+                  nameEn: a.name_en,
+                  valueVi: a.value_vi,
+                  valueEn: a.value_en
+                })));
+              }
+            } else {
+              setLoadError(res.error || "Không thể tải thông tin sản phẩm.");
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            setLoadError("Lỗi hệ thống khi tải sản phẩm.");
+          })
+          .finally(() => {
+            setIsLoadingEdit(false);
+          });
+      } else {
+        import("@/lib/supabase/mutations")
+          .then(async ({ getAdminBlogPostByIdOrSlug }) => {
+            const res = await getAdminBlogPostByIdOrSlug(editSlug);
+            if (res.success && res.data) {
+              const b = res.data;
+              setViTitle(b.title_vi || "");
+              setEnTitle(b.title_en || "");
+              setViSlug(b.slug || "");
+              setEnSlug(b.slug || "");
+              setViSummary(b.excerpt_vi || "");
+              setEnSummary(b.excerpt_en || "");
+              setViBody(b.body_json_vi || "");
+              setEnBody(b.body_json_en || "");
+              setEnglishEnabled(!!b.title_en);
+              
+              setCategory(b.category_id || "insights");
+              setFeatured(b.featured || false);
+              setStatus(b.status || "draft");
+              setCoverImage(b.cover_image || "");
+              
+              setSeoTitleVi(b.seo_title_vi || "");
+              setSeoTitleEn(b.seo_title_en || "");
+              setSeoDescVi(b.seo_description_vi || "");
+              setSeoDescEn(b.seo_description_en || "");
+            } else {
+              setLoadError(res.error || "Không thể tải thông tin bài viết.");
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            setLoadError("Lỗi hệ thống khi tải bài viết.");
+          })
+          .finally(() => {
+            setIsLoadingEdit(false);
+          });
+      }
+    }
+  }, [mode, editSlug, isProduct, kind]);
+
   useEffect(() => {
     if (mode === "create" && (viTitle || viSummary || viBody)) {
       const draftData = {
@@ -3320,6 +3630,22 @@ export function ContentEditorForm({
       localStorage.setItem(`${kind}_post_draft`, JSON.stringify(draftData));
     }
   }, [viTitle, enTitle, viSlug, enSlug, viSummary, enSummary, viBody, enBody, englishEnabled, seoTitleVi, seoTitleEn, seoDescVi, seoDescEn, mode, kind]);
+
+  // Auto-generate slug from Vietnamese title
+  useEffect(() => {
+    if (mode === "create" && viTitle) {
+      setViSlug(slugify(viTitle));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viTitle, mode]);
+
+  // Auto-generate slug from English title
+  useEffect(() => {
+    if (mode === "create" && enTitle) {
+      setEnSlug(slugify(enTitle));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enTitle, mode]);
 
   const restoreDraft = () => {
     const saved = localStorage.getItem(`${kind}_post_draft`);
@@ -3493,6 +3819,122 @@ export function ContentEditorForm({
     }, 1200);
   };
 
+  const handleSave = async (targetStatus?: "draft" | "published" | "archived") => {
+    const statusToSave = targetStatus || status;
+    try {
+      if (isProduct) {
+        const { createAdminProduct, updateAdminProduct } = await import("@/lib/supabase/mutations");
+        const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
+        const { getAdminBrands } = await import("@/lib/supabase/brands-mutations");
+
+        const cats = await getAdminCategories();
+        const catObj = cats.find(c => c.slug === category) || cats[0];
+        const categoryId = catObj ? catObj.id : null;
+
+        const brands = await getAdminBrands();
+        const brandObj = brands.find(b => b.id === brand || b.name.vi === brand) || brands[0];
+        const brandId = brandObj ? brandObj.id : null;
+
+        if (!categoryId) {
+          alert("Không tìm thấy danh mục hợp lệ.");
+          return;
+        }
+
+        const productData = {
+          reference_code: refCode,
+          slug: viSlug,
+          name_vi: viTitle,
+          name_en: enTitle || null,
+          summary_vi: viSummary,
+          summary_en: enSummary || null,
+          description_json_vi: viBody,
+          description_json_en: enBody || null,
+          material_vi: materialsVi || null,
+          material_en: materialsEn || null,
+          price_display_text_vi: quoteOnly ? "Liên hệ" : `${parseInt(price.replace(/[^0-9]/g, "") || "0").toLocaleString("vi-VN")} VND`,
+          price_display_text_en: quoteOnly ? "Contact" : `${parseInt(price.replace(/[^0-9]/g, "") || "0").toLocaleString("en-US")} VND`,
+          dimension_display_text_vi: dimensionsVi || null,
+          dimension_display_text_en: dimensionsEn || null,
+          category_id: categoryId,
+          price_min: price ? parseFloat(price.replace(/[^0-9]/g, "")) : null,
+          price_max: null,
+          currency: "VND",
+          brand_id: brandId,
+          brand_series: null,
+          featured: featured,
+          status: statusToSave,
+          cover_image: coverImage || null,
+          gallery_images: galleryImages || [],
+          specifications: {
+            material_vi: specMaterialVi || null,
+            material_en: specMaterialEn || null,
+            finish_vi: specFinishVi || null,
+            finish_en: specFinishEn || null,
+            care_vi: specCareVi || null,
+            care_en: specCareEn || null,
+          },
+          custom_attributes: customAttributes.map(attr => ({
+            name_vi: attr.nameVi,
+            name_en: attr.nameEn,
+            value_vi: attr.valueVi,
+            value_en: attr.valueEn,
+          })),
+          seo_title_vi: seoTitleVi || null,
+          seo_title_en: seoTitleEn || null,
+          seo_description_vi: seoDescVi || null,
+          seo_description_en: seoDescEn || null,
+          dimension_unit: "mm",
+        };
+
+        const res = mode === "create"
+          ? await createAdminProduct(productData)
+          : await updateAdminProduct(idOrSlug!, productData);
+
+        if (res.success) {
+          alert(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
+          router.push("/admin/products");
+          router.refresh();
+        } else {
+          alert("Lỗi khi lưu sản phẩm: " + res.error);
+        }
+      } else {
+        const { createAdminBlogPost, updateAdminBlogPost } = await import("@/lib/supabase/mutations");
+        const blogData = {
+          slug: viSlug,
+          title_vi: viTitle,
+          title_en: enTitle || null,
+          excerpt_vi: viSummary,
+          excerpt_en: enSummary || null,
+          body_json_vi: viBody,
+          body_json_en: enBody || null,
+          category_id: category || "insights",
+          status: statusToSave,
+          featured: featured,
+          cover_image: coverImage || null,
+          seo_title_vi: seoTitleVi || null,
+          seo_title_en: seoTitleEn || null,
+          seo_description_vi: seoDescVi || null,
+          seo_description_en: seoDescEn || null,
+        };
+
+        const res = mode === "create"
+          ? await createAdminBlogPost(blogData)
+          : await updateAdminBlogPost(idOrSlug!, blogData);
+
+        if (res.success) {
+          alert(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
+          router.push("/admin/blog");
+          router.refresh();
+        } else {
+          alert("Lỗi khi lưu bài viết: " + res.error);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi hệ thống: " + String(err));
+    }
+  };
+
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-5">
@@ -3599,10 +4041,8 @@ export function ContentEditorForm({
         {/* --- SHARED STRUCTURED DATA FIELDS (Excluded from tabs to avoid duplicates) --- */}
         {isProduct ? (
           <ProductBusinessFields
-            priceMin={priceMin}
-            setPriceMin={setPriceMin}
-            priceMax={priceMax}
-            setPriceMax={setPriceMax}
+            price={price}
+            setPrice={setPrice}
             quoteOnly={quoteOnly}
             setQuoteOnly={setQuoteOnly}
             category={category}
@@ -3642,7 +4082,14 @@ export function ContentEditorForm({
             setCustomAttributes={setCustomAttributes}
           />
         ) : (
-          <BlogBusinessFields />
+          <BlogBusinessFields
+            category={category}
+            setCategory={setCategory}
+            status={status}
+            setStatus={setStatus}
+            featured={featured}
+            setFeatured={setFeatured}
+          />
         )}
 
         {/* --- SEO FIELDSET --- */}
@@ -3663,12 +4110,14 @@ export function ContentEditorForm({
       </div>
 
       <aside className="space-y-5">
-        {isProduct && (
-          <section className="surface-soft p-4 space-y-4">
-          <h3 className="admin-section-title-pd">Ảnh bìa sản phẩm</h3>
-            <ImageUploadDropzone value={coverImage} onChange={setCoverImage} label="Tải ảnh sản phẩm lên" />
-          </section>
-        )}
+        <section className="surface-soft p-4 space-y-4">
+          <h3 className="admin-section-title-pd">Ảnh bìa {isProduct ? "sản phẩm" : "bài viết"}</h3>
+          <ImageUploadDropzone 
+            value={coverImage} 
+            onChange={setCoverImage} 
+            label={isProduct ? "Tải ảnh sản phẩm lên" : "Tải ảnh bài viết lên"} 
+          />
+        </section>
         <section className="surface-soft p-4">
           <button
             type="button"
@@ -3684,8 +4133,9 @@ export function ContentEditorForm({
           status={status}
           onStatusChange={setStatus}
           errors={validationErrors} 
-          onSaveDraft={() => alert("Đã lưu bản nháp thành công!")}
-          onPublish={() => alert("Đã xuất bản thành công!")}
+          onSaveDraft={() => handleSave("draft")}
+          onPublish={() => handleSave("published")}
+          onArchive={() => handleSave("archived")}
         />
       </aside>
 
@@ -3821,7 +4271,7 @@ export function ContentEditorForm({
           data={{
             viTitle, enTitle, viSummary, enSummary, viBody, enBody,
             coverImage, galleryImages,
-            priceMin, priceMax, quoteOnly, refCode, brand,
+            price, quoteOnly, refCode, brand,
             materialsVi, materialsEn, dimensionsVi, dimensionsEn,
             specMaterialVi, specMaterialEn, specFinishVi, specFinishEn,
             specCareVi, specCareEn, customAttributes,
@@ -3994,13 +4444,20 @@ function BilingualAuthoringFields({
           />
           {!viTitle.trim() && <p className="text-red-500 text-xs mt-1">Vui lòng điền tiêu đề tiếng Việt.</p>}
 
-          <AdminField 
-            label="Đường dẫn - Tiếng Việt *" 
-            name={`${kind}-slug-vi`} 
-            value={viSlug}
-            onChange={setViSlug}
-            placeholder="sofa-curve-velour"
-          />
+          <div className="grid gap-1.5">
+            <AdminField 
+              label="Đường dẫn - Tiếng Việt *" 
+              name={`${kind}-slug-vi`} 
+              value={viSlug}
+              onChange={setViSlug}
+              placeholder="sofa-curve-velour"
+            />
+            {viSlug && (
+              <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                ⚡ Tự động từ tiêu đề. Có thể sửa thủ công.
+              </p>
+            )}
+          </div>
 
           <AdminField
             label={`${summaryLabel} - Tiếng Việt *`}
@@ -4066,13 +4523,20 @@ function BilingualAuthoringFields({
           />
           {!enTitle.trim() && <p className="text-red-500 text-xs mt-1">Cần nhập tiêu đề tiếng Anh.</p>}
 
-          <AdminField 
-            label="Đường dẫn - Tiếng Anh *" 
-            name={`${kind}-slug-en`} 
-            value={enSlug}
-            onChange={setEnSlug}
-            placeholder="sofa-curve-velour-en"
-          />
+          <div className="grid gap-1.5">
+            <AdminField 
+              label="Đường dẫn - Tiếng Anh *" 
+              name={`${kind}-slug-en`} 
+              value={enSlug}
+              onChange={setEnSlug}
+              placeholder="sofa-curve-velour-en"
+            />
+            {enSlug && (
+              <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                ⚡ Tự động từ tiêu đề tiếng Anh. Có thể sửa thủ công.
+              </p>
+            )}
+          </div>
 
           <AdminField
             label={`${summaryLabel} - Tiếng Anh *`}
@@ -4100,10 +4564,8 @@ function BilingualAuthoringFields({
 }
 
 function ProductBusinessFields({
-  priceMin,
-  setPriceMin,
-  priceMax,
-  setPriceMax,
+  price,
+  setPrice,
   quoteOnly,
   setQuoteOnly,
   category,
@@ -4142,10 +4604,8 @@ function ProductBusinessFields({
   customAttributes,
   setCustomAttributes,
 }: {
-  priceMin: string;
-  setPriceMin: (val: string) => void;
-  priceMax: string;
-  setPriceMax: (val: string) => void;
+  price: string;
+  setPrice: (val: string) => void;
   quoteOnly: boolean;
   setQuoteOnly: (val: boolean) => void;
   category: string;
@@ -4184,6 +4644,41 @@ function ProductBusinessFields({
   customAttributes: { id: string; nameVi: string; nameEn: string; valueVi: string; valueEn: string; }[];
   setCustomAttributes: (attrs: { id: string; nameVi: string; nameEn: string; valueVi: string; valueEn: string; }[]) => void;
 }) {
+  const [categoriesList, setCategoriesList] = useState<{ value: string; label: string }[]>([]);
+  const [brandsList, setBrandsList] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const loadOptions = async () => {
+      try {
+        const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
+        const { getAdminBrands } = await import("@/lib/supabase/brands-mutations");
+        
+        const cats = await getAdminCategories();
+        const brands = await getAdminBrands();
+        
+        if (!active) return;
+        
+        setCategoriesList(cats.map(c => ({ value: c.slug, label: c.name })));
+        setBrandsList(brands.map(b => ({ value: b.id, label: b.name.vi })));
+      } catch (err) {
+        console.error("Lỗi khi tải danh mục/thương hiệu động:", err);
+      }
+    };
+    loadOptions();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const categoryOptions = categoriesList.some(c => c.value === category)
+    ? categoriesList
+    : [{ value: category, label: category === "wood" ? "Đồ gỗ / Sofa" : category === "sanitary" ? "Thiết bị vệ sinh / Sen tắm" : category === "tiles" ? "Gạch ốp lát / Bề mặt hoàn thiện" : category }, ...categoriesList];
+
+  const brandOptions = brandsList.some(b => b.value === brand)
+    ? brandsList
+    : (brand ? [{ value: brand, label: brand }, ...brandsList] : brandsList);
+
   return (
     <>
       <section className="surface-soft p-4">
@@ -4202,14 +4697,20 @@ function ProductBusinessFields({
               ariaLabel="Danh mục sản phẩm"
               placeholder="Danh mục sản phẩm"
               tone="admin"
-              options={[
-                { value: "wood", label: "Đồ gỗ / Sofa" },
-                { value: "sanitary", label: "Thiết bị vệ sinh / Sen tắm" },
-                { value: "tiles", label: "Gạch ốp lát / Bề mặt hoàn thiện" },
-              ]}
+              options={categoryOptions}
             />
           </label>
-          <AdminField label="Nhãn hiệu / dòng sản phẩm" name="brand-series" value={brand} onChange={setBrand} />
+          <label className="grid gap-2">
+            <span className="label-pd">Thương hiệu / Dòng sản phẩm</span>
+            <PremiumSelect
+              value={brand}
+              onValueChange={setBrand}
+              ariaLabel="Thương hiệu"
+              placeholder="Chọn thương hiệu"
+              tone="admin"
+              options={brandOptions}
+            />
+          </label>
           <AdminField label="Mã tham chiếu" name="reference-code" value={refCode} onChange={setRefCode} />
           <label className="grid gap-2">
             <span className="label-pd">Ánh xạ showroom</span>
@@ -4260,10 +4761,35 @@ function ProductBusinessFields({
           description="Hỗ trợ khoảng giá hoặc thông điệp chỉ nhận báo giá, không thêm giỏ hàng, thanh toán, tồn kho hoặc theo dõi đơn hàng."
           compact
         />
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <AdminField label="Giá tối thiểu" name="price-min" value={priceMin} onChange={setPriceMin} />
-          <AdminField label="Giá tối đa" name="price-max" value={priceMax} onChange={setPriceMax} />
-          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm md:col-span-1">
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {/* Price field with formatting */}
+          <div className="grid gap-1.5">
+            <label htmlFor="product-price" className="label-pd">Giá sản phẩm (VNĐ)</label>
+            <input
+              id="product-price"
+              type="text"
+              inputMode="numeric"
+              className="input-pd bg-white"
+              placeholder="Nhập giá (ví dụ: 18000000)"
+              value={price ? formatVnNumber(price) : ""}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, "");
+                setPrice(raw);
+              }}
+            />
+            {price && (
+              <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                💬 {readVnNumber(price)}
+              </p>
+            )}
+            {!price && (
+              <p className="text-xs text-slate-400 mt-0.5">
+                Nhập số không có dấu phẩy — sẽ tự định dạng.
+              </p>
+            )}
+          </div>
+
+          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
             <input 
               className="mt-1" 
               type="checkbox" 
@@ -4276,6 +4802,7 @@ function ProductBusinessFields({
             </span>
           </label>
         </div>
+
 
         {/* Bilingual Materials and Dimensions */}
         <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -4458,7 +4985,21 @@ function ProductBusinessFields({
   );
 }
 
-function BlogBusinessFields() {
+function BlogBusinessFields({
+  category,
+  setCategory,
+  status,
+  setStatus,
+  featured,
+  setFeatured,
+}: {
+  category: string;
+  setCategory: (val: string) => void;
+  status: string;
+  setStatus: (val: any) => void;
+  featured: boolean;
+  setFeatured: (val: boolean) => void;
+}) {
   return (
     <>
       <section className="surface-soft p-4">
@@ -4472,7 +5013,8 @@ function BlogBusinessFields() {
           <label className="grid gap-2">
             <span className="label-pd">Danh mục bài viết</span>
             <PremiumSelect
-              defaultValue="wood-knowledge"
+              value={category}
+              onValueChange={setCategory}
               ariaLabel="Danh mục bài viết"
               placeholder="Danh mục bài viết"
               tone="admin"
@@ -4489,7 +5031,8 @@ function BlogBusinessFields() {
           <label className="grid gap-2">
             <span className="label-pd">Trạng thái xuất bản</span>
             <PremiumSelect
-              defaultValue="draft"
+              value={status}
+              onValueChange={setStatus}
               ariaLabel="Trạng thái xuất bản"
               placeholder="Trạng thái xuất bản"
               tone="admin"
@@ -4501,7 +5044,12 @@ function BlogBusinessFields() {
             />
           </label>
           <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
-            <input className="mt-1" type="checkbox" />
+            <input 
+              className="mt-1 cursor-pointer" 
+              type="checkbox" 
+              checked={featured}
+              onChange={(e) => setFeatured(e.target.checked)}
+            />
             <span>
               <strong className="block text-[var(--admin-text)]">Bài viết nổi bật</strong>
               <span className="text-[var(--admin-text-muted)]">Hiển thị trong khu vực biên tập trên trang chủ.</span>
@@ -4822,6 +5370,7 @@ function AdminField({
   max,
   multiline,
   disabled,
+  error,
 }: {
   label: string;
   name: string;
@@ -4834,13 +5383,14 @@ function AdminField({
   max?: number;
   multiline?: boolean;
   disabled?: boolean;
+  error?: string;
 }) {
   return (
     <label className="grid gap-2">
       <span className="label-pd">{label}</span>
       {multiline ? (
         <textarea
-          className="input-pd min-h-24"
+          className={`input-pd min-h-24 bg-white ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
           name={name}
           defaultValue={value === undefined ? defaultValue : undefined}
           value={value}
@@ -4851,7 +5401,7 @@ function AdminField({
         />
       ) : (
         <input
-          className="input-pd"
+          className={`input-pd bg-white ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
           type={inputType}
           name={name}
           defaultValue={value === undefined ? defaultValue : undefined}
@@ -4864,6 +5414,7 @@ function AdminField({
           onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
         />
       )}
+      {error && <span className="text-red-600 text-xs font-medium -mt-1">{error}</span>}
     </label>
   );
 }
@@ -4916,8 +5467,7 @@ interface PreviewData {
   enSummary?: string;
   viBody?: string;
   enBody?: string;
-  priceMin?: string;
-  priceMax?: string;
+  price?: string;
   quoteOnly?: boolean;
   refCode?: string;
   brand?: string;
@@ -5237,9 +5787,9 @@ export function DetailPreviewModal({
                 {data.quoteOnly ? (
                   <div className="space-y-1">
                     <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">{locale === "vi" ? "Liên hệ báo giá" : "Contact for Quote"}</p>
-                    {data.priceMin && data.priceMax ? (
+                    {data.price ? (
                       <p className="text-xl font-extrabold text-[#1b3d35]">
-                        {Number(data.priceMin).toLocaleString("vi-VN")}₫ — {Number(data.priceMax).toLocaleString("vi-VN")}₫
+                        {Number(data.price.replace(/[^0-9]/g, "")).toLocaleString("vi-VN")}₫
                       </p>
                     ) : (
                       <p className="text-xs text-slate-500 mt-1">{locale === "vi" ? "Giá thương lượng theo kích thước và chất liệu gỗ" : "Negotiated price based on dimensions and wood types"}</p>
@@ -5249,7 +5799,7 @@ export function DetailPreviewModal({
                   <div>
                     <p className="text-xs text-slate-400 font-medium mb-1">{locale === "vi" ? "Giá bán lẻ đề xuất" : "Suggested Retail Price"}</p>
                     <p className="text-2xl font-extrabold text-[#1b3d35]">
-                      {data.priceMin ? `${Number(data.priceMin).toLocaleString("vi-VN")}₫` : (locale === "vi" ? "Chưa cập nhật giá" : "Price not updated")}
+                      {data.price ? `${Number(data.price.replace(/[^0-9]/g, "")).toLocaleString("vi-VN")}₫` : (locale === "vi" ? "Chưa cập nhật giá" : "Price not updated")}
                     </p>
                   </div>
                 )}
@@ -5586,15 +6136,56 @@ export function DetailPreviewModal({
               {locale === "vi" ? "Bản đồ vệ tinh" : "Google Maps Location"}
             </div>
             <div className="flex-1 w-full relative min-h-[260px] flex items-center justify-center bg-slate-50">
-              {data.mapsEmbed && data.mapsEmbed.includes("<iframe") ? (
-                <div className="absolute inset-0 w-full h-full [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:absolute [&_iframe]:inset-0 border-0" dangerouslySetInnerHTML={{ __html: data.mapsEmbed }} />
-              ) : (
-                <div className="text-center p-6 text-slate-400 space-y-2">
-                  <MapPin className="size-10 mx-auto text-red-500 animate-bounce" />
-                  <p className="text-xs font-bold">{locale === "vi" ? "Đang định vị vị trí..." : "Locating showroom..."}</p>
-                  <p className="text-[10px] text-slate-400 max-w-xs">{locale === "vi" ? "Nhập mã nhúng iFrame từ Google Maps để tải bản đồ thật." : "Enter iframe embed code from Google Maps to display actual maps."}</p>
-                </div>
-              )}
+              {(() => {
+                const getSafeMapUrl = (embedCode: string | undefined | null): string | null => {
+                  if (!embedCode) return null;
+                  let url = embedCode.trim();
+                  if (url.startsWith("<iframe") || url.includes("<iframe")) {
+                    const match = url.match(/src=["'](https:\/\/[^"']+)["']/i);
+                    if (match && match[1]) {
+                      url = match[1];
+                    } else {
+                      return null;
+                    }
+                  }
+                  try {
+                    const parsed = new URL(url);
+                    if (
+                      parsed.protocol === "https:" &&
+                      (parsed.hostname === "www.google.com" || parsed.hostname === "maps.google.com") &&
+                      parsed.pathname.includes("maps")
+                    ) {
+                      return url;
+                    }
+                  } catch (e) {
+                    return null;
+                  }
+                  return null;
+                };
+
+                const safeUrl = getSafeMapUrl(data.mapsEmbed);
+                if (safeUrl) {
+                  return (
+                    <iframe
+                      src={safeUrl}
+                      className="absolute inset-0 w-full h-full border-0"
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title={t(data.nameVi as string | undefined, data.nameEn as string | undefined) || "Showroom Map"}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  );
+                }
+
+                return (
+                  <div className="text-center p-6 text-slate-400 space-y-2">
+                    <MapPin className="size-10 mx-auto text-red-500 animate-bounce" />
+                    <p className="text-xs font-bold">{locale === "vi" ? "Bản đồ không hợp lệ hoặc đang tải..." : "Invalid map or locating..."}</p>
+                    <p className="text-[10px] text-slate-400 max-w-xs">{locale === "vi" ? "Nhập mã nhúng iFrame từ Google Maps để tải bản đồ thật." : "Enter iframe embed code from Google Maps to display actual maps."}</p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -6157,13 +6748,13 @@ export function ImageUploadDropzone({
   label = "Tải ảnh lên (Upload Image)",
 }: {
   value?: string;
-  onChange: (url: string) => void;
+  onChange: (url: string, mediaId?: string) => void;
   label?: string;
 }) {
   return (
     <MediaPicker
       value={value}
-      onChange={(url) => onChange(url)}
+      onChange={(url, id) => onChange(url, id)}
       label={label}
     />
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -20,6 +20,8 @@ import {
   FileText,
   X,
   Sparkle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   type PublishStatus,
@@ -129,7 +131,7 @@ export function AdminDashboard({
       </div>
 
       <div className="grid gap-5 2xl:grid-cols-[1.35fr_0.85fr]">
-        <DashboardInsightChart />
+        <DashboardInsightChart quotes={quotes} role={role as "admin" | "editor"} />
         <div className="space-y-5">
           <WarningPanel />
           <QuickActions />
@@ -180,10 +182,102 @@ export function AdminSectionPage({
 }
 
 
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-between border-t border-outline-variant/30 bg-surface px-4 py-3 sm:px-6 mt-4">
+      <div className="flex flex-1 justify-between sm:hidden">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="relative inline-flex items-center rounded-md border border-outline bg-surface-container px-4 py-2 text-sm font-medium text-primary hover:bg-surface-container-high disabled:opacity-50 transition"
+        >
+          Trước
+        </button>
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="relative ml-3 inline-flex items-center rounded-md border border-outline bg-surface-container px-4 py-2 text-sm font-medium text-primary hover:bg-surface-container-high disabled:opacity-50 transition"
+        >
+          Sau
+        </button>
+      </div>
+      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs text-secondary">
+            Hiển thị trang <span className="font-semibold text-primary">{currentPage}</span> / <span className="font-semibold text-primary">{totalPages}</span>
+          </p>
+        </div>
+        <div>
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-secondary ring-1 ring-inset ring-outline-variant/50 hover:bg-surface-container-high focus:z-20 focus:outline-offset-0 disabled:opacity-50 transition"
+            >
+              <span className="sr-only">Trước</span>
+              <ChevronLeft className="size-4" />
+            </button>
+            
+            {Array.from({ length: totalPages }).map((_, idx) => {
+              const p = idx + 1;
+              if (totalPages > 7 && Math.abs(p - currentPage) > 2 && p !== 1 && p !== totalPages) {
+                if (p === 2 || p === totalPages - 1) {
+                  return <span key={p} className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-secondary ring-1 ring-inset ring-outline-variant/50">...</span>;
+                }
+                return null;
+              }
+              const active = p === currentPage;
+              return (
+                <button
+                  key={p}
+                  onClick={() => onPageChange(p)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0 transition ${
+                    active
+                      ? "z-10 bg-primary text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      : "text-secondary ring-1 ring-inset ring-outline-variant/50 hover:bg-surface-container-high"
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-secondary ring-1 ring-inset ring-outline-variant/50 hover:bg-surface-container-high focus:z-20 focus:outline-offset-0 disabled:opacity-50 transition"
+            >
+              <span className="sr-only">Sau</span>
+              <ChevronRight className="size-4" />
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProductsPage({ createMode, products = [] }: { createMode?: boolean; products?: AdminProduct[] }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
   const [filterState, setFilterState] = useState<ProductFilterState>({ category: "all", status: "all", search: "" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 15;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPage(1);
+  }, [filterState]);
 
   const filtered = products.filter((p) => {
     const matchCat = filterState.category === "all" || (p.category_name?.toLowerCase().includes(filterState.category) ?? false);
@@ -195,16 +289,24 @@ function ProductsPage({ createMode, products = [] }: { createMode?: boolean; pro
     return matchCat && matchStatus && matchSearch;
   });
 
+  const totalPages = Math.ceil(filtered.length / pageSize);
+  const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="space-y-5">
       <AdminPageHeader
         title="Quản lý sản phẩm"
         description="Vận hành danh mục ưu tiên báo giá: trường song ngữ, ánh xạ danh mục, tệp, thông số, trạng thái giá và mức độ sẵn sàng xuất bản."
-        actionHref="/admin/products/new"
+        actionHref="/admin/products?create=1"
         actionLabel="Thêm sản phẩm"
       />
       <ProductFilterCard value={filterState} onChange={setFilterState} />
-      <ProductOperationsTable products={filtered} />
+      <ProductOperationsTable products={paginatedProducts} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       <AdminRouteDialog
         open={Boolean(createMode)}
@@ -224,7 +326,7 @@ function ProductsPage({ createMode, products = [] }: { createMode?: boolean; pro
         description="Chỉnh sửa thông tin chi tiết sản phẩm, cấu hình song ngữ, giá và SEO."
         size="full"
       >
-        <ContentEditorForm kind="product" mode="edit" />
+        <ContentEditorForm kind="product" mode="edit" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
     </div>
   );
@@ -235,6 +337,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: AdminBlogPost[] }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
+
+  const totalPages = Math.ceil(posts.length / pageSize);
+  const paginatedPosts = posts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-5">
@@ -247,8 +354,14 @@ function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: Ad
 
       {/* Full-width queue of posts */}
       <div className="grid gap-5">
-        <BlogQueue posts={posts} />
+        <BlogQueue posts={paginatedPosts} />
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
 
       {/* Add dialog */}
       <AdminRouteDialog
@@ -269,7 +382,7 @@ function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: Ad
         description="Chỉnh sửa nội dung chi tiết bài viết, cấu hình song ngữ, SEO và trạng thái xuất bản."
         size="full"
       >
-        <ContentEditorForm kind="blog" mode="edit" />
+        <ContentEditorForm kind="blog" mode="edit" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
     </div>
   );
@@ -287,7 +400,7 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
       <AdminPageHeader
         title="Quản trị danh mục"
         description="Hai nhóm sản phẩm chính được giữ cố định theo nghiệp vụ. Biên tập viên quản lý danh mục con, tên song ngữ, đường dẫn, thứ tự và SEO."
-        actionHref="/admin/categories/new"
+        actionHref="/admin/categories?create=1"
         actionLabel="Thêm danh mục"
       />
       <div className="grid gap-4 md:grid-cols-3">
@@ -320,7 +433,7 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                <Link href={`/admin/categories/${category.id || category.slug}/edit`} className="admin-edit-action inline-flex items-center gap-1">
+                <Link href={`/admin/categories?edit=${category.id || category.slug}`} className="admin-edit-action inline-flex items-center gap-1">
                   <Pencil className="size-3" />
                   Chỉnh sửa
                 </Link>
@@ -494,7 +607,15 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
           showrooms.map((showroom) => (
             <article key={showroom.id} className="card-pd interactive-card group overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="h-44 w-full rounded bg-slate-100" />
+                {showroom.primary_media ? (
+                  <RemoteImage
+                    src={showroom.primary_media as string}
+                    alt={showroom.name}
+                    className="h-44 w-full rounded bg-slate-100 relative"
+                  />
+                ) : (
+                  <div className="h-44 w-full rounded bg-slate-100" />
+                )}
                 <div className="p-4 space-y-3.5">
                   <div className="space-y-2">
                     <div>
@@ -558,6 +679,13 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusNote, setStatusNote] = useState("");
   const [localQuotes, setLocalQuotes] = useState<AdminQuote[]>(quotes);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 15;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentPage(1);
+  }, [filterStatus, searchQuery]);
 
   if (role !== "admin") {
     return (
@@ -580,36 +708,33 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     return matchesStatus && matchesQuery;
   });
 
+  const totalPages = Math.ceil(filteredQuotes.length / pageSize);
+  const paginatedQuotes = filteredQuotes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   const selectedQuote = filteredQuotes.find((q) => q.id === selectedQuoteId) ?? filteredQuotes[0] ?? null;
 
   // Quote workflow: trạng thái → actions có thể thực hiện tiếp theo
   const workflowTransitions: Record<string, { label: string; status: string; variant: string }[]> = {
-    new:        [{ label: "Bắt đầu xử lý", status: "processing", variant: "primary" }],
-    processing: [{ label: "Đã liên hệ", status: "contacted", variant: "primary" }, { label: "Đánh dấu spam", status: "spam", variant: "danger" }],
-    contacted:  [{ label: "Đủ điều kiện", status: "qualified", variant: "primary" }, { label: "Hủy", status: "cancelled", variant: "danger" }],
-    qualified:  [{ label: "Hoàn tất", status: "closed", variant: "success" }, { label: "Hủy", status: "cancelled", variant: "danger" }],
-    closed:     [],
-    cancelled:  [{ label: "Mở lại xử lý", status: "new", variant: "primary" }],
+    new:        [{ label: "Đã liên hệ", status: "contacted", variant: "primary" }, { label: "Đánh dấu spam", status: "spam", variant: "danger" }],
+    contacted:  [{ label: "Đủ điều kiện", status: "qualified", variant: "primary" }, { label: "Đóng", status: "closed", variant: "danger" }],
+    qualified:  [{ label: "Hoàn tất & Đóng", status: "closed", variant: "success" }],
+    closed:     [{ label: "Mở lại", status: "new", variant: "primary" }],
     spam:       [{ label: "Khôi phục", status: "new", variant: "primary" }],
   };
 
   const statusLabels: Record<string, string> = {
     new:        "Chờ xử lý",
-    processing: "Đang xử lý",
     contacted:  "Đã liên hệ",
     qualified:  "Đủ điều kiện",
     closed:     "Đã hoàn tất",
-    cancelled:  "Đã hủy",
     spam:       "Thư rác",
   };
 
   const statusColors: Record<string, string> = {
     new:        "status-warning",
-    processing: "status-muted",
     contacted:  "bg-blue-100 text-blue-700 border-blue-200",
     qualified:  "bg-purple-100 text-purple-700 border-purple-200",
     closed:     "status-success",
-    cancelled:  "status-error",
     spam:       "status-error",
   };
 
@@ -648,7 +773,6 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
         {[
           { id: "all", label: "Tất cả" },
           { id: "new", label: "Chờ xử lý" },
-          { id: "processing", label: "Đang xử lý" },
           { id: "contacted", label: "Đã liên hệ" },
           { id: "qualified", label: "Đủ điều kiện" },
           { id: "closed", label: "Hoàn tất" },
@@ -696,7 +820,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
             {filteredQuotes.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-400">Không tìm thấy yêu cầu báo giá nào khớp điều kiện.</p>
             ) : (
-              filteredQuotes.map((quote) => (
+              paginatedQuotes.map((quote) => (
                 <button
                   key={quote.id}
                   type="button"
@@ -721,6 +845,11 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
               ))
             )}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
 
         <div className="space-y-4">
@@ -1268,7 +1397,15 @@ function ProductOperationsTable({ products = [] }: { products?: AdminProduct[] }
             className="grid gap-4 border-t border-outline-variant/25 px-5 py-4 transition-colors hover:bg-surface-container-lowest/70 lg:grid-cols-[1fr_160px_120px_120px_100px] lg:items-center"
           >
             <div className="flex gap-4">
-              <div className="size-16 rounded bg-slate-100 shrink-0" />
+              {(product.primary_media as any)?.url ? (
+                <RemoteImage
+                  src={(product.primary_media as any).url}
+                  alt={product.name}
+                  className="size-16 rounded bg-slate-100 shrink-0 relative"
+                />
+              ) : (
+                <div className="size-16 rounded bg-slate-100 shrink-0" />
+              )}
               <div>
                 <h3 className="font-heading text-lg font-semibold">{product.name}</h3>
                 <p className="text-sm italic text-secondary">{product.summary}</p>
@@ -1281,7 +1418,7 @@ function ProductOperationsTable({ products = [] }: { products?: AdminProduct[] }
               {index < 2 ? "Sẵn sàng" : "Thiếu tiếng Anh/SEO"}
             </span>
             <div className="lg:text-right">
-              <Link href={`/admin/products/${product.id || product.slug}/edit`} className="admin-edit-action">
+              <Link href={`/admin/products?edit=${product.id || product.slug}`} className="admin-edit-action">
                 <Pencil className="size-3" />
                 Chỉnh sửa
               </Link>
@@ -1314,7 +1451,15 @@ function BlogQueue({ posts = [] }: { posts?: AdminBlogPost[] }) {
                   <StatusPill status={post.featured ? "published" : "draft"} />
                 </div>
                 <div className="flex gap-4">
-                  <div className="size-16 rounded-lg bg-slate-100 shrink-0" />
+                  {(post.cover_media as any)?.url ? (
+                    <RemoteImage
+                      src={(post.cover_media as any).url}
+                      alt={post.title}
+                      className="size-16 rounded-lg bg-slate-100 shrink-0 relative"
+                    />
+                  ) : (
+                    <div className="size-16 rounded-lg bg-slate-100 shrink-0" />
+                  )}
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-slate-800 text-sm line-clamp-2">{post.title}</h3>
                     <p className="text-[11px] text-slate-400 mt-1">{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</p>
@@ -1484,19 +1629,21 @@ function QuoteTable({ compact, quotes = [] }: { compact?: boolean; quotes?: Admi
 function QuoteStatusPill({ status }: { status: string }) {
   const statusLabels: Record<string, string> = {
     new: "Chờ xử lý",
-    processing: "Đang xử lý",
     contacted: "Đã liên hệ",
     qualified: "Đủ điều kiện",
     closed: "Đã hoàn tất",
-    cancelled: "Đã hủy",
     spam: "Thư rác",
   };
   const className =
     status === "new"
       ? "status-warning"
-      : status === "contacted" || status === "processing"
-        ? "status-muted"
-        : status === "closed" ? "status-success" : "status-muted";
+      : status === "contacted"
+        ? "bg-blue-100 text-blue-700 border-blue-200"
+        : status === "qualified"
+          ? "bg-purple-100 text-purple-700 border-purple-200"
+          : status === "closed"
+            ? "status-success"
+            : "status-error";
 
   return (
     <span className={`status-pill w-fit text-[11px] leading-none ${className}`}>

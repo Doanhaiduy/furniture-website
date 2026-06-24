@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   AdminSectionPage,
 } from "@/components/showroom/admin-pages";
@@ -54,7 +54,22 @@ export default async function AdminDynamicPage({
   if (!isAdminSection(section)) notFound();
 
   const user = await getCurrentUser();
-  const role = user?.role ?? "admin";
+  if (!user) {
+    redirect("/admin/login");
+  }
+
+  if (user.role !== "admin" && user.role !== "editor") {
+    redirect("/admin/access-denied");
+  }
+
+  if (user.role === "editor") {
+    const isAdminOnly = ["quotes", "users", "settings"].includes(section);
+    if (isAdminOnly) {
+      redirect("/admin/access-denied");
+    }
+  }
+
+  const role = user.role;
 
   let products: AdminProduct[] = [];
   let categories: AdminCategory[] = [];
@@ -66,15 +81,15 @@ export default async function AdminDynamicPage({
   let profiles: AdminUser[] = [];
 
   if (section === "quotes" && role === "admin") {
-    quotes = await getAdminQuotesList({ limit: 50, offset: 0 });
+    quotes = await getAdminQuotesList({ limit: 1000, offset: 0 });
   } else if (section === "blog") {
-    blogPosts = await getAdminBlogPosts({ limit: 50, offset: 0 });
+    blogPosts = await getAdminBlogPosts({ limit: 1000, offset: 0 });
   } else if (section === "showrooms") {
     showrooms = await getAdminShowrooms();
   } else if (section === "categories") {
     categories = await getAdminCategories();
   } else if (section === "products") {
-    products = await getAdminProducts({ limit: 50, offset: 0 });
+    products = await getAdminProducts({ limit: 1000, offset: 0 });
   } else if (section === "promotions") {
     promotions = await getAdminPromotions();
   } else if (section === "brands") {

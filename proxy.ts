@@ -46,11 +46,18 @@ export async function proxy(request: NextRequest) {
     },
   );
 
+  console.log("MIDDLEWARE: Request Path:", request.nextUrl.pathname);
+  console.log("MIDDLEWARE: All Cookies:", request.cookies.getAll().map(c => `${c.name}=${c.value.substring(0, 15)}...`));
+
   const {
     data: { user },
+    error
   } = await supabase.auth.getUser();
 
+  console.log("MIDDLEWARE: User ID:", user?.id, "Email:", user?.email, "Error:", error);
+
   if (!user) {
+    console.log("MIDDLEWARE: Redirecting to login because user is null");
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
@@ -81,6 +88,8 @@ export async function proxy(request: NextRequest) {
 
   return response;
 }
+
+export default proxy;
 
 export const config = {
   matcher: ["/((?!api|_next|.*\\..*).*)", "/admin/:path*"],
