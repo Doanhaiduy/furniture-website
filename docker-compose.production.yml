@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: furniture-website-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # Internal connection to Supabase (via Kong gateway in the shared Docker network)
+      - SUPABASE_URL_INTERNAL=http://supabase-kong:8000
+    networks:
+      - app-network
+      - supabase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app-network:
+    name: furniture-app-network
+  supabase-network:
+    external: true
+    name: supabase_network_furniture-website

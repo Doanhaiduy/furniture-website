@@ -429,8 +429,8 @@ begin
   values (
     v_admin_id,
     '00000000-0000-0000-0000-000000000000',
-    'admin@phuongdong.vn',
-    extensions.crypt('admin123', extensions.gen_salt('bf')),
+    'admin@furniture.com',
+    extensions.crypt('password123', extensions.gen_salt('bf')),
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Admin Phuong Dong"}'::jsonb,
@@ -446,7 +446,7 @@ begin
   insert into public.profiles (id, email, full_name, role, is_active)
   values (
     v_admin_id,
-    'admin@phuongdong.vn',
+    'admin@furniture.com',
     'Admin Phuong Dong',
     'admin',
     true

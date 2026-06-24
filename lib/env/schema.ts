@@ -81,6 +81,17 @@ export function validateEnv() {
     console.error(`❌ Invalid environment variables: ${errorStr}`);
     throw new Error(`❌ Invalid environment variables: ${errorStr}`);
   }
+
+  // Warn if running with placeholder values in production
+  if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
+    if (
+      result.data.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder") ||
+      result.data.NEXT_PUBLIC_SUPABASE_ANON_KEY === "placeholder_anon_key" ||
+      result.data.SUPABASE_SERVICE_ROLE_KEY === "placeholder_service_role_key"
+    ) {
+      console.warn("⚠️ WARNING: Application is running with placeholder Supabase credentials! Please ensure you build the Docker image with the correct build arguments.");
+    }
+  }
   
   return result.data;
 }
