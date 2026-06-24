@@ -411,7 +411,7 @@ export function RichTextEditorMock({
     const newVal = value ?? "";
     // Only update if meaningfully different to avoid cursor jumps
     if (newVal !== currentHtml && newVal !== "<p></p>") {
-      editor.commands.setContent(newVal, false);
+      editor.commands.setContent(newVal, { emitUpdate: false } as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor]);
@@ -955,8 +955,8 @@ export function MediaPicker({
   const [libLoaded, setLibLoaded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function loadLibrary() {
-    if (libLoaded) return;
+  async function loadLibrary(force = false) {
+    if (libLoaded && !force) return;
     const res = await fetch("/api/admin/media/list").catch(() => null);
     if (res?.ok) {
       const data = await res.json();
@@ -1132,10 +1132,11 @@ export function MediaPicker({
                 ) : (
                   <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                     {library.map((asset) => (
-                      <button
+                      <div
                         key={asset.id}
-                        type="button"
-                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 transition ${
+                        role="button"
+                        tabIndex={0}
+                        className={`group relative aspect-square overflow-hidden rounded-lg border-2 transition cursor-pointer ${
                           value === asset.public_url
                             ? "border-primary"
                             : "border-slate-200 hover:border-primary"
@@ -1143,6 +1144,12 @@ export function MediaPicker({
                         onClick={() => {
                           onChange(asset.public_url, asset.id);
                           setOpen(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            onChange(asset.public_url, asset.id);
+                            setOpen(false);
+                          }
                         }}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1152,7 +1159,33 @@ export function MediaPicker({
                           className="h-full w-full object-cover"
                           loading="lazy"
                         />
-                      </button>
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation(); // prevent selecting the image
+                            if (confirm("Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?")) {
+                              try {
+                                const res = await fetch(`/api/admin/media/${asset.id}`, {
+                                  method: "DELETE",
+                                });
+                                if (res.ok) {
+                                  loadLibrary(true);
+                                } else {
+                                  const err = await res.json().catch(() => ({}));
+                                  alert("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                                }
+                              } catch (err) {
+                                alert("Lỗi kết nối khi xóa tệp: " + String(err));
+                              }
+                            }
+                          }}
+                          className="absolute right-1 top-1 z-10 hidden rounded bg-red-600 p-1 text-white hover:bg-red-700 group-hover:block transition shadow-sm"
+                          title="Xóa tệp"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

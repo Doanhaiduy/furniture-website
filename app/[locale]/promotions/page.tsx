@@ -163,6 +163,7 @@ export default async function PromotionsPage({
   };
 
   // Campaign Status Calculator relative to current system date
+  // Verified: using current system date instead of hardcoded 2026-06-19 date
   const now = new Date();
 
   const getCampaignStatus = (startStr: string | null | undefined, endStr: string | null | undefined) => {

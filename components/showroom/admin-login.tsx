@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2, Lock } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createBrowserClient } from "@/lib/supabase/client";
 import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";
 
@@ -35,30 +35,28 @@ export function AdminLoginPage() {
       return;
     }
 
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookieOptions: {
-          name: "sb-auth-token",
-        },
+    try {
+      const supabase = createBrowserClient();
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      setLoading(false);
+
+      if (signInError) {
+        setError("Thông tin đăng nhập không hợp lệ.");
+        return;
       }
-    );
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (signInError) {
-      setError("Invalid login credentials.");
-      return;
+      router.push("/admin");
+      router.refresh();
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setLoading(false);
+      setError("Lỗi kết nối đến máy chủ xác thực. Vui lòng kiểm tra lại cấu hình Supabase.");
     }
-
-    router.push("/admin");
-    router.refresh();
   }
 
   return (

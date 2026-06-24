@@ -77,9 +77,14 @@ export function AdminShell({
       return;
     }
     
-    await supabase.auth.signOut();
-    router.push("/admin/login");
-    router.refresh();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("SignOut error:", err);
+    } finally {
+      router.push("/admin/login");
+      router.refresh();
+    }
   }
 
   const visibleNav = role === "editor"

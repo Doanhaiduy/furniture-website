@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ChevronDown,
   Eye,
+  EyeOff,
   FileText,
   Globe2,
   Heart,
@@ -4646,23 +4647,26 @@ function ProductBusinessFields({
 }) {
   const [categoriesList, setCategoriesList] = useState<{ value: string; label: string }[]>([]);
   const [brandsList, setBrandsList] = useState<{ value: string; label: string }[]>([]);
+  const [showroomsList, setShowroomsList] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     let active = true;
     const loadOptions = async () => {
       try {
-        const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
+        const { getAdminCategories, getAdminShowrooms } = await import("@/lib/supabase/admin-queries");
         const { getAdminBrands } = await import("@/lib/supabase/brands-mutations");
         
         const cats = await getAdminCategories();
         const brands = await getAdminBrands();
+        const rooms = await getAdminShowrooms();
         
         if (!active) return;
         
         setCategoriesList(cats.map(c => ({ value: c.slug, label: c.name })));
         setBrandsList(brands.map(b => ({ value: b.id, label: b.name.vi })));
+        setShowroomsList(rooms.map(r => ({ value: r.code || r.id, label: r.name })));
       } catch (err) {
-        console.error("Lỗi khi tải danh mục/thương hiệu động:", err);
+        console.error("Lỗi khi tải danh mục/thương hiệu/showroom động:", err);
       }
     };
     loadOptions();
@@ -4678,6 +4682,13 @@ function ProductBusinessFields({
   const brandOptions = brandsList.some(b => b.value === brand)
     ? brandsList
     : (brand ? [{ value: brand, label: brand }, ...brandsList] : brandsList);
+
+  const showroomOptions = showroomsList.some(s => s.value === showroom)
+    ? showroomsList
+    : [
+        { value: showroom, label: showroom === "district-7" ? "Showroom Quận 7" : showroom === "hanoi" ? "Showroom đối tác Hà Nội" : showroom === "project-only" ? "Chỉ tư vấn dự án" : showroom },
+        ...showroomsList
+      ];
 
   return (
     <>
@@ -4720,11 +4731,7 @@ function ProductBusinessFields({
               ariaLabel="Ánh xạ showroom"
               placeholder="Ánh xạ showroom"
               tone="admin"
-              options={[
-                { value: "district-7", label: "Showroom Quận 7" },
-                { value: "hanoi", label: "Showroom đối tác Hà Nội" },
-                { value: "project-only", label: "Chỉ tư vấn dự án" },
-              ]}
+              options={showroomOptions}
             />
           </label>
           <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
@@ -5385,6 +5392,10 @@ function AdminField({
   disabled?: boolean;
   error?: string;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = inputType === "password";
+  const currentType = isPassword ? (showPassword ? "text" : "password") : inputType;
+
   return (
     <label className="grid gap-2">
       <span className="label-pd">{label}</span>
@@ -5400,19 +5411,31 @@ function AdminField({
           onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
         />
       ) : (
-        <input
-          className={`input-pd bg-white ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-          type={inputType}
-          name={name}
-          defaultValue={value === undefined ? defaultValue : undefined}
-          value={value}
-          placeholder={placeholder}
-          min={min}
-          max={max}
-          disabled={disabled}
-          onChange={onChange ? (event) => onChange(event.target.value) : undefined}
-          onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
-        />
+        <div className="relative flex items-center">
+          <input
+            className={`input-pd bg-white w-full pr-10 ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+            type={currentType}
+            name={name}
+            defaultValue={value === undefined ? defaultValue : undefined}
+            value={value}
+            placeholder={placeholder}
+            min={min}
+            max={max}
+            disabled={disabled}
+            onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+            onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 text-slate-500 hover:text-slate-700 focus:outline-none"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          )}
+        </div>
       )}
       {error && <span className="text-red-600 text-xs font-medium -mt-1">{error}</span>}
     </label>

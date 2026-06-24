@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import DOMPurify from "isomorphic-dompurify";
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { requireEditorOrAdmin } from "./auth";
 import { createAdminClient, createClient } from "./server";
@@ -1717,7 +1718,10 @@ export async function createAdminShowroom(data: ShowroomInput): Promise<{ succes
     return { success: false, error: validationMessages(validation.error.issues) };
   }
 
-  const values = validation.data;
+  const values = {
+    ...validation.data,
+    google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
+  };
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
   if (useMock) {
@@ -1852,7 +1856,10 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
     return { success: false, error: validationMessages(validation.error.issues) };
   }
 
-  const values = validation.data;
+  const values = {
+    ...validation.data,
+    google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
+  };
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
   if (useMock) {

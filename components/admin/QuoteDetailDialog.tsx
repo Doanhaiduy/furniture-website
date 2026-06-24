@@ -36,7 +36,6 @@ const quoteStatusLabels: Record<string, string> = {
   qualified: "Đủ điều kiện",
   closed: "Hoàn thành",
   spam: "Thư rác",
-  archived: "Lưu trữ",
 };
 
 const quoteStatusColors: Record<string, string> = {
@@ -45,7 +44,6 @@ const quoteStatusColors: Record<string, string> = {
   qualified: "bg-emerald-100 text-emerald-800 border-emerald-200",
   closed: "bg-slate-100 text-slate-800 border-slate-200",
   spam: "bg-red-100 text-red-800 border-red-200",
-  archived: "bg-slate-100 text-slate-800 border-slate-200",
 };
 
 export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogProps) {

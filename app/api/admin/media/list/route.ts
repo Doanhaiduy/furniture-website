@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+// GET /api/admin/media/list - Fetch all active media assets
 import { requireEditorOrAdmin } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
