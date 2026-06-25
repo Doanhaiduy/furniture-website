@@ -4372,8 +4372,8 @@ function BilingualAuthoringFields({
   const summaryLabel = kind === "product" ? "Mô tả ngắn / tóm tắt" : "Trích đoạn";
 
   // Calculate inline error counts
-  const viErrorsCount = [viTitle, viSummary, viBody].filter(val => !val.trim()).length;
-  const enErrorsCount = englishEnabled ? [enTitle, enSummary, enBody].filter(val => !val.trim()).length : 0;
+  const viErrorsCount = [viTitle, viSummary].filter(val => !val.trim()).length + (isBodyEmpty(viBody) ? 1 : 0);
+  const enErrorsCount = englishEnabled ? ([enTitle, enSummary].filter(val => !val.trim()).length + (isBodyEmpty(enBody) ? 1 : 0)) : 0;
 
   return (
     <section className="surface-soft p-4">
