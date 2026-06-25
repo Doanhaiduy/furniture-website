@@ -437,7 +437,7 @@ export default async function PromotionsPage({
                   </span>
 
                   <div className="space-y-6">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3 pr-24 lg:pr-0">
                       <span className={`inline-flex items-center gap-1.5 rounded-full ${colors.badge} px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider`}>
                         {promo.tag}
                       </span>

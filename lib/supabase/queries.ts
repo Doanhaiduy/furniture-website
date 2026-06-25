@@ -80,15 +80,9 @@ export async function getProducts(
       }
       if (error) {
         console.error("[ERROR getProducts RPC]", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
     } catch (e) {
       console.error("[ERROR getProducts Exception]", e);
-      if (process.env.NODE_ENV === "production") {
-        throw e;
-      }
     }
   }
 
@@ -191,15 +185,9 @@ export async function getBlogPosts(
       }
       if (error) {
         console.warn("Error fetching blog posts via RPC, falling back to mock:", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
     } catch (e) {
       console.warn("Exception fetching blog posts, falling back to mock:", e);
-      if (process.env.NODE_ENV === "production") {
-        throw e;
-      }
     }
   }
 
@@ -261,15 +249,9 @@ export async function getShowrooms(
       }
       if (error) {
         console.warn("Error fetching showrooms via RPC, falling back to mock:", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
     } catch (e) {
       console.warn("Exception fetching showrooms, falling back to mock:", e);
-      if (process.env.NODE_ENV === "production") {
-        throw e;
-      }
     }
   }
 
@@ -346,15 +328,9 @@ export async function getCategories(
       }
       if (error) {
         console.warn("Error fetching categories from DB, falling back to mock:", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
     } catch (e) {
       console.warn("Exception fetching categories, falling back to mock:", e);
-      if (process.env.NODE_ENV === "production") {
-        throw e;
-      }
     }
   }
 
@@ -429,15 +405,9 @@ export async function getContentPage(
       }
       if (error) {
         console.warn("Error fetching content page, falling back to mock:", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
     } catch (e) {
       console.warn("Exception fetching content page, falling back to mock:", e);
-      if (process.env.NODE_ENV === "production") {
-        throw e;
-      }
     }
   }
 
@@ -955,9 +925,6 @@ export async function getPublicSiteSettings(
     if (error || !data) {
       if (error) {
         console.warn("Error fetching site settings from DB, using defaults:", error);
-        if (process.env.NODE_ENV === "production") {
-          throw error;
-        }
       }
       return defaults;
     }
@@ -975,9 +942,6 @@ export async function getPublicSiteSettings(
     };
   } catch (e) {
     console.warn("Exception fetching site settings, using defaults:", e);
-    if (process.env.NODE_ENV === "production") {
-      throw e;
-    }
     return defaults;
   }
 }

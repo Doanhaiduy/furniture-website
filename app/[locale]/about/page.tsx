@@ -34,7 +34,7 @@ export default async function AboutPage({
   const t = await getTranslations("about");
 
   const supabase = createPublicClient();
-  const pageData = await getContentPage(supabase, "about", locale);
+  const pageData = await getContentPage(supabase, "about", locale).catch(() => null);
   const homePageContent = await getContentPage(supabase, "home", locale).catch(() => null);
   const homeBodyJson = homePageContent?.bodyJson || {};
 

@@ -18,7 +18,7 @@ import {
   ProductTrustMetrics,
 } from "@/components/showroom/product-detail-experience";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings } from "@/lib/supabase/queries";
+import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings, getPromotions } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -54,7 +54,67 @@ export default async function ProductDetailPage({
   const supabase = createPublicClient();
   const settings = await getPublicSiteSettings(supabase, locale);
   const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
-  let product: any = dbProduct ? mapDBProductToPublicProduct(dbProduct, locale) : null;
+  let product: any = null;
+  if (dbProduct) {
+    const fallbackMappings = [
+      { promotion_id: "11111111-1111-1111-1111-111111111111", product_id: "00000001-0000-0000-0000-000000000011" },
+      { promotion_id: "11111111-1111-1111-1111-111111111111", product_id: "00000001-0000-0000-0000-000000000013" },
+      { promotion_id: "11111111-1111-1111-1111-111111111111", product_id: "00000001-0000-0000-0000-000000000014" },
+      { promotion_id: "22222222-2222-2222-2222-222222222222", product_id: "00000001-0000-0000-0000-000000000021" },
+      { promotion_id: "22222222-2222-2222-2222-222222222222", product_id: "00000001-0000-0000-0000-000000000024" },
+      { promotion_id: "22222222-2222-2222-2222-222222222222", product_id: "00000001-0000-0000-0000-000000000054" },
+      { promotion_id: "33333333-3333-3333-3333-333333333333", product_id: "00000001-0000-0000-0000-000000000031" },
+      { promotion_id: "33333333-3333-3333-3333-333333333333", product_id: "00000001-0000-0000-0000-000000000032" },
+    ];
+    let mappings: any[] = [];
+    try {
+      const { data } = await supabase
+        .from("product_promotions")
+        .select("product_id, promotion_id");
+      if (data) mappings = data;
+    } catch (err) {
+      console.warn("Failed to fetch product_promotions for detail page:", err);
+    }
+    const activeMappings = (mappings && mappings.length > 0) ? mappings : fallbackMappings;
+    const productMappings = activeMappings.filter((m: any) => m.product_id === dbProduct.id);
+
+    if (productMappings.length > 0) {
+      const rawPromotions = await getPromotions(supabase, locale).catch(() => []);
+      
+      let maxDiscount = 0;
+      const now = new Date();
+      
+      for (const pm of productMappings) {
+        const promo = rawPromotions.find((p: any) => p.id === pm.promotion_id);
+        if (promo) {
+          const start = promo.startAt ? new Date(promo.startAt) : null;
+          const end = promo.endAt ? new Date(promo.endAt) : null;
+          
+          let isActive = true;
+          if (start && now < start) isActive = false;
+          if (end && now > end) isActive = false;
+          
+          if (isActive) {
+            const discount = parseFloat(promo.discount_percentage || "0");
+            if (discount > maxDiscount) {
+              maxDiscount = discount;
+            }
+          }
+        }
+      }
+      
+      if (maxDiscount > 0) {
+        const priceMin = dbProduct.priceMin ? parseFloat(dbProduct.priceMin) : null;
+        const priceMax = dbProduct.priceMax ? parseFloat(dbProduct.priceMax) : null;
+        
+        if (priceMin) {
+          dbProduct.promo_price_min = priceMin * (1 - maxDiscount / 100);
+          dbProduct.promo_price_max = priceMax ? priceMax * (1 - maxDiscount / 100) : dbProduct.promo_price_min;
+        }
+      }
+    }
+    product = mapDBProductToPublicProduct(dbProduct, locale);
+  }
   if (!product) {
     product = getMockProductBySlug(slug) || null;
   }

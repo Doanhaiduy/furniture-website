@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useToast } from "@/components/providers/toast-provider";
 
 // Tiptap WYSIWYG
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -597,6 +598,7 @@ export function RichTextEditorMock({
 }
 
 export function MediaUploadPanel() {
+  const { toast, confirm } = useToast();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
@@ -894,23 +896,28 @@ export function MediaUploadPanel() {
                   {/* Delete Button */}
                   <button
                     type="button"
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation(); // prevent copying URL
-                      if (confirm("Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?")) {
-                        try {
-                          const res = await fetch(`/api/admin/media/${asset.id}`, {
-                            method: "DELETE",
-                          });
-                          if (res.ok) {
-                            loadLibrary();
-                          } else {
-                            const err = await res.json().catch(() => ({}));
-                            alert("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                      confirm(
+                        "Xác nhận xóa",
+                        "Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?",
+                        async () => {
+                          try {
+                            const res = await fetch(`/api/admin/media/${asset.id}`, {
+                              method: "DELETE",
+                            });
+                            if (res.ok) {
+                              toast.success("Xóa tệp thành công!");
+                              loadLibrary();
+                            } else {
+                              const err = await res.json().catch(() => ({}));
+                              toast.error("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                            }
+                          } catch (err) {
+                            toast.error("Lỗi kết nối khi xóa tệp: " + String(err));
                           }
-                        } catch (err) {
-                          alert("Lỗi kết nối khi xóa tệp: " + String(err));
                         }
-                      }
+                      );
                     }}
                     className="absolute right-1 top-1 z-10 hidden rounded bg-red-600 p-1 text-white hover:bg-red-700 group-hover:block transition shadow-sm"
                     title="Xóa tệp"
@@ -947,6 +954,7 @@ export function MediaPicker({
   onChange: (url: string, mediaId?: string) => void;
   label?: string;
 }) {
+  const { toast, confirm } = useToast();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -1162,23 +1170,28 @@ export function MediaPicker({
                         {/* Delete Button */}
                         <button
                           type="button"
-                          onClick={async (e) => {
+                          onClick={(e) => {
                             e.stopPropagation(); // prevent selecting the image
-                            if (confirm("Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?")) {
-                              try {
-                                const res = await fetch(`/api/admin/media/${asset.id}`, {
-                                  method: "DELETE",
-                                });
-                                if (res.ok) {
-                                  loadLibrary(true);
-                                } else {
-                                  const err = await res.json().catch(() => ({}));
-                                  alert("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                            confirm(
+                              "Xác nhận xóa",
+                              "Bạn có chắc chắn muốn xóa tệp này vĩnh viễn?",
+                              async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/media/${asset.id}`, {
+                                    method: "DELETE",
+                                  });
+                                  if (res.ok) {
+                                    toast.success("Xóa tệp thành công!");
+                                    loadLibrary(true);
+                                  } else {
+                                    const err = await res.json().catch(() => ({}));
+                                    toast.error("Lỗi khi xóa: " + (err.error || "Không xác định"));
+                                  }
+                                } catch (err) {
+                                  toast.error("Lỗi kết nối khi xóa tệp: " + String(err));
                                 }
-                              } catch (err) {
-                                alert("Lỗi kết nối khi xóa tệp: " + String(err));
                               }
-                            }
+                            );
                           }}
                           className="absolute right-1 top-1 z-10 hidden rounded bg-red-600 p-1 text-white hover:bg-red-700 group-hover:block transition shadow-sm"
                           title="Xóa tệp"

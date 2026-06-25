@@ -83,7 +83,7 @@ export const publicNav = [
 export const productGroups = [
   {
     key: "wood",
-    href: "/products?category=wood",
+    href: "/products?category=do-go-noi-that",
     image: "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424088/showroom/woodWall.png",
     title: { vi: "Nội thất & đồ gỗ", en: "Wood furniture" },
     summary: {
@@ -93,7 +93,7 @@ export const productGroups = [
   },
   {
     key: "sanitary",
-    href: "/products?category=sanitary",
+    href: "/products?category=thiet-bi-ve-sinh",
     image: "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424091/showroom/room.jpg",
     title: { vi: "Thiết bị vệ sinh", en: "Sanitary ware" },
     summary: {
@@ -103,7 +103,7 @@ export const productGroups = [
   },
   {
     key: "tiles",
-    href: "/products?category=tiles",
+    href: "/products?category=gach-op-lat",
     image: "https://res.cloudinary.com/dcmhbxcgq/image/upload/v1781424090/showroom/texture.jpg",
     title: { vi: "Gạch ốp lát", en: "Tiles" },
     summary: {

@@ -657,7 +657,7 @@ export function PublicShell({
         </div>
 
         {open ? (
-          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden absolute top-full left-0 right-0 max-h-[calc(100vh-5rem)] overflow-y-auto">
+          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden fixed top-20 left-0 right-0 bottom-0 overflow-y-auto">
             <nav className="container-pd grid gap-2 py-4" aria-label="Mobile">
               {navItems.map((item) => (
                 <Link

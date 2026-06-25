@@ -7,6 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     ports:
       - "3000:3000"
     env_file:
@@ -32,4 +35,4 @@ networks:
     name: furniture-app-network
   supabase-network:
     external: true
-    name: supabase_network_furniture-website
+    name: supabase_default

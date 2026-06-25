@@ -49,7 +49,7 @@ export const publicNav = [
 export const productGroups = [
   {
     key: "wood",
-    href: "/products?category=wood",
+    href: "/products?category=do-go-noi-that",
     image: imageAssets.woodWall,
     title: { vi: "Nội thất & đồ gỗ", en: "Wood furniture" },
     summary: {
@@ -59,7 +59,7 @@ export const productGroups = [
   },
   {
     key: "sanitary",
-    href: "/products?category=sanitary",
+    href: "/products?category=thiet-bi-ve-sinh",
     image: imageAssets.room,
     title: { vi: "Thiết bị vệ sinh", en: "Sanitary ware" },
     summary: {
@@ -69,7 +69,7 @@ export const productGroups = [
   },
   {
     key: "tiles",
-    href: "/products?category=tiles",
+    href: "/products?category=gach-op-lat",
     image: imageAssets.texture,
     title: { vi: "Gạch ốp lát", en: "Tiles" },
     summary: {

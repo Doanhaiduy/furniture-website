@@ -25,10 +25,17 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_PUBLIC_SUPABASE_URL=http://placeholder.supabase.url
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder_anon_key
+
+# Accept build arguments for Next.js build-time variables
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Set them in the environment so Next.js build can inline them
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_service_role_key
 ENV RESEND_API_KEY=re_placeholder_key
+
 RUN pnpm build
 
 # Production runner stage

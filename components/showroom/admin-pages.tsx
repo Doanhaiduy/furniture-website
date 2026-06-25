@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/providers/toast-provider";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -671,6 +672,7 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
 
 
 function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: string }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>(quotes[0]?.id ?? "");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -748,12 +750,13 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
         // Update local state optimistically
         setLocalQuotes((prev) => prev.map((q) => q.id === quoteId ? { ...q, status: newStatus } : q));
         setStatusNote("");
+        toast.success("Cập nhật trạng thái thành công!");
         router.refresh();
       } else {
-        alert("Lỗi cập nhật trạng thái: " + (result.error ?? "Không xác định"));
+        toast.error("Lỗi cập nhật trạng thái: " + (result.error ?? "Không xác định"));
       }
     } catch (err) {
-      alert("Đã xảy ra lỗi: " + String(err));
+      toast.error("Đã xảy ra lỗi: " + String(err));
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -1059,6 +1062,7 @@ function SettingsPage() {
 }
 
 function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profiles?: AdminUser[] }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editRole, setEditRole] = useState("editor");
@@ -1083,14 +1087,14 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
       });
       const data = await res.json();
       if (data.success) {
-        alert("Cập nhật quyền thành viên thành công!");
+        toast.success("Cập nhật quyền thành viên thành công!");
         setEditingUser(null);
         router.refresh();
       } else {
-        alert(data.error || "Lỗi khi cập nhật tài khoản.");
+        toast.error(data.error || "Lỗi khi cập nhật tài khoản.");
       }
     } catch (err) {
-      alert("Lỗi kết nối tới máy chủ.");
+      toast.error("Lỗi kết nối tới máy chủ.");
     } finally {
       setIsUpdating(false);
     }
@@ -1220,27 +1224,33 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
 }
 
 function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean; promotions?: AdminPromotion[] }) {
+  const { toast, confirm } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("edit");
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?")) return;
-    setIsDeleting(true);
-    try {
-      const res = await deleteAdminPromotion(id);
-      if (res.success) {
-        alert("Xóa khuyến mãi thành công!");
-        router.refresh();
-      } else {
-        alert("Lỗi khi xóa khuyến mãi: " + res.error);
+    confirm(
+      "Xác nhận xóa",
+      "Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?",
+      async () => {
+        setIsDeleting(true);
+        try {
+          const res = await deleteAdminPromotion(id);
+          if (res.success) {
+            toast.success("Xóa khuyến mãi thành công!");
+            router.refresh();
+          } else {
+            toast.error("Lỗi khi xóa khuyến mãi: " + res.error);
+          }
+        } catch (err) {
+          toast.error("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
+        } finally {
+          setIsDeleting(false);
+        }
       }
-    } catch (err) {
-      alert("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
-    } finally {
-      setIsDeleting(false);
-    }
+    );
   };
 
   const columns = [

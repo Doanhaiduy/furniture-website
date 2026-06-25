@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/components/providers/toast-provider";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -379,6 +380,7 @@ export function EntityCreateForm({ kind, idOrSlug }: { kind: EntityKind; idOrSlu
 }
 
 function UserCreateEntityForm() {
+  const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -403,7 +405,7 @@ function UserCreateEntityForm() {
       });
       const data = await res.json();
       if (data.success) {
-        alert("Tạo tài khoản quản trị thành công!");
+        toast.success("Tạo tài khoản quản trị thành công!");
         window.location.href = "/admin/users";
       } else {
         setFormError(data.error || "Có lỗi xảy ra khi tạo tài khoản.");
@@ -1243,6 +1245,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 export function SettingsOperationsPanel() {
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const initialTab: SettingsTab = requestedTab === "contact" || requestedTab === "seo" || requestedTab === "integrations" || requestedTab === "sections"
@@ -1543,10 +1546,10 @@ export function SettingsOperationsPanel() {
           if (freshData.geminiKey !== undefined) setGeminiKey(freshData.geminiKey);
         }
       } else {
-        alert("Lỗi lưu cấu hình: " + (resData.error || "Không rõ nguyên nhân"));
+        toast.error("Lỗi lưu cấu hình: " + (resData.error || "Không rõ nguyên nhân"));
       }
     } catch (err) {
-      alert("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
+      toast.error("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
     } finally {
       setIsSaving(false);
     }
@@ -1642,7 +1645,7 @@ export function SettingsOperationsPanel() {
       setEmailError("");
       setSaveSuccess(false);
     } catch (err) {
-      alert("Không thể hủy thay đổi: " + (err instanceof Error ? err.message : err));
+      toast.error("Không thể hủy thay đổi: " + (err instanceof Error ? err.message : err));
     } finally {
       setIsSaving(false);
     }
@@ -2780,6 +2783,7 @@ export function AiAssistantWorkspace() {
 
 
 function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const editId = idOrSlug || searchParams.get("edit") || "";
   const isEdit = Boolean(editId);
@@ -2865,7 +2869,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       }
 
       if (res.success) {
-        alert(isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!");
+        toast.success(isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!");
         window.location.href = "/admin/brands";
       } else {
         setFormError(res.error || "Có lỗi xảy ra.");
@@ -2973,6 +2977,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const editId = idOrSlug || searchParams.get("edit") || "";
   const isEdit = Boolean(editId);
@@ -3088,7 +3093,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       }
 
       if (res.success) {
-        alert(isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!");
+        toast.success(isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!");
         window.location.href = "/admin/promotions";
       } else {
         setFormError(res.error || "Có lỗi xảy ra.");
@@ -3352,6 +3357,18 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     </form>
   );
 }
+const isBodyEmpty = (val: any) => {
+  if (!val) return true;
+  if (typeof val === "string") return !val.trim();
+  if (typeof val === "object") {
+    if (val.type === "doc" && Array.isArray(val.content)) {
+      return val.content.length === 0;
+    }
+    return Object.keys(val).length === 0;
+  }
+  return false;
+};
+
 export function ContentEditorForm({
   kind,
   mode = "edit",
@@ -3361,6 +3378,7 @@ export function ContentEditorForm({
   mode?: "create" | "edit";
   idOrSlug?: string;
 }) {
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isProduct = kind === "product";
@@ -3680,14 +3698,14 @@ export function ContentEditorForm({
   const validationErrors: string[] = [];
   if (!viTitle.trim()) validationErrors.push("Cần nhập tiêu đề tiếng Việt.");
   if (!viSummary.trim()) validationErrors.push("Cần nhập mô tả ngắn hoặc trích đoạn tiếng Việt.");
-  if (!viBody.trim()) validationErrors.push("Cần nhập nội dung tiếng Việt.");
+  if (isBodyEmpty(viBody)) validationErrors.push("Cần nhập nội dung tiếng Việt.");
   if (!seoTitleVi.trim()) validationErrors.push("Cần nhập tiêu đề SEO tiếng Việt.");
   if (!seoDescVi.trim()) validationErrors.push("Cần nhập mô tả meta tiếng Việt.");
 
   if (englishEnabled) {
     if (!enTitle.trim()) validationErrors.push("Cần nhập tiêu đề tiếng Anh khi đã bật tiếng Anh.");
     if (!enSummary.trim()) validationErrors.push("Cần nhập mô tả ngắn hoặc trích đoạn tiếng Anh khi đã bật tiếng Anh.");
-    if (!enBody.trim()) validationErrors.push("Cần nhập nội dung tiếng Anh khi đã bật tiếng Anh.");
+    if (isBodyEmpty(enBody)) validationErrors.push("Cần nhập nội dung tiếng Anh khi đã bật tiếng Anh.");
     if (!seoTitleEn.trim()) validationErrors.push("Cần nhập tiêu đề SEO tiếng Anh khi đã bật tiếng Anh.");
     if (!seoDescEn.trim()) validationErrors.push("Cần nhập mô tả meta tiếng Anh khi đã bật tiếng Anh.");
   }
@@ -3696,11 +3714,11 @@ export function ContentEditorForm({
   const dynamicReadiness = [
     { 
       label: "Đã hoàn tất trường nội dung gốc tiếng Việt", 
-      state: (!viTitle.trim() || !viSummary.trim() || !viBody.trim()) ? "warning" : "ready" 
+      state: (!viTitle.trim() || !viSummary.trim() || isBodyEmpty(viBody)) ? "warning" : "ready" 
     },
     { 
       label: englishEnabled ? "Bản dịch tiếng Anh đã hoàn tất" : "Không bật tiếng Anh (tùy chọn)", 
-      state: (englishEnabled && (!enTitle.trim() || !enSummary.trim() || !enBody.trim())) ? "warning" : "ready" 
+      state: (englishEnabled && (!enTitle.trim() || !enSummary.trim() || isBodyEmpty(enBody))) ? "warning" : "ready" 
     },
     { 
       label: isProduct ? (quoteOnly ? "Đang bật trạng thái chỉ nhận báo giá" : "Đã cấu hình khoảng giá") : "Đã gán ảnh bìa và thẻ", 
@@ -3745,11 +3763,11 @@ export function ContentEditorForm({
         setAiResult(data.data);
         setShowAiReviewDialog(true);
       } else {
-        alert(data.error || (data.data && data.data.error) || "Không thể tạo nội dung từ AI.");
+        toast.error(data.error || (data.data && data.data.error) || "Không thể tạo nội dung từ AI.");
       }
     } catch (err) {
       setAiLoading(false);
-      alert("Lỗi kết nối khi gọi API AI.");
+      toast.error("Lỗi kết nối khi gọi API AI.");
     }
   };
 
@@ -3837,7 +3855,7 @@ export function ContentEditorForm({
         const brandId = brandObj ? brandObj.id : null;
 
         if (!categoryId) {
-          alert("Không tìm thấy danh mục hợp lệ.");
+          toast.error("Không tìm thấy danh mục hợp lệ.");
           return;
         }
 
@@ -3892,11 +3910,11 @@ export function ContentEditorForm({
           : await updateAdminProduct(idOrSlug!, productData);
 
         if (res.success) {
-          alert(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
+          toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
           router.push("/admin/products");
           router.refresh();
         } else {
-          alert("Lỗi khi lưu sản phẩm: " + res.error);
+          toast.error("Lỗi khi lưu sản phẩm: " + res.error);
         }
       } else {
         const { createAdminBlogPost, updateAdminBlogPost } = await import("@/lib/supabase/mutations");
@@ -3923,18 +3941,36 @@ export function ContentEditorForm({
           : await updateAdminBlogPost(idOrSlug!, blogData);
 
         if (res.success) {
-          alert(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
+          toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
           router.push("/admin/blog");
           router.refresh();
         } else {
-          alert("Lỗi khi lưu bài viết: " + res.error);
+          toast.error("Lỗi khi lưu bài viết: " + res.error);
         }
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi hệ thống: " + String(err));
+      toast.error("Lỗi hệ thống: " + String(err));
     }
   };
+
+  if (isLoadingEdit) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-slate-400">
+        <Loader2 className="size-8 animate-spin text-primary" />
+        <p className="text-sm font-semibold">Đang tải thông tin chỉnh sửa...</p>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-slate-400 p-8 text-center">
+        <AlertTriangle className="size-8 text-rose-500" />
+        <p className="text-sm font-semibold text-rose-500">{loadError}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -4477,7 +4513,7 @@ function BilingualAuthoringFields({
               onChange={setViBody}
               placeholder="Nhập chi tiết nội dung tiếng Việt ở đây..."
             />
-            {!viBody.trim() && <p className="text-red-500 text-xs mt-1">Vui lòng điền nội dung chi tiết.</p>}
+            {isBodyEmpty(viBody) && <p className="text-red-500 text-xs mt-1">Vui lòng điền nội dung chi tiết.</p>}
           </div>
         </div>
       )}
@@ -4556,7 +4592,7 @@ function BilingualAuthoringFields({
               onChange={setEnBody}
               placeholder="Nhập nội dung tiếng Anh..."
             />
-            {!enBody.trim() && <p className="text-red-500 text-xs mt-1">Cần nhập nội dung tiếng Anh.</p>}
+            {isBodyEmpty(enBody) && <p className="text-red-500 text-xs mt-1">Cần nhập nội dung tiếng Anh.</p>}
           </div>
         </div>
       )}
