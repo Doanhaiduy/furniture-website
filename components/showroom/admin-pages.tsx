@@ -840,7 +840,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                     <p className="text-sm font-semibold text-slate-700">{quote.service ?? "Yêu cầu tư vấn"}</p>
                     <p className="text-[10px] text-slate-400 truncate">{quote.source_path}</p>
                   </div>
-                  <span className="text-xs text-slate-500">{new Date(quote.created_at).toLocaleDateString("vi-VN")}</span>
+                  <span className="text-xs text-slate-500" suppressHydrationWarning>{new Date(quote.created_at).toLocaleDateString("vi-VN")}</span>
                   <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
                     {statusLabels[quote.status] ?? quote.status}
                   </span>
@@ -1126,7 +1126,7 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-400" suppressHydrationWarning>
                       {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
                     </span>
                     <StatusPill status={profile.is_active ? "published" : "draft"} />
@@ -1286,7 +1286,7 @@ function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean;
       render: (row: AdminPromotion) => {
         const start = row.start_at ? new Date(row.start_at).toLocaleDateString("vi-VN") : "—";
         const end = row.end_at ? new Date(row.end_at).toLocaleDateString("vi-VN") : "—";
-        return <span className="text-xs text-secondary">{start} - {end}</span>;
+        return <span className="text-xs text-secondary" suppressHydrationWarning>{start} - {end}</span>;
       },
     },
     {
@@ -1423,7 +1423,7 @@ function ProductOperationsTable({ products = [] }: { products?: AdminProduct[] }
               </div>
             </div>
             <span>{product.category_name}</span>
-            <StatusPill status={product.featured ? "published" : "draft"} />
+            <StatusPill status={product.status} />
             <span className={`status-pill w-fit text-[11px] ${index < 2 ? "status-success" : "status-warning"}`}>
               {index < 2 ? "Sẵn sàng" : "Thiếu tiếng Anh/SEO"}
             </span>
@@ -1472,7 +1472,7 @@ function BlogQueue({ posts = [] }: { posts?: AdminBlogPost[] }) {
                   )}
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-slate-800 text-sm line-clamp-2">{post.title}</h3>
-                    <p className="text-[11px] text-slate-400 mt-1">{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</p>
+                    <p className="text-[11px] text-slate-400 mt-1" suppressHydrationWarning>{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</p>
                   </div>
                 </div>
                 <p className="mt-3 text-xs leading-relaxed text-slate-500 line-clamp-2">{post.excerpt}</p>
@@ -1627,7 +1627,7 @@ function QuoteTable({ compact, quotes = [] }: { compact?: boolean; quotes?: Admi
               <p className="text-sm text-secondary">{quote.phone}</p>
             </div>
             <p>{quote.service ?? quote.source_path}</p>
-            <p className="text-sm text-secondary">{new Date(quote.created_at).toLocaleDateString("vi-VN")}</p>
+            <p className="text-sm text-secondary" suppressHydrationWarning>{new Date(quote.created_at).toLocaleDateString("vi-VN")}</p>
             <QuoteStatusPill status={quote.status} />
           </div>
         ))

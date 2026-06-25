@@ -365,7 +365,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
     let query = supabase.from("product_categories").select(`
       *,
       product_category_translations (*),
-      image_media:media_assets!product_categories_image_media_id_fkey(public_url)
+      image_media:media_assets!fk_product_categories_image_media(public_url)
     `);
 
     if (idOrSlug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {

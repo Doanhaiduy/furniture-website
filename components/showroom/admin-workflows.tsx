@@ -512,6 +512,7 @@ function UserCreateEntityForm() {
 }
 
 function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = idOrSlug || searchParams.get("edit");
   const isEdit = Boolean(editSlug);
@@ -524,6 +525,14 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [seoDescVi, setSeoDescVi] = useState("");
   const [seoTitleEn, setSeoTitleEn] = useState("");
   const [seoDescEn, setSeoDescEn] = useState("");
+
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  const [showroomId, setShowroomId] = useState<string | null>(null);
 
   // Bind input states
   const [nameVi, setNameVi] = useState("");
@@ -542,28 +551,44 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (editSlug) {
-      const match = showrooms.find(s => s.code === editSlug);
-      if (match) {
-        setNameVi(match.name.vi);
-        setNameEn(match.name.en);
-        setAddressVi(match.address.vi);
-        setAddressEn(match.address.en);
-        setHotline(match.hotline);
-        setCode(match.code);
-        setHoursVi(match.hours.vi);
-        setHoursEn(match.hours.en);
-        setMapsEmbed(match.mapUrl || "https://www.google.com/maps/embed?pb=...");
-        setMapsFallback(match.mapUrl || "https://maps.google.com/?q=Phuong+Dong");
-        setCoverImage(match.image || "");
-        
-        setSeoTitleVi(`${match.name.vi} | Showroom Nội Thất Phương Đông`);
-        setSeoTitleEn(`${match.name.en} | Phuong Dong Premium Showroom`);
-        setSeoDescVi(`Ghé thăm ${match.name.vi} tại ${match.address.vi}. Hotline: ${match.hotline}.`);
-        setSeoDescEn(`Visit ${match.name.en} at ${match.address.en}. Hotline: ${match.hotline}.`);
-        setEnglishEnabled(true);
-      }
+      setIsLoadingEdit(true);
+      setLoadError("");
+      import("@/lib/supabase/mutations")
+        .then(async ({ getAdminShowroomByIdOrCode }) => {
+          const res = await getAdminShowroomByIdOrCode(editSlug);
+          if (res.success && res.data) {
+            const match = res.data;
+            setShowroomId(match.id || null);
+            setNameVi(match.name_vi || "");
+            setNameEn(match.name_en || "");
+            setAddressVi(match.address_vi || "");
+            setAddressEn(match.address_en || "");
+            setHotline(match.hotline || "");
+            setCode(match.code || "");
+            setHoursVi(match.opening_hours_vi || "");
+            setHoursEn(match.opening_hours_en || "");
+            setMapsEmbed(match.google_maps_embed_url || "https://www.google.com/maps/embed?pb=...");
+            setMapsFallback(match.google_maps_fallback_url || "https://maps.google.com/?q=Phuong+Dong");
+            setCoverImage(match.cover_image || "");
+            
+            setSeoTitleVi((match as any).seo_title_vi || `${match.name_vi} | Showroom Nội Thất Phương Đông`);
+            setSeoTitleEn((match as any).seo_title_en || `${match.name_en || match.name_vi} | Phuong Dong Premium Showroom`);
+            setSeoDescVi((match as any).seo_description_vi || `Ghé thăm ${match.name_vi} tại ${match.address_vi}. Hotline: ${match.hotline}.`);
+            setSeoDescEn((match as any).seo_description_en || `Visit ${match.name_en || match.name_vi} at ${match.address_en || match.address_vi}. Hotline: ${match.hotline}.`);
+            setEnglishEnabled(Boolean(match.name_en));
+            setStatus(match.status || "draft");
+          } else {
+            setLoadError(res.error || `Không tìm thấy showroom: ${editSlug}`);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load showroom for edit:", err);
+          setLoadError("Không thể tải dữ liệu showroom từ máy chủ.");
+        })
+        .finally(() => setIsLoadingEdit(false));
     } else {
       // Clear for create mode
+      setShowroomId(null);
       setNameVi("");
       setNameEn("");
       setAddressVi("");
@@ -572,35 +597,168 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setCode("");
       setHoursVi("");
       setHoursEn("");
-      setMapsEmbed("");
-      setMapsFallback("");
+      setMapsEmbed("https://www.google.com/maps/embed?pb=...");
+      setMapsFallback("https://maps.google.com/?q=Phuong+Dong");
       setCoverImage("");
       setSeoTitleVi("");
       setSeoDescVi("");
       setSeoTitleEn("");
       setSeoDescEn("");
       setEnglishEnabled(false);
+      setStatus("draft");
     }
   }, [editSlug]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleAiFill = () => {
+  const handleAiFill = async () => {
     if (!nameVi.trim() && !addressVi.trim()) return;
     setAiFilling(true);
     setAiFillSuccess(false);
-    setTimeout(() => {
-      setAiFilling(false);
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "generate-content",
+          targetType: "showroom",
+          inputText: `Tên showroom: ${nameVi}. Địa chỉ: ${addressVi}.`,
+          targetLocale: englishEnabled ? "en" : "vi",
+        }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        const data = result.data || {};
+        if (data.enTitle) {
+          setNameEn(data.enTitle.replace(/\s*(?:-|–)\s*Premium Showroom/i, ""));
+        } else {
+          setNameEn(`${nameVi} Premium Showroom`);
+        }
+        if (addressVi) setAddressEn(`${addressVi} (English translation)`);
+        if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
+        
+        if (data.seoTitleVi) setSeoTitleVi(data.seoTitleVi);
+        if (data.seoTitleEn) setSeoTitleEn(data.seoTitleEn);
+        if (data.seoDescVi) setSeoDescVi(data.seoDescVi);
+        if (data.seoDescEn) setSeoDescEn(data.seoDescEn);
+      } else {
+        // Fallback
+        setNameEn(`${nameVi} Premium Showroom`);
+        if (addressVi) setAddressEn(`${addressVi} (English translation)`);
+        if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
+        setSeoTitleVi(`${nameVi} | Showroom Nội Thất Phương Đông`);
+        setSeoTitleEn(`${nameVi} | Phuong Dong Premium Showroom`);
+        setSeoDescVi(`Ghé thăm ${nameVi} tại ${addressVi}. Trải nghiệm nội thất cao cấp.`);
+        setSeoDescEn(`Visit ${nameVi} at ${addressVi}. Experience premium furniture collections.`);
+      }
       setAiFillSuccess(true);
-      if (nameVi) setNameEn(`${nameVi} - Premium Showroom`);
+    } catch {
+      // Fallback
+      setNameEn(`${nameVi} Premium Showroom`);
       if (addressVi) setAddressEn(`${addressVi} (English translation)`);
       if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
-      
       setSeoTitleVi(`${nameVi} | Showroom Nội Thất Phương Đông`);
       setSeoTitleEn(`${nameVi} | Phuong Dong Premium Showroom`);
-      setSeoDescVi(`Ghé thăm ${nameVi} tại ${addressVi}. Trải nghiệm nội thất cao cấp.`);
-      setSeoDescEn(`Visit ${nameVi} at ${addressVi}. Experience premium furniture collections.`);
-    }, 800);
+      setAiFillSuccess(true);
+    } finally {
+      setAiFilling(false);
+    }
   };
+
+  const handleSave = async (targetStatus?: "draft" | "published" | "archived") => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
+
+    const statusToSave = targetStatus || status;
+
+    const payload = {
+      code: code.trim().toLowerCase(),
+      name_vi: nameVi.trim(),
+      name_en: englishEnabled ? nameEn.trim() : "",
+      address_vi: addressVi.trim(),
+      address_en: englishEnabled ? addressEn.trim() : "",
+      opening_hours_vi: hoursVi.trim() || null,
+      opening_hours_en: englishEnabled && hoursEn.trim() ? hoursEn.trim() : null,
+      hotline: hotline.trim(),
+      google_maps_embed_url: mapsEmbed.trim(),
+      google_maps_fallback_url: mapsFallback.trim(),
+      latitude: null,
+      longitude: null,
+      status: statusToSave,
+      sort_order: 0,
+      cover_image: coverImage || null,
+      seo_title_vi: seoTitleVi.trim() || null,
+      seo_title_en: englishEnabled && seoTitleEn.trim() ? seoTitleEn.trim() : null,
+      seo_description_vi: seoDescVi.trim() || null,
+      seo_description_en: englishEnabled && seoDescEn.trim() ? seoDescEn.trim() : null,
+    };
+
+    try {
+      const { showroomSchema } = await import("@/lib/validations/admin");
+      const validation = showroomSchema.safeParse(payload);
+      if (!validation.success) {
+        const msgs = validation.error.issues.map((e: any) => e.message).join(". ");
+        setSaveError(msgs);
+        setIsSaving(false);
+        return;
+      }
+
+      const { createAdminShowroom, updateAdminShowroom } = await import("@/lib/supabase/mutations");
+      let res;
+      if (isEdit && showroomId) {
+        res = await updateAdminShowroom(showroomId, payload);
+      } else {
+        res = await createAdminShowroom(payload);
+      }
+
+      if (res.success) {
+        setSaveSuccess(true);
+        router.push("/admin/showrooms");
+        router.refresh();
+      } else {
+        setSaveError(res.error || "Không thể lưu showroom.");
+      }
+    } catch (err) {
+      setSaveError(String(err));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const validationErrors: string[] = [];
+  if (!nameVi.trim()) validationErrors.push("Cần nhập tên showroom tiếng Việt.");
+  if (!code.trim()) validationErrors.push("Cần nhập mã showroom (code).");
+  if (!addressVi.trim()) validationErrors.push("Cần nhập địa chỉ tiếng Việt.");
+  if (!hotline.trim()) validationErrors.push("Cần nhập số hotline.");
+  if (!mapsEmbed.trim()) validationErrors.push("Cần nhập URL nhúng Google Maps.");
+  if (!mapsFallback.trim()) validationErrors.push("Cần nhập URL bản đồ dự phòng.");
+  if (englishEnabled && !nameEn.trim()) validationErrors.push("Cần nhập tên showroom tiếng Anh khi đã bật tiếng Anh.");
+  if (englishEnabled && !addressEn.trim()) validationErrors.push("Cần nhập địa chỉ tiếng Anh khi đã bật tiếng Anh.");
+
+  if (isLoadingEdit) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-slate-500 font-medium">Đang tải dữ liệu showroom...</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-6 text-center text-red-700">
+        <p className="font-semibold">{loadError}</p>
+        <button
+          type="button"
+          className="button-pd mt-4"
+          onClick={() => router.push("/admin/showrooms")}
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -771,7 +929,28 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             Xem trước
           </button>
         </section>
-        <PublishWorkflow />
+
+        {saveError && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
+            <strong className="block font-semibold">Lỗi lưu trữ:</strong>
+            <p className="mt-1">{saveError}</p>
+          </div>
+        )}
+        {saveSuccess && (
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-700">
+            <strong className="block font-semibold">Thành công!</strong>
+            <p className="mt-1">Dữ liệu showroom đã được lưu trữ vào cơ sở dữ liệu.</p>
+          </div>
+        )}
+
+        <PublishWorkflow 
+          status={status}
+          onStatusChange={setStatus}
+          errors={validationErrors} 
+          onSaveDraft={() => handleSave("draft")}
+          onPublish={() => handleSave("published")}
+          onArchive={() => handleSave("archived")}
+        />
       </aside>
       {previewOpen && (
         <DetailPreviewModal
@@ -3509,6 +3688,7 @@ export function ContentEditorForm({
 
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [entityId, setEntityId] = useState<string | null>(null);
   const editSlug = idOrSlug || searchParams.get("edit");
 
   // Sync state with edit entity from DB
@@ -3525,6 +3705,7 @@ export function ContentEditorForm({
             const res = await getAdminProductByIdOrSlug(editSlug);
             if (res.success && res.data) {
               const p = res.data;
+              setEntityId(p.id);
               setViTitle(p.name_vi || "");
               setEnTitle(p.name_en || "");
               setViSlug(p.slug || "");
@@ -3594,6 +3775,7 @@ export function ContentEditorForm({
             const res = await getAdminBlogPostByIdOrSlug(editSlug);
             if (res.success && res.data) {
               const b = res.data;
+              setEntityId(b.id);
               setViTitle(b.title_vi || "");
               setEnTitle(b.title_en || "");
               setViSlug(b.slug || "");
@@ -3907,7 +4089,7 @@ export function ContentEditorForm({
 
         const res = mode === "create"
           ? await createAdminProduct(productData)
-          : await updateAdminProduct(idOrSlug!, productData);
+          : await updateAdminProduct(entityId || idOrSlug!, productData);
 
         if (res.success) {
           toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
@@ -3938,7 +4120,7 @@ export function ContentEditorForm({
 
         const res = mode === "create"
           ? await createAdminBlogPost(blogData)
-          : await updateAdminBlogPost(idOrSlug!, blogData);
+          : await updateAdminBlogPost(entityId || idOrSlug!, blogData);
 
         if (res.success) {
           toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");

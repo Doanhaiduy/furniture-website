@@ -169,7 +169,7 @@ export async function getAdminBrandById(id: string): Promise<{
       .select(`
         *,
         brand_translations (*),
-        logo_media:media_assets!brands_logo_media_id_fkey(public_url)
+        logo_media:media_assets!fk_brands_logo_media(public_url)
       `)
       .eq("id", id)
       .is("deleted_at", null)

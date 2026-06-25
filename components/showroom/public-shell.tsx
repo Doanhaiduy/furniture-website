@@ -656,54 +656,55 @@ export function PublicShell({
           ) : null}
         </div>
 
-        {open ? (
-          <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden fixed top-20 left-0 right-0 bottom-0 overflow-y-auto z-50 text-on-surface">
-            <nav className="container-pd grid gap-2 py-4" aria-label="Mobile">
-              {navItems.map((item) => (
-                <Link
-                  key={item.key}
-                  href={linkHref(item.href)}
-                  className="nav-link-pd flex min-h-11 w-full uppercase tracking-wider"
-                  onClick={() => setOpen(false)}
-                >
-                  {labels.nav[item.key]}
-                </Link>
-              ))}
-              <div className="surface-panel p-3">
-                <p className="label-pd">{labels.nav.catalog}</p>
-                <div className="mt-3 grid gap-1 sm:grid-cols-2">
-                  {brandSections.slice(0, 6).map((section) => (
-                    <Link
-                      key={section.key}
-                      href={section.href}
-                      className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
-                      onClick={() => setOpen(false)}
-                    >
-                      {section.title}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              <div className="surface-panel p-3">
-                <p className="label-pd">{labels.nav.catalogPopular}</p>
-                <div className="mt-3 grid gap-1">
-                  {typeSections.map((section) => (
-                    <Link
-                      key={section.key}
-                      href={section.href}
-                      className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
-                      onClick={() => setOpen(false)}
-                    >
-                      {section.title}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-              {/* Mobile contact CTA removed to move to FAB */}
-            </nav>
-          </div>
-        ) : null}
       </header>
+
+      {open ? (
+        <div className="public-mega-menu animate-in fade-in slide-in-from-top-2 border-t duration-200 motion-reduce:animate-none lg:hidden fixed top-20 left-0 right-0 bottom-0 overflow-y-auto z-50 text-on-surface">
+          <nav className="container-pd grid gap-2 py-4" aria-label="Mobile">
+            {navItems.map((item) => (
+              <Link
+                key={item.key}
+                href={linkHref(item.href)}
+                className="nav-link-pd flex min-h-11 w-full uppercase tracking-wider"
+                onClick={() => setOpen(false)}
+              >
+                {labels.nav[item.key]}
+              </Link>
+            ))}
+            <div className="surface-panel p-3">
+              <p className="label-pd">{labels.nav.catalog}</p>
+              <div className="mt-3 grid gap-1 sm:grid-cols-2">
+                {brandSections.slice(0, 6).map((section) => (
+                  <Link
+                    key={section.key}
+                    href={section.href}
+                    className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
+                    onClick={() => setOpen(false)}
+                  >
+                    {section.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="surface-panel p-3">
+              <p className="label-pd">{labels.nav.catalogPopular}</p>
+              <div className="mt-3 grid gap-1">
+                {typeSections.map((section) => (
+                  <Link
+                    key={section.key}
+                    href={section.href}
+                    className="nav-link-pd min-h-9 px-3 py-2 text-secondary"
+                    onClick={() => setOpen(false)}
+                  >
+                    {section.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            {/* Mobile contact CTA removed to move to FAB */}
+          </nav>
+        </div>
+      ) : null}
 
       {children}
 

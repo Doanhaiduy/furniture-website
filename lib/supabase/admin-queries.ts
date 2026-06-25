@@ -115,6 +115,7 @@ export type AdminProduct = {
   brand_series: string | null;
   featured: boolean;
   published_at: string | null;
+  status: string;
   primary_media: unknown;
   media: unknown;
   attributes: unknown;
@@ -251,7 +252,7 @@ export async function getAdminQuotesList(params: {
         p_offset: params.offset ?? 0,
       });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data as AdminQuote[];
       }
     } catch (e) {
@@ -340,10 +341,11 @@ export async function getAdminProducts(params: {
           ),
           product_categories (
             id,
-            slug,
-            name,
             group_key,
-            product_category_translations (name)
+            product_category_translations (
+              name,
+              slug
+            )
           ),
           product_media (
             media_id,
@@ -367,7 +369,8 @@ export async function getAdminProducts(params: {
       }
 
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
+      console.log("getAdminBlogPosts query result:", { dataCount: data?.length, error });
+      if (!error && data) {
         return data.map((row) => {
           const translation = Array.isArray(row.product_translations)
             ? row.product_translations[0]
@@ -415,6 +418,7 @@ export async function getAdminProducts(params: {
             brand_series: row.brand_series || null,
             featured: row.featured,
             published_at: row.published_at ?? null,
+            status: row.status,
             primary_media: primaryMedia,
             media: media,
             attributes: [],
@@ -489,12 +493,12 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
           status,
           sort_order,
           parent_id,
-          product_category_translations (slug, name, description)
+          product_category_translations (locale, slug, name, description)
         `)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const { count } = await supabase
           .from("products")
           .select("*", { count: "exact", head: true })
@@ -503,9 +507,12 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
         const productCount = count ?? 0;
 
         return data.map((row) => {
-          const translation = Array.isArray(row.product_category_translations)
-            ? row.product_category_translations[0]
-            : row.product_category_translations;
+          const translations = Array.isArray(row.product_category_translations)
+            ? row.product_category_translations
+            : row.product_category_translations
+            ? [row.product_category_translations]
+            : [];
+          const translation = translations.find((t: any) => t?.locale === "vi") || translations[0];
           const slugVal = translation?.slug ?? "";
           return {
             id: row.id as string,
@@ -543,6 +550,7 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
 }
 
 export async function getAdminBlogPosts(params: { limit?: number; offset?: number } = {}): Promise<AdminBlogPost[]> {
+  console.log("NEXT_PUBLIC_USE_MOCK_DATA inside getAdminBlogPosts:", process.env.NEXT_PUBLIC_USE_MOCK_DATA);
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
   if (!useMock) {
@@ -571,14 +579,15 @@ export async function getAdminBlogPosts(params: { limit?: number; offset?: numbe
             id,
             blog_category_translations (name, slug)
           ),
-          profiles!blog_posts_author_id_fkey (full_name)
+          profiles!fk_blog_posts_author (full_name)
         `)
         .is("deleted_at", null)
         .order("published_at", { ascending: false })
         .limit(params.limit ?? 50)
         .range(params.offset ?? 0, (params.limit ?? 50) - 1);
 
-      if (!error && data && data.length > 0) {
+      console.log("getAdminBlogPosts query result:", { dataCount: data?.length, error });
+      if (!error && data) {
         return data.map((row) => {
           const translation = Array.isArray(row.blog_post_translations)
             ? row.blog_post_translations[0]
@@ -652,17 +661,20 @@ export async function getAdminShowrooms(): Promise<AdminShowroom[]> {
           longitude,
           status,
           sort_order,
-          showroom_translations (name, address, opening_hours),
+          showroom_translations (locale, name, address, opening_hours),
           showroom_media (media_id, is_primary, media:media_assets (public_url))
         `)
         .is("deleted_at", null)
         .order("sort_order", { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         return data.map((row) => {
-          const translation = Array.isArray(row.showroom_translations)
-            ? row.showroom_translations[0]
-            : row.showroom_translations;
+          const translations = Array.isArray(row.showroom_translations)
+            ? row.showroom_translations
+            : row.showroom_translations
+            ? [row.showroom_translations]
+            : [];
+          const translation = translations.find((t: any) => t?.locale === "vi") || translations[0];
           const primaryMedia = Array.isArray(row.showroom_media)
             ? row.showroom_media.find((m: { is_primary: boolean }) => m.is_primary)
             : null;
