@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { ExcelImportExportModal } from "./admin-excel";
 import { useToast } from "@/components/providers/toast-provider";
 import Link from "next/link";
@@ -1066,13 +1067,28 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
   };
 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-  const isExpanded = (id: string) => expandedGroups[id] !== false;
+  const isExpanded = (id: string) => expandedGroups[id] === true;
 
   const toggleGroup = (id: string) => {
     setExpandedGroups(prev => ({
       ...prev,
       [id]: !isExpanded(id)
     }));
+  };
+
+  const parentIds = categories.filter(c => c.parent_id === null).map(c => c.id);
+  const allExpanded = parentIds.length > 0 && parentIds.every(id => expandedGroups[id] === true);
+
+  const toggleAllGroups = () => {
+    if (allExpanded) {
+      setExpandedGroups({});
+    } else {
+      const nextState: Record<string, boolean> = {};
+      parentIds.forEach(id => {
+        nextState[id] = true;
+      });
+      setExpandedGroups(nextState);
+    }
   };
 
   const sort = searchParams.get("sort") || "sort_order";
@@ -1102,20 +1118,33 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
         actionLabel="Thêm danh mục"
       />
 
-      {/* Excel Actions Toolbar */}
-      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm w-fit">
-        <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
-          <FileSpreadsheet className="size-4 text-indigo-500" />
-          Excel:
-        </span>
-        <button
-          type="button"
-          onClick={() => setExcelModalOpen(true)}
-          className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
-        >
-          <Upload className="size-3.5" />
-          Nhập & Xuất Excel
-        </button>
+      {/* Excel & View Actions Toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm">
+          <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
+            <FileSpreadsheet className="size-4 text-indigo-500" />
+            Excel:
+          </span>
+          <button
+            type="button"
+            onClick={() => setExcelModalOpen(true)}
+            className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+          >
+            <Upload className="size-3.5" />
+            Nhập & Xuất Excel
+          </button>
+        </div>
+
+        {isDefaultSort && !hasSearch && parentIds.length > 0 && (
+          <button
+            type="button"
+            onClick={toggleAllGroups}
+            className="button-pd-outline py-2 px-4 text-xs flex items-center gap-1.5 hover:bg-slate-100 transition cursor-pointer shadow-sm rounded-2xl font-semibold text-slate-750 border-slate-200 bg-white"
+          >
+            {allExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+            {allExpanded ? "Thu gọn tất cả nhóm" : "Mở rộng tất cả nhóm"}
+          </button>
+        )}
       </div>
 
       <DataView
@@ -1142,7 +1171,16 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
           const hasSubCategories = categories.some(c => c.parent_id === category.id);
 
           return (
-            <div key={category.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 150px 130px 120px 100px" }}>
+            <div
+              key={category.id}
+              className={cn(
+                "grid items-center gap-4 px-4 py-3 transition-colors",
+                isGrp 
+                  ? "bg-slate-50/70 border-l-4 border-indigo-500/70 hover:bg-slate-100/60 font-semibold" 
+                  : "bg-white border-l-4 border-transparent hover:bg-slate-50/40"
+              )}
+              style={{ gridTemplateColumns: "1fr 150px 130px 120px 100px" }}
+            >
               <div className="min-w-0 flex items-center">
                 {isChild && (
                   <span className="text-slate-300 font-mono mr-2 select-none pl-4">└─</span>
@@ -1151,7 +1189,7 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
                   <button
                     type="button"
                     onClick={() => toggleGroup(category.id)}
-                    className="mr-1.5 p-0.5 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                    className="mr-2 p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition cursor-pointer"
                   >
                     {isGrpExpanded ? (
                       <ChevronDown className="size-4" />
@@ -1160,15 +1198,18 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
                     )}
                   </button>
                 ) : isGrp && (
-                  <span className="w-5" />
+                  <span className="w-8" />
                 )}
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm truncate flex items-center gap-2">
+                <div 
+                  className={cn("min-w-0", isGrp && isDefaultSort && !hasSearch && hasSubCategories && "cursor-pointer select-none")}
+                  onClick={() => isGrp && isDefaultSort && !hasSearch && hasSubCategories && toggleGroup(category.id)}
+                >
+                  <p className={cn("text-sm truncate flex items-center gap-2", isGrp ? "text-slate-900 font-bold" : "text-slate-700 font-medium")}>
                     {category.name}
                     {category.parent_id === null ? (
-                      <span className="bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Nhóm danh mục</span>
+                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Nhóm danh mục</span>
                     ) : (
-                      <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Danh mục</span>
+                      <span className="bg-slate-50 text-slate-500 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Danh mục</span>
                     )}
                   </p>
                   <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500">{category.slug}</code>
