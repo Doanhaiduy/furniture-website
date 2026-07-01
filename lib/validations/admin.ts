@@ -151,6 +151,7 @@ export const brandSchema = z.object({
   seo_title_en: optionalText,
   seo_description_vi: optionalText,
   seo_description_en: optionalText,
+  slug: optionalText,
 });
 
 export const promotionSchema = z.object({

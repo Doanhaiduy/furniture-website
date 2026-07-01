@@ -20,10 +20,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Missing media ID" }, { status: 400 });
   }
 
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    return NextResponse.json({ success: true });
-  }
+    
 
   const supabase = await createClient();
 

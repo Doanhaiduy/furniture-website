@@ -204,12 +204,13 @@ export function QuoteStatusUpdater() {
             { value: "contacted", label: "Đang tư vấn" },
             { value: "qualified", label: "Đủ điều kiện" },
             { value: "closed", label: "Hoàn thành" },
+            { value: "cancelled", label: "Đã hủy" },
             { value: "spam", label: "Thư rác" },
           ]}
         />
       </label>
       <p className="field-feedback mt-3 text-sm text-secondary">
-        Trạng thái hiện tại: <strong>{status === "new" ? "Chưa xử lý" : status === "contacted" ? "Đang tư vấn" : status === "qualified" ? "Đủ điều kiện" : status === "closed" ? "Hoàn thành" : "Thư rác"}</strong>
+        Trạng thái hiện tại: <strong>{status === "new" ? "Chưa xử lý" : status === "contacted" ? "Đang tư vấn" : status === "qualified" ? "Đủ điều kiện" : status === "closed" ? "Hoàn thành" : status === "cancelled" ? "Đã hủy" : "Thư rác"}</strong>
       </p>
     </div>
   );

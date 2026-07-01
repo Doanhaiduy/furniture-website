@@ -102,10 +102,12 @@ export default async function PromotionsPage({
     }));
 
   const dbCategories = await getCategories(supabase, locale).catch(() => []);
-  const categoriesForQuote = dbCategories.map((c: any) => ({
-    slug: c.slug as string,
-    name: c.name as string,
-  }));
+  const categoriesForQuote = dbCategories
+    .filter((c: any) => c.parentId !== null)
+    .map((c: any) => ({
+      slug: c.slug as string,
+      name: c.name as string,
+    }));
 
   const formatPrice = (price: number | string | null | undefined, isVn: boolean) => {
     if (!price) return "";

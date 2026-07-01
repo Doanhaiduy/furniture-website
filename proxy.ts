@@ -12,11 +12,6 @@ export async function proxy(request: NextRequest) {
     return intlMiddleware(request);
   }
 
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    return NextResponse.next();
-  }
-
   if (
     request.nextUrl.pathname === "/admin/login" ||
     request.nextUrl.pathname === "/admin/access-denied"

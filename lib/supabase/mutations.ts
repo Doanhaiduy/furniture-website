@@ -6,10 +6,6 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { requireEditorOrAdmin } from "./auth";
 import { createAdminClient, createClient } from "./server";
 import { writeAuditLog } from "./audit";
-import { mockProducts } from "../mock-data/products";
-import { mockCategories } from "../mock-data/categories";
-import { mockBlogs } from "../mock-data/blogs";
-import { mockShowrooms } from "../mock-data/showrooms";
 import {
   blogPostSchema,
   showroomSchema,
@@ -195,55 +191,7 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
   data?: any;
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const match = mockProducts.find(p => p.id === idOrSlug || p.slug === idOrSlug);
-    if (match) {
-      return {
-        success: true,
-        data: {
-          id: match.id,
-          reference_code: match.reference_code,
-          slug: match.slug,
-          category_id: match.category_id,
-          status: match.status,
-          price_min: match.price_min,
-          price_max: match.price_max,
-          currency: match.currency,
-          featured: match.featured,
-          cover_image: match.primary_media?.url || "",
-          gallery_images: (match.media || []).map(m => m.url),
-          name_vi: match.name.vi,
-          name_en: match.name.en,
-          summary_vi: match.summary.vi,
-          summary_en: match.summary.en,
-          description_json_vi: match.description.vi,
-          description_json_en: match.description.en,
-          material_vi: match.material.vi,
-          material_en: match.material.en,
-          price_display_text_vi: match.price_display_text.vi,
-          price_display_text_en: match.price_display_text.en,
-          dimension_display_text_vi: match.dimension_display_text.vi,
-          dimension_display_text_en: match.dimension_display_text.en,
-          specifications: {
-            material_vi: match.specs.find(s => s.label.en === "Material")?.value.vi || "",
-            material_en: match.specs.find(s => s.label.en === "Material")?.value.en || "",
-            finish_vi: match.specs.find(s => s.label.en === "Finish")?.value.vi || "",
-            finish_en: match.specs.find(s => s.label.en === "Finish")?.value.en || "",
-            care_vi: match.specs.find(s => s.label.en === "Care")?.value.vi || "",
-            care_en: match.specs.find(s => s.label.en === "Care")?.value.en || "",
-          },
-          custom_attributes: (match.attributes || []).map(a => ({
-            name_vi: a.label,
-            name_en: a.label,
-            value_vi: a.valueText,
-            value_en: a.valueText
-          }))
-        }
-      };
-    }
-    return { success: false, error: "Product not found in mock data" };
-  }
+    
 
   try {
     const supabase = await createClient();
@@ -319,11 +267,13 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
         price_display_text_vi: viTrans?.price_display_text || "",
         price_display_text_en: enTrans?.price_display_text || "",
         dimension_display_text_vi: viTrans?.dimension_display_text || "",
-        dimension_display_text_en: viTrans?.dimension_display_text || "",
+        dimension_display_text_en: enTrans?.dimension_display_text || "",
         seo_title_vi: viTrans?.seo_title || "",
         seo_title_en: enTrans?.seo_title || "",
         seo_description_vi: viTrans?.seo_description || "",
         seo_description_en: enTrans?.seo_description || "",
+        specifications: product.specifications || null,
+        custom_attributes: product.custom_attributes || [],
       }
     };
   } catch (err) {
@@ -337,28 +287,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
   data?: any;
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const match = mockCategories.find(c => c.id === idOrSlug || c.slug === idOrSlug);
-    if (match) {
-      return {
-        success: true,
-        data: {
-          id: match.id,
-          slug: match.slug,
-          name_vi: match.name.vi,
-          name_en: match.name.en,
-          description_vi: match.description?.vi || "",
-          description_en: match.description?.en || "",
-          group_key: match.group_key,
-          status: match.status,
-          sort_order: match.sort_order,
-          parent_id: match.parent_id
-        }
-      };
-    }
-    return { success: false, error: "Category not found in mock data" };
-  }
+    
 
   try {
     const supabase = await createClient();
@@ -420,72 +349,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
 }
 
 export async function createAdminProduct(data: ProductInput): Promise<{ success: boolean; id?: string; error?: string }> {
-  const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  console.log("MUTATIONS: createAdminProduct: useMock =", useMock, "process.env.NEXT_PUBLIC_USE_MOCK_DATA =", process.env.NEXT_PUBLIC_USE_MOCK_DATA);
-
-  if (useMock) {
-    const mockId = `prod-${Date.now()}`;
-    const cat = mockCategories.find((c) => c.id === data.category_id) || mockCategories[0];
-    
-    mockProducts.unshift({
-      id: mockId,
-      reference_code: data.reference_code || "",
-      slug: data.slug,
-      category_id: data.category_id,
-      group_key: cat?.group_key || "wood",
-      category_slug: cat?.slug || "sofa",
-      category_name: cat?.name || { vi: "Nội thất gỗ", en: "Wood furniture" },
-      featured: data.featured,
-      published_at: data.status === "published" ? new Date().toISOString() : "",
-      status: data.status,
-      primary_media: { url: data.cover_image || "/placeholder.jpg" },
-      media: (data.gallery_images || []).map((url) => ({ url })),
-      price_min: data.price_min || 0,
-      price_max: data.price_max || 0,
-      currency: data.currency,
-      price_display_text: {
-        vi: data.price_display_text_vi || (data.price_min ? `${data.price_min.toLocaleString("vi-VN")} VND` : "Liên hệ"),
-        en: data.price_display_text_en || (data.price_min ? `${data.price_min.toLocaleString("en-US")} VND` : "Contact"),
-      },
-      dimension_display_text: {
-        vi: data.dimension_display_text_vi || "",
-        en: data.dimension_display_text_en || "",
-      },
-      name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-      summary: { vi: data.summary_vi, en: data.summary_en || data.summary_vi },
-      description: {
-        vi: typeof data.description_json_vi === "string" ? data.description_json_vi : JSON.stringify(data.description_json_vi || ""),
-        en: typeof data.description_json_en === "string" ? data.description_json_en : JSON.stringify(data.description_json_en || ""),
-      },
-      material: {
-        vi: data.material_vi || "",
-        en: data.material_en || "",
-      },
-      specs: [
-        {
-          label: { vi: "Chất liệu", en: "Material" },
-          value: { vi: data.specifications?.material_vi || "", en: data.specifications?.material_en || "" },
-        },
-        {
-          label: { vi: "Hoàn thiện", en: "Finish" },
-          value: { vi: data.specifications?.finish_vi || "", en: data.specifications?.finish_en || "" },
-        },
-        {
-          label: { vi: "Bảo quản", en: "Care" },
-          value: { vi: data.specifications?.care_vi || "", en: data.specifications?.care_en || "" },
-        },
-      ],
-      tags: [cat?.slug || ""],
-      attributes: (data.custom_attributes || []).map((attr) => ({
-        label: attr.name_vi,
-        valueText: attr.value_vi,
-      })),
-    });
-
-    triggerRevalidation();
-    return { success: true, id: mockId };
-  }
+  const user = await requireEditorOrAdmin();  
 
   try {
     const supabase = await createClient();
@@ -512,6 +376,8 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
         featured: data.featured,
         promo_price_min: data.promo_price_min,
         promo_price_max: data.promo_price_max,
+        specifications: data.specifications || {},
+        custom_attributes: data.custom_attributes || [],
         created_by: user.id,
         updated_by: user.id,
         published_at: null,
@@ -623,14 +489,18 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
       }
     }
 
-    // Write audit log
-    await writeAuditLog(supabase, {
-      actorId: user.id,
-      action: "create",
-      entityType: "product",
-      entityId: product.id,
-      metadata: { name: data.name_vi, slug: data.slug },
-    });
+    try {
+      await writeAuditLog(supabase, {
+        actorId: user.id,
+        action: "create",
+        entityType: "product",
+        entityId: product.id,
+        metadata: { name: data.name_vi, slug: data.slug },
+      });
+    } catch (auditError) {
+      await supabase.from("products").delete().eq("id", product.id);
+      return { success: false, error: auditError instanceof Error ? auditError.message : "Audit logging failed" };
+    }
 
     triggerRevalidation();
     return { success: true, id: product.id };
@@ -641,66 +511,8 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
 
 export async function updateAdminProduct(id: string, data: ProductInput): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockProducts.findIndex((p) => p.id === id);
-    if (idx !== -1) {
-      const cat = mockCategories.find((c) => c.id === data.category_id) || mockCategories[0];
-      mockProducts[idx] = {
-        ...mockProducts[idx],
-        reference_code: data.reference_code || "",
-        slug: data.slug,
-        category_id: data.category_id,
-        group_key: cat?.group_key || "wood",
-        category_slug: cat?.slug || "sofa",
-        category_name: cat?.name || { vi: "Nội thất gỗ", en: "Wood furniture" },
-        featured: data.featured,
-        status: data.status,
-        primary_media: { url: data.cover_image || mockProducts[idx].primary_media?.url || "/placeholder.jpg" },
-        media: data.gallery_images ? data.gallery_images.map((url) => ({ url })) : mockProducts[idx].media,
-        price_min: data.price_min || 0,
-        price_max: data.price_max || 0,
-        currency: data.currency,
-        price_display_text: {
-          vi: data.price_display_text_vi || (data.price_min ? `${data.price_min.toLocaleString("vi-VN")} VND` : "Liên hệ"),
-          en: data.price_display_text_en || (data.price_min ? `${data.price_min.toLocaleString("en-US")} VND` : "Contact"),
-        },
-        dimension_display_text: {
-          vi: data.dimension_display_text_vi || "",
-          en: data.dimension_display_text_en || "",
-        },
-        name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-        summary: { vi: data.summary_vi, en: data.summary_en || data.summary_vi },
-        description: {
-          vi: typeof data.description_json_vi === "string" ? data.description_json_vi : JSON.stringify(data.description_json_vi || ""),
-          en: typeof data.description_json_en === "string" ? data.description_json_en : JSON.stringify(data.description_json_en || ""),
-        },
-        material: { vi: data.material_vi || "", en: data.material_en || "" },
-        specs: [
-          {
-            label: { vi: "Chất liệu", en: "Material" },
-            value: { vi: data.specifications?.material_vi || "", en: data.specifications?.material_en || "" },
-          },
-          {
-            label: { vi: "Hoàn thiện", en: "Finish" },
-            value: { vi: data.specifications?.finish_vi || "", en: data.specifications?.finish_en || "" },
-          },
-          {
-            label: { vi: "Bảo quản", en: "Care" },
-            value: { vi: data.specifications?.care_vi || "", en: data.specifications?.care_en || "" },
-          },
-        ],
-        attributes: (data.custom_attributes || []).map((attr) => ({
-          label: attr.name_vi,
-          valueText: attr.value_vi,
-        })),
-      };
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Product not found" };
-  }
+  
+  
 
   try {
     const supabase = await createClient();
@@ -723,6 +535,8 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
         featured: data.featured,
         promo_price_min: data.promo_price_min,
         promo_price_max: data.promo_price_max,
+        specifications: data.specifications || {},
+        custom_attributes: data.custom_attributes || [],
         updated_by: user.id,
         updated_at: new Date().toISOString(),
         published_at: data.status === "published" ? new Date().toISOString() : null,
@@ -839,21 +653,21 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
 
 export async function deleteAdminProduct(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockProducts.findIndex((p) => p.id === id);
-    if (idx !== -1) {
-      mockProducts[idx].status = "archived";
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Product not found" };
-  }
+  
+  
 
   try {
     const supabase = createAdminClient();
     
+    // Delete product_media associations to prevent orphan records
+    const { error: pmDeleteError } = await supabase
+      .from("product_media")
+      .delete()
+      .eq("product_id", id);
+    if (pmDeleteError) {
+      console.error("Failed to clean up product_media for archived product:", pmDeleteError);
+    }
+
     // Soft delete
     const { error } = await supabase
       .from("products")
@@ -889,23 +703,8 @@ function mapGroupKeyToDb(groupKey: string | null | undefined): any {
 
 export async function createAdminCategory(data: CategoryInput): Promise<{ success: boolean; id?: string; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const mockId = `cat-${Date.now()}`;
-    mockCategories.push({
-      id: mockId,
-      slug: data.slug,
-      name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-      description: data.description_vi ? { vi: data.description_vi, en: data.description_en || "" } : null,
-      group_key: data.group_key || "wood",
-      status: data.status === "published" ? "published" : "draft",
-      sort_order: data.sort_order,
-      parent_id: data.parent_id || null,
-    });
-    triggerRevalidation();
-    return { success: true, id: mockId };
-  }
+  
+  
 
   try {
     const supabase = await createClient();
@@ -983,14 +782,18 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
       }
     }
 
-    // Write audit log
-    await writeAuditLog(supabase, {
-      actorId: user.id,
-      action: "create",
-      entityType: "category",
-      entityId: cat.id,
-      metadata: { name: data.name_vi, slug: data.slug },
-    });
+    try {
+      await writeAuditLog(supabase, {
+        actorId: user.id,
+        action: "create",
+        entityType: "category",
+        entityId: cat.id,
+        metadata: { name: data.name_vi, slug: data.slug },
+      });
+    } catch (auditError) {
+      await supabase.from("product_categories").delete().eq("id", cat.id);
+      return { success: false, error: auditError instanceof Error ? auditError.message : "Audit logging failed" };
+    }
 
     triggerRevalidation();
     return { success: true, id: cat.id };
@@ -1024,36 +827,12 @@ function checkCircularCategory(
 
 export async function updateAdminCategory(id: string, data: CategoryInput): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
+  
   if (data.parent_id && data.parent_id === id) {
     return { success: false, error: "Circular parent-child relationship detected" };
   }
 
-  if (useMock) {
-    if (data.parent_id) {
-      const simplified = mockCategories.map((c) => ({ id: c.id, parent_id: c.parent_id }));
-      if (checkCircularCategory(id, data.parent_id, simplified)) {
-        return { success: false, error: "Circular parent-child relationship detected" };
-      }
-    }
-    const idx = mockCategories.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      mockCategories[idx] = {
-        ...mockCategories[idx],
-        slug: data.slug,
-        name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-        description: data.description_vi ? { vi: data.description_vi, en: data.description_en || "" } : null,
-        group_key: data.group_key || mockCategories[idx].group_key,
-        status: data.status === "published" ? "published" : "draft",
-        sort_order: data.sort_order,
-        parent_id: data.parent_id || null,
-      };
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Category not found" };
-  }
+  
 
   try {
     const supabase = await createClient();
@@ -1145,17 +924,8 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
 
 export async function deleteAdminCategory(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockCategories.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      mockCategories.splice(idx, 1);
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Category not found" };
-  }
+  
+  
 
   try {
     const supabase = createAdminClient();
@@ -1209,34 +979,8 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
   };
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const match = mockBlogs.find((post) => post.id === idOrSlug || post.slug === idOrSlug);
-    if (!match) return { success: false, error: "Blog post not found in mock data" };
-
-    return {
-      success: true,
-      data: {
-        id: match.id,
-        slug: match.slug,
-        title_vi: match.title.vi,
-        title_en: match.title.en,
-        excerpt_vi: match.excerpt.vi,
-        excerpt_en: match.excerpt.en,
-        body_json_vi: match.sections.map((section) => section.body.vi).join("\n\n"),
-        body_json_en: match.sections.map((section) => section.body.en).join("\n\n"),
-        category_id: match.category_slug,
-        status: match.status,
-        featured: match.featured,
-        seo_title_vi: match.title.vi,
-        seo_title_en: match.title.en,
-        seo_description_vi: match.excerpt.vi,
-        seo_description_en: match.excerpt.en,
-        cover_image: match.cover_media.url,
-      },
-    };
-  }
+  
+  
 
   try {
     await requireEditorOrAdmin();
@@ -1311,39 +1055,8 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
   }
 
   const values = validation.data;
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const mockId = `blog-${Date.now()}`;
-    mockBlogs.unshift({
-      id: mockId,
-      slug: values.slug,
-      title: { vi: values.title_vi, en: values.title_en || values.title_vi },
-      excerpt: { vi: values.excerpt_vi, en: values.excerpt_en || values.excerpt_vi },
-      category_slug: values.category_id,
-      category_name: { vi: values.category_id, en: values.category_id },
-      author_name: user.email || "Phương Đông CMS",
-      status: values.status === "archived" ? "draft" : values.status,
-      featured: values.featured,
-      published_at: values.status === "published" ? new Date().toISOString() : "",
-      readTime: { vi: "5 phút đọc", en: "5 min read" },
-      cover_media: { url: values.cover_image || "/placeholder.jpg" },
-      takeaways: [],
-      quote: { vi: "", en: "" },
-      sections: [
-        {
-          id: "noi-dung",
-          title: { vi: values.title_vi, en: values.title_en || values.title_vi },
-          body: {
-            vi: bodyJsonToEditorText(values.body_json_vi),
-            en: bodyJsonToEditorText(values.body_json_en) || bodyJsonToEditorText(values.body_json_vi),
-          },
-        },
-      ],
-    });
-    triggerRevalidation();
-    return { success: true, id: mockId };
-  }
+  
+  
 
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
@@ -1446,40 +1159,8 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
   }
 
   const values = validation.data;
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockBlogs.findIndex((post) => post.id === id || post.slug === id);
-    if (idx === -1) return { success: false, error: "Blog post not found" };
-    if (values.status === "archived") {
-      mockBlogs.splice(idx, 1);
-      triggerRevalidation();
-      return { success: true };
-    }
-    mockBlogs[idx] = {
-      ...mockBlogs[idx],
-      slug: values.slug,
-      title: { vi: values.title_vi, en: values.title_en || values.title_vi },
-      excerpt: { vi: values.excerpt_vi, en: values.excerpt_en || values.excerpt_vi },
-      category_slug: values.category_id,
-      status: values.status,
-      featured: values.featured,
-      published_at: values.status === "published" ? new Date().toISOString() : "",
-      cover_media: { url: values.cover_image || mockBlogs[idx].cover_media.url },
-      sections: [
-        {
-          id: "noi-dung",
-          title: { vi: values.title_vi, en: values.title_en || values.title_vi },
-          body: {
-            vi: bodyJsonToEditorText(values.body_json_vi),
-            en: bodyJsonToEditorText(values.body_json_en) || bodyJsonToEditorText(values.body_json_vi),
-          },
-        },
-      ],
-    };
-    triggerRevalidation();
-    return { success: true };
-  }
+  
+  
 
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
@@ -1551,15 +1232,8 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
 
 export async function deleteAdminBlogPost(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockBlogs.findIndex((post) => post.id === id || post.slug === id);
-    if (idx === -1) return { success: false, error: "Blog post not found" };
-    mockBlogs.splice(idx, 1);
-    triggerRevalidation();
-    return { success: true };
-  }
+  
+  
 
   try {
     const supabase = createAdminClient();
@@ -1611,34 +1285,8 @@ export async function getAdminShowroomByIdOrCode(idOrCode: string): Promise<{
   };
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const match = mockShowrooms.find((showroom) => showroom.id === idOrCode || showroom.code.toLowerCase() === idOrCode.toLowerCase());
-    if (!match) return { success: false, error: "Showroom not found in mock data" };
-
-    return {
-      success: true,
-      data: {
-        id: match.id,
-        code: match.code.toLowerCase(),
-        name_vi: match.name.vi,
-        name_en: match.name.en,
-        address_vi: match.address.vi,
-        address_en: match.address.en,
-        opening_hours_vi: match.opening_hours.vi,
-        opening_hours_en: match.opening_hours.en,
-        hotline: match.hotline,
-        google_maps_embed_url: match.google_maps_embed_url,
-        google_maps_fallback_url: match.google_maps_fallback_url,
-        latitude: match.latitude,
-        longitude: match.longitude,
-        status: match.status,
-        sort_order: match.sort_order,
-        cover_image: match.primary_media.url,
-      },
-    };
-  }
+  
+  
 
   try {
     await requireEditorOrAdmin();
@@ -1722,28 +1370,8 @@ export async function createAdminShowroom(data: ShowroomInput): Promise<{ succes
     ...validation.data,
     google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
   };
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const mockId = `sr-${Date.now()}`;
-    mockShowrooms.unshift({
-      id: mockId,
-      code: values.code,
-      name: { vi: values.name_vi, en: values.name_en || values.name_vi },
-      address: { vi: values.address_vi, en: values.address_en || values.address_vi },
-      hotline: values.hotline,
-      opening_hours: { vi: values.opening_hours_vi || "", en: values.opening_hours_en || values.opening_hours_vi || "" },
-      google_maps_embed_url: values.google_maps_embed_url,
-      google_maps_fallback_url: values.google_maps_fallback_url,
-      latitude: values.latitude || 0,
-      longitude: values.longitude || 0,
-      status: values.status === "archived" ? "draft" : values.status,
-      sort_order: values.sort_order,
-      primary_media: { url: values.cover_image || "/placeholder.jpg" },
-    });
-    triggerRevalidation();
-    return { success: true, id: mockId };
-  }
+  
+  
 
   const supabase = createAdminClient();
 
@@ -1860,34 +1488,8 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
     ...validation.data,
     google_maps_embed_url: DOMPurify.sanitize(validation.data.google_maps_embed_url),
   };
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockShowrooms.findIndex((showroom) => showroom.id === id || showroom.code.toLowerCase() === id.toLowerCase());
-    if (idx === -1) return { success: false, error: "Showroom not found" };
-    if (values.status === "archived") {
-      mockShowrooms.splice(idx, 1);
-      triggerRevalidation();
-      return { success: true };
-    }
-    mockShowrooms[idx] = {
-      ...mockShowrooms[idx],
-      code: values.code,
-      name: { vi: values.name_vi, en: values.name_en || values.name_vi },
-      address: { vi: values.address_vi, en: values.address_en || values.address_vi },
-      hotline: values.hotline,
-      opening_hours: { vi: values.opening_hours_vi || "", en: values.opening_hours_en || values.opening_hours_vi || "" },
-      google_maps_embed_url: values.google_maps_embed_url,
-      google_maps_fallback_url: values.google_maps_fallback_url,
-      latitude: values.latitude || 0,
-      longitude: values.longitude || 0,
-      status: values.status,
-      sort_order: values.sort_order,
-      primary_media: { url: values.cover_image || mockShowrooms[idx].primary_media.url },
-    };
-    triggerRevalidation();
-    return { success: true };
-  }
+  
+  
 
   try {
     const supabase = createAdminClient();
@@ -1977,15 +1579,8 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
 
 export async function deleteAdminShowroom(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockShowrooms.findIndex((showroom) => showroom.id === id || showroom.code.toLowerCase() === id.toLowerCase());
-    if (idx === -1) return { success: false, error: "Showroom not found" };
-    mockShowrooms.splice(idx, 1);
-    triggerRevalidation();
-    return { success: true };
-  }
+  
+  
 
   try {
     const supabase = createAdminClient();
@@ -2014,3 +1609,181 @@ export async function deleteAdminShowroom(id: string): Promise<{ success: boolea
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
   }
 }
+
+export async function updateProductFeatured(id: string, featured: boolean): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("products")
+      .update({
+        featured,
+        updated_by: user.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    await writeAuditLog(supabase, {
+      actorId: user.id,
+      action: "update",
+      entityType: "product",
+      entityId: id,
+      metadata: { featured },
+    });
+    triggerRevalidation();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateProductStatus(id: string, status: string): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const updateObj: any = {
+      status,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
+    };
+    if (status === "published") {
+      updateObj.published_at = new Date().toISOString();
+    }
+    const { error } = await supabase
+      .from("products")
+      .update(updateObj)
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    await writeAuditLog(supabase, {
+      actorId: user.id,
+      action: "update",
+      entityType: "product",
+      entityId: id,
+      metadata: { status },
+    });
+    triggerRevalidation();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateBlogPostFeatured(id: string, featured: boolean): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("blog_posts")
+      .update({
+        featured,
+        updated_by: user.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    await writeAuditLog(supabase, {
+      actorId: user.id,
+      action: "update",
+      entityType: "blog_post",
+      entityId: id,
+      metadata: { featured },
+    });
+    triggerRevalidation();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateBlogPostStatus(id: string, status: string): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const updateObj: any = {
+      status,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
+    };
+    if (status === "published") {
+      updateObj.published_at = new Date().toISOString();
+    }
+    const { error } = await supabase
+      .from("blog_posts")
+      .update(updateObj)
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    await writeAuditLog(supabase, {
+      actorId: user.id,
+      action: "update",
+      entityType: "blog_post",
+      entityId: id,
+      metadata: { status },
+    });
+    triggerRevalidation();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateQuoteAssignee(id: string, assignedTo: string | null): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({
+        assigned_to: assignedTo || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    await writeAuditLog(supabase, {
+      actorId: user.id,
+      action: "update",
+      entityType: "quote",
+      entityId: id,
+      metadata: { assignedTo },
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateQuoteSalesNotes(id: string, salesNotes: string | null): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({
+        sales_notes: salesNotes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+export async function updateQuoteAdminNotes(id: string, adminNotes: string | null): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from("quote_requests")
+      .update({
+        admin_notes: adminNotes || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+

@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 import {
   AdminDateProvider,
-  AdminUtilityRail,
   NotificationButton,
 } from "./admin-dashboard-widgets";
 
@@ -69,13 +68,6 @@ export function AdminShell({
 
   async function handleLogout(e: React.MouseEvent) {
     e.preventDefault();
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-    if (useMock) {
-      document.cookie = "pd_mock_admin_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      router.push("/admin/login");
-      router.refresh();
-      return;
-    }
     
     try {
       await supabase.auth.signOut();
@@ -256,7 +248,6 @@ export function AdminShell({
               <main className="min-w-0 flex-1 px-4 py-4 text-sm md:px-5 xl:px-6">
                 <div className="reveal-soft">{children}</div>
               </main>
-              <AdminUtilityRail active={active} />
             </div>
           </div>
         </div>

@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-      args:
-        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      secrets:
+        - NEXT_PUBLIC_SUPABASE_URL
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY
     ports:
       - "3000:3000"
     env_file:
@@ -36,3 +36,9 @@ networks:
   supabase-network:
     external: true
     name: supabase_default
+
+secrets:
+  NEXT_PUBLIC_SUPABASE_URL:
+    environment: "NEXT_PUBLIC_SUPABASE_URL"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY:
+    environment: "NEXT_PUBLIC_SUPABASE_ANON_KEY"

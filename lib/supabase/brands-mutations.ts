@@ -21,6 +21,7 @@ export interface BrandInput {
   seo_title_en?: string;
   seo_description_vi?: string;
   seo_description_en?: string;
+  slug?: string;
 }
 
 // Helpers
@@ -78,43 +79,7 @@ async function getOrCreateMediaAssetId(
   return inserted.id;
 }
 
-interface MockBrand {
-  id: string;
-  name: { vi: string; en: string };
-  origin: string;
-  logo_url: string;
-  status: "draft" | "published" | "archived";
-  sort_order: number;
-  description?: { vi: string; en: string };
-}
 
-// Mock data for development
-const mockBrands: MockBrand[] = [
-  {
-    id: "brand-1",
-    name: { vi: "Kohler", en: "Kohler" },
-    origin: "USA",
-    logo_url: "/logos/kohler.png",
-    status: "published",
-    sort_order: 1,
-  },
-  {
-    id: "brand-2",
-    name: { vi: "Grohe", en: "Grohe" },
-    origin: "Germany",
-    logo_url: "/logos/grohe.png",
-    status: "published",
-    sort_order: 2,
-  },
-  {
-    id: "brand-3",
-    name: { vi: "TOTO", en: "TOTO" },
-    origin: "Japan",
-    logo_url: "/logos/toto.png",
-    status: "published",
-    sort_order: 3,
-  },
-];
 
 // ============================================================================
 // CRUD OPERATIONS
@@ -136,42 +101,32 @@ export async function getAdminBrandById(id: string): Promise<{
     seo_title_en?: string;
     seo_description_vi?: string;
     seo_description_en?: string;
+    slug?: string;
   };
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
   
-  if (useMock) {
-    const brand = mockBrands.find(b => b.id === id);
-    if (brand) {
-      return {
-        success: true,
-        data: {
-          id: brand.id,
-          name_vi: brand.name.vi,
-          name_en: brand.name.en,
-          description_vi: brand.description?.vi || "",
-          description_en: brand.description?.en || "",
-          origin: brand.origin,
-          logo_url: brand.logo_url,
-          status: brand.status,
-          sort_order: brand.sort_order,
-        }
-      };
-    }
-    return { success: false, error: "Brand not found" };
-  }
+  
+  
 
   try {
     const supabase = await createClient();
-    const { data: brand, error } = await supabase
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    let query = supabase
       .from("brands")
       .select(`
         *,
         brand_translations (*),
         logo_media:media_assets!fk_brands_logo_media(public_url)
-      `)
-      .eq("id", id)
+      `);
+      
+    if (isUuid) {
+      query = query.eq("id", id);
+    } else {
+      query = query.eq("slug", id);
+    }
+    
+    const { data: brand, error } = await query
       .is("deleted_at", null)
       .maybeSingle();
 
@@ -199,6 +154,7 @@ export async function getAdminBrandById(id: string): Promise<{
         seo_title_en: enTrans?.seo_title || "",
         seo_description_vi: viTrans?.seo_description || "",
         seo_description_en: enTrans?.seo_description || "",
+        slug: brand.slug || "",
       }
     };
   } catch (err) {
@@ -212,22 +168,9 @@ export async function createAdminBrand(data: BrandInput): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  
 
-  if (useMock) {
-    const mockId = `brand-${Date.now()}`;
-    mockBrands.push({
-      id: mockId,
-      name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-      description: { vi: data.description_vi || "", en: data.description_en || "" },
-      origin: data.origin || "",
-      logo_url: data.logo_url || "",
-      status: data.status,
-      sort_order: data.sort_order,
-    });
-    triggerRevalidation();
-    return { success: true, id: mockId };
-  }
+  
 
   try {
     const supabase = await createClient();
@@ -241,6 +184,7 @@ export async function createAdminBrand(data: BrandInput): Promise<{
         origin: data.origin,
         status: data.status,
         sort_order: data.sort_order,
+        slug: data.slug || null,
         created_by: user.id,
         updated_by: user.id,
         published_at: data.status === "published" ? new Date().toISOString() : null,
@@ -302,25 +246,9 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  
 
-  if (useMock) {
-    const idx = mockBrands.findIndex(b => b.id === id);
-    if (idx !== -1) {
-      mockBrands[idx] = {
-        ...mockBrands[idx],
-        name: { vi: data.name_vi, en: data.name_en || data.name_vi },
-        description: { vi: data.description_vi || "", en: data.description_en || "" },
-        origin: data.origin || "",
-        logo_url: data.logo_url || mockBrands[idx].logo_url,
-        status: data.status,
-        sort_order: data.sort_order,
-      };
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Brand not found" };
-  }
+  
 
   try {
     const supabase = await createClient();
@@ -334,6 +262,7 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
         origin: data.origin,
         status: data.status,
         sort_order: data.sort_order,
+        slug: data.slug || null,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
         published_at: data.status === "published" ? new Date().toISOString() : null,
@@ -394,38 +323,18 @@ export async function deleteAdminBrand(id: string): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const idx = mockBrands.findIndex(b => b.id === id);
-    if (idx !== -1) {
-      mockBrands[idx].status = "archived";
-      triggerRevalidation();
-      return { success: true };
-    }
-    return { success: false, error: "Brand not found" };
-  }
-
+  
   try {
     const supabase = createAdminClient();
 
-    // Check if any products use this brand
-    const { data: products, error: checkError } = await supabase
+    // Set brand_id = null for referencing products
+    const { error: clearError } = await supabase
       .from("products")
-      .select("id")
-      .eq("brand_id", id)
-      .is("deleted_at", null)
-      .limit(1);
+      .update({ brand_id: null })
+      .eq("brand_id", id);
 
-    if (checkError) {
-      return { success: false, error: checkError.message };
-    }
-
-    if (products && products.length > 0) {
-      return {
-        success: false,
-        error: "Cannot delete brand that is used by products. Please remove products first or change their brand."
-      };
+    if (clearError) {
+      console.warn("Failed to clear brand_id reference for products:", clearError);
     }
 
     // Soft delete
@@ -448,6 +357,7 @@ export async function deleteAdminBrand(id: string): Promise<{
       entityId: id,
     });
 
+
     triggerRevalidation();
     return { success: true };
   } catch (err) {
@@ -460,22 +370,9 @@ export async function getPublicBrands(): Promise<{
   data?: any[];
   error?: string;
 }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
+  
 
-  if (useMock) {
-    return {
-      success: true,
-      data: mockBrands
-        .filter(b => b.status === "published")
-        .map(b => ({
-          id: b.id,
-          name: b.name,
-          origin: b.origin,
-          logo_url: b.logo_url,
-          sort_order: b.sort_order,
-        }))
-    };
-  }
+  
 
   try {
     const supabase = createAdminClient();
@@ -523,61 +420,90 @@ export async function getPublicBrands(): Promise<{
   }
 }
 
-export async function getAdminBrands(): Promise<any[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    return [
-      {
-        id: "brand-1",
-        name: { vi: "Kohler", en: "Kohler" },
-        origin: "USA",
-        logo_url: "/logos/kohler.png",
-        status: "published",
-        sort_order: 1,
-      },
-      {
-        id: "brand-2",
-        name: { vi: "Grohe", en: "Grohe" },
-        origin: "Germany",
-        logo_url: "/logos/grohe.png",
-        status: "published",
-        sort_order: 2,
-      },
-      {
-        id: "brand-3",
-        name: { vi: "TOTO", en: "TOTO" },
-        origin: "Japan",
-        logo_url: "/logos/toto.png",
-        status: "published",
-        sort_order: 3,
-      },
-    ];
-  }
-
+export async function getAdminBrands(params: {
+  q?: string;
+  status?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+} = {}): Promise<any[] | { data: any[]; total: number }> {
   try {
     const supabase = await createClient();
-    const { data: brands, error } = await supabase
-      .from("brands")
-      .select(`
+    let selectStr = `
         id,
+        slug,
         origin,
         sort_order,
         status,
-        logo_media:media_assets!fk_brands_logo_media(public_url),
-        brand_translations (locale, name)
-      `)
-      .is("deleted_at", null)
-      .order("sort_order", { ascending: true });
+        logo_media:media_assets!fk_brands_logo_media(public_url)
+    `;
 
+    if (params.q) {
+      selectStr += `, brand_translations!inner (locale, name)`;
+    } else {
+      selectStr += `, brand_translations (locale, name)`;
+    }
+
+    let query = supabase
+      .from("brands")
+      .select(selectStr)
+      .is("deleted_at", null);
+
+    if (params.status && params.status !== "all") {
+      query = query.eq("status", params.status);
+    }
+    if (params.dateFrom) {
+      query = query.gte("created_at", params.dateFrom);
+    }
+    if (params.dateTo) {
+      query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+    }
+    if (params.q) {
+      query = query.or(`origin.ilike.%${params.q}%,brand_translations.name.ilike.%${params.q}%`);
+    }
+
+    let total = 0;
+    if (params.withTotal) {
+      let countQ = supabase
+        .from("brands")
+        .select("id" + (params.q ? ", brand_translations!inner(name)" : ""), { count: "exact", head: true })
+        .is("deleted_at", null);
+      if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
+      if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+      if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      if (params.q) {
+        countQ = countQ.or(`origin.ilike.%${params.q}%,brand_translations.name.ilike.%${params.q}%`);
+      }
+      const { count } = await countQ;
+      total = count ?? 0;
+    }
+
+    const sortField = params.sort || "sort_order";
+    const ascending = (params.dir ?? "asc") === "asc";
+    if (params.limit) {
+      query = query
+        .order(sortField, { ascending })
+        .limit(params.limit)
+        .range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
+    } else {
+      query = query.order(sortField, { ascending });
+    }
+
+    const { data: brands, error } = await query as { data: any[] | null, error: any };
     if (error) {
       console.error("Error fetching brands for admin:", error);
+      if (params.withTotal) return { data: [], total: 0 };
       return [];
     }
 
     const formatted = brands?.map((b) => {
-      const viTrans = b.brand_translations?.find((t) => t.locale === "vi");
-      const enTrans = b.brand_translations?.find((t) => t.locale === "en");
+      const translations = Array.isArray(b.brand_translations) ? b.brand_translations : [];
+      const viTrans = translations.find((t: any) => t.locale === "vi") || translations[0];
+      const enTrans = translations.find((t: any) => t.locale === "en") || translations[0];
       const logoMedia = Array.isArray(b.logo_media) ? b.logo_media[0] : b.logo_media;
       const logoUrl = logoMedia && typeof logoMedia === 'object' && 'public_url' in logoMedia 
         ? (logoMedia as { public_url: string }).public_url 
@@ -585,6 +511,7 @@ export async function getAdminBrands(): Promise<any[]> {
 
       return {
         id: b.id,
+        slug: b.slug || "",
         name: {
           vi: viTrans?.name || "",
           en: enTrans?.name || viTrans?.name || "",
@@ -596,9 +523,13 @@ export async function getAdminBrands(): Promise<any[]> {
       };
     });
 
+    if (params.withTotal) {
+      return { data: formatted || [], total };
+    }
     return formatted || [];
   } catch (err) {
     console.error("Exception fetching brands for admin:", err);
+    if (params.withTotal) return { data: [], total: 0 };
     return [];
   }
 }

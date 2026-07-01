@@ -24,10 +24,12 @@ export async function GET(request: Request) {
 
     // Fetch categories
     const dbCategories = await getCategories(supabase, locale).catch(() => []);
-    const categories = dbCategories.map((c: any) => ({
-      slug: c.slug as string,
-      name: c.name as string,
-    }));
+    const categories = dbCategories
+      .filter((c: any) => c.parentId !== null)
+      .map((c: any) => ({
+        slug: c.slug as string,
+        name: c.name as string,
+      }));
 
     return NextResponse.json({ products, categories });
   } catch (error) {

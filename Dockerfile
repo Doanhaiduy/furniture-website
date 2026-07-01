@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Base image targeting Node 22 on Alpine
 FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
@@ -26,17 +27,19 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Accept build arguments for Next.js build-time variables
+# Accept build arguments for Next.js build-time variables (as fallback)
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-# Set them in the environment so Next.js build can inline them
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_service_role_key
 ENV RESEND_API_KEY=re_placeholder_key
 
-RUN pnpm build
+# Build using secrets if available, falling back to build arguments
+RUN --mount=type=secret,id=NEXT_PUBLIC_SUPABASE_URL,required=false \
+    --mount=type=secret,id=NEXT_PUBLIC_SUPABASE_ANON_KEY,required=false \
+    export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-$(cat /run/secrets/NEXT_PUBLIC_SUPABASE_URL 2>/dev/null || echo "")}" && \
+    export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-$(cat /run/secrets/NEXT_PUBLIC_SUPABASE_ANON_KEY 2>/dev/null || echo "")}" && \
+    pnpm build
 
 # Production runner stage
 FROM base AS runner

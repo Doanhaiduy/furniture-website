@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useToast } from "@/components/providers/toast-provider";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -248,11 +248,16 @@ export function AdminRouteDialog({
   size?: "standard" | "wide" | "full";
 }) {
   const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const isOpen = open;
   const [mounted, setMounted] = useState(false);
+
+  const [isDirty, setIsDirty] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const width =
     size === "full"
@@ -269,8 +274,12 @@ export function AdminRouteDialog({
         : "max-h-[85vh]";
 
   const closeDialog = useCallback(() => {
-    router.push(returnHref);
-  }, [returnHref, router]);
+    if (isDirty) {
+      setShowExitConfirm(true);
+    } else {
+      router.push(returnHref);
+    }
+  }, [isDirty, returnHref, router]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -327,6 +336,21 @@ export function AdminRouteDialog({
 
   if (!isOpen || !mounted) return null;
 
+  const handleDialogClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const buttonText = target.innerText || "";
+    if (
+      buttonText.includes("Lưu") ||
+      buttonText.includes("Xuất bản") ||
+      buttonText.includes("Tạo tài khoản") ||
+      buttonText.includes("Lưu nháp") ||
+      target.closest('button[type="submit"]') ||
+      target.closest('.publish-workflow-btn')
+    ) {
+      setIsDirty(false);
+    }
+  };
+
   return createPortal(
     <div className="fixed inset-0 z-[var(--z-modal)]">
       <button
@@ -343,6 +367,9 @@ export function AdminRouteDialog({
         aria-describedby={descriptionId}
         tabIndex={-1}
         onKeyDown={handleDialogKeyDown}
+        onInput={() => setIsDirty(true)}
+        onChange={() => setIsDirty(true)}
+        onClick={handleDialogClick}
         className={`admin-dialog-content fixed left-1/2 top-1/2 flex flex-col -translate-x-1/2 -translate-y-1/2 overflow-hidden p-0 outline-none ${width} ${height}`}
       >
         <div className="border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-5 py-4 pr-14 relative shrink-0">
@@ -363,6 +390,44 @@ export function AdminRouteDialog({
           {children}
         </div>
       </div>
+
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-[calc(var(--z-modal)+20)] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="w-[90vw] max-w-[420px] rounded-2xl border border-[var(--admin-border)] bg-white p-6 shadow-2xl text-center animate-scale-up">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500 mb-4 border border-amber-200">
+              <AlertTriangle className="size-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">
+              {locale === "vi" ? "Bạn có thay đổi chưa lưu" : "Unsaved Changes"}
+            </h3>
+            <p className="mt-2 text-xs text-slate-500 leading-relaxed">
+              {locale === "vi"
+                ? "Dữ liệu đang chỉnh sửa sẽ bị mất nếu bạn thoát ra ngoài. Bạn có chắc chắn muốn thoát?"
+                : "Your unsaved changes will be lost if you exit. Are you sure you want to discard?"}
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition duration-200 cursor-pointer"
+              >
+                {locale === "vi" ? "Tiếp tục chỉnh sửa" : "Keep Editing"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDirty(false);
+                  setShowExitConfirm(false);
+                  router.push(returnHref);
+                }}
+                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white hover:bg-rose-700 transition duration-200 cursor-pointer shadow-sm shadow-rose-200"
+              >
+                {locale === "vi" ? "Thoát & Hủy thay đổi" : "Exit & Discard"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>,
     document.body
   );
@@ -489,24 +554,37 @@ function UserCreateEntityForm() {
               <span className="text-[var(--admin-text-muted)]">Người dùng bị tắt không thể truy cập CMS.</span>
             </span>
           </label>
-          <div className="mt-4 flex justify-end">
-            <button
-              type="submit"
-              className="button-pd"
-              disabled={formLoading}
-            >
-              {formLoading ? "Đang tạo..." : "Tạo tài khoản"}
-            </button>
-          </div>
         </div>
       </section>
-      <ReadinessPanel
-        items={[
-          { label: "Vai trò khớp ma trận quyền của phương án A", state: "ready" },
-          { label: "Tài khoản quản trị đầu tiên vẫn do vận hành backend thiết lập", state: "warning" },
-          { label: "Mật khẩu sẽ có hiệu lực ngay lập tức", state: "ready" },
-        ]}
-      />
+      <aside className="space-y-5">
+        <ReadinessPanel
+          items={[
+            { label: "Vai trò khớp ma trận quyền của phương án A", state: "ready" },
+            { label: "Tài khoản quản trị đầu tiên vẫn do vận hành backend thiết lập", state: "warning" },
+            { label: "Mật khẩu sẽ có hiệu lực ngay lập tức", state: "ready" },
+          ]}
+        />
+        <section className="surface-soft p-4 space-y-4">
+          <h3 className="admin-section-title-pd">Thao tác</h3>
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-xs font-bold hover:from-sky-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+            disabled={formLoading}
+          >
+            {formLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Đang tạo...
+              </>
+            ) : (
+              <>
+                <Plus className="size-4" />
+                Tạo tài khoản
+              </>
+            )}
+          </button>
+        </section>
+      </aside>
     </form>
   );
 }
@@ -532,6 +610,17 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+
+  // Auto-set parent category ID for new categories
+  useEffect(() => {
+    if (!isEdit && categoriesList.length > 0 && !parentId) {
+      const firstGroup = categoriesList.find(c => c.parent_id === null);
+      if (firstGroup) {
+        setParentId(firstGroup.id);
+        setParentGroup(firstGroup.group_key || "wooden_furniture");
+      }
+    }
+  }, [categoriesList, isEdit, parentId]);
   const [showroomId, setShowroomId] = useState<string | null>(null);
 
   // Bind input states
@@ -609,6 +698,13 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   }, [editSlug]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Auto-generate showroom code from nameVi
+  useEffect(() => {
+    if (!isEdit && nameVi) {
+      setCode(slugify(nameVi));
+    }
+  }, [nameVi, isEdit]);
 
   const handleAiFill = async () => {
     if (!nameVi.trim() && !addressVi.trim()) return;
@@ -852,7 +948,7 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             
             <div className="grid gap-4 md:grid-cols-2">
               <AdminField label="Đường dây nóng" name="showroom-hotline" value={hotline} onChange={setHotline} />
-              <AdminField label="Mã nội bộ" name="showroom-code" value={code} onChange={setCode} />
+              <AdminField label="Mã nội bộ (Đường dẫn)" name="showroom-code" value={code} onChange={setCode} disabled={true} />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -1002,12 +1098,24 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [coverImage, setCoverImage] = useState("");
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
 
+  // Auto-set parent category ID for new categories
+  useEffect(() => {
+    if (!isEdit && categoriesList.length > 0 && !parentId) {
+      const firstGroup = categoriesList.find(c => c.parent_id === null);
+      if (firstGroup) {
+        setParentId(firstGroup.id);
+        setParentGroup(firstGroup.group_key || "wooden_furniture");
+      }
+    }
+  }, [categoriesList, isEdit, parentId]);
+
   // Load all categories for parent selector
   useEffect(() => {
     import("@/lib/supabase/admin-queries").then(async ({ getAdminCategories }) => {
       try {
         const res = await getAdminCategories();
-        setCategoriesList(res || []);
+        const cats = Array.isArray(res) ? res : res?.data || [];
+        setCategoriesList(cats);
       } catch (err) {
         console.error("Failed to load categories list:", err);
       }
@@ -1070,6 +1178,13 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   }, [editSlug]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Auto-slugify category nameVi
+  useEffect(() => {
+    if (!isEdit && nameVi) {
+      setSlug(slugify(nameVi));
+    }
+  }, [nameVi, isEdit]);
 
   const handleAiFill = async () => {
     if (!nameVi.trim()) return;
@@ -1294,43 +1409,42 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
               />
             </div>
             
-            <div className="grid gap-4 md:grid-cols-3">
-              <label className="grid gap-2">
-                <span className="label-pd">Nhóm cha</span>
-                <PremiumSelect
-                  value={parentGroup}
-                  onValueChange={setParentGroup}
-                  ariaLabel="Nhóm cha"
-                  placeholder="Nhóm cha"
-                  tone="admin"
-                  options={[
-                    { value: "wood", label: "Nội thất gỗ" },
-                    { value: "sanitary", label: "Thiết bị vệ sinh" },
-                    { value: "tiles", label: "Gạch ốp lát" },
-                  ]}
-                />
-              </label>
-              <label className="grid gap-2">
-                <span className="label-pd">Danh mục cha</span>
-                <PremiumSelect
-                  value={parentId || ""}
-                  onValueChange={(val) => setParentId(val || null)}
-                  ariaLabel="Danh mục cha"
-                  placeholder="Danh mục cha (Tùy chọn)"
-                  tone="admin"
-                  options={[
-                    { value: "", label: "Không có (Danh mục cấp 1)" },
-                    ...categoriesList
-                      .filter((c) => c.id !== categoryId) // Không chọn chính nó
-                      .map((c) => ({
+            {(!isEdit || parentId !== null) ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="label-pd">Thuộc Nhóm danh mục *</span>
+                  <PremiumSelect
+                    value={parentId || ""}
+                    onValueChange={(val) => {
+                      setParentId(val);
+                      const selectedGroup = categoriesList.find(c => c.id === val);
+                      if (selectedGroup) {
+                        setParentGroup(selectedGroup.group_key || "project_solutions");
+                      }
+                    }}
+                    ariaLabel="Thuộc Nhóm danh mục"
+                    placeholder="Chọn Nhóm danh mục..."
+                    tone="admin"
+                    options={categoriesList
+                      .filter(c => c.parent_id === null)
+                      .map(c => ({
                         value: c.id,
-                        label: c.name || c.slug,
-                      })),
-                  ]}
-                />
-              </label>
-              <AdminField label="Đường dẫn" name="category-slug" value={slug} onChange={setSlug} />
-            </div>
+                        label: c.name
+                      }))
+                    }
+                  />
+                </label>
+                <AdminField label="Đường dẫn" name="category-slug" value={slug} onChange={setSlug} disabled={true} />
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-1 justify-center bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-2.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Loại danh mục:</span>
+                  <span className="text-xs font-bold text-slate-700">Nhóm danh mục (Cấp cao nhất)</span>
+                </div>
+                <AdminField label="Đường dẫn" name="category-slug" value={slug} onChange={setSlug} disabled={true} />
+              </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-2">
               <AdminField 
@@ -2969,6 +3083,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 
   const [nameVi, setNameVi] = useState("");
   const [nameEn, setNameEn] = useState("");
+  const [slug, setSlug] = useState("");
   const [descriptionVi, setDescriptionVi] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
   const [origin, setOrigin] = useState("");
@@ -2978,6 +3093,13 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Auto-slugify brand nameVi
+  useEffect(() => {
+    if (!isEdit && nameVi) {
+      setSlug(slugify(nameVi));
+    }
+  }, [nameVi, isEdit]);
 
   useEffect(() => {
     if (isEdit) {
@@ -2989,6 +3111,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             const b = res.data;
             setNameVi(b.name_vi || "");
             setNameEn(b.name_en || "");
+            setSlug(b.slug || "");
             setDescriptionVi(b.description_vi || "");
             setDescriptionEn(b.description_en || "");
             setOrigin(b.origin || "");
@@ -3004,8 +3127,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   }, [editId, isEdit]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (targetStatus: "draft" | "published" | "archived") => {
     setFormLoading(true);
     setFormError("");
     setFieldErrors({});
@@ -3019,7 +3141,8 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         origin,
         logo_url: logoUrl,
         sort_order: Number(sortOrder),
-        status,
+        status: targetStatus,
+        slug,
       };
 
       const { brandSchema } = await import("@/lib/validations/admin");
@@ -3061,7 +3184,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
       <section className="surface-soft p-4">
         <WorkflowIntro
           icon={Award}
@@ -3076,6 +3199,13 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             value={nameVi}
             onChange={setNameVi}
             error={fieldErrors.name_vi}
+          />
+          <AdminField
+            label="Đường dẫn"
+            name="brand-slug"
+            value={slug}
+            onChange={setSlug}
+            disabled={true}
           />
           <AdminField
             label="Tên thương hiệu (EN)"
@@ -3119,7 +3249,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           </div>
         </div>
       </section>
-      <div className="space-y-5">
+      <aside className="space-y-5">
         <section className="surface-soft p-4">
           <AdminField
             label="Thứ tự hiển thị"
@@ -3129,29 +3259,17 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             onChange={(val) => setSortOrder(Number(val))}
             error={fieldErrors.sort_order}
           />
-          <label className="grid gap-2 mt-4">
-            <span className="label-pd">Trạng thái</span>
-            <PremiumSelect
-              value={status}
-              onValueChange={(val) => setStatus(val as "draft" | "published" | "archived")}
-              ariaLabel="Trạng thái"
-              placeholder="Trạng thái"
-              tone="admin"
-              options={[
-                { value: "draft", label: "Bản nháp" },
-                { value: "published", label: "Đã xuất bản" },
-                { value: "archived", label: "Đã lưu trữ" },
-              ]}
-            />
-          </label>
-          <div className="mt-6">
-            <button type="submit" className="button-pd w-full" disabled={formLoading}>
-              {formLoading ? "Đang lưu..." : "Lưu thương hiệu"}
-            </button>
-          </div>
         </section>
-      </div>
-    </form>
+        <PublishWorkflow 
+          status={status}
+          onStatusChange={setStatus}
+          errors={[]} 
+          onSaveDraft={() => handleSave("draft")}
+          onPublish={() => handleSave("published")}
+          onArchive={() => handleSave("archived")}
+        />
+      </aside>
+    </div>
   );
 }
 
@@ -3167,25 +3285,86 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [titleEn, setTitleEn] = useState("");
   const [descriptionVi, setDescriptionVi] = useState("");
   const [descriptionEn, setDescriptionEn] = useState("");
-  const [comboPrice, setComboPrice] = useState("");
-  const [originalPrice, setOriginalPrice] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
-  const [itemsList, setItemsList] = useState<string[]>([""]);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
+  const [englishEnabled, setEnglishEnabled] = useState(isEdit);
+  const [activeTab, setActiveTab] = useState<"vi" | "en">("vi");
+
   // N-N products states
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [searchVal, setSearchVal] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
+  
+  // Custom searchable select states
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Auto-generate promotion code from titleVi
+  useEffect(() => {
+    if (!isEdit && titleVi) {
+      setCode(slugify(titleVi).toUpperCase().replaceAll("-", "_"));
+    }
+  }, [titleVi, isEdit]);
+
+  // Load all products for select list
+  useEffect(() => {
+    const loadAllProducts = async () => {
+      try {
+        const { getAdminProducts } = await import("@/lib/supabase/admin-queries");
+        const res = await getAdminProducts({ limit: 1000 });
+        const prods = Array.isArray(res) ? res : res?.data || [];
+        setAllProducts(prods);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadAllProducts();
+  }, []);
+
+  const [aiTranslating, setAiTranslating] = useState(false);
+  const [aiTranslateSuccess, setAiTranslateSuccess] = useState(false);
+
+  const handleAiTranslate = async () => {
+    setAiTranslating(true);
+    setAiTranslateSuccess(false);
+    try {
+      const translateField = async (text: string) => {
+        if (!text.trim()) return "";
+        const res = await fetch("/api/admin/ai/generate-draft", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            task: "translate",
+            inputText: text,
+            targetLocale: "en"
+          })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json.text || "";
+        }
+        return "";
+      };
+
+      const translatedTitle = await translateField(titleVi);
+      setTitleEn(translatedTitle);
+      const translatedDesc = await translateField(descriptionVi);
+      setDescriptionEn(translatedDesc);
+
+      setAiTranslateSuccess(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAiTranslating(false);
+    }
+  };
 
   useEffect(() => {
     if (isEdit) {
@@ -3201,13 +3380,11 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setTitleEn(p.title?.en || p.title_en || "");
             setDescriptionVi(p.description?.vi || p.description_vi || "");
             setDescriptionEn(p.description?.en || p.description_en || "");
-            setComboPrice(p.combo_price ? String(p.combo_price) : "");
-            setOriginalPrice(p.original_price ? String(p.original_price) : "");
             setCoverImage(p.cover_image_url || p.cover_image || "");
             setStartAt(p.start_at ? p.start_at.substring(0, 16) : "");
             setEndAt(p.end_at ? p.end_at.substring(0, 16) : "");
-            setItemsList(p.items && p.items.length > 0 ? p.items : [""]);
             setStatus(p.status || "draft");
+            setEnglishEnabled(Boolean(p.title_en));
 
             if (p.productIds && p.productIds.length > 0) {
               setSelectedProductIds(p.productIds);
@@ -3223,12 +3400,12 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   }, [editId, isEdit]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (targetStatus: "draft" | "published" | "archived") => {
     setFormLoading(true);
     setFormError("");
     setFieldErrors({});
     try {
+      setStatus(targetStatus);
       const promotionData = {
         code,
         discount_percentage: Number(discountPercentage),
@@ -3237,11 +3414,11 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         description_vi: descriptionVi,
         description_en: descriptionEn,
         cover_image: coverImage,
-        combo_price: comboPrice ? Number(comboPrice) : null,
+        combo_price: null,
         start_at: startAt ? new Date(startAt).toISOString() : null,
         end_at: endAt ? new Date(endAt).toISOString() : null,
-        original_price: originalPrice ? Number(originalPrice) : null,
-        items: itemsList.filter(i => i.trim() !== ""),
+        original_price: null,
+        items: [],
         status,
         productIds: selectedProductIds,
       };
@@ -3284,25 +3461,6 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   };
 
-  const handleSearchProducts = async (val: string) => {
-    setSearchVal(val);
-    if (!val.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    setSearching(true);
-    try {
-      const { searchAdminProducts } = await import("@/lib/supabase/admin-queries");
-      const results = await searchAdminProducts(val);
-      setSearchResults(results);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleToggleProduct = (prod: any) => {
     if (selectedProductIds.includes(prod.id)) {
       setSelectedProductIds(selectedProductIds.filter(id => id !== prod.id));
@@ -3313,32 +3471,315 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   };
 
-  const handleAddItem = () => setItemsList([...itemsList, ""]);
-  const handleRemoveItem = (index: number) => setItemsList(itemsList.filter((_, idx) => idx !== index));
-  const handleItemChange = (index: number, val: string) => {
-    const updated = [...itemsList];
-    updated[index] = val;
-    setItemsList(updated);
-  };
+  const filteredProducts = allProducts.filter(p => 
+    p.name?.toLowerCase().includes(productSearch.toLowerCase()) || 
+    p.reference_code?.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5 lg:grid-cols-[1fr_320px]">
-      <section className="surface-soft p-4">
-        <WorkflowIntro
-          icon={BadgePercent}
-          title={isEdit ? "Hiệu chỉnh chương trình khuyến mãi" : "Thêm chương trình khuyến mãi mới"}
-          description="Thiết lập thông tin khuyến mãi combo, chiết khấu và sản phẩm đi kèm."
-        />
-        {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
-        <div className="mt-5 grid gap-4">
-          <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-5">
+        {/* --- English Translation Switcher (Product Style) --- */}
+        <section className="surface-soft p-4">
+          <div className="flex flex-col justify-between gap-3 border-b border-[var(--admin-border)] pb-4 md:flex-row md:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <Languages className="size-5 text-[var(--admin-accent)]" />
+                <h3 className="admin-section-title-pd">Biên tập nội dung song ngữ</h3>
+              </div>
+              <p className="mt-1 text-xs text-[var(--admin-text-muted)]">
+                Tiếng Việt là nguồn biên tập chính. Bật tiếng Anh khi cần lưu bản dịch song ngữ.
+              </p>
+            </div>
+            
+            <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition-all duration-300 w-full md:max-w-md ${
+              englishEnabled 
+                ? "border-indigo-200 bg-gradient-to-r from-indigo-50/30 to-violet-50/30 shadow-[0_4px_20px_rgba(99,102,241,0.06)]" 
+                : "border-slate-200 bg-slate-50/40"
+            }`}>
+              <div className="flex items-start gap-3">
+                <div className={`mt-0.5 rounded-lg p-2 ${englishEnabled ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"}`}>
+                  <Languages className="size-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">
+                    Dịch nội dung sang tiếng Anh
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium block mt-0.5">
+                    Kích hoạt dịch tiếng Anh cho tiêu đề và mô tả khuyến mãi.
+                  </span>
+                </div>
+              </div>
+              
+              <label className="inline-flex items-center gap-3 cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={englishEnabled}
+                  aria-label="Bật trường tiếng Anh"
+                  onChange={(e) => {
+                    setEnglishEnabled(e.target.checked);
+                    if (e.target.checked) setActiveTab("en");
+                    else setActiveTab("vi");
+                  }}
+                />
+                <span className="relative inline-flex h-5 w-9 shrink-0 rounded-full border border-slate-300 bg-slate-200 transition-colors duration-200 after:absolute after:left-[2px] after:top-[2px] after:size-4 after:rounded-full after:bg-white after:shadow-[0_2px_4px_rgba(0,0,0,0.1)] after:transition-transform peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:after:translate-x-4" />
+              </label>
+            </div>
+          </div>
+
+          {/* --- TAB HEADERS --- */}
+          <div className="mt-4 flex gap-2" role="tablist" aria-label="Tab nội dung song ngữ">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "vi"}
+              className={`px-4 py-2 text-xs font-bold rounded-lg border transition flex items-center gap-2 ${
+                activeTab === "vi" 
+                  ? "bg-slate-900 text-white border-slate-900" 
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+              onClick={() => setActiveTab("vi")}
+            >
+              Tiếng Việt
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "en"}
+              className={`px-4 py-2 text-xs font-bold rounded-lg border transition flex items-center gap-2 ${
+                activeTab === "en" 
+                  ? "bg-slate-900 text-white border-slate-900" 
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              } ${!englishEnabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              onClick={() => englishEnabled && setActiveTab("en")}
+            >
+              Tiếng Anh
+            </button>
+          </div>
+        </section>
+
+        {/* --- TAB CONTENT: VIETNAMESE --- */}
+        {activeTab === "vi" && (
+          <section className="surface-soft p-4">
+            <WorkflowIntro
+              icon={BadgePercent}
+              title={isEdit ? "Hiệu chỉnh khuyến mãi" : "Thêm khuyến mãi mới"}
+              description="Biên tập tiêu đề và mô tả tiếng Việt cho khuyến mãi."
+            />
+            {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
+            <div className="mt-5 grid gap-4">
+              <AdminField
+                label="Tiêu đề khuyến mãi (VI) *"
+                name="title_vi"
+                value={titleVi}
+                onChange={setTitleVi}
+                error={fieldErrors.title_vi}
+              />
+              <AdminField
+                label="Mô tả khuyến mãi (VI)"
+                name="description_vi"
+                value={descriptionVi}
+                onChange={setDescriptionVi}
+                multiline
+                error={fieldErrors.description_vi}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* --- TAB CONTENT: ENGLISH --- */}
+        {activeTab === "en" && englishEnabled && (
+          <section className="surface-soft p-4">
+            <div className="flex justify-between items-center border-b pb-2 border-indigo-100">
+              <span className="text-xs font-bold text-indigo-950 uppercase tracking-wider">Tab 2: Bản dịch tiếng Anh</span>
+              
+              <button
+                type="button"
+                className="button-pd-outline py-1 px-3 text-xs bg-white text-indigo-700 hover:text-indigo-900 border-indigo-200 flex items-center gap-1.5"
+                onClick={handleAiTranslate}
+                disabled={aiTranslating || !titleVi.trim()}
+              >
+                {aiTranslating ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Đang dịch bằng AI...
+                  </>
+                ) : (
+                  <>
+                    <Languages className="size-3.5" />
+                    Dịch bằng AI
+                  </>
+                )}
+              </button>
+            </div>
+
+            {aiTranslateSuccess && (
+              <p className="mt-3 text-emerald-700 text-xs bg-emerald-50 border border-emerald-100 p-2.5 rounded-lg flex items-center gap-2">
+                <CheckCircle2 className="size-3.5 text-emerald-600" />
+                AI đã điền các trường tiếng Anh. Hãy xem và hiệu chỉnh thủ công nếu cần.
+              </p>
+            )}
+
+            <div className="mt-5 grid gap-4">
+              <AdminField
+                label="Tiêu đề khuyến mãi (EN)"
+                name="title_en"
+                value={titleEn}
+                onChange={setTitleEn}
+                error={fieldErrors.title_en}
+              />
+              <AdminField
+                label="Mô tả khuyến mãi (EN)"
+                name="description_en"
+                value={descriptionEn}
+                onChange={setDescriptionEn}
+                multiline
+                error={fieldErrors.description_en}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* --- PREMIUM SEARCHABLE PRODUCT MULTISELECT --- */}
+        <section className="surface-soft p-4 space-y-4">
+          <WorkflowIntro
+            icon={Package}
+            title="Sản phẩm áp dụng"
+            description="Tìm kiếm và chọn các sản phẩm trong phạm vi giảm giá của chương trình khuyến mãi này."
+          />
+          <div className="grid gap-2 relative">
+            <span className="label-pd">Chọn sản phẩm giảm giá *</span>
+            <div className="relative">
+              <input
+                className="input-pd bg-white w-full pr-10"
+                type="text"
+                placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
+                value={productSearch}
+                onChange={(e) => {
+                  setProductSearch(e.target.value);
+                  setDropdownOpen(true);
+                }}
+                onFocus={() => setDropdownOpen(true)}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <Search className="size-4" />
+              </div>
+
+              {dropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setDropdownOpen(false)} 
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1.5 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-20 divide-y divide-slate-50 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((prod) => {
+                        const isSelected = selectedProductIds.includes(prod.id);
+                        return (
+                          <button
+                            key={prod.id}
+                            type="button"
+                            onClick={() => {
+                              handleToggleProduct(prod);
+                              setProductSearch("");
+                            }}
+                            className={`w-full text-left px-3 py-2 hover:bg-indigo-50/60 flex items-center gap-3 text-xs transition-colors ${isSelected ? "bg-indigo-50/40" : ""}`}
+                          >
+                            {/* Product thumbnail */}
+                            <div className="size-10 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60">
+                              {prod.primary_media ? (
+                                <img
+                                  src={prod.primary_media as string}
+                                  alt={prod.name}
+                                  className="size-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="size-full flex items-center justify-center">
+                                  <Package className="size-4 text-slate-300" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                              <span className="font-semibold text-slate-800 truncate">{prod.name}</span>
+                              {prod.reference_code && (
+                                <span className="text-[10px] text-slate-400 font-mono">Mã: {prod.reference_code}</span>
+                              )}
+                            </div>
+                            {isSelected && (
+                              <BadgeCheck className="size-4 text-emerald-600 shrink-0 ml-auto" />
+                            )}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="px-4 py-3 text-center text-xs text-slate-400">
+                        Không tìm thấy sản phẩm nào
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Selected Products List */}
+            {selectedProducts.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Sản phẩm đã chọn ({selectedProducts.length}):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedProducts.map((prod) => (
+                    <div 
+                      key={prod.id} 
+                      className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-900 text-xs pl-1.5 pr-2 py-1 rounded-xl shadow-sm animate-in zoom-in-95 duration-100"
+                    >
+                      <div className="size-7 rounded-lg overflow-hidden bg-indigo-100 shrink-0">
+                        {prod.primary_media ? (
+                          <img src={prod.primary_media as string} alt={prod.name} className="size-full object-cover" />
+                        ) : (
+                          <div className="size-full flex items-center justify-center">
+                            <Package className="size-3.5 text-indigo-400" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-medium">{prod.name}</span>
+                      {prod.reference_code && (
+                        <span className="text-[9px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-mono font-semibold">
+                          {prod.reference_code}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleProduct(prod)}
+                        className="text-indigo-400 hover:text-indigo-600 font-bold hover:bg-indigo-100/50 size-5 rounded-full flex items-center justify-center transition-colors text-sm font-heading"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* --- COMMON FIELDS (LOCKED OUTSIDE TABS) --- */}
+        <section className="surface-soft p-4 space-y-4">
+          <WorkflowIntro
+            icon={CalendarClock}
+            title="Thời gian & Chiết khấu"
+            description="Lưu cấu hình mức chiết khấu %, thời gian áp dụng và mã khuyến mãi tự động."
+          />
+          <div className="grid gap-4 md:grid-cols-3">
             <AdminField
-              label="Mã khuyến mãi *"
+              label="Mã khuyến mãi (Đường dẫn) *"
               name="code"
               value={code}
               onChange={setCode}
               error={fieldErrors.code}
-              placeholder="Ví dụ: VALENTINE-COMBO"
+              disabled={true}
             />
             <AdminField
               label="Phần trăm chiết khấu (%) *"
@@ -3347,56 +3788,6 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
               value={String(discountPercentage)}
               onChange={(val) => setDiscountPercentage(Number(val))}
               error={fieldErrors.discount_percentage}
-            />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <AdminField
-              label="Tiêu đề (VI) *"
-              name="title_vi"
-              value={titleVi}
-              onChange={setTitleVi}
-              error={fieldErrors.title_vi}
-            />
-            <AdminField
-              label="Tiêu đề (EN)"
-              name="title_en"
-              value={titleEn}
-              onChange={setTitleEn}
-              error={fieldErrors.title_en}
-            />
-          </div>
-          <AdminField
-            label="Mô tả ngắn (VI)"
-            name="description_vi"
-            value={descriptionVi}
-            onChange={setDescriptionVi}
-            multiline
-            error={fieldErrors.description_vi}
-          />
-          <AdminField
-            label="Mô tả ngắn (EN)"
-            name="description_en"
-            value={descriptionEn}
-            onChange={setDescriptionEn}
-            multiline
-            error={fieldErrors.description_en}
-          />
-          <div className="grid gap-4 md:grid-cols-2">
-            <AdminField
-              label="Giá Combo (VND)"
-              name="combo_price"
-              inputType="number"
-              value={comboPrice}
-              onChange={setComboPrice}
-              error={fieldErrors.combo_price}
-            />
-            <AdminField
-              label="Giá gốc tổng cộng (VND)"
-              name="original_price"
-              inputType="number"
-              value={originalPrice}
-              onChange={setOriginalPrice}
-              error={fieldErrors.original_price}
             />
           </div>
 
@@ -3422,121 +3813,35 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
               {fieldErrors.end_at && <span className="text-red-600 text-xs font-medium -mt-1">{fieldErrors.end_at}</span>}
             </label>
           </div>
-
-          <div className="grid gap-2">
-            <span className="label-pd">Ảnh bìa Combo</span>
-            <ImageUploadDropzone
-              value={coverImage}
-              onChange={(url) => setCoverImage(url)}
-              label="Tải ảnh combo khuyến mãi lên"
-            />
-            {fieldErrors.cover_image && <span className="text-red-600 text-xs font-medium">{fieldErrors.cover_image}</span>}
-          </div>
-
-          <div className="grid gap-2">
-            <span className="label-pd">Các sản phẩm đi kèm trong Combo</span>
-            <div className="space-y-2">
-              {itemsList.map((item, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input className="input-pd bg-white flex-1" type="text" value={item} onChange={(e) => handleItemChange(idx, e.target.value)} placeholder={`Sản phẩm #${idx + 1}`} />
-                  <button type="button" onClick={() => handleRemoveItem(idx)} className="button-pd-outline py-2 px-3 text-red-500 border-red-200 hover:bg-red-50" disabled={itemsList.length <= 1}>Xóa</button>
-                </div>
-              ))}
-              <button type="button" onClick={handleAddItem} className="button-pd-outline text-xs mt-2 py-1 px-2">
-                + Thêm sản phẩm
-              </button>
-            </div>
-          </div>
-
-          <div className="grid gap-2 mt-4 pt-4 border-t border-slate-200">
-            <span className="label-pd">Áp dụng cho các sản phẩm thật (N-N)</span>
-            <div className="flex gap-2">
-              <input
-                className="input-pd bg-white flex-1"
-                type="text"
-                placeholder="Nhập tên hoặc mã sản phẩm để tìm kiếm..."
-                value={searchVal}
-                onChange={(e) => handleSearchProducts(e.target.value)}
-              />
-            </div>
-
-            {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="border rounded-lg bg-white divide-y max-h-48 overflow-y-auto mt-2">
-                {searchResults.map((prod) => {
-                  const isChecked = selectedProductIds.includes(prod.id);
-                  return (
-                    <div key={prod.id} className="flex items-center justify-between p-2 hover:bg-slate-50 text-xs">
-                      <div>
-                        <span className="font-semibold text-primary">{prod.name}</span>
-                        <span className="text-slate-400 ml-2 font-mono">({prod.reference_code})</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleProduct(prod)}
-                        className={`px-3 py-1 rounded text-xs font-semibold ${
-                          isChecked ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                        }`}
-                      >
-                        {isChecked ? "Bỏ chọn" : "Chọn"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Selected Products List */}
-            {selectedProducts.length > 0 && (
-              <div className="mt-3">
-                <span className="text-xs font-bold text-slate-500 block mb-1.5 font-heading">Sản phẩm đã chọn ({selectedProducts.length}):</span>
-                <div className="flex flex-wrap gap-2">
-                  {selectedProducts.map((prod) => (
-                    <div key={prod.id} className="flex items-center gap-1 bg-indigo-50 border border-indigo-100 text-indigo-900 text-xs px-2.5 py-1 rounded-full">
-                      <span>{prod.name} ({prod.reference_code})</span>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleProduct(prod)}
-                        className="text-indigo-400 hover:text-indigo-600 font-bold ml-1"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-      <div className="space-y-5">
-        <section className="surface-soft p-4">
-          <label className="grid gap-2">
-            <span className="label-pd">Trạng thái</span>
-            <PremiumSelect
-              value={status}
-              onValueChange={(val) => setStatus(val as "draft" | "published" | "archived")}
-              ariaLabel="Trạng thái"
-              placeholder="Trạng thái"
-              tone="admin"
-              options={[
-                { value: "draft", label: "Bản nháp" },
-                { value: "published", label: "Đã xuất bản" },
-                { value: "archived", label: "Đã lưu trữ" },
-              ]}
-            />
-          </label>
-          <div className="mt-6">
-            <button type="submit" className="button-pd w-full" disabled={formLoading}>
-              {formLoading ? "Đang lưu..." : "Lưu khuyến mãi"}
-            </button>
-          </div>
         </section>
+
+
       </div>
-    </form>
+
+      <aside className="space-y-5">
+        {/* --- COMBO COVER IMAGE (Moved above PublishWorkflow) --- */}
+        <section className="surface-soft p-4 space-y-4">
+          <h3 className="admin-section-title-pd">Ảnh bìa khuyến mãi</h3>
+          <ImageUploadDropzone
+            value={coverImage}
+            onChange={(url) => setCoverImage(url)}
+            label="Tải ảnh combo khuyến mãi lên"
+          />
+          {fieldErrors.cover_image && <span className="text-red-600 text-xs font-medium">{fieldErrors.cover_image}</span>}
+        </section>
+
+        <PublishWorkflow 
+          status={status}
+          onStatusChange={setStatus}
+          errors={[]} 
+          onSaveDraft={() => handleSave("draft")}
+          onPublish={() => handleSave("published")}
+          onArchive={() => handleSave("archived")}
+        />
+      </aside>
+    </div>
   );
-}
-const isBodyEmpty = (val: any) => {
+}const isBodyEmpty = (val: any) => {
   if (!val) return true;
   if (typeof val === "string") return !val.trim();
   if (typeof val === "object") {
@@ -3702,6 +4007,7 @@ export function ContentEditorForm({
           .then(async ({ getAdminProductByIdOrSlug }) => {
             const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
             const cats = await getAdminCategories();
+            const catList = Array.isArray(cats) ? cats : cats?.data || [];
             const res = await getAdminProductByIdOrSlug(editSlug);
             if (res.success && res.data) {
               const p = res.data;
@@ -3719,7 +4025,7 @@ export function ContentEditorForm({
               setPrice(p.price_min ? String(p.price_min) : "");
               setQuoteOnly(p.price_display_text_vi === "Liên hệ" || !p.price_min);
               
-              const catSlug = cats.find(c => c.id === p.category_id)?.slug || "wood";
+              const catSlug = catList.find(c => c.id === p.category_id)?.slug || "wood";
               setCategory(catSlug);
               setBrand(p.brand_id || "Atelier Select");
               setRefCode(p.reference_code || "");
@@ -4029,11 +4335,13 @@ export function ContentEditorForm({
         const { getAdminBrands } = await import("@/lib/supabase/brands-mutations");
 
         const cats = await getAdminCategories();
-        const catObj = cats.find(c => c.slug === category) || cats[0];
+        const catList = Array.isArray(cats) ? cats : cats?.data || [];
+        const catObj = catList.find(c => c.slug === category) || catList[0];
         const categoryId = catObj ? catObj.id : null;
 
         const brands = await getAdminBrands();
-        const brandObj = brands.find(b => b.id === brand || b.name.vi === brand) || brands[0];
+        const brandsList = Array.isArray(brands) ? brands : (brands as any)?.data || [];
+        const brandObj = brandsList.find((b: any) => b.id === brand || b.name?.vi === brand || b.name === brand) || brandsList[0];
         const brandId = brandObj ? brandObj.id : null;
 
         if (!categoryId) {
@@ -4880,9 +5188,20 @@ function ProductBusinessFields({
         
         if (!active) return;
         
-        setCategoriesList(cats.map(c => ({ value: c.slug, label: c.name })));
-        setBrandsList(brands.map(b => ({ value: b.id, label: b.name.vi })));
-        setShowroomsList(rooms.map(r => ({ value: r.code || r.id, label: r.name })));
+        const catsList = Array.isArray(cats) ? cats : (cats as any)?.data || [];
+        const formattedCats = catsList.map((c: any) => {
+          const parent = c.parent_id ? catsList.find((p: any) => p.id === c.parent_id) : null;
+          const parentName = parent ? parent.name : "";
+          return {
+            value: c.slug,
+            label: parentName ? `${parentName} → ${c.name}` : c.name
+          };
+        });
+        setCategoriesList(formattedCats);
+        const brandsArr = Array.isArray(brands) ? brands : (brands as any)?.data || [];
+        setBrandsList(brandsArr.map((b: any) => ({ value: b.id, label: b.name?.vi || b.name || "" })));
+        const roomsArr = Array.isArray(rooms) ? rooms : (rooms as any)?.data || [];
+        setShowroomsList(roomsArr.map((r: any) => ({ value: r.code || r.id, label: r.name?.vi || r.name || "" })));
       } catch (err) {
         console.error("Lỗi khi tải danh mục/thương hiệu/showroom động:", err);
       }
@@ -4940,14 +5259,14 @@ function ProductBusinessFields({
               options={brandOptions}
             />
           </label>
-          <AdminField label="Mã tham chiếu" name="reference-code" value={refCode} onChange={setRefCode} />
+          <AdminField label="Mã sản phẩm" name="reference-code" value={refCode} onChange={setRefCode} />
           <label className="grid gap-2">
-            <span className="label-pd">Ánh xạ showroom</span>
+            <span className="label-pd">Showroom</span>
             <PremiumSelect
               value={showroom}
               onValueChange={setShowroom}
-              ariaLabel="Ánh xạ showroom"
-              placeholder="Ánh xạ showroom"
+              ariaLabel="Showroom"
+              placeholder="Chọn showroom"
               tone="admin"
               options={showroomOptions}
             />
@@ -5615,15 +5934,23 @@ function AdminField({
   const currentType = isPassword ? (showPassword ? "text" : "password") : inputType;
 
   return (
-    <label className="grid gap-2">
-      <span className="label-pd">{label}</span>
+    <label className={`grid gap-1.5 ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}>
+      <span className="flex items-center gap-1.5 label-pd">
+        {label}
+        {disabled && (
+          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+            <Lock className="size-2.5" />
+            Khóa
+          </span>
+        )}
+      </span>
       {multiline ? (
         <textarea
-          className={`input-pd min-h-24 bg-white ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+          className={`input-pd min-h-24 ${disabled ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed select-none pointer-events-none" : "bg-white"} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
           name={name}
           defaultValue={value === undefined ? defaultValue : undefined}
           value={value}
-          placeholder={placeholder}
+          placeholder={disabled ? "— Không khả dụng —" : placeholder}
           disabled={disabled}
           onChange={onChange ? (event) => onChange(event.target.value) : undefined}
           onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
@@ -5631,19 +5958,19 @@ function AdminField({
       ) : (
         <div className="relative flex items-center">
           <input
-            className={`input-pd bg-white w-full pr-10 ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+            className={`input-pd w-full pr-10 ${disabled ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed" : "bg-white"} ${error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
             type={currentType}
             name={name}
             defaultValue={value === undefined ? defaultValue : undefined}
             value={value}
-            placeholder={placeholder}
+            placeholder={disabled ? "— Không khả dụng —" : placeholder}
             min={min}
             max={max}
             disabled={disabled}
             onChange={onChange ? (event) => onChange(event.target.value) : undefined}
             onInput={onChange ? (event) => onChange(event.currentTarget.value) : undefined}
           />
-          {isPassword && (
+          {isPassword && !disabled && (
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -5652,6 +5979,11 @@ function AdminField({
             >
               {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
+          )}
+          {disabled && (
+            <span className="absolute right-3 text-slate-300 pointer-events-none">
+              <Lock className="size-3.5" />
+            </span>
           )}
         </div>
       )}

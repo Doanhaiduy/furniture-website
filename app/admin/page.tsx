@@ -12,7 +12,8 @@ export default async function AdminHomePage() {
 
   const role = user.role;
   const stats = await getAdminDashboardStats(role);
-  const quotes = role === "admin" ? await getAdminQuotesList({ limit: 5, offset: 0 }) : [];
+  const quotesResult = role === "admin" ? await getAdminQuotesList({ limit: 5, offset: 0 }) : [];
+  const quotes = Array.isArray(quotesResult) ? quotesResult : quotesResult?.data || [];
 
   return (
     <AdminShell active="dashboard" role={role}>

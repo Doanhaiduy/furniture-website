@@ -122,19 +122,30 @@ export default async function ProductsPage({
   const q = typeof query.q === "string" && query.q ? query.q : undefined;
   const featured = query.featured === "true" ? true : undefined;
 
+  const matchedCategory = dbCategories.find((cat: any) => cat.slug === categorySlug);
+
   // For products query, if category is "other", we fetch all products and exclude top 3 categories in JS
   let productsCategorySlug = categorySlug === "other" ? undefined : categorySlug;
   let productsGroupKey: string | undefined = undefined;
 
-  if (productsCategorySlug === "wood") {
-    productsGroupKey = "wooden_furniture";
-    productsCategorySlug = undefined;
-  } else if (productsCategorySlug === "sanitary") {
-    productsGroupKey = "sanitary_equipment";
-    productsCategorySlug = undefined;
-  } else if (productsCategorySlug === "tiles") {
-    productsGroupKey = "tiles";
-    productsCategorySlug = undefined;
+  if (matchedCategory) {
+    if (!matchedCategory.parentId) {
+      // Nếu là nhóm danh mục gốc, lọc bằng groupKey của nó để lấy tất cả sản phẩm con
+      productsGroupKey = matchedCategory.groupKey;
+      productsCategorySlug = undefined;
+    }
+  } else {
+    // Fallback cho nhóm cũ
+    if (productsCategorySlug === "wood") {
+      productsGroupKey = "wooden_furniture";
+      productsCategorySlug = undefined;
+    } else if (productsCategorySlug === "sanitary") {
+      productsGroupKey = "sanitary_equipment";
+      productsCategorySlug = undefined;
+    } else if (productsCategorySlug === "tiles") {
+      productsGroupKey = "tiles";
+      productsCategorySlug = undefined;
+    }
   }
 
   const dbProducts = await getProducts(supabase, {
@@ -151,20 +162,31 @@ export default async function ProductsPage({
 
   // If category is "other", filter products to exclude top 3 root categories
   let categoryFilteredProducts = dbProductsMapped;
-  let top3CatIds: string[] = [];
+  
+  if (matchedCategory) {
+    const children = dbCategories.filter((cat: any) => cat.parentId === matchedCategory.id);
+    const allowedCatIds = !matchedCategory.parentId
+      ? [matchedCategory.id, ...children.map((c: any) => c.id)]
+      : [matchedCategory.id];
+    
+    categoryFilteredProducts = dbProductsMapped.filter((p: any) => {
+      const orig = dbProducts.find((dp: any) => dp.slug === p.slug);
+      const categoryId = orig?.category_id || orig?.categoryId || p.category_id || p.categoryId;
+      return categoryId && allowedCatIds.includes(categoryId);
+    });
+  } else if (categorySlug === "other") {
+    let top3CatIds: string[] = [];
+    const rootCats = dbCategories.filter((cat: any) => !cat.parentId);
+    const rootCatCounts = rootCats.map((root: any) => {
+      const children = dbCategories.filter((cat: any) => cat.parentId === root.id);
+      const allCatIds = [root.id, ...children.map((c: any) => c.id)];
+      const count = dbProductsMapped.filter((p: any) => allCatIds.includes(p.category_id) || allCatIds.includes(p.categoryId)).length;
+      return { root, allCatIds, count };
+    });
+    const sortedRoots = [...rootCatCounts].sort((a, b) => b.count - a.count);
+    const top3Roots = sortedRoots.slice(0, 3);
+    top3CatIds = top3Roots.flatMap((item) => item.allCatIds);
 
-  const rootCats = dbCategories.filter((cat: any) => !cat.parentId);
-  const rootCatCounts = rootCats.map((root: any) => {
-    const children = dbCategories.filter((cat: any) => cat.parentId === root.id);
-    const allCatIds = [root.id, ...children.map((c: any) => c.id)];
-    const count = dbProductsMapped.filter((p: any) => allCatIds.includes(p.category_id) || allCatIds.includes(p.categoryId)).length;
-    return { root, allCatIds, count };
-  });
-  const sortedRoots = [...rootCatCounts].sort((a, b) => b.count - a.count);
-  const top3Roots = sortedRoots.slice(0, 3);
-  top3CatIds = top3Roots.flatMap((item) => item.allCatIds);
-
-  if (categorySlug === "other") {
     categoryFilteredProducts = dbProductsMapped.filter((p: any) => {
       const orig = dbProducts.find((dp: any) => dp.slug === p.slug);
       const categoryId = orig?.category_id || orig?.categoryId;
@@ -186,21 +208,29 @@ export default async function ProductsPage({
   const optionLabel = (value: { vi: string; en: string }) => localized(value, locale);
   const allOption = { value: "all", label: t("all") };
   
-  const categoryOptions = [
-    allOption,
-    ...(dbCategories.length > 0 
-      ? [
-          ...dbCategories.map((cat: any) => ({
-            value: cat.slug,
-            label: cat.name,
-          })),
-          { value: "other", label: locale === "vi" ? "Thiết kế khác" : "Other designs" }
-        ]
-      : productGroups.slice(0, 3).map((group) => ({
-          value: group.key,
-          label: localized(group.title, locale),
-        }))),
-  ];
+  // Build hierarchical category options: groups first, then children indented
+  const rootCatOptions = dbCategories.filter((cat: any) => !cat.parentId && cat.parentId !== cat.id);
+  const buildCategoryOptions = () => {
+    if (dbCategories.length === 0) {
+      return productGroups.slice(0, 3).map((group) => ({
+        value: group.key,
+        label: localized(group.title, locale),
+      }));
+    }
+    const opts: Array<{ value: string; label: string }> = [];
+    // Add root group options
+    rootCatOptions.forEach((root: any) => {
+      // Add the group itself as a selectable option (shows all products in that group)
+      opts.push({ value: root.slug, label: `📁 ${root.name}` });
+      // Add children indented under the group
+      const children = dbCategories.filter((c: any) => c.parentId === root.id);
+      children.forEach((child: any) => {
+        opts.push({ value: child.slug, label: `  → ${child.name}` });
+      });
+    });
+    return opts;
+  };
+  const categoryOptions = [allOption, ...buildCategoryOptions()];
 
   const brandOptions = [
     { value: "all", label: locale === "vi" ? "Tất cả thương hiệu" : "All brands" },

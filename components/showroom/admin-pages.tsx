@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { ExcelImportExportModal } from "./admin-excel";
 import { useToast } from "@/components/providers/toast-provider";
 import Link from "next/link";
 import {
@@ -23,6 +24,18 @@ import {
   Sparkle,
   ChevronLeft,
   ChevronRight,
+  Package,
+  Tag,
+  Globe,
+  NewspaperIcon,
+  MapPin,
+  Star,
+  Eye,
+  Trash2,
+  ExternalLink,
+  Check,
+  FileSpreadsheet,
+  Upload,
 } from "lucide-react";
 import {
   type PublishStatus,
@@ -37,7 +50,36 @@ import {
   type AdminPromotion,
   type AdminUser,
   deleteAdminPromotion,
+  getBrandProductCount,
+  updatePromotionStatus,
 } from "@/lib/supabase/admin-queries";
+import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import {
+  deleteAdminProduct,
+  deleteAdminCategory,
+  deleteAdminBlogPost,
+  deleteAdminShowroom,
+  updateProductFeatured,
+  updateProductStatus,
+  updateBlogPostFeatured,
+  updateBlogPostStatus,
+  updateQuoteAssignee,
+  updateQuoteSalesNotes,
+  updateQuoteAdminNotes,
+} from "@/lib/supabase/mutations";
+import { deleteAdminBrand } from "@/lib/supabase/brands-mutations";
 import {
   PublishWorkflow,
   StatusPill,
@@ -53,6 +95,18 @@ import { PremiumSelect } from "./premium-select";
 import { DashboardInsightChart } from "./admin-dashboard-widgets";
 import { QuoteTimeline } from "../admin/QuoteTimeline";
 import { DataTable } from "@/components/admin/DataTable";
+import { DataView, PaginationBar } from "@/components/admin/DataView";
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { FilterBar, type FilterConfig } from "@/components/admin/FilterBar";
+import { useAdminFilters } from "@/lib/hooks/useAdminFilters";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
 export interface Brand {
   id: string;
   name: { vi: string; en: string };
@@ -60,6 +114,7 @@ export interface Brand {
   logo_url?: string;
   status: "draft" | "published" | "archived";
   sort_order: number;
+  slug?: string;
 }
 export { AdminLoginPage, AccessDeniedPage } from "./admin-login";
 
@@ -149,37 +204,63 @@ export function AdminSectionPage({
   createMode,
   uploadMode,
   products,
+  productTotal = 0,
   categories,
+  categoryTotal = 0,
   promotions,
+  promotionTotal = 0,
   blogPosts,
+  blogTotal = 0,
   showrooms,
+  showroomTotal = 0,
   quotes,
+  quoteTotal = 0,
   brands,
+  brandTotal = 0,
   profiles,
+  profileTotal = 0,
+  searchParams = {},
 }: {
   section: AdminSection;
   role?: string;
   createMode?: boolean;
   uploadMode?: boolean;
   products?: AdminProduct[];
+  productTotal?: number;
   categories?: AdminCategory[];
+  categoryTotal?: number;
   promotions?: AdminPromotion[];
+  promotionTotal?: number;
   blogPosts?: AdminBlogPost[];
+  blogTotal?: number;
   showrooms?: AdminShowroom[];
+  showroomTotal?: number;
   quotes?: AdminQuote[];
+  quoteTotal?: number;
   brands?: Brand[];
+  brandTotal?: number;
   profiles?: AdminUser[];
+  profileTotal?: number;
+  searchParams?: Record<string, string | undefined>;
 }) {
-  if (section === "quotes") return <QuotesPage quotes={quotes ?? []} role={role} />;
+  if (section === "quotes") return <QuotesPage quotes={quotes ?? []} role={role} total={quoteTotal} />;
   if (section === "media") return <MediaPage uploadMode={uploadMode} />;
   if (section === "settings") return <SettingsPage />;
-  if (section === "users") return <UsersPage createMode={createMode} profiles={profiles ?? []} />;
-  if (section === "brands") return <BrandsPage createMode={createMode} brands={brands ?? []} />;
-  if (section === "blog") return <BlogPage createMode={createMode} posts={blogPosts ?? []} />;
-  if (section === "showrooms") return <ShowroomPage createMode={createMode} showrooms={showrooms ?? []} />;
-  if (section === "categories") return <CategoryPage createMode={createMode} categories={categories ?? []} />;
-  if (section === "promotions") return <PromotionsPage createMode={createMode} promotions={promotions ?? []} />;
-  return <ProductsPage createMode={createMode} products={products ?? []} />;
+  if (section === "users") return <UsersPage createMode={createMode} profiles={profiles ?? []} total={profileTotal} />;
+  if (section === "brands") return <BrandsPage createMode={createMode} brands={brands ?? []} total={brandTotal} />;
+  if (section === "blog") return <BlogPage createMode={createMode} posts={blogPosts ?? []} total={blogTotal} />;
+  if (section === "showrooms") return <ShowroomPage createMode={createMode} showrooms={showrooms ?? []} total={showroomTotal} />;
+  if (section === "categories") return <CategoryPage createMode={createMode} categories={categories ?? []} total={categoryTotal} />;
+  if (section === "promotions") return <PromotionsPage createMode={createMode} promotions={promotions ?? []} total={promotionTotal} />;
+  return (
+    <ProductsPage
+      createMode={createMode}
+      products={products ?? []}
+      total={productTotal}
+      categories={categories ?? []}
+      brands={brands ?? []}
+    />
+  );
 }
 
 
@@ -268,30 +349,149 @@ export function Pagination({
   );
 }
 
-function ProductsPage({ createMode, products = [] }: { createMode?: boolean; products?: AdminProduct[] }) {
+function getRelativeTimeString(dateString: string | null | undefined): string {
+  if (!dateString) return "—";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "Vừa xong";
+  if (diffMins < 60) return `${diffMins} phút trước`;
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  if (diffDays === 1) return "Hôm qua";
+  return `${diffDays} ngày trước`;
+}
+
+function ProductsPage({ 
+  createMode, 
+  products = [], 
+  total = 0,
+  categories = [],
+  brands = []
+}: { 
+  createMode?: boolean; 
+  products?: AdminProduct[]; 
+  total?: number;
+  categories?: AdminCategory[];
+  brands?: any[];
+}) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const [filterState, setFilterState] = useState<ProductFilterState>({ category: "all", status: "all", search: "" });
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 15;
+  const adminFilters = useAdminFilters();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
+
+  const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
+  const [brandOptions, setBrandOptions] = useState<{ value: string; label: string }[]>([]);
+  const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(1);
-  }, [filterState]);
+    fetch("/api/admin/filter-options?type=categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.options) setCategoryOptions(data.options);
+      })
+      .catch((err) => console.error("Error loading categories:", err));
 
-  const filtered = products.filter((p) => {
-    const matchCat = filterState.category === "all" || (p.category_name?.toLowerCase().includes(filterState.category) ?? false);
-    const matchStatus = filterState.status === "all" || (filterState.status === "published" ? p.featured : !p.featured);
-    const matchSearch = filterState.search === "" ||
-      p.name.toLowerCase().includes(filterState.search.toLowerCase()) ||
-      (p.slug ?? "").toLowerCase().includes(filterState.search.toLowerCase()) ||
-      (p.reference_code ?? "").toLowerCase().includes(filterState.search.toLowerCase());
-    return matchCat && matchStatus && matchSearch;
-  });
+    fetch("/api/admin/filter-options?type=brands")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.options) setBrandOptions(data.options);
+      })
+      .catch((err) => console.error("Error loading brands:", err));
+  }, []);
 
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const PRODUCT_STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: PRODUCT_STATUS_OPTIONS, placeholder: "Tất cả trạng thái" },
+    { type: "select", key: "categoryId", label: "Danh mục", options: categoryOptions, placeholder: "Tất cả danh mục" },
+    { type: "select", key: "brandId", label: "Thương hiệu", options: brandOptions, placeholder: "Tất cả thương hiệu" },
+    { type: "boolean", key: "featured", label: "Nổi bật" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
+
+  function formatPrice(product: AdminProduct) {
+    if (product.price_display_text) return product.price_display_text;
+    if (product.price_min !== null && product.price_min !== undefined) {
+      const min = product.price_min.toLocaleString("vi-VN") + " ₫";
+      if (product.price_max !== null && product.price_max !== undefined && product.price_max !== product.price_min) {
+        return `${min} – ${product.price_max.toLocaleString("vi-VN")} ₫`;
+      }
+      return min;
+    }
+    return "Liên hệ";
+  }
+
+  function StatusPopover({ product, onStatusChange }: { product: AdminProduct; onStatusChange: (status: string) => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const statusOptions = [
+      { value: "draft", label: "Bản nháp", description: "Không hiển thị trên site", color: "bg-slate-400" },
+      { value: "published", label: "Đã xuất bản", description: "Hiển thị công khai", color: "bg-emerald-500" },
+      { value: "archived", label: "Lưu trữ", description: "Ẩn nhưng bảo toàn dữ liệu", color: "bg-amber-500" }
+    ];
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button type="button" className="cursor-pointer focus:outline-none select-none hover:opacity-80 active:scale-95 transition-all">
+            <StatusBadge status={product.status} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-1.5 bg-white border border-slate-200 shadow-lg rounded-xl z-[200] animate-in fade-in-50 zoom-in-95 duration-100">
+          <div className="flex flex-col gap-1">
+            <span className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+              Chuyển trạng thái
+            </span>
+            {statusOptions.map((opt) => {
+              const isActive = product.status === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between transition-all ${
+                    isActive 
+                      ? "bg-slate-50 text-slate-900" 
+                      : "hover:bg-slate-50/80 text-slate-600 hover:text-slate-900"
+                  }`}
+                  onClick={async () => {
+                    if (!isActive) {
+                      onStatusChange(opt.value);
+                    }
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold flex items-center gap-1.5">
+                      <span className={`size-1.5 rounded-full ${opt.color}`} />
+                      {opt.label}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-medium">
+                      {opt.description}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -301,12 +501,148 @@ function ProductsPage({ createMode, products = [] }: { createMode?: boolean; pro
         actionHref="/admin/products?create=1"
         actionLabel="Thêm sản phẩm"
       />
-      <ProductFilterCard value={filterState} onChange={setFilterState} />
-      <ProductOperationsTable products={paginatedProducts} />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+
+      {/* Excel Actions Toolbar */}
+      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm w-fit">
+        <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
+          <FileSpreadsheet className="size-4 text-indigo-500" />
+          Excel:
+        </span>
+        <button
+          type="button"
+          onClick={() => setExcelModalOpen(true)}
+          className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+        >
+          <Upload className="size-3.5" />
+          Nhập & Xuất Excel
+        </button>
+      </div>
+
+      <DataView
+        data={products}
+        totalCount={total}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tên sản phẩm, mã, slug..."
+        defaultSort="sort_order"
+        defaultDir="asc"
+        defaultLimit={20}
+        columns={[
+          { key: "name", label: "Sản phẩm", width: "1fr", sortable: false },
+          { key: "category_name", label: "Danh mục", width: "120px", sortable: false },
+          { key: "brand_name", label: "Thương hiệu", width: "120px", sortable: false },
+          { key: "price", label: "Giá", width: "130px", sortable: false },
+          { key: "status", label: "Trạng thái", width: "100px", sortable: true },
+          { key: "featured", label: "Nổi bật", width: "80px", sortable: true },
+          { key: "updated_at", label: "Cập nhật", width: "100px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "110px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const product = item as AdminProduct & { updated_at?: string };
+          return (
+            <div key={product.id} className="grid items-center gap-4 px-4 py-3.5 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 120px 120px 130px 100px 80px 100px 110px" }}>
+              <div className="flex gap-3 min-w-0">
+                {(product.primary_media as any)?.url ? (
+                  <RemoteImage src={(product.primary_media as any).url} alt={product.name} className="size-12 rounded-lg bg-slate-100 shrink-0 relative" />
+                ) : (
+                  <div className="size-12 rounded-lg bg-slate-100 shrink-0 flex items-center justify-center"><Package className="size-5 text-slate-300" /></div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-800 truncate">{product.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{product.reference_code ?? product.slug}</p>
+                </div>
+              </div>
+              <span className="text-sm text-slate-600 truncate">{product.category_name}</span>
+              <span className="text-sm text-slate-600 truncate">{product.brand_name ?? "—"}</span>
+              <span className="text-xs text-slate-600 font-semibold truncate">{formatPrice(product)}</span>
+              <StatusPopover
+                product={product}
+                onStatusChange={async (newStatus) => {
+                  const res = await updateProductStatus(product.id, newStatus);
+                  if (res.success) {
+                    toast.success("Cập nhật trạng thái thành công!");
+                    router.refresh();
+                  } else {
+                    toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
+                  }
+                }}
+              />
+              <div className="flex items-center">
+                <Switch
+                  checked={product.featured}
+                  onCheckedChange={async (checked) => {
+                    const res = await updateProductFeatured(product.id, checked);
+                    if (res.success) {
+                      toast.success("Cập nhật nổi bật thành công!");
+                      router.refresh();
+                    } else {
+                      toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
+                    }
+                  }}
+                />
+              </div>
+              <span className="text-xs text-slate-400">{getRelativeTimeString(product.updated_at)}</span>
+              <div className="flex items-center gap-1.5">
+                {product.status === "published" ? (
+                  <a
+                    href={`/products/${product.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                ) : (
+                  <span className="p-1.5 opacity-30 cursor-not-allowed text-slate-300">
+                    <ExternalLink className="size-4" />
+                  </span>
+                )}
+                <Link
+                  href={`/admin/products?edit=${product.slug || product.id}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setProductToDelete(product)}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const product = item as AdminProduct;
+          return (
+            <div key={product.id} className="group relative overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition">
+              {(product.primary_media as any)?.url ? (
+                <RemoteImage src={(product.primary_media as any).url} alt={product.name} className="w-full aspect-[4/3] bg-slate-100 relative" />
+              ) : (
+                <div className="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center"><Package className="size-10 text-slate-200" /></div>
+              )}
+              <div className="p-3">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="font-semibold text-slate-800 text-sm line-clamp-2 flex-1">{product.name}</p>
+                  <StatusBadge status={product.status} className="shrink-0" />
+                </div>
+                <p className="text-xs text-slate-400 mb-2">{product.category_name}</p>
+                {product.featured && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Star className="size-3" />Nổi bật</span>}
+              </div>
+              <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition flex border-t bg-white p-2 gap-2">
+                <Link href={`/admin/products?edit=${product.slug || product.id}`} className="admin-edit-action flex-1 justify-center">
+                  <Pencil className="size-3" />Chỉnh sửa
+                </Link>
+              </div>
+            </div>
+          );
+        }}
+        emptyMessage="Chưa có sản phẩm nào được tạo."
+        emptyIcon={<Package className="size-10 text-slate-200" />}
       />
 
       <AdminRouteDialog
@@ -329,20 +665,145 @@ function ProductsPage({ createMode, products = [] }: { createMode?: boolean; pro
       >
         <ContentEditorForm kind="product" mode="edit" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={productToDelete !== null} onOpenChange={(open) => { if (!open) setProductToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa sản phẩm</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn xóa <strong>{productToDelete?.name}</strong>? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (!productToDelete) return;
+              setIsDeleting(true);
+              try {
+                const res = await deleteAdminProduct(productToDelete.id);
+                if (res.success) {
+                  toast.success("Xóa sản phẩm thành công!");
+                  router.refresh();
+                } else {
+                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                }
+              } catch (err) {
+                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+              } finally {
+                setIsDeleting(false);
+                setProductToDelete(null);
+              }
+            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ExcelImportExportModal
+        isOpen={excelModalOpen}
+        onClose={() => setExcelModalOpen(false)}
+        type="product"
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }
 
 import { useSearchParams, useRouter } from "next/navigation";
 
-function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: AdminBlogPost[] }) {
+function BlogPage({ createMode, posts = [], total = 0 }: { createMode?: boolean; posts?: AdminBlogPost[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 12;
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const totalPages = Math.ceil(posts.length / pageSize);
-  const paginatedPosts = posts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const [blogCategoryOptions, setBlogCategoryOptions] = useState<{ value: string; label: string }[]>([]);
+  const [blogToDelete, setBlogToDelete] = useState<AdminBlogPost | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/filter-options?type=blog-categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.options) setBlogCategoryOptions(data.options);
+      })
+      .catch((err) => console.error("Error loading blog categories:", err));
+  }, []);
+
+  const STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả" },
+    { type: "select", key: "categoryId", label: "Danh mục", options: blogCategoryOptions, placeholder: "Tất cả danh mục" },
+    { type: "boolean", key: "featured", label: "Nổi bật" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
+
+  function BlogStatusPopover({ post, onStatusChange }: { post: AdminBlogPost; onStatusChange: (status: string) => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const statusOptions = [
+      { value: "draft", label: "Bản nháp", description: "Không hiển thị trên site", color: "bg-slate-400" },
+      { value: "published", label: "Đã xuất bản", description: "Hiển thị công khai", color: "bg-emerald-500" },
+      { value: "archived", label: "Lưu trữ", description: "Ẩn nhưng bảo toàn dữ liệu", color: "bg-amber-500" }
+    ];
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button type="button" className="cursor-pointer focus:outline-none select-none hover:opacity-80 active:scale-95 transition-all">
+            <StatusBadge status={post.status} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-1.5 bg-white border border-slate-200 shadow-lg rounded-xl z-[200] animate-in fade-in-50 zoom-in-95 duration-100">
+          <div className="flex flex-col gap-1">
+            <span className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+              Chuyển trạng thái
+            </span>
+            {statusOptions.map((opt) => {
+              const isActive = post.status === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between transition-all ${
+                    isActive 
+                      ? "bg-slate-50 text-slate-900" 
+                      : "hover:bg-slate-50/80 text-slate-600 hover:text-slate-900"
+                  }`}
+                  onClick={async () => {
+                    if (!isActive) {
+                      onStatusChange(opt.value);
+                    }
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold flex items-center gap-1.5">
+                      <span className={`size-1.5 rounded-full ${opt.color}`} />
+                      {opt.label}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-medium">
+                      {opt.description}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -353,15 +814,129 @@ function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: Ad
         actionLabel="Thêm bài viết"
       />
 
-      {/* Full-width queue of posts */}
-      <div className="grid gap-5">
-        <BlogQueue posts={paginatedPosts} />
-      </div>
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      <DataView
+        data={posts}
+        totalCount={total}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tiêu đề bài viết, trích dẫn..."
+        defaultSort="published_at"
+        defaultDir="desc"
+        defaultLimit={20}
+        columns={[
+          { key: "title", label: "Bài viết", width: "1fr", sortable: false },
+          { key: "category", label: "Danh mục", width: "120px", sortable: false },
+          { key: "author", label: "Tác giả", width: "120px", sortable: false },
+          { key: "status", label: "Trạng thái", width: "100px", sortable: true },
+          { key: "featured", label: "Nổi bật", width: "80px", sortable: true },
+          { key: "published_at", label: "Ngày xuất bản", width: "110px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "110px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const post = item as AdminBlogPost;
+          return (
+            <div key={post.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 120px 120px 100px 80px 110px 110px" }}>
+              <div className="flex gap-3 min-w-0">
+                {(post.cover_media as any)?.url ? (
+                  <RemoteImage src={(post.cover_media as any).url} alt={post.title} className="size-10 rounded-lg bg-slate-100 shrink-0 relative" />
+                ) : (
+                  <div className="size-10 rounded-lg bg-slate-100 shrink-0 flex items-center justify-center"><NewspaperIcon className="size-4 text-slate-300" /></div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-800 text-sm truncate">{post.title}</p>
+                  <p className="text-xs text-slate-400 truncate">{post.excerpt}</p>
+                </div>
+              </div>
+              <span className="text-xs text-slate-500 truncate">{post.category_name}</span>
+              <span className="text-xs text-slate-500 truncate">{post.author_name || "—"}</span>
+              <BlogStatusPopover
+                post={post}
+                onStatusChange={async (newStatus) => {
+                  const res = await updateBlogPostStatus(post.id, newStatus);
+                  if (res.success) {
+                    toast.success("Cập nhật trạng thái thành công!");
+                    router.refresh();
+                  } else {
+                    toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
+                  }
+                }}
+              />
+              <div className="flex items-center">
+                <Switch
+                  checked={post.featured}
+                  onCheckedChange={async (checked) => {
+                    const res = await updateBlogPostFeatured(post.id, checked);
+                    if (res.success) {
+                      toast.success("Cập nhật nổi bật thành công!");
+                      router.refresh();
+                    } else {
+                      toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
+                    }
+                  }}
+                />
+              </div>
+              <span className="text-xs text-slate-400" suppressHydrationWarning>{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</span>
+              <div className="flex items-center gap-1.5">
+                {post.status === "published" ? (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                ) : (
+                  <span className="p-1.5 opacity-30 cursor-not-allowed text-slate-300">
+                    <ExternalLink className="size-4" />
+                  </span>
+                )}
+                <Link
+                  href={`/admin/blog?edit=${post.slug}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setBlogToDelete(post)}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const post = item as AdminBlogPost;
+          return (
+            <article key={post.id} className="group relative overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition flex flex-col">
+              {(post.cover_media as any)?.url ? (
+                <RemoteImage src={(post.cover_media as any).url} alt={post.title} className="w-full aspect-video bg-slate-100 relative" />
+              ) : (
+                <div className="w-full aspect-video bg-slate-100 flex items-center justify-center"><NewspaperIcon className="size-10 text-slate-200" /></div>
+              )}
+              <div className="p-3 flex-1 flex flex-col">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase truncate">{post.category_name}</span>
+                  <StatusBadge status={post.status} />
+                </div>
+                <p className="font-semibold text-sm text-slate-800 line-clamp-2 flex-1">{post.title}</p>
+                <p className="text-xs text-slate-400 mt-1" suppressHydrationWarning>{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</p>
+              </div>
+              <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition flex border-t bg-white p-2">
+                <Link href={`/admin/blog?edit=${post.slug}`} className="admin-edit-action flex-1 justify-center">
+                  <Pencil className="size-3" />Chỉnh sửa
+                </Link>
+              </div>
+            </article>
+          );
+        }}
+        emptyMessage="Chưa có bài viết nào được tạo."
+        emptyIcon={<NewspaperIcon className="size-10 text-slate-200" />}
       />
 
       {/* Add dialog */}
@@ -385,16 +960,113 @@ function BlogPage({ createMode, posts = [] }: { createMode?: boolean; posts?: Ad
       >
         <ContentEditorForm kind="blog" mode="edit" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={blogToDelete !== null} onOpenChange={(open) => { if (!open) setBlogToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa bài viết</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn xóa bài viết <strong>{blogToDelete?.title}</strong>? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (!blogToDelete) return;
+              setIsDeleting(true);
+              try {
+                const res = await deleteAdminBlogPost(blogToDelete.id);
+                if (res.success) {
+                  toast.success("Xóa bài viết thành công!");
+                  router.refresh();
+                } else {
+                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                }
+              } catch (err) {
+                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+              } finally {
+                setIsDeleting(false);
+                setBlogToDelete(null);
+              }
+            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; categories?: AdminCategory[] }) {
+function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?: boolean; categories?: AdminCategory[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
+  const { toast } = useToast();
+  const router = useRouter();
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
 
-  // Sort by sort_order ascending (matches DB default)
-  const sorted = [...categories].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const [categoryToDelete, setCategoryToDelete] = useState<AdminCategory | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
+  ];
+  const GROUP_OPTIONS = [
+    { value: "wooden_furniture", label: "Đồ gỗ nội thất" },
+    { value: "sanitary_equipment", label: "Thiết bị vệ sinh" },
+    { value: "tiles", label: "Gạch ốp lát" },
+    { value: "project_solutions", label: "Thiết bị khác" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả" },
+    { type: "select", key: "groupKey", label: "Nhóm hàng", options: GROUP_OPTIONS, placeholder: "Tất cả nhóm" },
+    {
+      type: "select",
+      key: "level",
+      label: "Cấp danh mục",
+      options: [
+        { value: "parent", label: "Danh mục cha (Gốc)" },
+        { value: "child", label: "Danh mục con" }
+      ],
+      placeholder: "Tất cả các cấp"
+    },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
+
+  const organizeCategoriesHierarchically = (cats: AdminCategory[]) => {
+    const parents = cats.filter(c => c.parent_id === null);
+    const children = cats.filter(c => c.parent_id !== null);
+    const groupOrder = ["wooden_furniture", "sanitary_equipment", "tiles", "project_solutions", "other", "furniture", "sanitary"];
+
+    parents.sort((a, b) => {
+      const aGrp = a.group_key || "";
+      const bGrp = b.group_key || "";
+      const gDiff = groupOrder.indexOf(aGrp) - groupOrder.indexOf(bGrp);
+      if (gDiff !== 0) return gDiff;
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
+
+    const result: AdminCategory[] = [];
+    parents.forEach(parent => {
+      result.push(parent);
+      const parentChildren = children.filter(c => c.parent_id === parent.id);
+      parentChildren.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      result.push(...parentChildren);
+    });
+
+    const addedIds = new Set(result.map(c => c.id));
+    const orphans = cats.filter(c => !addedIds.has(c.id));
+    result.push(...orphans);
+
+    return result;
+  };
+
+  const sortedCategories = organizeCategoriesHierarchically(categories);
+  const canDeleteCategory = categoryToDelete?.product_count === 0;
 
   return (
     <div className="space-y-5">
@@ -404,16 +1076,93 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
         actionHref="/admin/categories?create=1"
         actionLabel="Thêm danh mục"
       />
-      <div className="grid gap-4 md:grid-cols-3">
-        {sorted.length === 0 ? (
-          <p className="col-span-full p-8 text-center text-sm text-slate-400">Chưa có danh mục nào.</p>
-        ) : (
-          sorted.map((category) => (
+
+      {/* Excel Actions Toolbar */}
+      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm w-fit">
+        <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
+          <FileSpreadsheet className="size-4 text-indigo-500" />
+          Excel:
+        </span>
+        <button
+          type="button"
+          onClick={() => setExcelModalOpen(true)}
+          className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+        >
+          <Upload className="size-3.5" />
+          Nhập & Xuất Excel
+        </button>
+      </div>
+
+      <DataView
+        data={sortedCategories}
+        totalCount={total}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tên danh mục, slug..."
+        defaultSort="sort_order"
+        defaultDir="asc"
+        defaultLimit={20}
+        columns={[
+          { key: "name", label: "Danh mục", width: "1fr", sortable: false },
+          { key: "group_key", label: "Nhóm hàng", width: "150px", sortable: true },
+          { key: "product_count", label: "Sản phẩm", width: "130px", sortable: false },
+          { key: "status", label: "Trạng thái", width: "120px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "100px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const category = item as AdminCategory & { group_key?: string | null; parent_name?: string | null };
+          const groupLabel = category.group_key === "wooden_furniture" ? "Đồ gỗ" : category.group_key === "sanitary_equipment" ? "Thiết bị vệ sinh" : category.group_key === "tiles" ? "Gạch ốp lát" : category.group_key === "project_solutions" ? "Thiết bị khác" : "Khác";
+          const isChild = category.parent_id !== null;
+          return (
+            <div key={category.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 150px 130px 120px 100px" }}>
+              <div className="min-w-0 flex items-center">
+                {isChild && (
+                  <span className="text-slate-300 font-mono mr-2 select-none pl-4">└─</span>
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-800 text-sm truncate flex items-center gap-2">
+                    {category.name}
+                    {category.parent_id === null ? (
+                      <span className="bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Nhóm danh mục</span>
+                    ) : (
+                      <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Danh mục con</span>
+                    )}
+                  </p>
+                  <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500">{category.slug}</code>
+                </div>
+              </div>
+              <span className="text-sm text-slate-600 font-semibold">{groupLabel}</span>
+              <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 w-fit">
+                {category.product_count} sản phẩm
+              </span>
+              <StatusBadge status={category.status} />
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/admin/categories?edit=${category.slug || category.id}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setCategoryToDelete(category)}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const category = item as AdminCategory;
+          return (
             <div key={category.id} className="card-pd interactive-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
                   <p className="label-pd">#{category.sort_order ?? "—"}</p>
-                  <StatusPill status={category.status as PublishStatus} />
+                  <StatusBadge status={category.status} />
                 </div>
                 <div className="space-y-2.5 mt-3">
                   <div>
@@ -425,24 +1174,19 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
                     <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Đường dẫn:</span>
                     <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-600">{category.slug}</code>
                   </div>
-                  {category.product_count !== undefined && (
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Sản phẩm:</span>
-                      <span className="text-xs font-semibold text-primary">{category.product_count}</span>
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                <Link href={`/admin/categories?edit=${category.id || category.slug}`} className="admin-edit-action inline-flex items-center gap-1">
-                  <Pencil className="size-3" />
-                  Chỉnh sửa
+                <Link href={`/admin/categories?edit=${category.slug || category.id}`} className="admin-edit-action inline-flex items-center gap-1">
+                  <Pencil className="size-3" />Chỉnh sửa
                 </Link>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          );
+        }}
+        emptyMessage="Chưa có danh mục nào."
+        emptyIcon={<Tag className="size-10 text-slate-200" />}
+      />
 
       {/* Create Dialog */}
       <AdminRouteDialog
@@ -465,26 +1209,83 @@ function CategoryPage({ createMode, categories = [] }: { createMode?: boolean; c
       >
         <EntityCreateForm kind="category" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={categoryToDelete !== null} onOpenChange={(open) => { if (!open) setCategoryToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa danh mục</AlertDialogTitle>
+            <AlertDialogDescription>
+              {!canDeleteCategory ? (
+                <span>
+                  Danh mục <strong>{categoryToDelete?.name}</strong> đang chứa <strong>{categoryToDelete?.product_count}</strong> sản phẩm. Bạn cần chuyển hoặc xóa các sản phẩm trước khi xóa danh mục.
+                </span>
+              ) : (
+                <span>
+                  Bạn có chắc muốn xóa danh mục <strong>{categoryToDelete?.name}</strong>? Hành động này không thể hoàn tác.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{!canDeleteCategory ? "Đóng" : "Hủy"}</AlertDialogCancel>
+            {canDeleteCategory && (
+              <AlertDialogAction onClick={async () => {
+                if (!categoryToDelete) return;
+                setIsDeleting(true);
+                try {
+                  const res = await deleteAdminCategory(categoryToDelete.id);
+                  if (res.success) {
+                    toast.success("Xóa danh mục thành công!");
+                    router.refresh();
+                  } else {
+                    toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                  }
+                } catch (err) {
+                  toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+                } finally {
+                  setIsDeleting(false);
+                  setCategoryToDelete(null);
+                }
+              }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                {isDeleting ? "Đang xóa..." : "Xóa"}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ExcelImportExportModal
+        isOpen={excelModalOpen}
+        onClose={() => setExcelModalOpen(false)}
+        type="category"
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }
 
-function BrandsPage({ createMode, brands = [] }: { createMode?: boolean; brands?: Brand[] }) {
+function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?: boolean; brands?: Brand[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const [search, setSearch] = useState("");
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const filtered = brands.filter((b) => {
-    const nameVi = b.name?.vi || "";
-    const nameEn = b.name?.en || "";
-    return (
-      search === "" ||
-      nameVi.toLowerCase().includes(search.toLowerCase()) ||
-      nameEn.toLowerCase().includes(search.toLowerCase())
-    );
-  });
+  const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null);
+  const [brandProductCount, setBrandProductCount] = useState(0);
+  const [brandStep, setBrandStep] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const sorted = [...filtered].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  const STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
 
   return (
     <div className="space-y-5">
@@ -495,74 +1296,101 @@ function BrandsPage({ createMode, brands = [] }: { createMode?: boolean; brands?
         actionLabel="Thêm thương hiệu"
       />
 
-      <div className="card-pd p-4 flex items-center justify-between gap-4">
-        <div className="flex-1 max-w-sm relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-          <input
-            className="input-pd pl-9 w-full bg-white text-sm"
-            placeholder="Tìm kiếm thương hiệu..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-semibold"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {sorted.length === 0 ? (
-          <p className="col-span-full p-8 text-center text-sm text-slate-400">Không tìm thấy thương hiệu nào.</p>
-        ) : (
-          sorted.map((brand) => (
+      <DataView
+        data={brands}
+        totalCount={total || brands.length}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tên thương hiệu..."
+        defaultSort="sort_order"
+        defaultDir="asc"
+        defaultLimit={20}
+        columns={[
+          { key: "logo", label: "Logo", width: "80px", sortable: false },
+          { key: "name", label: "Thương hiệu", width: "1fr", sortable: false },
+          { key: "origin", label: "Xuất xứ", width: "160px", sortable: true },
+          { key: "status", label: "Trạng thái", width: "120px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "100px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const brand = item as Brand;
+          return (
+            <div key={brand.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "80px 1fr 160px 120px 100px" }}>
+              {brand.logo_url ? (
+                <img src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-10 rounded border object-contain bg-slate-50 shrink-0" />
+              ) : (
+                <div className="size-10 rounded border bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-semibold shrink-0">Logo</div>
+              )}
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-800 text-sm truncate">{brand.name?.vi || "—"}</p>
+                {brand.name?.en && brand.name?.en !== brand.name?.vi && <p className="text-xs text-slate-400 truncate">{brand.name.en}</p>}
+              </div>
+              <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded font-bold uppercase w-fit">{brand.origin || "—"}</span>
+              <StatusBadge status={brand.status} />
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/admin/brands?edit=${brand.slug || brand.id}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const count = await getBrandProductCount(brand.id);
+                      setBrandProductCount(count);
+                      setBrandStep(1);
+                      setBrandToDelete(brand);
+                    } catch (err) {
+                      console.error("Error fetching product count:", err);
+                      setBrandProductCount(0);
+                      setBrandStep(1);
+                      setBrandToDelete(brand);
+                    }
+                  }}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const brand = item as Brand;
+          return (
             <div key={brand.id} className="card-pd interactive-card p-4 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
                   <p className="label-pd">#{brand.sort_order ?? "—"}</p>
-                  <StatusPill status={brand.status as PublishStatus} />
+                  <StatusBadge status={brand.status} />
                 </div>
-                <div className="space-y-2.5 mt-3">
-                  <div className="flex gap-3 items-start">
-                    {brand.logo_url ? (
-                      <img
-                        src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url}
-                        alt={brand.name?.vi || "Logo"}
-                        className="size-12 rounded border object-contain bg-slate-50"
-                      />
-                    ) : (
-                      <div className="size-12 rounded border bg-slate-100 flex items-center justify-center text-xs text-slate-400 font-semibold">
-                        No Logo
-                      </div>
-                    )}
-                    <div>
-                      <span className="font-heading font-semibold text-primary block leading-tight">{brand.name?.vi || "—"}</span>
-                      {brand.name?.en && brand.name?.en !== brand.name?.vi && (
-                        <p className="text-xs text-secondary mt-0.5">{brand.name.en}</p>
-                      )}
-                      {brand.origin && (
-                        <p className="text-[10px] text-slate-500 mt-1 font-semibold uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded inline-block">
-                          {brand.origin}
-                        </p>
-                      )}
-                    </div>
+                <div className="flex gap-3 items-start mt-3">
+                  {brand.logo_url ? (
+                    <img src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-12 rounded border object-contain bg-slate-50" />
+                  ) : (
+                    <div className="size-12 rounded border bg-slate-100 flex items-center justify-center text-xs text-slate-400 font-semibold">No Logo</div>
+                  )}
+                  <div>
+                    <span className="font-heading font-semibold text-primary block leading-tight">{brand.name?.vi || "—"}</span>
+                    {brand.name?.en && brand.name?.en !== brand.name?.vi && <p className="text-xs text-secondary mt-0.5">{brand.name.en}</p>}
+                    {brand.origin && <p className="text-[10px] text-slate-500 mt-1 font-semibold uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded inline-block">{brand.origin}</p>}
                   </div>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                <Link href={`/admin/brands?edit=${brand.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
-                  <Pencil className="size-3" />
-                  Chỉnh sửa
+                <Link href={`/admin/brands?edit=${brand.slug || brand.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
+                  <Pencil className="size-3" />Chỉnh sửa
                 </Link>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          );
+        }}
+        emptyMessage="Chưa có thương hiệu nào."
+        emptyIcon={<Globe className="size-10 text-slate-200" />}
+      />
 
       {/* Create Dialog */}
       <AdminRouteDialog
@@ -585,13 +1413,93 @@ function BrandsPage({ createMode, brands = [] }: { createMode?: boolean; brands?
       >
         <EntityCreateForm kind="brand" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={brandToDelete !== null} onOpenChange={(open) => { if (!open) setBrandToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa thương hiệu</AlertDialogTitle>
+            <AlertDialogDescription>
+              {brandProductCount > 0 ? (
+                brandStep === 1 ? (
+                  <span>
+                    Thương hiệu <strong>{brandToDelete?.name?.vi}</strong> này có <strong>{brandProductCount}</strong> sản phẩm. Xóa sẽ ảnh hưởng đến các sản phẩm này. Bạn có chắc muốn tiếp tục?
+                  </span>
+                ) : (
+                  <span>
+                    Hành động này sẽ gỡ bỏ liên kết thương hiệu của các sản phẩm liên quan. Bạn có chắc muốn xóa thương hiệu này không? Hành động này không thể hoàn tác.
+                  </span>
+                )
+              ) : (
+                <span>
+                  Bạn có chắc muốn xóa thương hiệu <strong>{brandToDelete?.name?.vi}</strong>? Hành động này không thể hoàn tác.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {brandProductCount > 0 && brandStep === 1 ? (
+              <>
+                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setBrandStep(2)} className="bg-amber-600 text-white hover:bg-amber-700">
+                  Tiếp tục
+                </AlertDialogAction>
+              </>
+            ) : (
+              <>
+                <AlertDialogCancel onClick={() => setBrandStep(1)}>Hủy</AlertDialogCancel>
+                <AlertDialogAction onClick={async () => {
+                  if (!brandToDelete) return;
+                  setIsDeleting(true);
+                  try {
+                    const res = await deleteAdminBrand(brandToDelete.id);
+                    if (res.success) {
+                      toast.success("Xóa thương hiệu thành công!");
+                      router.refresh();
+                    } else {
+                      toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                    }
+                  } catch (err) {
+                    toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+                  } finally {
+                    setIsDeleting(false);
+                    setBrandToDelete(null);
+                    setBrandStep(1);
+                  }
+                }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  {isDeleting ? "Đang xóa..." : "Xóa"}
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; showrooms?: AdminShowroom[] }) {
+
+
+function ShowroomPage({ createMode, showrooms = [], total = 0 }: { createMode?: boolean; showrooms?: AdminShowroom[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
+  const { toast } = useToast();
+  const router = useRouter();
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
+
+  const [showroomToDelete, setShowroomToDelete] = useState<AdminShowroom | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -601,50 +1509,108 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
         actionHref="/admin/showrooms?create=1"
         actionLabel="Thêm showroom"
       />
-      <div className="grid gap-4 lg:grid-cols-3">
-        {showrooms.length === 0 ? (
-          <p className="col-span-full p-8 text-center text-sm text-slate-400">Chưa có showroom nào.</p>
-        ) : (
-          showrooms.map((showroom) => (
-            <article key={showroom.id} className="card-pd interactive-card group overflow-hidden flex flex-col justify-between">
-              <div>
-                {showroom.primary_media ? (
-                  <RemoteImage
-                    src={showroom.primary_media as string}
-                    alt={showroom.name}
-                    className="h-44 w-full rounded bg-slate-100 relative"
-                  />
-                ) : (
-                  <div className="h-44 w-full rounded bg-slate-100" />
-                )}
-                <div className="p-4 space-y-3.5">
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Tên:</span>
-                      <span className="font-heading font-semibold text-primary">{showroom.name}</span>
-                      <p className="text-xs text-secondary pl-5 mt-0.5">{showroom.address}</p>
-                    </div>
-                  </div>
-                  <div className="text-xs space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p><span className="font-bold text-slate-500">Hotline:</span> {showroom.hotline}</p>
-                    <p><span className="font-bold text-slate-500">Giờ mở cửa:</span> {showroom.opening_hours ?? "—"}</p>
-                  </div>
-                  <StatusPill status={showroom.status as PublishStatus} />
-                </div>
+
+      {/* Excel Actions Toolbar */}
+      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm w-fit">
+        <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
+          <FileSpreadsheet className="size-4 text-indigo-500" />
+          Excel:
+        </span>
+        <button
+          type="button"
+          onClick={() => setExcelModalOpen(true)}
+          className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+        >
+          <Upload className="size-3.5" />
+          Nhập & Xuất Excel
+        </button>
+      </div>
+
+      <DataView
+        data={showrooms}
+        totalCount={total || showrooms.length}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tên, địa chỉ showroom..."
+        defaultSort="sort_order"
+        defaultDir="asc"
+        defaultLimit={20}
+        columns={[
+          { key: "image", label: "Hình ảnh", width: "80px", sortable: false },
+          { key: "name", label: "Showroom", width: "1.5fr", sortable: false },
+          { key: "hotline", label: "Hotline", width: "140px", sortable: false },
+          { key: "status", label: "Trạng thái", width: "120px", sortable: true },
+          { key: "sort_order", label: "Thứ tự", width: "90px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "100px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const showroom = item as AdminShowroom;
+          return (
+            <div key={showroom.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "80px 1.5fr 140px 120px 90px 100px" }}>
+              {showroom.primary_media ? (
+                <RemoteImage src={showroom.primary_media as string} alt={showroom.name} className="size-10 rounded-lg bg-slate-100 shrink-0 relative" />
+              ) : (
+                <div className="size-10 rounded-lg bg-slate-100 shrink-0 flex items-center justify-center"><MapPin className="size-4 text-slate-300" /></div>
+              )}
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-800 text-sm truncate">{showroom.name}</p>
+                <p className="text-xs text-slate-400 truncate">{showroom.address}</p>
               </div>
-              <div className="p-4 pt-0 flex justify-end">
+              <span className="text-xs text-slate-600 font-mono">{showroom.hotline}</span>
+              <StatusBadge status={showroom.status} />
+              <span className="text-xs text-slate-500 font-mono">#{showroom.sort_order ?? 0}</span>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/admin/showrooms?edit=${showroom.code ?? showroom.id}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setShowroomToDelete(showroom)}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const showroom = item as AdminShowroom;
+          return (
+            <article key={showroom.id} className="card-pd interactive-card group overflow-hidden flex flex-col justify-between">
+              {showroom.primary_media ? (
+                <RemoteImage src={showroom.primary_media as string} alt={showroom.name} className="h-44 w-full rounded bg-slate-100 relative" />
+              ) : (
+                <div className="h-44 w-full rounded bg-slate-100 flex items-center justify-center"><MapPin className="size-10 text-slate-200" /></div>
+              )}
+              <div className="p-4 space-y-3.5">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Tên:</span>
+                  <span className="font-heading font-semibold text-primary">{showroom.name}</span>
+                  <p className="text-xs text-secondary pl-5 mt-0.5">{showroom.address}</p>
+                </div>
+                <div className="text-xs space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <p><span className="font-bold text-slate-500">Hotline:</span> {showroom.hotline}</p>
+                  <p><span className="font-bold text-slate-500">Giờ mở cửa:</span> {showroom.opening_hours ?? "—"}</p>
+                </div>
+                <StatusBadge status={showroom.status} />
+              </div>
+              <div className="px-4 pb-4 flex justify-end">
                 <Link href={`/admin/showrooms?edit=${showroom.code ?? showroom.id}`} className="admin-edit-action">
-                  <Pencil className="size-3" />
-                  Chỉnh sửa
+                  <Pencil className="size-3" />Chỉnh sửa
                 </Link>
               </div>
             </article>
-          ))
-        )}
-      </div>
-      <PublishWorkflow />
+          );
+        }}
+        emptyMessage="Chưa có showroom nào."
+        emptyIcon={<MapPin className="size-10 text-slate-200" />}
+      />
 
-      {/* Create Dialog */}
       <AdminRouteDialog
         open={Boolean(createMode)}
         returnHref="/admin/showrooms"
@@ -655,7 +1621,6 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
         <EntityCreateForm kind="showroom" />
       </AdminRouteDialog>
 
-      {/* Edit Dialog */}
       <AdminRouteDialog
         open={Boolean(editSlug)}
         returnHref="/admin/showrooms"
@@ -665,29 +1630,86 @@ function ShowroomPage({ createMode, showrooms = [] }: { createMode?: boolean; sh
       >
         <EntityCreateForm kind="showroom" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={showroomToDelete !== null} onOpenChange={(open) => { if (!open) setShowroomToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa showroom</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc muốn xóa showroom <strong>{showroomToDelete?.name}</strong>? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (!showroomToDelete) return;
+              setIsDeleting(true);
+              try {
+                const res = await deleteAdminShowroom(showroomToDelete.id);
+                if (res.success) {
+                  toast.success("Xóa showroom thành công!");
+                  router.refresh();
+                } else {
+                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                }
+              } catch (err) {
+                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+              } finally {
+                setIsDeleting(false);
+                setShowroomToDelete(null);
+              }
+            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ExcelImportExportModal
+        isOpen={excelModalOpen}
+        onClose={() => setExcelModalOpen(false)}
+        type="showroom"
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }
 
-
-
-function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: string }) {
+function QuotesPage({
+  quotes = [],
+  role,
+  total = 0,
+}: {
+  quotes?: AdminQuote[];
+  role?: string;
+  total?: number;
+}) {
   const { toast } = useToast();
   const router = useRouter();
-  const [selectedQuoteId, setSelectedQuoteId] = useState<string>(quotes[0]?.id ?? "");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const filters = useAdminFilters();
+
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string>("");
   const [showEmailDraft, setShowEmailDraft] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusNote, setStatusNote] = useState("");
   const [localQuotes, setLocalQuotes] = useState<AdminQuote[]>(quotes);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 15;
+  const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentPage(1);
-  }, [filterStatus, searchQuery]);
+    setLocalQuotes(quotes);
+    if (quotes.length > 0 && !selectedQuoteId) {
+      setSelectedQuoteId(quotes[0].id);
+    }
+  }, [quotes]);
+
+  useEffect(() => {
+    fetch("/api/admin/filter-options?type=admin-users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.options) setStaffOptions(data.options);
+      })
+      .catch((err) => console.error("Error loading admin users:", err));
+  }, []);
 
   if (role !== "admin") {
     return (
@@ -698,30 +1720,49 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     );
   }
 
-  const filteredQuotes = localQuotes.filter((q) => {
-    const matchesStatus = filterStatus === "all" || q.status === filterStatus;
-    const keyword = searchQuery.trim().toLowerCase();
-    const matchesQuery =
-      keyword === "" ||
-      q.full_name.toLowerCase().includes(keyword) ||
-      q.phone.includes(searchQuery) ||
-      (q.service ?? "").toLowerCase().includes(keyword) ||
-      q.source_path.toLowerCase().includes(keyword);
-    return matchesStatus && matchesQuery;
-  });
+  const q = filters.getFilter("q");
+  const status = filters.getFilter("status");
+  const dateFrom = filters.getFilter("dateFrom");
+  const dateTo = filters.getFilter("dateTo");
+  const assignedTo = filters.getFilter("assignedTo");
+  const currentPage = filters.getPage();
+  const currentLimit = filters.getLimit();
 
-  const totalPages = Math.ceil(filteredQuotes.length / pageSize);
-  const paginatedQuotes = filteredQuotes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / currentLimit));
 
-  const selectedQuote = filteredQuotes.find((q) => q.id === selectedQuoteId) ?? filteredQuotes[0] ?? null;
+  const filterValues: Record<string, string> = {};
+  if (status) filterValues.status = status;
+  if (dateFrom) filterValues.dateFrom = dateFrom;
+  if (dateTo) filterValues.dateTo = dateTo;
+  if (assignedTo) filterValues.assignedTo = assignedTo;
+  if (q) filterValues.q = q;
+
+  const selectedQuote = localQuotes.find((q) => q.id === selectedQuoteId) || localQuotes[0] || null;
+
+  const STATUS_OPTIONS = [
+    { value: "new", label: "Chờ xử lý" },
+    { value: "contacted", label: "Đã liên hệ" },
+    { value: "qualified", label: "Đủ điều kiện" },
+    { value: "closed", label: "Hoàn tất" },
+    { value: "cancelled", label: "Đã hủy" },
+    { value: "spam", label: "Thư rác" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả" },
+    { type: "select", key: "assignedTo", label: "Người phụ trách", options: staffOptions, placeholder: "Tất cả nhân viên" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
 
   // Quote workflow: trạng thái → actions có thể thực hiện tiếp theo
   const workflowTransitions: Record<string, { label: string; status: string; variant: string }[]> = {
-    new:        [{ label: "Đã liên hệ", status: "contacted", variant: "primary" }, { label: "Đánh dấu spam", status: "spam", variant: "danger" }],
-    contacted:  [{ label: "Đủ điều kiện", status: "qualified", variant: "primary" }, { label: "Đóng", status: "closed", variant: "danger" }],
-    qualified:  [{ label: "Hoàn tất & Đóng", status: "closed", variant: "success" }],
+    new:        [{ label: "Đã liên hệ", status: "contacted", variant: "primary" }, { label: "Hủy", status: "cancelled", variant: "secondary" }, { label: "Đánh dấu spam", status: "spam", variant: "danger" }],
+    contacted:  [{ label: "Đủ điều kiện", status: "qualified", variant: "primary" }, { label: "Hủy", status: "cancelled", variant: "secondary" }, { label: "Đóng", status: "closed", variant: "danger" }],
+    qualified:  [{ label: "Hoàn tất & Đóng", status: "closed", variant: "success" }, { label: "Hủy", status: "cancelled", variant: "secondary" }],
     closed:     [{ label: "Mở lại", status: "new", variant: "primary" }],
     spam:       [{ label: "Khôi phục", status: "new", variant: "primary" }],
+    cancelled:  [{ label: "Mở lại", status: "new", variant: "primary" }],
   };
 
   const statusLabels: Record<string, string> = {
@@ -730,6 +1771,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     qualified:  "Đủ điều kiện",
     closed:     "Đã hoàn tất",
     spam:       "Thư rác",
+    cancelled:  "Đã hủy",
   };
 
   const statusColors: Record<string, string> = {
@@ -738,6 +1780,7 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     qualified:  "bg-purple-100 text-purple-700 border-purple-200",
     closed:     "status-success",
     spam:       "status-error",
+    cancelled:  "bg-gray-100 text-gray-700 border-gray-200",
   };
 
   async function handleStatusTransition(quoteId: string, newStatus: string) {
@@ -747,7 +1790,6 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
       const { updateQuoteStatus } = await import("@/lib/supabase/admin-queries");
       const result = await updateQuoteStatus(quoteId, newStatus, statusNote || undefined);
       if (result.success) {
-        // Update local state optimistically
         setLocalQuotes((prev) => prev.map((q) => q.id === quoteId ? { ...q, status: newStatus } : q));
         setStatusNote("");
         toast.success("Cập nhật trạng thái thành công!");
@@ -762,7 +1804,56 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
     }
   }
 
-  const statusCount = (status: string) => localQuotes.filter((q) => q.status === status).length;
+  function AssigneePopover({
+    quote,
+    staffOptions,
+    onAssigneeChange
+  }: {
+    quote: AdminQuote;
+    staffOptions: { value: string; label: string }[];
+    onAssigneeChange: (assigneeId: string | null) => void;
+  }) {
+    const [open, setOpen] = useState(false);
+    const currentAssigneeName = quote.assignee?.full_name || "Chưa phân công";
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button type="button" className="text-left font-semibold text-slate-700 hover:text-indigo-600 transition truncate max-w-full focus:outline-none select-none">
+            {currentAssigneeName}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-1 bg-white border border-slate-200 shadow-md rounded-md z-[200]">
+          <div className="flex flex-col text-xs max-h-60 overflow-y-auto">
+            <span className="px-2 py-1 text-slate-400 font-semibold border-b">Phân công nhân sự</span>
+            <button
+              type="button"
+              className="w-full text-left px-2 py-1.5 hover:bg-slate-50 text-slate-600 font-medium transition"
+              onClick={() => {
+                onAssigneeChange(null);
+                setOpen(false);
+              }}
+            >
+              Chưa phân công
+            </button>
+            {staffOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className="w-full text-left px-2 py-1.5 hover:bg-slate-50 text-slate-700 font-medium transition"
+                onClick={() => {
+                  onAssigneeChange(opt.value);
+                  setOpen(false);
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -771,76 +1862,91 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
         description="Kiểm duyệt và xử lý các yêu cầu từ khách hàng. Theo dõi tiến trình qua workflow trạng thái rõ ràng."
       />
 
-      {/* Status tabs */}
-      <div className="flex flex-wrap gap-2 border-b pb-3">
-        {[
-          { id: "all", label: "Tất cả" },
-          { id: "new", label: "Chờ xử lý" },
-          { id: "contacted", label: "Đã liên hệ" },
-          { id: "qualified", label: "Đủ điều kiện" },
-          { id: "closed", label: "Hoàn tất" },
-          { id: "spam", label: "Thư rác" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition ${
-              filterStatus === tab.id
-                ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-            }`}
-            onClick={() => setFilterStatus(tab.id)}
-          >
-            {tab.label}
-            {tab.id !== "all" && statusCount(tab.id) > 0 ? (
-              <span className="ml-1.5 inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-slate-200 px-1 text-[9px] font-bold text-slate-700">
-                {statusCount(tab.id)}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
-
       <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-outline" />
-            <input
-              className="input-pd pl-9 bg-white"
-              placeholder="Tìm theo tên khách, số điện thoại, hoặc nguồn yêu cầu..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <FilterBar
+            filters={filterConfigs}
+            values={filterValues}
+            onFilterChange={filters.setFilter}
+            onSearch={filters.setSearch}
+            searchValue={q}
+            searchPlaceholder="Tìm theo tên khách, số điện thoại, hoặc dịch vụ..."
+            totalCount={total}
+            currentCount={localQuotes.length}
+            currentSort={filters.getSort("created_at")}
+            currentDir={filters.getDir("desc")}
+            onSortChange={(sort, dir) => filters.setSort(sort, dir as any)}
+            sortableColumns={[
+              { key: "created_at", label: "Ngày yêu cầu" },
+              { key: "status", label: "Trạng thái" },
+              { key: "full_name", label: "Tên khách" },
+            ]}
+          />
 
-          <div className="surface-soft overflow-hidden rounded-xl border bg-white">
-            <div className="grid grid-cols-[1fr_1.2fr_100px_130px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="surface-soft overflow-hidden rounded-xl border bg-white shadow-sm">
+            <div className="grid grid-cols-[1.2fr_1fr_1fr_100px_130px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
               <span>Khách hàng</span>
-              <span>Nội dung quan tâm</span>
+              <span>Doanh nghiệp / Dịch vụ</span>
+              <span>Người phụ trách</span>
               <span>Ngày yêu cầu</span>
               <span>Trạng thái</span>
             </div>
-            {filteredQuotes.length === 0 ? (
+            {localQuotes.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-400">Không tìm thấy yêu cầu báo giá nào khớp điều kiện.</p>
             ) : (
-              paginatedQuotes.map((quote) => (
+              localQuotes.map((quote) => (
                 <button
                   key={quote.id}
                   type="button"
-                  className={`w-full text-left grid grid-cols-[1fr_1.2fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
+                  className={`w-full text-left grid grid-cols-[1.2fr_1fr_1fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
                     selectedQuote?.id === quote.id ? "bg-indigo-50/30" : ""
                   }`}
                   onClick={() => setSelectedQuoteId(quote.id)}
                 >
-                  <div>
-                    <p className="font-semibold text-slate-800">{quote.full_name}</p>
+                  <div className="min-w-0 pr-2">
+                    <p className="font-semibold text-slate-800 truncate">{quote.full_name}</p>
                     <p className="text-xs text-slate-500 font-mono">{quote.phone}</p>
+                    {quote.email && <p className="text-[10px] text-slate-400 truncate">{quote.email}</p>}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700">{quote.service ?? "Yêu cầu tư vấn"}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{quote.source_path}</p>
+                  <div className="min-w-0 pr-2">
+                    <p className="text-xs font-semibold text-slate-700 truncate">{quote.company || "Cá nhân"}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{quote.service ?? "Yêu cầu tư vấn"}</p>
                   </div>
-                  <span className="text-xs text-slate-500" suppressHydrationWarning>{new Date(quote.created_at).toLocaleDateString("vi-VN")}</span>
+                  <div className="min-w-0 pr-2" onClick={(e) => e.stopPropagation()}>
+                    <AssigneePopover
+                      quote={quote}
+                      staffOptions={staffOptions}
+                      onAssigneeChange={async (newAssigneeId) => {
+                        const res = await updateQuoteAssignee(quote.id, newAssigneeId);
+                        if (res.success) {
+                          toast.success("Phân công nhân sự thành công!");
+                          setLocalQuotes((prev) =>
+                            prev.map((q) =>
+                              q.id === quote.id
+                                ? {
+                                    ...q,
+                                    assigned_to: newAssigneeId,
+                                    assignee: newAssigneeId
+                                      ? {
+                                          id: newAssigneeId,
+                                          full_name: staffOptions.find((opt) => opt.value === newAssigneeId)?.label || "Nhân viên",
+                                          email: ""
+                                        }
+                                      : null
+                                  }
+                                : q
+                            )
+                          );
+                          router.refresh();
+                        } else {
+                          toast.error("Lỗi phân công: " + (res.error ?? "Không xác định"));
+                        }
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500" suppressHydrationWarning>
+                    {new Date(quote.created_at).toLocaleDateString("vi-VN")}
+                  </span>
                   <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
                     {statusLabels[quote.status] ?? quote.status}
                   </span>
@@ -848,11 +1954,43 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
               ))
             )}
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          <div className="flex flex-col items-center gap-4 mt-6">
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={total}
+              limit={currentLimit}
+              onPageChange={filters.setPage}
+            />
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-slate-500">
+              <span suppressHydrationWarning>
+                Hiển thị <span className="font-semibold">{Math.min((currentPage - 1) * currentLimit + 1, total)}–{Math.min(currentPage * currentLimit, total)}</span> trong{" "}
+                <span className="font-semibold">{total}</span> kết quả
+              </span>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <div className="flex items-center gap-1.5">
+                <span>Hiển thị:</span>
+                <Select
+                  value={String(currentLimit)}
+                  onValueChange={(val) => {
+                    filters.setLimit(parseInt(val, 10));
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-white border-slate-200 min-w-[100px] rounded-lg">
+                    <SelectValue placeholder={`${currentLimit} / trang`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[10, 20, 50].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n} / trang
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -860,11 +1998,11 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
             <div className="rounded-xl border bg-white shadow-sm overflow-hidden flex flex-col">
               {/* Header */}
               <div className="bg-slate-900 text-white p-4 flex justify-between items-center">
-                <div>
-                  <span className="text-[10px] font-mono text-slate-400 block">{selectedQuote.id}</span>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-mono text-slate-400 block truncate">{selectedQuote.id}</span>
                   <h4 className="font-heading font-bold text-sm">Chi tiết yêu cầu báo giá</h4>
                 </div>
-                <span className={`status-pill text-[11px] leading-none ${statusColors[selectedQuote.status] ?? "status-muted"}`}>
+                <span className={`status-pill text-[11px] leading-none shrink-0 ${statusColors[selectedQuote.status] ?? "status-muted"}`}>
                   {statusLabels[selectedQuote.status] ?? selectedQuote.status}
                 </span>
               </div>
@@ -888,9 +2026,52 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                   </h5>
                   <div className="grid gap-2 pl-5">
                     <div><span className="text-slate-400 block">Khách hàng</span><strong className="text-sm text-slate-800">{selectedQuote.full_name}</strong></div>
-                    <div><span className="text-slate-400 block">Số điện thoại</span><strong className="text-slate-700">{selectedQuote.phone}</strong></div>
+                    <div><span className="text-slate-400 block">Số điện thoại</span><strong className="text-slate-700 font-mono">{selectedQuote.phone}</strong></div>
                     <div><span className="text-slate-400 block">Email</span><span className="text-slate-700 font-semibold">{selectedQuote.email || "Chưa thiết lập"}</span></div>
-                    <div><span className="text-slate-400 block">Người phụ trách</span><strong className="text-slate-700">{selectedQuote.assigned_to || "Chưa phân công"}</strong></div>
+                    <div>
+                      <span className="text-slate-400 block font-semibold">Người phụ trách</span>
+                      <div className="mt-1 flex flex-col gap-1 max-w-[200px]">
+                        <span className="font-semibold text-slate-700">{selectedQuote.assignee?.full_name || "Chưa phân công"}</span>
+                        <select
+                          value={selectedQuote.assigned_to || ""}
+                          onChange={async (e) => {
+                            const newAssigneeId = e.target.value || null;
+                            const res = await updateQuoteAssignee(selectedQuote.id, newAssigneeId);
+                            if (res.success) {
+                              toast.success("Phân công nhân sự thành công!");
+                              setLocalQuotes((prev) =>
+                                prev.map((q) =>
+                                  q.id === selectedQuote.id
+                                    ? {
+                                        ...q,
+                                        assigned_to: newAssigneeId,
+                                        assignee: newAssigneeId
+                                          ? {
+                                              id: newAssigneeId,
+                                              full_name: staffOptions.find((opt) => opt.value === newAssigneeId)?.label || "Nhân viên",
+                                              email: ""
+                                            }
+                                          : null
+                                      }
+                                    : q
+                                )
+                              );
+                              router.refresh();
+                            } else {
+                              toast.error("Lỗi phân công: " + (res.error ?? "Không xác định"));
+                            }
+                          }}
+                          className="block w-full rounded border border-slate-200 bg-white p-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="">Chưa phân công</option>
+                          {staffOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -899,13 +2080,73 @@ function QuotesPage({ quotes = [], role }: { quotes?: AdminQuote[]; role?: strin
                   <h5 className="font-bold text-[10px] uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                     <FileText className="size-3.5 text-slate-400" /> Nội dung yêu cầu
                   </h5>
-                  <div className="grid gap-2 pl-5">
+                  <div className="grid gap-2 pl-5 font-sans">
                     <div><span className="text-slate-400 block">Dịch vụ</span><strong className="text-slate-800">{selectedQuote.service ?? "Yêu cầu tư vấn"}</strong></div>
                     <div><span className="text-slate-400 block">Đường dẫn nguồn</span><span className="text-slate-500 font-mono break-all">{selectedQuote.source_path}</span></div>
-                    <div><span className="text-slate-400 block">Ghi chú khách hàng</span><p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.message}</p></div>
-                    {selectedQuote.admin_notes && (
-                      <div><span className="text-slate-400 block">Ghi chú nội bộ</span><p className="text-slate-700 leading-relaxed whitespace-pre-line">{selectedQuote.admin_notes}</p></div>
-                    )}
+                    <div><span className="text-slate-400 block">Ghi chú khách hàng</span><p className="text-slate-700 leading-relaxed whitespace-pre-line bg-white p-2 border rounded">{selectedQuote.message || "Không có ghi chú của khách hàng."}</p></div>
+                    
+                    {/* Admin notes & Sales notes textareas */}
+                    <div className="space-y-3.5 border-t pt-3">
+                      <div className="space-y-1">
+                        <span className="text-slate-400 block font-semibold">Ghi chú hệ thống / Admin</span>
+                        <textarea
+                          key={`admin-notes-${selectedQuote.id}`}
+                          className="w-full rounded border border-slate-200 p-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                          rows={2}
+                          defaultValue={selectedQuote.admin_notes || ""}
+                          id={`admin-notes-${selectedQuote.id}`}
+                          placeholder="Nhập ghi chú admin..."
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const textarea = document.getElementById(`admin-notes-${selectedQuote.id}`) as HTMLTextAreaElement;
+                            const val = textarea?.value || "";
+                            const res = await updateQuoteAdminNotes(selectedQuote.id, val);
+                            if (res.success) {
+                              toast.success("Lưu ghi chú Admin thành công!");
+                              setLocalQuotes((prev) => prev.map((q) => q.id === selectedQuote.id ? { ...q, admin_notes: val } : q));
+                              router.refresh();
+                            } else {
+                              toast.error("Lỗi lưu ghi chú: " + (res.error ?? "Không rõ"));
+                            }
+                          }}
+                          className="inline-flex justify-center rounded bg-slate-800 text-white px-2 py-1 text-[10px] font-semibold hover:bg-slate-700 transition"
+                        >
+                          Lưu ghi chú Admin
+                        </button>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-slate-400 block font-semibold">Ghi chú bán hàng (Sales Notes)</span>
+                        <textarea
+                          key={`sales-notes-${selectedQuote.id}`}
+                          className="w-full rounded border border-slate-200 p-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                          rows={2}
+                          defaultValue={selectedQuote.sales_notes || ""}
+                          id={`sales-notes-${selectedQuote.id}`}
+                          placeholder="Ghi chú cuộc gọi, gửi báo giá chi tiết, tiến độ deal..."
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const textarea = document.getElementById(`sales-notes-${selectedQuote.id}`) as HTMLTextAreaElement;
+                            const val = textarea?.value || "";
+                            const res = await updateQuoteSalesNotes(selectedQuote.id, val);
+                            if (res.success) {
+                              toast.success("Lưu ghi chú Bán hàng thành công!");
+                              setLocalQuotes((prev) => prev.map((q) => q.id === selectedQuote.id ? { ...q, sales_notes: val } : q));
+                              router.refresh();
+                            } else {
+                              toast.error("Lỗi lưu ghi chú: " + (res.error ?? "Không rõ"));
+                            }
+                          }}
+                          className="inline-flex justify-center rounded bg-indigo-600 text-white px-2 py-1 text-[10px] font-semibold hover:bg-indigo-700 transition"
+                        >
+                          Lưu ghi chú Bán hàng
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1061,7 +2302,15 @@ function SettingsPage() {
   );
 }
 
-function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profiles?: AdminUser[] }) {
+function UsersPage({
+  createMode,
+  profiles = [],
+  total = 0,
+}: {
+  createMode?: boolean;
+  profiles?: AdminUser[];
+  total?: number;
+}) {
   const { toast } = useToast();
   const router = useRouter();
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
@@ -1100,6 +2349,18 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
     }
   };
 
+  const ROLE_OPTIONS = [
+    { value: "admin", label: "Quản trị viên" },
+    { value: "editor", label: "Biên tập viên" },
+  ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "role", label: "Vai trò", options: ROLE_OPTIONS, placeholder: "Tất cả vai trò" },
+    { type: "boolean", key: "isActive", label: "Hoạt động" },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
+
   return (
     <div className="space-y-6">
       <AdminPageHeader
@@ -1108,41 +2369,59 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
         actionHref="/admin/users?create=1"
         actionLabel="Thêm người dùng"
       />
-      <div className="surface-soft overflow-hidden rounded-xl border bg-white divide-y">
-        {profiles.length === 0 ? (
-          <p className="p-8 text-center text-sm text-slate-400">Không có tài khoản quản trị nào.</p>
-        ) : (
-          profiles.map((profile) => {
-            const roleLabel = profile.role === "admin" ? "Quản trị viên" : "Biên tập viên";
-            const scope = profile.role === "admin"
-              ? "Người dùng, cài đặt, báo giá, tích hợp và toàn bộ nội dung"
-              : "Sản phẩm, bài viết, trang chủ, giới thiệu, showroom và tệp có thể xuất bản";
-            return (
-              <div key={profile.id || profile.email} className="flex flex-col justify-between gap-3 p-4 transition-colors hover:bg-slate-50 md:flex-row md:items-center">
-                <div>
-                  <h2 className="font-semibold text-primary">{profile.email}</h2>
-                  {profile.full_name && <p className="text-xs font-medium text-slate-500">{profile.full_name}</p>}
-                  <p className="text-xs text-secondary mt-0.5">{roleLabel} — {scope}</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-400" suppressHydrationWarning>
-                      {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
-                    </span>
-                    <StatusPill status={profile.is_active ? "published" : "draft"} />
-                  </div>
-                  <button 
-                    onClick={() => startEdit(profile)}
-                    className="admin-edit-action cursor-pointer flex size-8 items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-primary transition-colors"
-                  >
-                    <Pencil className="size-3.5" />
-                  </button>
-                </div>
+
+      <DataView
+        data={profiles}
+        totalCount={total}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tên, email người dùng..."
+        defaultSort="created_at"
+        defaultDir="desc"
+        defaultLimit={20}
+        disableGrid={true}
+        columns={[
+          { key: "email", label: "Người dùng", width: "1.5fr", sortable: true },
+          { key: "role", label: "Vai trò", width: "1.2fr", sortable: true },
+          { key: "created_at", label: "Ngày tham gia", width: "1fr", sortable: true },
+          { key: "last_login_at", label: "Đăng nhập cuối", width: "1.2fr", sortable: true },
+          { key: "is_active", label: "Trạng thái", width: "100px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "80px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const profile = item as AdminUser;
+          const roleLabel = profile.role === "admin" ? "Quản trị viên" : "Biên tập viên";
+          const scope = profile.role === "admin"
+            ? "Toàn quyền quản trị"
+            : "Chỉ quản lý nội dung xuất bản";
+          return (
+            <div key={profile.id || profile.email} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1.5fr 1.2fr 1fr 1.2fr 100px 80px" }}>
+              <div>
+                <p className="font-semibold text-slate-800 text-sm truncate">{profile.email}</p>
+                {profile.full_name && <p className="text-xs text-slate-400 truncate">{profile.full_name}</p>}
               </div>
-            );
-          })
-        )}
-      </div>
+              <div>
+                <span className="text-xs text-slate-600 font-semibold">{roleLabel}</span>
+                <p className="text-[10px] text-slate-400">{scope}</p>
+              </div>
+              <span className="text-xs text-slate-500" suppressHydrationWarning>
+                {profile.created_at ? new Date(profile.created_at).toLocaleDateString("vi-VN") : ""}
+              </span>
+              <span className="text-xs text-slate-500" suppressHydrationWarning>
+                {getRelativeTimeString(profile.last_login_at)}
+              </span>
+              <StatusBadge status={profile.is_active ? "active" : "inactive"} />
+              <button 
+                onClick={() => startEdit(profile)}
+                className="admin-edit-action flex h-8 w-fit px-2 items-center justify-center gap-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-primary transition-colors text-xs"
+              >
+                <Pencil className="size-3.5" />Sửa
+              </button>
+            </div>
+          );
+        }}
+        renderGridCard={() => null}
+      />
+
       <AdminRouteDialog
         open={Boolean(createMode)}
         returnHref="/admin/users"
@@ -1172,20 +2451,18 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
             </div>
             
             <form onSubmit={handleUpdateUser} className="space-y-4">
-              <label className="grid gap-2">
+              <div className="grid gap-2">
                 <span className="label-pd">Vai trò</span>
-                <PremiumSelect
-                  value={editRole}
-                  onValueChange={setEditRole}
-                  ariaLabel="Vai trò"
-                  placeholder="Vai trò"
-                  tone="admin"
-                  options={[
-                    { value: "editor", label: "Biên tập viên - chỉ quản lý nội dung có thể xuất bản" },
-                    { value: "admin", label: "Quản trị viên - người dùng, cài đặt, báo giá và toàn bộ nội dung" },
-                  ]}
-                />
-              </label>
+                <Select value={editRole} onValueChange={setEditRole}>
+                  <SelectTrigger className="w-full text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="editor">Biên tập viên - quản lý nội dung xuất bản</SelectItem>
+                    <SelectItem value="admin">Quản trị viên - toàn quyền quản trị</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-slate-200 bg-white p-3 text-sm">
                 <input 
                   className="mt-1 cursor-pointer" 
@@ -1223,98 +2500,114 @@ function UsersPage({ createMode, profiles = [] }: { createMode?: boolean; profil
   );
 }
 
-function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean; promotions?: AdminPromotion[] }) {
-  const { toast, confirm } = useToast();
+function PromotionsPage({
+  createMode,
+  promotions = [],
+  total = 0,
+}: {
+  createMode?: boolean;
+  promotions?: AdminPromotion[];
+  total?: number;
+}) {
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("edit");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async (id: string) => {
-    confirm(
-      "Xác nhận xóa",
-      "Bạn có chắc chắn muốn xóa chương trình khuyến mãi này?",
-      async () => {
-        setIsDeleting(true);
-        try {
-          const res = await deleteAdminPromotion(id);
-          if (res.success) {
-            toast.success("Xóa khuyến mãi thành công!");
-            router.refresh();
-          } else {
-            toast.error("Lỗi khi xóa khuyến mãi: " + res.error);
-          }
-        } catch (err) {
-          toast.error("Đã xảy ra lỗi: " + (err instanceof Error ? err.message : err));
-        } finally {
-          setIsDeleting(false);
-        }
-      }
-    );
-  };
+  const [promoToDelete, setPromoToDelete] = useState<AdminPromotion | null>(null);
 
-  const columns = [
-    {
-      key: "code",
-      header: "Mã",
-      width: "15%",
-      render: (row: AdminPromotion) => <span className="font-semibold">{row.code}</span>,
-    },
-    {
-      key: "title",
-      header: "Tiêu đề",
-      width: "35%",
-      render: (row: AdminPromotion) => (
-        <div>
-          <p className="font-medium text-primary">{row.title_vi || ""}</p>
-          {row.title_en && <p className="text-xs text-slate-400">{row.title_en}</p>}
-        </div>
-      ),
-    },
-    {
-      key: "discount_percentage",
-      header: "Giảm giá",
-      width: "15%",
-      render: (row: AdminPromotion) => (
-        <span className="font-bold text-red-600">-{row.discount_percentage}%</span>
-      ),
-    },
-    {
-      key: "duration",
-      header: "Thời hạn",
-      width: "20%",
-      render: (row: AdminPromotion) => {
-        const start = row.start_at ? new Date(row.start_at).toLocaleDateString("vi-VN") : "—";
-        const end = row.end_at ? new Date(row.end_at).toLocaleDateString("vi-VN") : "—";
-        return <span className="text-xs text-secondary" suppressHydrationWarning>{start} - {end}</span>;
-      },
-    },
-    {
-      key: "status",
-      header: "Trạng thái",
-      width: "15%",
-      render: (row: AdminPromotion) => <StatusPill status={row.status as PublishStatus} />,
-    },
-    {
-      key: "actions",
-      header: "Thao tác",
-      width: "10%",
-      render: (row: AdminPromotion) => (
-        <div className="flex items-center gap-2">
-          <Link href={`/admin/promotions?edit=${row.id}`} className="admin-edit-action">
-            <Pencil className="size-3" />
-          </Link>
-          <button
-            onClick={() => handleDelete(row.id)}
-            disabled={isDeleting}
-            className="text-slate-400 hover:text-red-600 transition-colors"
-          >
-            <X className="size-4" />
+  function PromoStatusPopover({ promo, onStatusChange }: { promo: AdminPromotion; onStatusChange: (status: string) => void }) {
+    const [open, setOpen] = useState(false);
+    
+    const statusOptions = [
+      { value: "draft", label: "Bản nháp", description: "Không hiển thị trên site", color: "bg-slate-400" },
+      { value: "published", label: "Đã xuất bản", description: "Hiển thị công khai", color: "bg-emerald-500" },
+      { value: "archived", label: "Lưu trữ", description: "Ẩn nhưng bảo toàn dữ liệu", color: "bg-amber-500" }
+    ];
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button type="button" className="cursor-pointer focus:outline-none select-none hover:opacity-80 active:scale-95 transition-all">
+            <StatusBadge status={promo.status} />
           </button>
-        </div>
-      ),
-    },
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-1.5 bg-white border border-slate-200 shadow-lg rounded-xl z-[200] animate-in fade-in-50 zoom-in-95 duration-100">
+          <div className="flex flex-col gap-1">
+            <span className="px-2.5 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-1">
+              Chuyển trạng thái
+            </span>
+            {statusOptions.map((opt) => {
+              const isActive = promo.status === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between transition-all ${
+                    isActive 
+                      ? "bg-slate-50 text-slate-900" 
+                      : "hover:bg-slate-50/80 text-slate-600 hover:text-slate-900"
+                  }`}
+                  onClick={async () => {
+                    if (!isActive) {
+                      onStatusChange(opt.value);
+                    }
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs font-semibold flex items-center gap-1.5">
+                      <span className={`size-1.5 rounded-full ${opt.color}`} />
+                      {opt.label}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-medium">
+                      {opt.description}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <Check className="size-3.5 text-emerald-600 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  const STATUS_OPTIONS = [
+    { value: "draft", label: "Bản nháp" },
+    { value: "published", label: "Đã xuất bản" },
+    { value: "archived", label: "Lưu trữ" },
   ];
+
+  const filterConfigs: FilterConfig[] = [
+    { type: "select", key: "status", label: "Trạng thái", options: STATUS_OPTIONS, placeholder: "Tất cả trạng thái" },
+    { type: "boolean", key: "isActive", label: "Hiệu lực" },
+    {
+      type: "select",
+      key: "discountType",
+      label: "Loại giảm giá",
+      options: [
+        { value: "percentage", label: "Phần trăm (%)" },
+        { value: "fixed", label: "Số tiền cố định" }
+      ],
+      placeholder: "Tất cả loại"
+    },
+    { type: "date", key: "dateFrom", label: "Từ ngày" },
+    { type: "date", key: "dateTo", label: "Đến ngày" },
+  ];
+
+  const isPromoActive = (promo: AdminPromotion | null) => {
+    if (!promo) return false;
+    if (promo.status !== "published") return false;
+    const now = new Date();
+    if (promo.start_at && new Date(promo.start_at) > now) return false;
+    if (promo.end_at && new Date(promo.end_at) < now) return false;
+    return true;
+  };
 
   return (
     <div className="space-y-6">
@@ -1324,17 +2617,104 @@ function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean;
         actionHref="/admin/promotions?create=1"
         actionLabel="Thêm khuyến mãi"
       />
-      
-      <div className="surface-soft p-4 rounded-xl border bg-white">
-        <DataTable
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          data={promotions as any}
-          /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-          columns={columns as any}
-          pageSize={10}
-          emptyMessage="Chưa có chương trình khuyến mãi nào được tạo."
-        />
-      </div>
+
+      <DataView
+        data={promotions}
+        totalCount={total}
+        filterConfigs={filterConfigs}
+        searchPlaceholder="Tìm theo mã code hoặc tiêu đề..."
+        defaultSort="created_at"
+        defaultDir="desc"
+        defaultLimit={20}
+        columns={[
+          { key: "code", label: "Mã khuyến mãi", width: "1fr", sortable: true },
+          { key: "title", label: "Tiêu đề", width: "2fr", sortable: false },
+          { key: "discount_percentage", label: "Chiết khấu / Giá", width: "120px", sortable: true },
+          { key: "duration", label: "Thời hạn hiệu lực", width: "1.2fr", sortable: false },
+          { key: "status", label: "Trạng thái", width: "120px", sortable: true },
+          { key: "actions", label: "Thao tác", width: "120px", sortable: false },
+        ]}
+        renderListRow={(item) => {
+          const promo = item as AdminPromotion;
+          const start = promo.start_at ? new Date(promo.start_at).toLocaleDateString("vi-VN") : "—";
+          const end = promo.end_at ? new Date(promo.end_at).toLocaleDateString("vi-VN") : "—";
+          return (
+            <div key={promo.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 2fr 120px 1.2fr 120px 120px" }}>
+              <span className="font-semibold text-slate-800 text-sm font-mono">{promo.code}</span>
+              <div>
+                <p className="font-semibold text-slate-800 text-sm">{promo.title_vi}</p>
+                {promo.title_en && <p className="text-xs text-slate-400">{promo.title_en}</p>}
+              </div>
+              <span className="font-bold text-red-600 text-sm">
+                {promo.discount_percentage ? `-${promo.discount_percentage}%` : promo.combo_price ? `${promo.combo_price.toLocaleString("vi-VN")} ₫` : "—"}
+              </span>
+              <span className="text-xs text-slate-500" suppressHydrationWarning>{start} - {end}</span>
+              <PromoStatusPopover
+                promo={promo}
+                onStatusChange={async (newStatus) => {
+                  const res = await updatePromotionStatus(promo.id, newStatus);
+                  if (res.success) {
+                    toast.success("Cập nhật trạng thái thành công!");
+                    router.refresh();
+                  } else {
+                    toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
+                  }
+                }}
+              />
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/admin/promotions?edit=${promo.code || promo.id}`}
+                  title="Chỉnh sửa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-slate-500 hover:text-slate-800 transition"
+                >
+                  <Pencil className="size-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setPromoToDelete(promo)}
+                  title="Xóa"
+                  className="p-1.5 hover:bg-slate-100 rounded text-destructive hover:bg-red-50 transition"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        }}
+        renderGridCard={(item) => {
+          const promo = item as AdminPromotion;
+          const start = promo.start_at ? new Date(promo.start_at).toLocaleDateString("vi-VN") : "—";
+          const end = promo.end_at ? new Date(promo.end_at).toLocaleDateString("vi-VN") : "—";
+          return (
+            <article key={promo.id} className="card-pd interactive-card p-4 flex flex-col justify-between h-[180px]">
+              <div>
+                <div className="flex items-center justify-between">
+                  <code className="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-indigo-700">{promo.code}</code>
+                  <StatusBadge status={promo.status} />
+                </div>
+                <div className="mt-3 space-y-1">
+                  <h4 className="font-semibold text-sm text-slate-800 line-clamp-1">{promo.title_vi}</h4>
+                  <p className="text-xs text-slate-500 font-bold text-red-600">
+                    {promo.discount_percentage ? `Giảm ${promo.discount_percentage}%` : promo.combo_price ? `${promo.combo_price.toLocaleString("vi-VN")} ₫` : "Combo độc quyền"}
+                  </p>
+                  <p className="text-[11px] text-slate-400" suppressHydrationWarning>{start} – {end}</p>
+                </div>
+              </div>
+              <div className="mt-4 pt-2 border-t border-slate-100 flex justify-between items-center">
+                <Link href={`/admin/promotions?edit=${promo.code || promo.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
+                  <Pencil className="size-3" />Chỉnh sửa
+                </Link>
+                <button
+                  onClick={() => setPromoToDelete(promo)}
+                  className="text-slate-400 hover:text-red-600 transition-colors text-xs inline-flex items-center gap-0.5"
+                >
+                  <Trash2 className="size-3.5" />Xóa
+                </button>
+              </div>
+            </article>
+          );
+        }}
+      />
 
       {/* Create Dialog */}
       <AdminRouteDialog
@@ -1357,6 +2737,51 @@ function PromotionsPage({ createMode, promotions = [] }: { createMode?: boolean;
       >
         <EntityCreateForm kind="promotion" idOrSlug={editId || undefined} />
       </AdminRouteDialog>
+
+      <AlertDialog open={promoToDelete !== null} onOpenChange={(open) => { if (!open) setPromoToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa khuyến mãi</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isPromoActive(promoToDelete) ? (
+                <div className="space-y-3">
+                  <p className="text-slate-700">Bạn có chắc muốn xóa chương trình khuyến mãi <strong>{promoToDelete?.title_vi}</strong>?</p>
+                  <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-800 text-xs font-semibold">
+                    Cảnh báo: Chương trình khuyến mãi này đang diễn ra. Xóa sẽ chấm dứt hiệu lực áp dụng trên mọi sản phẩm ngay lập tức.
+                  </div>
+                </div>
+              ) : (
+                <span>
+                  Bạn có chắc muốn xóa chương trình khuyến mãi <strong>{promoToDelete?.title_vi}</strong>? Hành động này không thể hoàn tác.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (!promoToDelete) return;
+              setIsDeleting(true);
+              try {
+                const res = await deleteAdminPromotion(promoToDelete.id);
+                if (res.success) {
+                  toast.success("Xóa khuyến mãi thành công!");
+                  router.refresh();
+                } else {
+                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                }
+              } catch (err) {
+                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+              } finally {
+                setIsDeleting(false);
+                setPromoToDelete(null);
+              }
+            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Đang xóa..." : "Xóa"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -1428,7 +2853,7 @@ function ProductOperationsTable({ products = [] }: { products?: AdminProduct[] }
               {index < 2 ? "Sẵn sàng" : "Thiếu tiếng Anh/SEO"}
             </span>
             <div className="lg:text-right">
-              <Link href={`/admin/products?edit=${product.id || product.slug}`} className="admin-edit-action">
+              <Link href={`/admin/products?edit=${product.slug || product.id}`} className="admin-edit-action">
                 <Pencil className="size-3" />
                 Chỉnh sửa
               </Link>
@@ -1458,7 +2883,7 @@ function BlogQueue({ posts = [] }: { posts?: AdminBlogPost[] }) {
               <div>
                 <div className="flex justify-between items-start gap-2 mb-3">
                   <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase">{post.category_name}</span>
-                  <StatusPill status={post.featured ? "published" : "draft"} />
+                  <StatusPill status={post.status} />
                 </div>
                 <div className="flex gap-4">
                   {(post.cover_media as any)?.url ? (
@@ -1628,37 +3053,11 @@ function QuoteTable({ compact, quotes = [] }: { compact?: boolean; quotes?: Admi
             </div>
             <p>{quote.service ?? quote.source_path}</p>
             <p className="text-sm text-secondary" suppressHydrationWarning>{new Date(quote.created_at).toLocaleDateString("vi-VN")}</p>
-            <QuoteStatusPill status={quote.status} />
+            <StatusBadge status={quote.status} />
           </div>
         ))
       )}
     </div>
-  );
-}
-
-function QuoteStatusPill({ status }: { status: string }) {
-  const statusLabels: Record<string, string> = {
-    new: "Chờ xử lý",
-    contacted: "Đã liên hệ",
-    qualified: "Đủ điều kiện",
-    closed: "Đã hoàn tất",
-    spam: "Thư rác",
-  };
-  const className =
-    status === "new"
-      ? "status-warning"
-      : status === "contacted"
-        ? "bg-blue-100 text-blue-700 border-blue-200"
-        : status === "qualified"
-          ? "bg-purple-100 text-purple-700 border-purple-200"
-          : status === "closed"
-            ? "status-success"
-            : "status-error";
-
-  return (
-    <span className={`status-pill w-fit text-[11px] leading-none ${className}`}>
-      {statusLabels[status] ?? status}
-    </span>
   );
 }
 

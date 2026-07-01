@@ -14,7 +14,8 @@ export default async function BrandsPage({
     redirect("/admin/login");
   }
   const role = user.role;
-  const brands = await getAdminBrands();
+  const brandsResult = await getAdminBrands();
+  const brands = Array.isArray(brandsResult) ? brandsResult : brandsResult?.data || [];
   const query = await searchParams;
 
   return (

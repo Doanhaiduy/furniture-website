@@ -23,10 +23,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
     }
 
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-    if (useMock) {
-      return NextResponse.json({ success: true });
-    }
+        
 
     const supabase = createAdminClient();
 

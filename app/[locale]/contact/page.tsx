@@ -63,10 +63,12 @@ export default async function ContactPage({
 
   const dbCategories = await getCategories(supabase, locale).catch(() => []);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const categoriesForQuote = dbCategories.map((c: any) => ({
-    slug: c.slug,
-    name: c.name,
-  }));
+  const categoriesForQuote = dbCategories
+    .filter((c: any) => c.parentId !== null)
+    .map((c: any) => ({
+      slug: c.slug,
+      name: c.name,
+    }));
 
   const dbShowrooms = await getShowrooms(supabase, locale).catch(() => []);
   const displayShowrooms: DisplayShowroom[] = dbShowrooms.length > 0

@@ -14,27 +14,7 @@ async function resolveMediaId(supabase: any, url: string | null): Promise<string
     .select("id")
     .eq("public_url", url)
     .maybeSingle();
-  if (data) return data.id;
-
-  // Insert a new mock asset for the URL to maintain foreign key integrity
-  const { data: newAsset, error: insertError } = await supabase
-    .from("media_assets")
-    .insert({
-      public_url: url,
-      storage_provider: "cloudinary",
-      resource_type: "image",
-      mime_type: "image/png",
-      format: "png",
-      size_bytes: 1,
-    })
-    .select("id")
-    .single();
-
-  if (newAsset) return newAsset.id;
-  if (insertError) {
-    console.error("Failed to insert media asset:", insertError);
-  }
-  return null;
+  return data?.id || null;
 }
 
 export async function GET() {
@@ -146,7 +126,7 @@ export async function GET() {
     aboutLeadEn: enHomeBody.aboutLeadEn || "Over 20 years of crafting Vietnamese homes.",
     aboutImage: viHomeBody.aboutImage || "/images/about.jpg",
     featuredVisible: viHomeBody.featuredVisible !== undefined ? viHomeBody.featuredVisible : true,
-    featuredMaxItems: viHomeBody.featuredMaxItems || "6",
+    featuredMaxItems: viHomeBody.featuredMaxItems || "12",
     blogSectionVisible: viHomeBody.blogSectionVisible !== undefined ? viHomeBody.blogSectionVisible : true,
     blogMaxPosts: viHomeBody.blogMaxPosts || "3",
     blogHeadingVi: viHomeBody.blogHeadingVi || "Góc cảm hứng & Tin tức",
@@ -206,8 +186,27 @@ export async function PUT(request: Request) {
     .eq("singleton_key", "default")
     .maybeSingle();
 
-  const logoMediaId = await resolveMediaId(supabase, body.logoUrl);
-  const faviconMediaId = await resolveMediaId(supabase, body.faviconUrl);
+  let logoMediaId: string | null = null;
+  if (body.logoUrl) {
+    logoMediaId = await resolveMediaId(supabase, body.logoUrl);
+    if (!logoMediaId) {
+      return NextResponse.json(
+        { error: "Logo URL must refer to an existing uploaded media asset. Please upload the file first." },
+        { status: 400 }
+      );
+    }
+  }
+
+  let faviconMediaId: string | null = null;
+  if (body.faviconUrl) {
+    faviconMediaId = await resolveMediaId(supabase, body.faviconUrl);
+    if (!faviconMediaId) {
+      return NextResponse.json(
+        { error: "Favicon URL must refer to an existing uploaded media asset. Please upload the file first." },
+        { status: 400 }
+      );
+    }
+  }
 
   const settingsPayload = {
     singleton_key: "default",

@@ -5,8 +5,6 @@ export const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000").catch("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url({ message: "Required" }),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, { message: "Required" }),
-  NEXT_PUBLIC_USE_MOCK_DATA: z.string().optional(),
-  MOCK_ADMIN_ROLE: z.enum(["admin", "editor"]).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, { message: "Required" }),
   AI_SECRET_ENCRYPTION_KEY: z.string().length(32, { message: "Must be exactly 32 characters long" }).optional(),
   
@@ -32,7 +30,6 @@ export function validateEnv() {
       NEXT_PUBLIC_SITE_URL: true,
       NEXT_PUBLIC_SUPABASE_URL: true,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: true,
-      NEXT_PUBLIC_USE_MOCK_DATA: true,
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: true,
     });
     
@@ -40,7 +37,6 @@ export function validateEnv() {
       NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      NEXT_PUBLIC_USE_MOCK_DATA: process.env.NEXT_PUBLIC_USE_MOCK_DATA,
       NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
     });
     
@@ -58,8 +54,6 @@ export function validateEnv() {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_USE_MOCK_DATA: process.env.NEXT_PUBLIC_USE_MOCK_DATA,
-    MOCK_ADMIN_ROLE: process.env.MOCK_ADMIN_ROLE,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
     AI_SECRET_ENCRYPTION_KEY: process.env.AI_SECRET_ENCRYPTION_KEY,

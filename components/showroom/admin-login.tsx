@@ -15,41 +15,37 @@ export function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-    if (useMock) {
-      router.push("/admin");
-    }
-  }, [router]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-    if (useMock) {
-      setLoading(false);
-      router.push("/admin");
-      router.refresh();
-      return;
-    }
 
     try {
       const supabase = createBrowserClient();
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      setLoading(false);
-
       if (signInError) {
+        setLoading(false);
         setError("Thông tin đăng nhập không hợp lệ.");
         return;
       }
 
+      // Cập nhật last_login_at vào public.profiles cho ADM-USR-23
+      if (authData?.user) {
+        await supabase
+          .from("profiles")
+          .update({ last_login_at: new Date().toISOString() })
+          .eq("id", authData.user.id);
+      }
+
+      setLoading(false);
       router.push("/admin");
       router.refresh();
     } catch (err: any) {

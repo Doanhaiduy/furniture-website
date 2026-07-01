@@ -4,12 +4,6 @@
 import { createAdminClient, createClient } from "./server";
 import { requireEditorOrAdmin } from "./auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { mockCategories } from "../mock-data/categories";
-import { mockProducts } from "../mock-data/products";
-import { mockBlogs } from "../mock-data/blogs";
-import { mockShowrooms } from "../mock-data/showrooms";
-import { mockQuotes } from "../mock-data/quotes";
-import { mockUsers } from "../mock-data/others";
 
 
 
@@ -86,9 +80,11 @@ export type AdminQuote = {
   status: string;
   assigned_to: string | null;
   admin_notes: string | null;
+  sales_notes: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  assignee?: { id: string; full_name: string; email: string } | null;
 };
 
 export type AdminProduct = {
@@ -112,6 +108,8 @@ export type AdminProduct = {
   depth: number | null;
   height: number | null;
   dimension_unit: string;
+  brand_id?: string | null;
+  brand_name?: string | null;
   brand_series: string | null;
   featured: boolean;
   published_at: string | null;
@@ -119,6 +117,7 @@ export type AdminProduct = {
   primary_media: unknown;
   media: unknown;
   attributes: unknown;
+  sort_order?: number;
 };
 
 export type AdminCategory = {
@@ -130,12 +129,15 @@ export type AdminCategory = {
   sort_order: number;
   parent_id: string | null;
   product_count: number;
+  parent_name?: string | null;
+  group_key?: string | null;
 };
 
 export type AdminPromotion = {
   id: string;
   code: string;
   discount_percentage: number | null;
+  combo_price: number | null;
   status: string;
   start_at: string | null;
   end_at: string | null;
@@ -182,9 +184,8 @@ export type AdminShowroom = {
 };
 
 export async function getAdminDashboardStats(role: string): Promise<AdminDashboardStats> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const supabase = await createClient();
       const [{ count: productCount }, { count: categoryCount }, { count: blogCount }, { count: showroomCount }] =
@@ -216,90 +217,126 @@ export async function getAdminDashboardStats(role: string): Promise<AdminDashboa
     } catch (e) {
       console.warn("Exception fetching admin dashboard stats, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback to mock counters
-  const isAdmin = role === "admin";
   return {
-    productCount: mockProducts.length,
-    categoryCount: mockCategories.length,
-    blogCount: mockBlogs.length,
-    showroomCount: mockShowrooms.length,
-    quoteCount: isAdmin ? mockQuotes.length : 0,
-    userCount: isAdmin ? mockUsers.length : 0,
+    productCount: 0,
+    categoryCount: 0,
+    blogCount: 0,
+    showroomCount: 0,
+    quoteCount: 0,
+    userCount: 0,
   };
 }
 
 export async function getAdminQuotesList(params: {
   status?: string;
   keyword?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  assignedTo?: string;
   limit?: number;
   offset?: number;
-}): Promise<AdminQuote[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  withTotal?: boolean;
+  sort?: string;
+  dir?: "asc" | "desc";
+}): Promise<AdminQuote[] | { data: AdminQuote[]; total: number }> {
     try {
       const supabase = await createAdminClient();
-      const { data, error } = await supabase.rpc("admin_quote_search", {
-        p_status: params.status ?? null,
-        p_keyword: params.keyword ?? null,
-        p_date_from: null,
-        p_date_to: null,
-        p_source_path: null,
-        p_assigned_to: null,
-        p_limit: params.limit ?? 50,
-        p_offset: params.offset ?? 0,
-      });
+      let query = supabase
+        .from("quote_requests")
+        .select(`
+          id,
+          full_name,
+          phone,
+          email,
+          company,
+          service,
+          message,
+          preferred_locale,
+          product_id,
+          category_id,
+          source_path,
+          source_url,
+          status,
+          assigned_to,
+          admin_notes,
+          sales_notes,
+          created_at,
+          updated_at,
+          deleted_at,
+          assignee:profiles!assigned_to (
+            id,
+            full_name,
+            email
+          )
+        `)
+        .is("deleted_at", null);
 
-      if (!error && data) {
-        return data as AdminQuote[];
+      if (params.status && params.status !== "all") {
+        query = query.eq("status", params.status);
       }
+      if (params.dateFrom) {
+        query = query.gte("created_at", params.dateFrom);
+      }
+      if (params.dateTo) {
+        query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      }
+      if (params.assignedTo && params.assignedTo !== "all") {
+        if (params.assignedTo === "null" || params.assignedTo === "unassigned") {
+          query = query.is("assigned_to", null);
+        } else {
+          query = query.eq("assigned_to", params.assignedTo);
+        }
+      }
+      if (params.keyword) {
+        query = query.or(`full_name.ilike.%${params.keyword}%,phone.ilike.%${params.keyword}%,email.ilike.%${params.keyword}%,service.ilike.%${params.keyword}%,company.ilike.%${params.keyword}%,message.ilike.%${params.keyword}%,admin_notes.ilike.%${params.keyword}%,sales_notes.ilike.%${params.keyword}%`);
+      }
+
+      // Sort
+      const sortField = params.sort || "created_at";
+      const ascending = (params.dir ?? "desc") === "asc";
+      query = query
+        .order(sortField, { ascending })
+        .range(params.offset ?? 0, (params.offset ?? 0) + (params.limit ?? 20) - 1);
+
+      const { data, error } = await query;
+      const quotes = (!error && data) ? (data as unknown as AdminQuote[]) : [];
+
+      if (params.withTotal) {
+        let countQ = supabase
+          .from("quote_requests")
+          .select("id", { count: "exact", head: true })
+          .is("deleted_at", null);
+        if (params.status && params.status !== "all") {
+          countQ = countQ.eq("status", params.status);
+        }
+        if (params.dateFrom) {
+          countQ = countQ.gte("created_at", params.dateFrom);
+        }
+        if (params.dateTo) {
+          countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+        }
+        if (params.assignedTo && params.assignedTo !== "all") {
+          if (params.assignedTo === "null" || params.assignedTo === "unassigned") {
+            countQ = countQ.is("assigned_to", null);
+          } else {
+            countQ = countQ.eq("assigned_to", params.assignedTo);
+          }
+        }
+        if (params.keyword) {
+          countQ = countQ.or(`full_name.ilike.%${params.keyword}%,phone.ilike.%${params.keyword}%,email.ilike.%${params.keyword}%,service.ilike.%${params.keyword}%,company.ilike.%${params.keyword}%,message.ilike.%${params.keyword}%,admin_notes.ilike.%${params.keyword}%,sales_notes.ilike.%${params.keyword}%`);
+        }
+        const { count } = await countQ;
+        return { data: quotes, total: count ?? 0 };
+      }
+
+      return quotes;
     } catch (e) {
       console.warn("Exception fetching admin quotes list, falling back to mock:", e);
+      if (params.withTotal) return { data: [], total: 0 };
+      return [];
     }
-  }
-
-  // Fallback to mock quotes
-  let filtered = mockQuotes.map((q) => ({
-    id: q.id,
-    full_name: q.full_name,
-    phone: q.phone,
-    email: q.email,
-    company: q.company,
-    service: q.service,
-    message: q.message,
-    preferred_locale: q.preferred_locale,
-    product_id: q.product_id,
-    category_id: q.category_id,
-    source_path: q.source_path,
-    source_url: q.source_url,
-    status: q.status,
-    assigned_to: q.assigned_to,
-    admin_notes: q.admin_notes,
-    created_at: q.created_at,
-    updated_at: q.updated_at,
-    deleted_at: q.deleted_at,
-  }));
-
-  if (params.status && params.status !== "all") {
-    filtered = filtered.filter((q) => q.status === params.status);
-  }
-
-  if (params.keyword) {
-    const kw = params.keyword.trim().toLowerCase();
-    filtered = filtered.filter(
-      (q) =>
-        q.full_name.toLowerCase().includes(kw) ||
-        q.phone.includes(kw) ||
-        (q.email && q.email.toLowerCase().includes(kw)) ||
-        (q.service && q.service.toLowerCase().includes(kw))
-    );
-  }
-
-  const offset = params.offset || 0;
-  const limit = params.limit || 50;
-  return filtered.slice(offset, offset + limit);
 }
 
 export async function getAdminProducts(params: {
@@ -307,15 +344,18 @@ export async function getAdminProducts(params: {
   offset?: number;
   q?: string;
   status?: string;
-}): Promise<AdminProduct[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  categoryId?: string;
+  brandId?: string;
+  featured?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+}): Promise<AdminProduct[] | { data: AdminProduct[]; total: number }> {
     try {
-      const supabase = await createClient();
-      let query = supabase
-        .from("products")
-        .select(`
+      const supabase = createAdminClient();
+      let selectStr = `
           id,
           reference_code,
           status,
@@ -330,14 +370,14 @@ export async function getAdminProducts(params: {
           dimension_unit,
           brand_id,
           brand_series,
-          product_translations (
-            slug,
-            name,
-            summary,
-            description_json,
-            material,
-            price_display_text,
-            dimension_display_text
+          created_at,
+          updated_at,
+          brands (
+            id,
+            brand_translations (
+              locale,
+              name
+            )
           ),
           product_categories (
             id,
@@ -359,24 +399,85 @@ export async function getAdminProducts(params: {
               mime_type
             )
           )
-        `)
-        .order("sort_order", { ascending: true })
-        .limit(params.limit ?? 50)
-        .range(params.offset ?? 0, (params.limit ?? 50) - 1);
+      `;
+
+      if (params.q) {
+        selectStr += `, product_translations!inner(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
+      } else {
+        selectStr += `, product_translations(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
+      }
+
+      let query = supabase
+        .from("products")
+        .select(selectStr)
+        .is("deleted_at", null);
 
       if (params.status && params.status !== "all") {
         query = query.eq("status", params.status);
       }
+      if (params.categoryId) {
+        query = query.eq("category_id", params.categoryId);
+      }
+      if (params.brandId) {
+        query = query.eq("brand_id", params.brandId);
+      }
+      if (params.featured === "true") {
+        query = query.eq("featured", true);
+      } else if (params.featured === "false") {
+        query = query.eq("featured", false);
+      }
+      if (params.dateFrom) {
+        query = query.gte("created_at", params.dateFrom);
+      }
+      if (params.dateTo) {
+        query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      }
+      if (params.q) {
+        query = query.or(`reference_code.ilike.%${params.q}%,product_translations.name.ilike.%${params.q}%`);
+      }
 
-      const { data, error } = await query;
-      console.log("getAdminBlogPosts query result:", { dataCount: data?.length, error });
+      // Get total count for pagination
+      let total = 0;
+      if (params.withTotal) {
+        let countQuery = supabase
+          .from("products")
+          .select("id" + (params.q ? ", product_translations!inner(name)" : ""), { count: "exact", head: true })
+          .is("deleted_at", null);
+        if (params.status && params.status !== "all") countQuery = countQuery.eq("status", params.status);
+        if (params.categoryId) countQuery = countQuery.eq("category_id", params.categoryId);
+        if (params.brandId) countQuery = countQuery.eq("brand_id", params.brandId);
+        if (params.featured === "true") countQuery = countQuery.eq("featured", true);
+        else if (params.featured === "false") countQuery = countQuery.eq("featured", false);
+        if (params.dateFrom) countQuery = countQuery.gte("created_at", params.dateFrom);
+        if (params.dateTo) countQuery = countQuery.lte("created_at", params.dateTo + "T23:59:59.999Z");
+        if (params.q) {
+          countQuery = countQuery.or(`reference_code.ilike.%${params.q}%,product_translations.name.ilike.%${params.q}%`);
+        }
+        const { count } = await countQuery;
+        total = count ?? 0;
+      }
+
+      // Sort
+      const sortField = params.sort || "sort_order";
+      const ascending = (params.dir ?? "asc") === "asc";
+      query = query
+        .order(sortField, { ascending })
+        .limit(params.limit ?? 20)
+        .range(params.offset ?? 0, (params.offset ?? 0) + (params.limit ?? 20) - 1);
+
+      const { data, error } = await query as { data: any[] | null, error: any };
       if (!error && data) {
-        return data.map((row) => {
+        const mapped = data.map((row) => {
           const translation = Array.isArray(row.product_translations)
             ? row.product_translations[0]
             : row.product_translations;
           const category = row.product_categories as any;
           const categoryTranslation = category?.product_category_translations?.[0];
+          
+          const brand = row.brands as any;
+          const brandTranslations = Array.isArray(brand?.brand_translations) ? brand.brand_translations : [];
+          const brandTranslation = brandTranslations.find((t: any) => t.locale === "vi") || brandTranslations[0];
+          const brandName = brandTranslation?.name ?? brand?.name ?? null;
 
           // Parse product_media associations
           const rawMedia = (row as any).product_media || [];
@@ -415,6 +516,7 @@ export async function getAdminProducts(params: {
             height: row.height,
             dimension_unit: row.dimension_unit || "mm",
             brand_id: row.brand_id || null,
+            brand_name: brandName,
             brand_series: row.brand_series || null,
             featured: row.featured,
             published_at: row.published_at ?? null,
@@ -422,91 +524,155 @@ export async function getAdminProducts(params: {
             primary_media: primaryMedia,
             media: media,
             attributes: [],
-          };
+            sort_order: row.sort_order,
+            updated_at: row.updated_at,
+          } as any;
         });
+        if (params.withTotal) return { data: mapped, total };
+        return mapped;
       }
     } catch (e) {
       console.warn("Exception fetching admin products, falling back to mock:", e);
     }
-  }
 
-  // Fallback to mock products mapping
-  let filtered = mockProducts.map((p) => ({
-    id: p.id,
-    reference_code: p.reference_code,
-    slug: p.slug,
-    name: p.name.vi,
-    summary: p.summary.vi,
-    description_json: p.description.vi,
-    material: p.material.vi,
-    price_display_text: p.price_display_text.vi,
-    dimension_display_text: p.dimension_display_text.vi,
-    category_id: p.category_id,
-    category_slug: p.category_slug,
-    category_name: p.category_name.vi,
-    group_key: p.group_key,
-    price_min: p.price_min,
-    price_max: p.price_max,
-    currency: p.currency,
-    width: null,
-    depth: null,
-    height: null,
-    dimension_unit: "mm",
-    brand_series: null,
-    featured: p.featured,
-    published_at: p.published_at,
-    primary_media: p.primary_media,
-    media: p.media,
-    attributes: p.attributes,
-    status: p.status
-  }));
-
-  if (params.status && params.status !== "all") {
-    filtered = filtered.filter((p) => p.status === params.status);
-  }
-
-  if (params.q) {
-    const qNorm = params.q.trim().toLowerCase();
-    filtered = filtered.filter(
-      (p) =>
-        p.name.toLowerCase().includes(qNorm) ||
-        p.summary.toLowerCase().includes(qNorm) ||
-        p.reference_code.toLowerCase().includes(qNorm)
-    );
-  }
-
-  const offset = params.offset || 0;
-  const limit = params.limit || 50;
-  return filtered.slice(offset, offset + limit) as AdminProduct[];
+  if (params.withTotal) return { data: [], total: 0 };
+  return [];
 }
 
-export async function getAdminCategories(): Promise<AdminCategory[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+export async function getAdminCategories(params: {
+  q?: string;
+  status?: string;
+  groupKey?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+  level?: string;
+} = {}): Promise<AdminCategory[] | { data: AdminCategory[]; total: number }> {
     try {
-      const supabase = await createClient();
-      const { data, error } = await supabase
+      const supabase = createAdminClient();
+      let selectStr = `
+        id,
+        status,
+        sort_order,
+        parent_id,
+        group_key
+      `;
+      if (params.q) {
+        selectStr += `, product_category_translations!inner (locale, slug, name, description)`;
+      } else {
+        selectStr += `, product_category_translations (locale, slug, name, description)`;
+      }
+
+      let query = supabase
         .from("product_categories")
-        .select(`
-          id,
-          status,
-          sort_order,
-          parent_id,
-          product_category_translations (locale, slug, name, description)
-        `)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true });
+        .select(selectStr)
+        .is("deleted_at", null);
+
+      if (params.status && params.status !== "all") {
+        query = query.eq("status", params.status);
+      }
+      if (params.groupKey && params.groupKey !== "all") {
+        query = query.eq("group_key", params.groupKey);
+      }
+      if (params.dateFrom) {
+        query = query.gte("created_at", params.dateFrom);
+      }
+      if (params.dateTo) {
+        query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      }
+      if (params.q) {
+        query = query.or("slug.ilike.%" + params.q + "%,product_category_translations.name.ilike.%" + params.q + "%");
+      }
+      if (params.level === "parent") {
+        query = query.is("parent_id", null);
+      } else if (params.level === "child") {
+        query = query.not("parent_id", "is", null);
+      }
+
+      let total = 0;
+      if (params.withTotal) {
+        let countQ = supabase
+          .from("product_categories")
+          .select("id" + (params.q ? ", product_category_translations!inner(name)" : ""), { count: "exact", head: true })
+          .is("deleted_at", null);
+        if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
+        if (params.groupKey && params.groupKey !== "all") countQ = countQ.eq("group_key", params.groupKey);
+        if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+        if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+        if (params.q) {
+          countQ = countQ.or("slug.ilike.%" + params.q + "%,product_category_translations.name.ilike.%" + params.q + "%");
+        }
+        if (params.level === "parent") {
+          countQ = countQ.is("parent_id", null);
+        } else if (params.level === "child") {
+          countQ = countQ.not("parent_id", "is", null);
+        }
+        const { count } = await countQ;
+        total = count ?? 0;
+      }
+
+      const sortField = params.sort || "sort_order";
+      const ascending = (params.dir ?? "asc") === "asc";
+      if (params.limit) {
+        query = query
+          .order(sortField, { ascending })
+          .limit(params.limit)
+          .range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
+      } else {
+        query = query.order(sortField, { ascending });
+      }
+
+      const { data, error } = await query as { data: any[] | null, error: any };
 
       if (!error && data) {
-        const { count } = await supabase
+        // Fetch product counts per category in one query
+        const { data: countData } = await supabase
           .from("products")
-          .select("*", { count: "exact", head: true })
+          .select("category_id")
           .is("deleted_at", null);
+        const productCountMap: Record<string, number> = {};
+        if (countData) {
+          countData.forEach((p: any) => {
+            if (p.category_id) {
+              productCountMap[p.category_id] = (productCountMap[p.category_id] || 0) + 1;
+            }
+          });
+        }
 
-        const productCount = count ?? 0;
+        // Fetch parent names
+        const categoryMap: Record<string, string> = {};
+        // First map current items
+        data.forEach((row) => {
+          const translations = Array.isArray(row.product_category_translations)
+            ? row.product_category_translations
+            : row.product_category_translations
+            ? [row.product_category_translations]
+            : [];
+          const translation = translations.find((t: any) => t?.locale === "vi") || translations[0];
+          categoryMap[row.id] = translation?.name ?? "";
+        });
 
-        return data.map((row) => {
+        // Query missing parents if any
+        const parentIds = data.map(r => r.parent_id).filter((pid): pid is string => Boolean(pid) && !categoryMap[pid]);
+        if (parentIds.length > 0) {
+          const { data: parentData } = await supabase
+            .from("product_categories")
+            .select("id, product_category_translations(locale, name)")
+            .in("id", parentIds);
+          if (parentData) {
+            parentData.forEach((pRow: any) => {
+              const trans = Array.isArray(pRow.product_category_translations) ? pRow.product_category_translations : [];
+              const viTrans = trans.find((t: any) => t.locale === "vi") || trans[0];
+              categoryMap[pRow.id] = viTrans?.name ?? "";
+            });
+          }
+        }
+
+        const mapped = data.map((row) => {
           const translations = Array.isArray(row.product_category_translations)
             ? row.product_category_translations
             : row.product_category_translations
@@ -522,73 +688,115 @@ export async function getAdminCategories(): Promise<AdminCategory[]> {
             status: row.status as string,
             sort_order: row.sort_order,
             parent_id: row.parent_id ?? null,
-            product_count: productCount,
-          };
+            group_key: (row as any).group_key ?? null,
+            product_count: productCountMap[row.id] || 0,
+            parent_name: row.parent_id ? (categoryMap[row.parent_id] || null) : null,
+          } as any;
         });
+
+        if (params.withTotal) return { data: mapped, total };
+        return mapped;
       }
     } catch (e) {
       console.warn("Exception fetching admin categories, falling back to mock:", e);
     }
-  }
 
-  // Fallback to mock categories mapping
-  return mockCategories.map((cat) => {
-    // Count products in this category slug
-    const prodCount = mockProducts.filter((p) => p.category_slug === cat.slug).length;
-
-    return {
-      id: cat.id,
-      slug: cat.slug,
-      name: cat.name.vi,
-      description: cat.description ? cat.description.vi : null,
-      status: cat.status,
-      sort_order: cat.sort_order,
-      parent_id: cat.parent_id,
-      product_count: prodCount,
-    };
-  });
+  if (params.withTotal) return { data: [], total: 0 };
+  return [];
 }
 
-export async function getAdminBlogPosts(params: { limit?: number; offset?: number } = {}): Promise<AdminBlogPost[]> {
-  console.log("NEXT_PUBLIC_USE_MOCK_DATA inside getAdminBlogPosts:", process.env.NEXT_PUBLIC_USE_MOCK_DATA);
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+export async function getAdminBlogPosts(params: {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  status?: string;
+  categoryId?: string;
+  featured?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+} = {}): Promise<AdminBlogPost[] | { data: AdminBlogPost[]; total: number }> {
     try {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select(`
+      const supabase = createAdminClient();
+      let selectStr = `
+        id,
+        status,
+        featured,
+        published_at,
+        created_by,
+        cover_media:media_assets!cover_media_id (
           id,
-          status,
-          featured,
-          published_at,
-          created_by,
-          cover_media:media_assets!cover_media_id (
-            id,
-            public_url
-          ),
-          blog_post_translations (
-            slug,
-            title,
-            excerpt,
-            seo_title,
-            seo_description
-          ),
-          blog_categories (
-            id,
-            blog_category_translations (name, slug)
-          ),
-          profiles!fk_blog_posts_author (full_name)
-        `)
-        .is("deleted_at", null)
-        .order("published_at", { ascending: false })
-        .limit(params.limit ?? 50)
-        .range(params.offset ?? 0, (params.limit ?? 50) - 1);
+          public_url
+        ),
+        blog_categories (
+          id,
+          blog_category_translations (name, slug)
+        ),
+        profiles!fk_blog_posts_author (full_name)
+      `;
+      if (params.q) {
+        selectStr += `, blog_post_translations!inner (slug, title, excerpt, seo_title, seo_description)`;
+      } else {
+        selectStr += `, blog_post_translations (slug, title, excerpt, seo_title, seo_description)`;
+      }
 
-      console.log("getAdminBlogPosts query result:", { dataCount: data?.length, error });
-      if (!error && data) {
-        return data.map((row) => {
+      let blogQuery = supabase
+        .from("blog_posts")
+        .select(selectStr)
+        .is("deleted_at", null);
+
+      if (params.status && params.status !== "all") {
+        blogQuery = blogQuery.eq("status", params.status);
+      }
+      if (params.categoryId) {
+        blogQuery = blogQuery.eq("category_id", params.categoryId);
+      }
+      if (params.featured === "true") {
+        blogQuery = blogQuery.eq("featured", true);
+      } else if (params.featured === "false") {
+        blogQuery = blogQuery.eq("featured", false);
+      }
+      if (params.dateFrom) {
+        blogQuery = blogQuery.gte("created_at", params.dateFrom);
+      }
+      if (params.dateTo) {
+        blogQuery = blogQuery.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      }
+      if (params.q) {
+        blogQuery = blogQuery.or(`blog_post_translations.title.ilike.%${params.q}%,blog_post_translations.excerpt.ilike.%${params.q}%`);
+      }
+
+      let total = 0;
+      if (params.withTotal) {
+        let countQ = supabase
+          .from("blog_posts")
+          .select("id" + (params.q ? ", blog_post_translations!inner(title)" : ""), { count: "exact", head: true })
+          .is("deleted_at", null);
+        if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
+        if (params.categoryId) countQ = countQ.eq("category_id", params.categoryId);
+        if (params.featured === "true") countQ = countQ.eq("featured", true);
+        else if (params.featured === "false") countQ = countQ.eq("featured", false);
+        if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+        if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+        if (params.q) {
+          countQ = countQ.or(`blog_post_translations.title.ilike.%${params.q}%,blog_post_translations.excerpt.ilike.%${params.q}%`);
+        }
+        const { count } = await countQ;
+        total = count ?? 0;
+      }
+
+      const sortField = params.sort || "published_at";
+      const ascending = (params.dir ?? "desc") === "asc";
+      blogQuery = blogQuery
+        .order(sortField, { ascending })
+        .limit(params.limit ?? 20)
+        .range(params.offset ?? 0, (params.offset ?? 0) + (params.limit ?? 20) - 1);
+
+      const { data: blogData, error: blogError } = await blogQuery as { data: any[] | null, error: any };
+      if (!blogError && blogData) {
+        const mapped = blogData.map((row) => {
           const translation = Array.isArray(row.blog_post_translations)
             ? row.blog_post_translations[0]
             : row.blog_post_translations;
@@ -613,110 +821,132 @@ export async function getAdminBlogPosts(params: { limit?: number; offset?: numbe
             cover_media: row.cover_media
               ? { url: Array.isArray(row.cover_media) ? (row.cover_media[0] as any)?.public_url : (row.cover_media as any).public_url }
               : null,
-          };
+          } as AdminBlogPost;
         });
+
+        if (params.withTotal) return { data: mapped, total };
+        return mapped;
       }
     } catch (e) {
       console.warn("Exception fetching admin blog posts, falling back to mock:", e);
     }
-  }
 
-  // Fallback to mock blogs mapping
-  const offset = params.offset || 0;
-  const limit = params.limit || 50;
-  return mockBlogs.slice(offset, offset + limit).map((post) => ({
-    id: post.id,
-    slug: post.slug,
-    title: post.title.vi,
-    excerpt: post.excerpt.vi,
-    body_json: post.sections,
-    seo_title: post.title.vi,
-    seo_description: post.excerpt.vi,
-    category_id: post.category_slug,
-    category_name: post.category_name.vi,
-    category_slug: post.category_slug,
-    author_name: post.author_name,
-    status: post.status,
-    featured: post.featured,
-    published_at: post.published_at,
-    cover_media: post.cover_media,
-  }));
+  if (params.withTotal) return { data: [], total: 0 };
+  return [];
 }
 
-export async function getAdminShowrooms(): Promise<AdminShowroom[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
-    try {
-      const supabase = await createClient();
-      const { data, error } = await supabase
-        .from("showrooms")
-        .select(`
-          id,
-          code,
-          hotline,
-          google_maps_embed_url,
-          google_maps_fallback_url,
-          latitude,
-          longitude,
-          status,
-          sort_order,
-          showroom_translations (locale, name, address, opening_hours),
-          showroom_media (media_id, is_primary, media:media_assets (public_url))
-        `)
-        .is("deleted_at", null)
-        .order("sort_order", { ascending: true });
-
-      if (!error && data) {
-        return data.map((row) => {
-          const translations = Array.isArray(row.showroom_translations)
-            ? row.showroom_translations
-            : row.showroom_translations
-            ? [row.showroom_translations]
-            : [];
-          const translation = translations.find((t: any) => t?.locale === "vi") || translations[0];
-          const primaryMedia = Array.isArray(row.showroom_media)
-            ? row.showroom_media.find((m: { is_primary: boolean }) => m.is_primary)
-            : null;
-          const mediaAsset = primaryMedia?.media as unknown as RawMediaAsset;
-          return {
-            id: row.id,
-            code: row.code ?? null,
-            name: translation?.name ?? "",
-            address: translation?.address ?? "",
-            opening_hours: translation?.opening_hours ?? null,
-            hotline: row.hotline,
-            google_maps_embed_url: row.google_maps_embed_url,
-            google_maps_fallback_url: row.google_maps_fallback_url,
-            latitude: row.latitude,
-            longitude: row.longitude,
-            status: row.status as string,
-            sort_order: row.sort_order,
-            primary_media: mediaAsset?.public_url ?? null,
-          };
-        });
-      }
-    } catch (e) {
-      console.warn("Exception fetching admin showrooms, falling back to mock:", e);
+export async function getAdminShowrooms(params: {
+  q?: string;
+  status?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+} = {}): Promise<AdminShowroom[] | { data: AdminShowroom[]; total: number }> {
+  try {
+    const supabase = await createClient();
+    let selectStr = `
+      id,
+      code,
+      hotline,
+      google_maps_embed_url,
+      google_maps_fallback_url,
+      latitude,
+      longitude,
+      status,
+      sort_order,
+      showroom_media (media_id, is_primary, media:media_assets (public_url))
+    `;
+    if (params.q) {
+      selectStr += `, showroom_translations!inner (locale, name, address, opening_hours)`;
+    } else {
+      selectStr += `, showroom_translations (locale, name, address, opening_hours)`;
     }
+
+    let query = supabase
+      .from("showrooms")
+      .select(selectStr)
+      .is("deleted_at", null);
+
+    if (params.status && params.status !== "all") {
+      query = query.eq("status", params.status);
+    }
+    if (params.dateFrom) {
+      query = query.gte("created_at", params.dateFrom);
+    }
+    if (params.dateTo) {
+      query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+    }
+    if (params.q) {
+      query = query.or(`showroom_translations.name.ilike.%${params.q}%,showroom_translations.address.ilike.%${params.q}%`);
+    }
+
+    let srTotal = 0;
+    if (params.withTotal) {
+      let countQ = supabase
+        .from("showrooms")
+        .select("id" + (params.q ? ", showroom_translations!inner(name)" : ""), { count: "exact", head: true })
+        .is("deleted_at", null);
+      if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
+      if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+      if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      if (params.q) {
+        countQ = countQ.or(`showroom_translations.name.ilike.%${params.q}%,showroom_translations.address.ilike.%${params.q}%`);
+      }
+      const { count } = await countQ;
+      srTotal = count ?? 0;
+    }
+
+    const srSort = params.sort || "sort_order";
+    const srAsc = (params.dir ?? "asc") === "asc";
+    if (params.limit) {
+      query = query.order(srSort, { ascending: srAsc }).limit(params.limit).range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
+    } else {
+      query = query.order(srSort, { ascending: srAsc });
+    }
+
+    const { data, error } = await query as { data: any[] | null, error: any };
+    if (!error && data) {
+      const mapped = data.map((row) => {
+        const translations = Array.isArray(row.showroom_translations)
+          ? row.showroom_translations
+          : row.showroom_translations
+          ? [row.showroom_translations]
+          : [];
+        const translation = translations.find((t: any) => t?.locale === "vi") || translations[0];
+        const primaryMedia = Array.isArray(row.showroom_media)
+          ? row.showroom_media.find((m: { is_primary: boolean }) => m.is_primary)
+          : null;
+        const mediaAsset = primaryMedia?.media as unknown as RawMediaAsset;
+        return {
+          id: row.id,
+          code: row.code ?? null,
+          name: translation?.name ?? "",
+          address: translation?.address ?? "",
+          opening_hours: translation?.opening_hours ?? null,
+          hotline: row.hotline,
+          google_maps_embed_url: row.google_maps_embed_url,
+          google_maps_fallback_url: row.google_maps_fallback_url,
+          latitude: row.latitude,
+          longitude: row.longitude,
+          status: row.status as string,
+          sort_order: row.sort_order,
+          primary_media: mediaAsset?.public_url ?? null,
+        } as AdminShowroom;
+      });
+
+      if (params.withTotal) return { data: mapped, total: srTotal };
+      return mapped;
+    }
+  } catch (e) {
+    console.warn("Exception fetching admin showrooms, falling back to mock:", e);
   }
 
-  // Fallback to mock showrooms mapping
-  return mockShowrooms.map((sr) => ({
-    id: sr.id,
-    code: sr.code,
-    name: sr.name.vi,
-    address: sr.address.vi,
-    opening_hours: sr.opening_hours.vi,
-    hotline: sr.hotline,
-    google_maps_embed_url: sr.google_maps_embed_url,
-    google_maps_fallback_url: sr.google_maps_fallback_url,
-    latitude: sr.latitude,
-    longitude: sr.longitude,
-    status: sr.status,
-    sort_order: sr.sort_order,
-    primary_media: sr.primary_media.url,
-  }));
+  if (params.withTotal) return { data: [], total: 0 };
+  return [];
 }
 
 // Private helper to create audit logs
@@ -742,85 +972,116 @@ async function createAuditLog(
 }
 
 // Local in-memory mock promotions for administration tasks in mock mode
-let mockPromotions: AdminPromotion[] = [
-  {
-    id: "11111111-1111-1111-1111-111111111111",
-    code: "heritage-walnut-combo",
-    discount_percentage: 15,
-    status: "published",
-    start_at: null,
-    end_at: null,
-    title_vi: "Không Gian Phòng Khách Walnut Heritage",
-    title_en: "Heritage Walnut Living Room Package",
-    description_vi: "Tinh tuyển gỗ óc chó tự nhiên cho căn hộ cao cấp",
-    description_en: "Curated natural walnut for premium apartments",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222222",
-    code: "wellness-bath-set",
-    discount_percentage: 18,
-    status: "published",
-    start_at: null,
-    end_at: null,
-    title_vi: "Thiết Bị Phòng Tắm Wellness Luxury",
-    title_en: "Wellness Luxury Bathroom Suite",
-    description_vi: "Không gian spa thư giãn nhập khẩu chính hãng tiêu chuẩn Châu Âu",
-    description_en: "Relaxing spa suite with European standards",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "33333333-3333-3333-3333-333333333333",
-    code: "porcelain-surface-pack",
-    discount_percentage: 20,
-    status: "published",
-    start_at: null,
-    end_at: null,
-    title_vi: "Gạch Ốp Lát Luxury Calacatta",
-    title_en: "Luxury Calacatta Tile Deal",
-    description_vi: "Vật liệu cao cấp hoàn thiện bề mặt sang trọng, bền vững",
-    description_en: "Premium materials for luxury and durable surfaces",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-];
-
-export async function getAdminPromotions(): Promise<AdminPromotion[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (!useMock) {
+export async function getAdminPromotions(params: {
+  q?: string;
+  status?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+  isActive?: string;
+  discountType?: string;
+} = {}): Promise<AdminPromotion[] | { data: AdminPromotion[]; total: number }> {
     try {
-      const supabase = await createClient();
-      const { data, error } = await supabase
+      const supabase = createAdminClient();
+      let selectStr = `
+        id,
+        code,
+        discount_percentage,
+        combo_price,
+        status,
+        start_at,
+        end_at,
+        created_at,
+        updated_at
+      `;
+      if (params.q) {
+        selectStr += `, promotion_translations!inner (locale, title, description)`;
+      } else {
+        selectStr += `, promotion_translations (locale, title, description)`;
+      }
+
+      let query = supabase
         .from("promotions")
-        .select(`
-          id,
-          code,
-          discount_percentage,
-          status,
-          start_at,
-          end_at,
-          created_at,
-          updated_at,
-          promotion_translations (
-            locale,
-            title,
-            description
-          )
-        `)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
+        .select(selectStr)
+        .is("deleted_at", null);
+
+      if (params.status && params.status !== "all") {
+        query = query.eq("status", params.status);
+      }
+      if (params.dateFrom) {
+        query = query.gte("created_at", params.dateFrom);
+      }
+      if (params.dateTo) {
+        query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      }
+      if (params.q) {
+        query = query.or(`code.ilike.%${params.q}%,promotion_translations.title.ilike.%${params.q}%`);
+      }
+      if (params.discountType === "percentage") {
+        query = query.not("discount_percentage", "is", null);
+      } else if (params.discountType === "fixed") {
+        query = query.not("combo_price", "is", null);
+      }
+      if (params.isActive === "true") {
+        const nowStr = new Date().toISOString();
+        query = query.eq("status", "published").lte("start_at", nowStr).or(`end_at.is.null,end_at.gte.${nowStr}`);
+      } else if (params.isActive === "false") {
+        const nowStr = new Date().toISOString();
+        query = query.or(`status.neq.published,start_at.gt.${nowStr},end_at.lt.${nowStr}`);
+      }
+
+      let promoTotal = 0;
+      if (params.withTotal) {
+        let countQ = supabase
+          .from("promotions")
+          .select("id" + (params.q ? ", promotion_translations!inner(title)" : ""), { count: "exact", head: true })
+          .is("deleted_at", null);
+        if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
+        if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+        if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+        if (params.q) {
+          countQ = countQ.or(`code.ilike.%${params.q}%,promotion_translations.title.ilike.%${params.q}%`);
+        }
+        if (params.discountType === "percentage") {
+          countQ = countQ.not("discount_percentage", "is", null);
+        } else if (params.discountType === "fixed") {
+          countQ = countQ.not("combo_price", "is", null);
+        }
+        if (params.isActive === "true") {
+          const nowStr = new Date().toISOString();
+          countQ = countQ.eq("status", "published").lte("start_at", nowStr).or(`end_at.is.null,end_at.gte.${nowStr}`);
+        } else if (params.isActive === "false") {
+          const nowStr = new Date().toISOString();
+          countQ = countQ.or(`status.neq.published,start_at.gt.${nowStr},end_at.lt.${nowStr}`);
+        }
+        const { count } = await countQ;
+        promoTotal = count ?? 0;
+      }
+
+      const promoSort = params.sort || "created_at";
+      const promoAsc = (params.dir ?? "desc") === "asc";
+      if (params.limit) {
+        query = query.order(promoSort, { ascending: promoAsc }).limit(params.limit).range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
+      } else {
+        query = query.order(promoSort, { ascending: promoAsc });
+      }
+
+      const { data, error } = await query as { data: any[] | null, error: any };
 
       if (!error && data) {
-        return data.map((row) => {
+        const mapped = data.map((row) => {
           const translations = Array.isArray(row.promotion_translations) ? (row.promotion_translations as { locale: string; title: string; description: string | null }[]) : [];
-          const viTrans = translations.find((t) => t.locale === "vi");
-          const enTrans = translations.find((t) => t.locale === "en");
+          const viTrans = translations.find((t: any) => t.locale === "vi");
+          const enTrans = translations.find((t: any) => t.locale === "en");
           return {
             id: row.id,
             code: row.code,
             discount_percentage: row.discount_percentage ? Number(row.discount_percentage) : null,
+            combo_price: row.combo_price ? Number(row.combo_price) : null,
             status: row.status,
             start_at: row.start_at,
             end_at: row.end_at,
@@ -830,17 +1091,21 @@ export async function getAdminPromotions(): Promise<AdminPromotion[]> {
             description_en: enTrans?.description ?? null,
             created_at: row.created_at,
             updated_at: row.updated_at,
-          };
+          } as AdminPromotion;
         });
+
+        if (params.withTotal) return { data: mapped, total: promoTotal };
+        return mapped;
       }
       if (error) {
-        console.warn("Error fetching admin promotions, falling back to mock:", error);
+        console.warn("Error fetching admin promotions:", error);
       }
     } catch (e) {
-      console.warn("Exception fetching admin promotions, falling back to mock:", e);
+      console.warn("Exception fetching admin promotions:", e);
     }
-  }
-  return mockPromotions;
+
+  if (params.withTotal) return { data: [], total: 0 };
+  return [];
 }
 
 export async function createAdminPromotion(data: {
@@ -860,30 +1125,8 @@ export async function createAdminPromotion(data: {
   productIds?: string[];
 }): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    const newPromo: AdminPromotion = {
-      id: crypto.randomUUID(),
-      code: data.code,
-      discount_percentage: data.discount_percentage,
-      status: data.status,
-      start_at: data.start_at,
-      end_at: data.end_at,
-      title_vi: data.title_vi,
-      title_en: data.title_en,
-      description_vi: data.description_vi,
-      description_en: data.description_en,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      combo_price: data.combo_price || null,
-      original_price: data.original_price || null,
-      cover_image_url: data.cover_image || null,
-      items: data.items || [],
-    } as any;
-    mockPromotions.unshift(newPromo);
-    return { success: true, data: newPromo };
-  }
+  
+  
   try {
     const supabase = await createClient();
     
@@ -976,6 +1219,7 @@ export async function createAdminPromotion(data: {
         id: promo.id,
         code: promo.code,
         discount_percentage: promo.discount_percentage ? Number(promo.discount_percentage) : null,
+        combo_price: promo.combo_price ? Number(promo.combo_price) : null,
         status: promo.status,
         start_at: promo.start_at,
         end_at: promo.end_at,
@@ -1013,34 +1257,8 @@ export async function updateAdminPromotion(
   }
 ): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    mockPromotions = mockPromotions.map((p) => {
-      if (p.id === id) {
-        return {
-          ...p,
-          code: data.code,
-          discount_percentage: data.discount_percentage,
-          status: data.status,
-          start_at: data.start_at,
-          end_at: data.end_at,
-          title_vi: data.title_vi,
-          title_en: data.title_en,
-          description_vi: data.description_vi,
-          description_en: data.description_en,
-          updated_at: new Date().toISOString(),
-          combo_price: data.combo_price || null,
-          original_price: data.original_price || null,
-          cover_image_url: data.cover_image || null,
-          items: data.items || [],
-        } as any;
-      }
-      return p;
-    });
-    const updated = mockPromotions.find((p) => p.id === id);
-    return { success: true, data: updated };
-  }
+  
+  
   try {
     const supabase = await createClient();
 
@@ -1130,6 +1348,7 @@ export async function updateAdminPromotion(
         id: promo.id,
         code: promo.code,
         discount_percentage: promo.discount_percentage ? Number(promo.discount_percentage) : null,
+        combo_price: promo.combo_price ? Number(promo.combo_price) : null,
         status: promo.status,
         start_at: promo.start_at,
         end_at: promo.end_at,
@@ -1149,12 +1368,8 @@ export async function updateAdminPromotion(
 
 export async function deleteAdminPromotion(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    mockPromotions = mockPromotions.filter((p) => p.id !== id);
-    return { success: true };
-  }
+  
+  
 
   try {
     const supabase = await createClient();
@@ -1191,15 +1406,10 @@ export async function deleteAdminPromotion(id: string): Promise<{ success: boole
 
 
 export async function getAdminPromotionById(id: string): Promise<{ success: boolean; data?: any; error?: string }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const match = mockPromotions.find(p => p.id === id);
-    return { success: true, data: match };
-  }
-
   try {
     const supabase = await createClient();
-    const { data: promo, error } = await supabase
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    let query = supabase
       .from("promotions")
       .select(`
         id,
@@ -1218,9 +1428,15 @@ export async function getAdminPromotionById(id: string): Promise<{ success: bool
           title,
           description
         )
-      `)
-      .eq("id", id)
-      .single();
+      `);
+    
+    if (isUuid) {
+      query = query.eq("id", id);
+    } else {
+      query = query.eq("code", id);
+    }
+
+    const { data: promo, error } = await query.single();
 
     if (error || !promo) {
       return { success: false, error: error?.message || "Promotion not found" };
@@ -1273,48 +1489,83 @@ export type AdminUser = {
   is_active: boolean;
   full_name: string | null;
   created_at: string;
+  last_login_at?: string | null;
 };
 
-export async function getAdminUsers(): Promise<AdminUser[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (useMock) {
-    return [
-      {
-        id: "mock-admin-id",
-        email: "admin@phuongdong.vn",
-        role: "admin",
-        is_active: true,
-        full_name: "Quản trị viên",
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: "mock-editor-id",
-        email: "editor@phuongdong.vn",
-        role: "editor",
-        is_active: true,
-        full_name: "Biên tập viên",
-        created_at: new Date().toISOString(),
-      },
-    ];
-  }
-
+export async function getAdminUsers(params: {
+  q?: string;
+  role?: string;
+  isActive?: string;
+  sort?: string;
+  dir?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  withTotal?: boolean;
+} = {}): Promise<AdminUser[] | { data: AdminUser[]; total: number }> {
   try {
     const supabase = await createAdminClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("profiles")
-      .select("id, email, role, is_active, full_name, created_at")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
+      .select("id, email, role, is_active, full_name, created_at, last_login_at")
+      .is("deleted_at", null);
 
+    if (params.role && params.role !== "all") {
+      query = query.eq("role", params.role);
+    }
+    if (params.isActive === "true") {
+      query = query.eq("is_active", true);
+    } else if (params.isActive === "false") {
+      query = query.eq("is_active", false);
+    }
+    if (params.dateFrom) {
+      query = query.gte("created_at", params.dateFrom);
+    }
+    if (params.dateTo) {
+      query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
+    }
+    if (params.q) {
+      query = query.or(`email.ilike.%${params.q}%,full_name.ilike.%${params.q}%`);
+    }
+
+    let total = 0;
+    if (params.withTotal) {
+      let countQ = supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      if (params.role && params.role !== "all") countQ = countQ.eq("role", params.role);
+      if (params.isActive === "true") countQ = countQ.eq("is_active", true);
+      else if (params.isActive === "false") countQ = countQ.eq("is_active", false);
+      if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
+      if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
+      if (params.q) {
+        countQ = countQ.or(`email.ilike.%${params.q}%,full_name.ilike.%${params.q}%`);
+      }
+      const { count } = await countQ;
+      total = count ?? 0;
+    }
+
+    const userSort = params.sort || "created_at";
+    const userAsc = (params.dir ?? "desc") === "asc";
+    if (params.limit) {
+      query = query.order(userSort, { ascending: userAsc }).limit(params.limit).range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
+    } else {
+      query = query.order(userSort, { ascending: userAsc });
+    }
+
+    const { data, error } = await query;
     if (error) {
       console.error("Error fetching admin users from profiles table:", error);
+      if (params.withTotal) return { data: [], total: 0 };
       return [];
     }
 
-    return (data || []) as AdminUser[];
+    const users = (data || []) as AdminUser[];
+
+    if (params.withTotal) return { data: users, total };
+    return users;
   } catch (err) {
     console.error("Exception fetching admin users:", err);
+    if (params.withTotal) return { data: [], total: 0 };
     return [];
   }
 }
@@ -1336,11 +1587,7 @@ export async function updateQuoteStatus(
   newStatus: string,
   note?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    // Mock: just return success
-    return { success: true };
-  }
+    
 
   try {
     await requireEditorOrAdmin();
@@ -1365,20 +1612,7 @@ export async function updateQuoteStatus(
 }
 
 export async function getQuoteStatusLogs(quoteId: string): Promise<QuoteStatusLog[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    return [
-      {
-        id: "mock-log-1",
-        quote_id: quoteId,
-        from_status: null,
-        to_status: "new",
-        changed_by_name: "Hệ thống",
-        note: "Yêu cầu báo giá nhận từ trang web.",
-        created_at: new Date().toISOString(),
-      },
-    ];
-  }
+    
 
   try {
     const supabase = await createAdminClient();
@@ -1399,18 +1633,7 @@ export async function getQuoteStatusLogs(quoteId: string): Promise<QuoteStatusLo
 }
 
 export async function searchAdminProducts(q: string): Promise<any[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const matched = mockProducts.filter(p => 
-      p.name.vi.toLowerCase().includes(q.toLowerCase()) ||
-      p.reference_code.toLowerCase().includes(q.toLowerCase())
-    );
-    return matched.map(p => ({
-      id: p.id,
-      reference_code: p.reference_code,
-      name: p.name.vi
-    }));
-  }
+    
 
   try {
     const supabase = await createClient();
@@ -1439,15 +1662,7 @@ export async function searchAdminProducts(q: string): Promise<any[]> {
 
 export async function getProductsByIds(ids: string[]): Promise<any[]> {
   if (!ids || ids.length === 0) return [];
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const matched = mockProducts.filter(p => ids.includes(p.id));
-    return matched.map(p => ({
-      id: p.id,
-      reference_code: p.reference_code,
-      name: p.name.vi
-    }));
-  }
+    
 
   try {
     const supabase = await createClient();
@@ -1470,6 +1685,48 @@ export async function getProductsByIds(ids: string[]): Promise<any[]> {
   } catch (e) {
     console.error("Failed to get products by ids:", e);
     return [];
+  }
+}
+
+export async function getBrandProductCount(brandId: string): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { count, error } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("brand_id", brandId)
+      .is("deleted_at", null);
+    if (error) {
+      console.error("Failed to count products for brand:", error);
+      return 0;
+    }
+    return count ?? 0;
+  } catch (err) {
+    console.error("Exception counting products for brand:", err);
+    return 0;
+  }
+}
+
+export async function updatePromotionStatus(
+  id: string,
+  status: string
+): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("promotions")
+      .update({
+        status,
+        updated_by: user.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Database error" };
   }
 }
 

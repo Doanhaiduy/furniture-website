@@ -12,10 +12,6 @@ export function mapDBProductGroupKeyToUI(groupKey?: string | null) {
   return groupKey || "";
 }
 
-import { mockCategories } from "../mock-data/categories";
-import { mockProducts } from "../mock-data/products";
-import { mockBlogs } from "../mock-data/blogs";
-import { mockShowrooms } from "../mock-data/showrooms";
 import { imageAssets } from "../showroom-constants";
 
 /**
@@ -40,9 +36,8 @@ export async function getProducts(
   }
 ) {
   const locale = params.locale || "vi";
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       let resolvedBrandSlug = params.brandSlug || null;
       if (params.brandId && params.brandId !== "all" && !resolvedBrandSlug) {
@@ -84,72 +79,9 @@ export async function getProducts(
     } catch (e) {
       console.error("[ERROR getProducts Exception]", e);
     }
-  }
+  
 
-  // Fallback to local mock products
-  let filtered = mockProducts
-    .filter((p) => p.status === "published")
-    .map((p) => ({
-      id: p.id,
-      reference_code: p.reference_code,
-      slug: p.slug,
-      name: p.name,
-      summary: p.summary,
-      description_json: p.description,
-      material: p.material,
-      price_display_text: p.price_display_text,
-      dimension_display_text: p.dimension_display_text,
-      category_id: p.category_id,
-      group_key: p.group_key,
-      category_slug: p.category_slug,
-      category_name: p.category_name,
-      price_min: p.price_min,
-      price_max: p.price_max,
-      currency: p.currency,
-      brand_id: (p as any).brand_id || null,
-      brand_name: (p as any).brand_name || null,
-      brand_series: (p as any).brand_series || (p as any).brandSeries || null,
-      featured: p.featured,
-      published_at: p.published_at,
-      primary_media: p.primary_media,
-      media: p.media,
-      specs: p.specs,
-      attributes: p.attributes,
-    }));
-
-  if (params.categorySlug && params.categorySlug !== "all") {
-    filtered = filtered.filter((p) => p.category_slug === params.categorySlug);
-  }
-  if (params.groupKey && params.groupKey !== "all") {
-    filtered = filtered.filter((p) => p.group_key === params.groupKey);
-  }
-  if (params.featured !== undefined && params.featured !== null) {
-    filtered = filtered.filter((p) => p.featured === params.featured);
-  }
-  if (params.brandId && params.brandId !== "all") {
-    filtered = filtered.filter((p) => p.brand_id === params.brandId);
-  }
-  const priceMin = params.priceMin;
-  if (priceMin !== undefined && priceMin !== null) {
-    filtered = filtered.filter((p) => (p.price_min ?? 0) >= priceMin);
-  }
-  const priceMax = params.priceMax;
-  if (priceMax !== undefined && priceMax !== null) {
-    filtered = filtered.filter((p) => (p.price_min ?? 0) <= priceMax);
-  }
-  if (params.q) {
-    const qNorm = params.q.trim().toLowerCase();
-    filtered = filtered.filter(
-      (p) =>
-        (typeof p.name === "object" ? p.name[locale] : p.name).toLowerCase().includes(qNorm) ||
-        (typeof p.summary === "object" ? p.summary[locale] : p.summary).toLowerCase().includes(qNorm) ||
-        p.reference_code.toLowerCase().includes(qNorm)
-    );
-  }
-
-  const offset = params.offset || 0;
-  const limit = params.limit || 24;
-  return filtered.slice(offset, offset + limit);
+  return [];
 }
 
 /**
@@ -167,9 +99,8 @@ export async function getBlogPosts(
   }
 ) {
   const locale = params.locale || "vi";
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const { data, error } = await supabase.rpc("public_blog_posts", {
         p_locale: locale,
@@ -189,44 +120,9 @@ export async function getBlogPosts(
     } catch (e) {
       console.warn("Exception fetching blog posts, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback to local mock blogs
-  let filtered = mockBlogs
-    .filter((post) => post.status === "published")
-    .map((post) => ({
-      id: post.id,
-      slug: post.slug,
-      title: post.title[locale],
-      excerpt: post.excerpt[locale],
-      category_name: post.category_name[locale],
-      category_slug: post.category_slug,
-      author_name: post.author_name,
-      featured: post.featured,
-      published_at: post.published_at,
-      cover_media: post.cover_media,
-      readTime: post.readTime,
-      body_json: post.sections,
-    }));
-
-  if (params.categorySlug && params.categorySlug !== "all") {
-    filtered = filtered.filter((post) => post.category_slug === params.categorySlug);
-  }
-  if (params.featured !== undefined && params.featured !== null) {
-    filtered = filtered.filter((post) => post.featured === params.featured);
-  }
-  if (params.q) {
-    const qNorm = params.q.trim().toLowerCase();
-    filtered = filtered.filter(
-      (post) =>
-        post.title.toLowerCase().includes(qNorm) ||
-        post.excerpt.toLowerCase().includes(qNorm)
-    );
-  }
-
-  const offset = params.offset || 0;
-  const limit = params.limit || 12;
-  return filtered.slice(offset, offset + limit);
+  return [];
 }
 
 /**
@@ -236,9 +132,8 @@ export async function getShowrooms(
   supabase: SupabaseClient,
   locale: "vi" | "en" = "vi"
 ) {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const { data, error } = await supabase.rpc("public_showrooms", {
         p_locale: locale,
@@ -253,25 +148,9 @@ export async function getShowrooms(
     } catch (e) {
       console.warn("Exception fetching showrooms, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback to local mock showrooms
-  return mockShowrooms
-    .filter((s) => s.status === "published")
-    .map((s) => ({
-      id: s.id,
-      code: s.code,
-      name: s.name[locale],
-      address: s.address[locale],
-      hotline: s.hotline,
-      opening_hours: s.opening_hours[locale],
-      google_maps_embed_url: s.google_maps_embed_url,
-      google_maps_fallback_url: s.google_maps_fallback_url,
-      latitude: s.latitude,
-      longitude: s.longitude,
-      status: s.status,
-      primary_media: s.primary_media,
-    }));
+  return [];
 }
 
 /**
@@ -281,9 +160,8 @@ export async function getCategories(
   supabase: SupabaseClient,
   locale: "vi" | "en" = "vi"
 ) {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const { data, error } = await supabase
         .from("product_categories")
@@ -332,28 +210,9 @@ export async function getCategories(
     } catch (e) {
       console.warn("Exception fetching categories, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback to local mock categories
-  return mockCategories
-    .filter((cat) => cat.status === "published")
-    .map((cat) => {
-      let fallbackImage = imageAssets.showroom;
-      if (cat.group_key === "wood") fallbackImage = imageAssets.woodWall;
-      else if (cat.group_key === "sanitary") fallbackImage = imageAssets.room;
-      else if (cat.group_key === "tiles") fallbackImage = imageAssets.texture;
-
-      return {
-        id: cat.id,
-        parentId: cat.parent_id,
-        groupKey: cat.group_key,
-        sortOrder: cat.sort_order,
-        slug: cat.slug,
-        name: cat.name[locale],
-        description: cat.description?.[locale] || "",
-        image: fallbackImage,
-      };
-    });
+  return [];
 }
 
 /**
@@ -364,9 +223,8 @@ export async function getContentPage(
   key: string,
   locale: "vi" | "en" = "vi"
 ) {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const { data, error } = await supabase
         .from("content_pages")
@@ -409,28 +267,9 @@ export async function getContentPage(
     } catch (e) {
       console.warn("Exception fetching content page, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback static page contents
-  const homeTitle = locale === "vi" ? "Không gian tinh hoa nâng tầm sống" : "Exquisite spaces elevating your life";
-  const homeLead = locale === "vi" 
-    ? "Showroom Phương Đông mang đến các giải pháp đồ gỗ óc chó cao cấp và thiết bị vệ sinh nhập khẩu tiêu chuẩn châu Âu cho ngôi nhà bạn."
-    : "Phuong Dong Showroom delivers high-end walnut furniture and European-standard sanitary fixtures to your home.";
-
-  const aboutTitle = locale === "vi" ? "Về chúng tôi - Showroom Phương Đông" : "About Us - Phuong Dong Showroom";
-  const aboutLead = locale === "vi"
-    ? "Hơn 20 năm đồng hành kiến tạo không gian sống tiện nghi, sang trọng cho gia đình Việt."
-    : "Over 20 years of creating comfortable and luxurious living spaces for Vietnamese families.";
-
-  return {
-    id: `page-${key}`,
-    key,
-    title: key === "about" ? aboutTitle : homeTitle,
-    lead: key === "about" ? aboutLead : homeLead,
-    bodyJson: {},
-    seoTitle: key === "about" ? aboutTitle : homeTitle,
-    seoDescription: key === "about" ? aboutLead : homeLead,
-  };
+  return null;
 }
 
 /**
@@ -441,84 +280,177 @@ export async function getProductBySlug(
   slug: string,
   locale: "vi" | "en" = "vi"
 ) {
-  let offset = 0;
-  let product: any = null;
-
-  while (offset < maxPublicProductLookupRows) {
-    const rows = await getProducts(supabase, {
-      locale,
-      limit: publicProductLookupPageSize,
-      offset,
-    });
-
-    product = rows.find((row: any) => row.slug === slug) || null;
-    if (product || rows.length < publicProductLookupPageSize) break;
-
-    offset += publicProductLookupPageSize;
-  }
-
-  if (!product) {
-    const { data: transData } = await supabase
+  try {
+    // 1. Tìm product_id bằng slug từ bảng product_translations
+    const { data: transList, error: transError } = await supabase
       .from("product_translations")
       .select("product_id")
       .eq("slug", slug)
+      .limit(1);
+
+    if (transError) {
+      console.error("Error finding product by slug translation:", transError);
+    }
+    
+    let productId = transList && transList.length > 0 ? transList[0].product_id : null;
+
+    // Nếu không tìm thấy, thử tìm theo id trực tiếp (đề phòng slug chính là UUID)
+    if (!productId && slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      productId = slug;
+    }
+
+    if (!productId) return null;
+
+    // 2. Query trực tiếp bảng products để có dữ liệu đầy đủ nhất
+    const { data: row, error: rowError } = await supabase
+      .from("products")
+      .select(`
+        id,
+        reference_code,
+        status,
+        price_min,
+        price_max,
+        currency,
+        featured,
+        published_at,
+        width,
+        depth,
+        height,
+        dimension_unit,
+        brand_id,
+        brand_series,
+        created_at,
+        updated_at,
+        tags,
+        specifications,
+        custom_attributes,
+        brands (
+          id,
+          brand_translations (
+            locale,
+            name
+          )
+        ),
+        product_categories (
+          id,
+          group_key,
+          product_category_translations (
+            name,
+            slug
+          )
+        ),
+        product_media (
+          media_id,
+          is_primary,
+          sort_order,
+          media:media_assets (
+            id,
+            public_url,
+            format,
+            size_bytes,
+            mime_type
+          )
+        ),
+        product_translations (
+          locale,
+          slug,
+          name,
+          summary,
+          description_json,
+          material,
+          price_display_text,
+          dimension_display_text
+        )
+      `)
+      .eq("id", productId)
+      .is("deleted_at", null)
       .maybeSingle();
 
-    if (transData?.product_id) {
-      offset = 0;
-      while (offset < maxPublicProductLookupRows) {
-        const rows = await getProducts(supabase, {
-          locale,
-          limit: publicProductLookupPageSize,
-          offset,
-        });
-
-        product = rows.find((row: any) => row.id === transData.product_id) || null;
-        if (product || rows.length < publicProductLookupPageSize) break;
-
-        offset += publicProductLookupPageSize;
-      }
+    if (rowError || !row) {
+      console.error("Error fetching product details directly:", rowError);
+      return null;
     }
+
+    // 3. Chuẩn hóa dữ liệu sang dạng phẳng tương thích với mapDBProductToPublicProduct
+    const category = (Array.isArray(row.product_categories) ? row.product_categories[0] : row.product_categories) || {};
+    const categoryTranslation = (category as any).product_category_translations?.find((t: any) => t.locale === locale) || (category as any).product_category_translations?.[0];
+    
+    const brand = (Array.isArray(row.brands) ? row.brands[0] : row.brands) || {};
+    const brandTranslation = (brand as any).brand_translations?.find((t: any) => t.locale === locale) || (brand as any).brand_translations?.[0];
+
+    const currentTranslation = row.product_translations?.find((t: any) => t.locale === locale) || row.product_translations?.[0];
+    const viTranslation = row.product_translations?.find((t: any) => t.locale === "vi");
+    const enTranslation = row.product_translations?.find((t: any) => t.locale === "en");
+
+    const getMediaUrl = (mediaField: any) => {
+      if (!mediaField) return "";
+      const singleMedia = Array.isArray(mediaField) ? mediaField[0] : mediaField;
+      return (singleMedia as any)?.public_url || "";
+    };
+
+    const primaryMediaObj = row.product_media?.find((m: any) => m.is_primary);
+    const primaryMedia = primaryMediaObj 
+      ? { url: getMediaUrl(primaryMediaObj.media) } 
+      : (row.product_media?.[0] ? { url: getMediaUrl(row.product_media[0].media) } : null);
+
+    const media = Array.isArray(row.product_media)
+      ? row.product_media.map((m: any) => ({
+          url: getMediaUrl(m.media),
+          isPrimary: m.is_primary || false,
+        }))
+      : [];
+
+    return {
+      id: row.id,
+      referenceCode: row.reference_code,
+      slug: currentTranslation?.slug || slug,
+      name: { vi: viTranslation?.name || "", en: enTranslation?.name || "" },
+      summary: { vi: viTranslation?.summary || "", en: enTranslation?.summary || "" },
+      descriptionJson: currentTranslation?.description_json || {},
+      material: {
+        vi: viTranslation?.material || "",
+        en: enTranslation?.material || "",
+      },
+      priceDisplayText: {
+        vi: viTranslation?.price_display_text || "",
+        en: enTranslation?.price_display_text || "",
+      },
+      dimensionDisplayText: {
+        vi: viTranslation?.dimension_display_text || "",
+        en: enTranslation?.dimension_display_text || "",
+      },
+      category: {
+        id: category.id || "",
+        groupKey: category.group_key || "",
+        slug: categoryTranslation?.slug || "",
+        name: categoryTranslation?.name || "",
+      },
+      priceMin: row.price_min,
+      priceMax: row.price_max,
+      currency: row.currency,
+      width: row.width,
+      depth: row.depth,
+      height: row.height,
+      dimensionUnit: row.dimension_unit,
+      brandId: row.brand_id,
+      brandName: brandTranslation?.name || (brand as any).name || "",
+      brandSeries: row.brand_series,
+      featured: row.featured,
+      publishedAt: row.published_at,
+      primaryMedia: primaryMedia,
+      media,
+      attributes: [],
+      specs: [],
+      specifications: row.specifications || {},
+      custom_attributes: row.custom_attributes || [],
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      promo_price_min: null as number | null,
+      promo_price_max: null as number | null,
+    };
+  } catch (e) {
+    console.error("Exception in getProductBySlug directly:", e);
   }
-
-  if (!product) return null;
-
-  return {
-    id: product.id,
-    referenceCode: product.reference_code,
-    slug: product.slug || "",
-    name: product.name || "",
-    summary: product.summary || "",
-    descriptionJson: product.description_json || {},
-    material: product.material || "",
-    priceDisplayText: product.price_display_text || "",
-    dimensionDisplayText: product.dimension_display_text || "",
-    category: {
-      id: product.category_id,
-      groupKey: product.group_key,
-      slug: product.category_slug || "",
-      name: product.category_name || "",
-    },
-    priceMin: product.price_min,
-    priceMax: product.price_max,
-    currency: product.currency,
-    width: product.width,
-    depth: product.depth,
-    height: product.height,
-    dimensionUnit: product.dimension_unit,
-    brandId: product.brand_id || null,
-    brandName: product.brand_name || null,
-    brandSeries: product.brand_series,
-    featured: product.featured,
-    publishedAt: product.published_at,
-    primaryMedia: product.primary_media || null,
-    media: Array.isArray(product.media) ? product.media : [],
-    attributes: Array.isArray(product.attributes) ? product.attributes : [],
-    specs: product.specs,
-    // Promo pricing passthrough
-    promo_price_min: product.promo_price_min ?? null,
-    promo_price_max: product.promo_price_max ?? null,
-  };
+  return null;
 }
 
 /**
@@ -546,11 +478,13 @@ export async function getBlogBySlug(
   }
 
   if (!post) {
-    const { data: transData } = await supabase
+    const { data: transList } = await supabase
       .from("blog_post_translations")
       .select("post_id")
       .eq("slug", slug)
-      .maybeSingle();
+      .limit(1);
+
+    const transData = transList && transList.length > 0 ? transList[0] : null;
 
     if (transData?.post_id) {
       offset = 0;
@@ -611,9 +545,14 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
   const attributes = Array.isArray(dbProduct.attributes) ? dbProduct.attributes : [];
   const specs: any[] = [];
 
-  if (dbProduct.material) {
-    const matVi = typeof dbProduct.material === "object" ? dbProduct.material.vi : dbProduct.material;
-    const matEn = typeof dbProduct.material === "object" ? dbProduct.material.en : dbProduct.material;
+  const matVi = typeof dbProduct.material === "object" && dbProduct.material 
+    ? dbProduct.material.vi 
+    : dbProduct.material_vi || dbProduct.material || "";
+  const matEn = typeof dbProduct.material === "object" && dbProduct.material 
+    ? dbProduct.material.en 
+    : dbProduct.material_en || dbProduct.material || "";
+
+  if (matVi || matEn) {
     specs.push({
       label: { vi: "Chất liệu", en: "Material" },
       value: { vi: matVi, en: matEn },
@@ -629,7 +568,36 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     });
   }
 
-  if (Array.isArray(dbProduct.specs)) {
+  const specifications = dbProduct.specifications || {};
+  if (specifications.finish_vi || specifications.finish_en) {
+    specs.push({
+      label: { vi: "Hoàn thiện", en: "Finish" },
+      value: { vi: specifications.finish_vi || "", en: specifications.finish_en || "" },
+    });
+  }
+  if (specifications.care_vi || specifications.care_en) {
+    specs.push({
+      label: { vi: "Bảo quản", en: "Care" },
+      value: { vi: specifications.care_vi || "", en: specifications.care_en || "" },
+    });
+  }
+
+  const customAttrs = dbProduct.custom_attributes || [];
+  if (Array.isArray(customAttrs) && customAttrs.length > 0) {
+    customAttrs.forEach((attr: any) => {
+      if (attr.name_vi || attr.name_en) {
+        specs.push({
+          label: { vi: attr.name_vi || attr.name_en || "", en: attr.name_en || attr.name_vi || "" },
+          value: { vi: attr.value_vi || attr.value_en || "", en: attr.value_en || attr.value_vi || "" },
+        });
+      } else if (attr.name || attr.label) {
+        specs.push({
+          label: { vi: attr.name || attr.label || "", en: attr.name || attr.label || "" },
+          value: { vi: attr.value || "", en: attr.value || "" },
+        });
+      }
+    });
+  } else if (Array.isArray(dbProduct.specs)) {
     dbProduct.specs.forEach((spec: any) => {
       specs.push({
         label: { vi: spec.label?.vi || spec.label, en: spec.label?.en || spec.label },
@@ -662,8 +630,24 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
   const categoryNameEn = typeof categoryName === "object" && categoryName ? (categoryName as any).en : categoryName || "";
   const summaryVi = typeof dbProduct.summary === "object" && dbProduct.summary ? dbProduct.summary.vi : dbProduct.summary || "";
   const summaryEn = typeof dbProduct.summary === "object" && dbProduct.summary ? dbProduct.summary.en : dbProduct.summary || "";
-  const descVi = typeof dbProduct.description === "object" && dbProduct.description ? dbProduct.description.vi : dbProduct.description_json?.vi || dbProduct.descriptionJson?.vi || summaryVi || "";
-  const descEn = typeof dbProduct.description === "object" && dbProduct.description ? dbProduct.description.en : dbProduct.description_json?.en || dbProduct.descriptionJson?.en || summaryEn || "";
+
+  let descVi = "";
+  if (dbProduct.description && typeof dbProduct.description === "object" && dbProduct.description.vi) {
+    descVi = dbProduct.description.vi;
+  } else {
+    const rawDesc = dbProduct.description_json || dbProduct.descriptionJson || {};
+    descVi = typeof rawDesc === "object" ? (rawDesc.vi || rawDesc.en || "") : (typeof rawDesc === "string" ? rawDesc : "");
+    if (!descVi) descVi = summaryVi || "";
+  }
+
+  let descEn = "";
+  if (dbProduct.description && typeof dbProduct.description === "object" && dbProduct.description.en) {
+    descEn = dbProduct.description.en;
+  } else {
+    const rawDesc = dbProduct.description_json || dbProduct.descriptionJson || {};
+    descEn = typeof rawDesc === "object" ? (rawDesc.en || rawDesc.vi || "") : (typeof rawDesc === "string" ? rawDesc : "");
+    if (!descEn) descEn = summaryEn || "";
+  }
 
   const priceVi = typeof priceDisplayText === "object" ? (priceDisplayText as any).vi : priceDisplayText || "Liên hệ báo giá";
   const priceEn = typeof priceDisplayText === "object" ? (priceDisplayText as any).en : priceDisplayText || "Contact for quote";
@@ -716,6 +700,9 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     promotionId: dbProduct.promotion_id || dbProduct.promotionId || null,
     promoPriceMin,
     promoPriceMax,
+    material: { vi: matVi, en: matEn },
+    specifications,
+    custom_attributes: customAttrs,
   };
 }
 
@@ -726,9 +713,8 @@ export async function getPromotions(
   supabase: SupabaseClient,
   locale: "vi" | "en" = "vi"
 ) {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-  if (!useMock) {
+  
+  
     try {
       const { data, error } = await supabase.rpc("public_promotions", {
         p_locale: locale,
@@ -771,92 +757,9 @@ export async function getPromotions(
     } catch (e) {
       console.warn("Exception fetching promotions, falling back to mock:", e);
     }
-  }
+  
 
-  // Fallback to static mock promotions
-  return [
-    {
-      id: "11111111-1111-1111-1111-111111111111",
-      code: "heritage-walnut-combo",
-      discount_percentage: 15.00,
-      startAt: "2026-06-01T00:00:00+07:00",
-      endAt: "2026-08-31T23:59:59+07:00",
-      title: locale === "vi" ? "Không Gian Phòng Khách Walnut Heritage" : "Heritage Walnut Living Room Package",
-      description: locale === "vi" ? "Tinh tuyển gỗ óc chó tự nhiên cho căn hộ cao cấp" : "Curated natural walnut for premium apartments",
-      comboPrice: 68000000,
-      originalPrice: 79500000,
-      coverImageUrl: imageAssets.sofa,
-      tag: locale === "vi" ? "Chương Trình Ưu Đãi" : "Special Offer",
-      items: locale === "vi" 
-        ? [
-            "Sofa Curve Velour bọc vải cao cấp",
-            "Bàn Trà Marble Round Calacatta cao cấp",
-            "Kệ Tivi Minimalist Wood gỗ veneer óc chó trầm ấm"
-          ]
-        : [
-            "Premium Velour upholstered Sofa Curve",
-            "Luxurious Marble Round Calacatta Coffee Table",
-            "Warm Minimalist Wood TV Cabinet in walnut veneer"
-          ],
-      color: "from-amber-500/20 to-orange-500/5",
-      badgeColor: "bg-amber-500 text-black",
-      period: locale === "vi" ? "Hạn chót: 30/06/2026" : "Until June 30, 2026"
-    },
-    {
-      id: "22222222-2222-2222-2222-222222222222",
-      code: "wellness-bath-set",
-      discount_percentage: 18.00,
-      startAt: "2026-06-01T00:00:00+07:00",
-      endAt: "2026-09-30T23:59:59+07:00",
-      title: locale === "vi" ? "Thiết Bị Phòng Tắm Wellness Luxury" : "Wellness Luxury Bathroom Suite",
-      description: locale === "vi" ? "Không gian spa thư giãn nhập khẩu chính hãng tiêu chuẩn Châu Âu" : "Relaxing spa suite with European standards",
-      comboPrice: 34500000,
-      originalPrice: 42000000,
-      coverImageUrl: imageAssets.room,
-      tag: locale === "vi" ? "Chương Trình Sức Khỏe" : "Wellness Offer",
-      items: locale === "vi" 
-        ? [
-            "Sen Tắm Mạ Vàng 24K với van điều nhiệt cao cấp",
-            "Bồn tắm American phong cách khách sạn 5 sao",
-            "Lavabo Kohler tối giản chống bám bẩn vượt trội"
-          ]
-        : [
-            "24K Gold Plated Shower Set with thermostatic valve",
-            "5-star hotel style American Freestanding Bathtub",
-            "Minimalist Kohler Basin with anti-scale finish"
-          ],
-      color: "from-emerald-500/20 to-teal-500/5",
-      badgeColor: "bg-emerald-500 text-white",
-      period: locale === "vi" ? "Hạn chót: 30/06/2026" : "Until June 30, 2026"
-    },
-    {
-      id: "33333333-3333-3333-3333-333333333333",
-      code: "porcelain-surface-pack",
-      discount_percentage: 20.00,
-      startAt: "2026-06-01T00:00:00+07:00",
-      endAt: "2026-12-31T23:59:59+07:00",
-      title: locale === "vi" ? "Gạch Ốp Lát Luxury Calacatta" : "Luxury Calacatta Tile Deal",
-      description: locale === "vi" ? "Vật liệu cao cấp hoàn thiện bề mặt sang trọng, bền vững" : "Premium materials for luxury and durable surfaces",
-      comboPrice: 1200000,
-      originalPrice: 1500000,
-      coverImageUrl: imageAssets.texture,
-      tag: locale === "vi" ? "Ưu Đãi Hoàn Thiện" : "Finishing Deal",
-      items: locale === "vi" 
-        ? [
-            "Gạch Calacatta Marble khổ lớn 1200x2400 mm",
-            "Gạch Porcelain chịu lực, chống trầy xước",
-            "Tư vấn phối ghép vật liệu miễn phí từ KTS"
-          ]
-        : [
-            "Large format Calacatta Marble look tiles 1200x2400 mm",
-            "Heavy duty, scratch-resistant Porcelain tiles",
-            "Free material coordination consultancy by architects"
-          ],
-      color: "from-blue-500/20 to-indigo-500/5",
-      badgeColor: "bg-blue-600 text-white",
-      period: locale === "vi" ? "Áp dụng theo công trình" : "Applied per project scope"
-    }
-  ];
+  return [];
 }
 
 export interface PublicSiteSettings {
@@ -878,8 +781,7 @@ export async function getPublicSiteSettings(
   supabase: SupabaseClient,
   locale: "vi" | "en" = "vi"
 ): Promise<PublicSiteSettings> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
+  
   const defaults: PublicSiteSettings = {
     brandName: locale === "vi" ? "SHOWROOM NỘI THẤT PHƯƠNG ĐÔNG" : "PHUONG DONG INTERIOR SHOWROOM",
     logoUrl: "/logo-final.svg",
@@ -897,9 +799,7 @@ export async function getPublicSiteSettings(
       : "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.",
   };
 
-  if (useMock) {
-    return defaults;
-  }
+  
 
   try {
     const { data, error } = await supabase
@@ -959,17 +859,14 @@ export interface PublicSocialLink {
 export async function getPublicSocialLinks(
   supabase: SupabaseClient
 ): Promise<PublicSocialLink[]> {
-  const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
+  
   const defaults: PublicSocialLink[] = [
     { platform: "facebook", label: "Facebook", url: "https://facebook.com", isEnabled: true },
     { platform: "instagram", label: "Instagram", url: "https://instagram.com", isEnabled: true },
     { platform: "zalo", label: "Zalo", url: "https://zalo.me", isEnabled: true },
   ];
 
-  if (useMock) {
-    return defaults;
-  }
+  
 
   try {
     const { data, error } = await supabase

@@ -52,7 +52,7 @@ export default async function HomePage({
   const homePageContent = await getContentPage(supabase, "home", locale).catch(() => null);
   const bodyJson = homePageContent?.bodyJson || {};
 
-  const featuredLimit = parseInt(bodyJson.featuredMaxItems || "6", 10) || 6;
+  const featuredLimit = parseInt(bodyJson.featuredMaxItems || "12", 10) || 12;
   const blogLimit = parseInt(bodyJson.blogMaxPosts || "3", 10) || 3;
 
   const featuredVisible = bodyJson.featuredVisible !== undefined ? bodyJson.featuredVisible : true;
@@ -63,10 +63,10 @@ export default async function HomePage({
   const quoteVisible = bodyJson.quoteVisible !== undefined ? bodyJson.quoteVisible : true;
   const heroVisible = bodyJson.heroVisible !== undefined ? bodyJson.heroVisible : true;
 
-  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: 4 });
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: featuredLimit });
   const featured = (dbProducts.length > 0 
     ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
-    : mockProducts.filter((p) => p.featured)).slice(0, 4);
+    : mockProducts.filter((p) => p.featured)).slice(0, featuredLimit);
 
   const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: blogLimit });
   const editorialPosts = dbBlogPosts.length > 0

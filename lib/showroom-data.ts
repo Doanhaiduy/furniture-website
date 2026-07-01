@@ -31,6 +31,9 @@ export interface Product {
   promotionId?: string | null;
   promoPriceMin?: number | null;
   promoPriceMax?: number | null;
+  material?: LocalizedText;
+  specifications?: any;
+  custom_attributes?: any[];
 }
 
 export type ProductSort = "newest" | "featured";

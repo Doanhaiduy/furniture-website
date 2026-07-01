@@ -33,19 +33,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-    if (useMock) {
-      const mockUser = {
-        id: `mock-user-${Date.now()}`,
-        email,
-        full_name: fullName,
-        role,
-        is_active: isActive ?? true,
-        created_at: new Date().toISOString(),
-      };
-      return NextResponse.json({ success: true, data: mockUser });
-    }
+    
+    
 
     const supabase = createAdminClient();
 
@@ -127,11 +116,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const useMock = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-
-    if (useMock) {
-      return NextResponse.json({ success: true });
-    }
+    
+    
 
     const supabase = createAdminClient();
 

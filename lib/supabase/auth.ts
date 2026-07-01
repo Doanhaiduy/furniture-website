@@ -5,26 +5,7 @@ import { cookies } from "next/headers";
 import { env } from "@/lib/env/schema";
 import { redirect } from "next/navigation";
 
-type CmsRole = "admin" | "editor";
-
-function getMockRole(overrideRole?: string | null): CmsRole {
-  if (overrideRole === "editor") return "editor";
-  if (overrideRole === "admin") return "admin";
-  return env.MOCK_ADMIN_ROLE === "editor" ? "editor" : "admin";
-}
-
 export async function getCurrentUser() {
-  const useMock = env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const cookieStore = await cookies();
-    const role = getMockRole(cookieStore.get("pd_mock_admin_role")?.value);
-    return {
-      id: `mock-${role}-id`,
-      email: `${role}@showroom.vn`,
-      role,
-    };
-  }
-
   const cookieStore = await cookies();
   const supabaseUrl = process.env.SUPABASE_URL_INTERNAL || env.NEXT_PUBLIC_SUPABASE_URL;
   const supabase = createServerClient(
@@ -89,12 +70,6 @@ export async function requireEditorOrAdmin() {
 }
 
 export async function isAdmin(userId: string | undefined): Promise<boolean> {
-  const useMock = env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) {
-    const cookieStore = await cookies();
-    return getMockRole(cookieStore.get("pd_mock_admin_role")?.value) === "admin";
-  }
-
   if (!userId) return false;
   const cookieStore = await cookies();
   const supabaseUrl = process.env.SUPABASE_URL_INTERNAL || env.NEXT_PUBLIC_SUPABASE_URL;
@@ -126,9 +101,6 @@ export async function isAdmin(userId: string | undefined): Promise<boolean> {
 export async function isEditorOrAdmin(
   userId: string | undefined,
 ): Promise<boolean> {
-  const useMock = env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
-  if (useMock) return true;
-
   if (!userId) return false;
   const cookieStore = await cookies();
   const supabaseUrl = process.env.SUPABASE_URL_INTERNAL || env.NEXT_PUBLIC_SUPABASE_URL;
