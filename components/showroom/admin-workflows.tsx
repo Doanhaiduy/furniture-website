@@ -77,16 +77,16 @@ type SettingsTab = "identity" | "contact" | "seo" | "integrations" | "sections";
 
 /** Slugify function that handles Vietnamese diacritics */
 function slugify(text: string): string {
-  const vi = "àáâãäåèéêëìíîïòóôõöùúûüýăđĩũơƠƯảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝĂĐĨŨƠảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ";
-  const en = "aaaaaaeeeeiiiioooooouuuuyadiuoouaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy aaaaaeeeeiiiioooooouuuuyadiuooaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy";
-  let result = text.toLowerCase();
-  for (let i = 0; i < vi.length; i++) {
-    result = result.split(vi[i]).join(en[i]);
-  }
-  return result
-    .replace(/[^a-z0-9\s-]/g, "")
+  return text
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
     .trim()
-    .replace(/[\s_-]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
@@ -610,17 +610,6 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
-
-  // Auto-set parent category ID for new categories
-  useEffect(() => {
-    if (!isEdit && categoriesList.length > 0 && !parentId) {
-      const firstGroup = categoriesList.find(c => c.parent_id === null);
-      if (firstGroup) {
-        setParentId(firstGroup.id);
-        setParentGroup(firstGroup.group_key || "wooden_furniture");
-      }
-    }
-  }, [categoriesList, isEdit, parentId]);
   const [showroomId, setShowroomId] = useState<string | null>(null);
 
   // Bind input states

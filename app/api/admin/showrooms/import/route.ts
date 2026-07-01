@@ -10,16 +10,16 @@ import ExcelJS from "exceljs";
 export const dynamic = "force-dynamic";
 
 function slugify(text: string): string {
-  const vi = "àáâãäåèéêëìíîïòóôõöùúûüýăđĩũơƠƯảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝĂĐĨŨƠảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ";
-  const en = "aaaaaaeeeeiiiioooooouuuuyadiuoouaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy aaaaaeeeeiiiioooooouuuuyadiuooaaaaaaaaaaaaaaaeeeeeeeeiiooooooooooooooouuuuuuuyyyy";
-  let result = text.toLowerCase();
-  for (let i = 0; i < vi.length; i++) {
-    result = result.split(vi[i]).join(en[i]);
-  }
-  return result
-    .replace(/[^a-z0-9\s-]/g, "")
+  return text
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
     .trim()
-    .replace(/[\s_-]+/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
