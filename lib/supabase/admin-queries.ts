@@ -617,13 +617,16 @@ export async function getAdminCategories(params: {
 
       const sortField = params.sort || "sort_order";
       const ascending = (params.dir ?? "asc") === "asc";
+      const validDbFields = ["group_key", "status", "sort_order", "created_at"];
+      const dbSortField = validDbFields.includes(sortField) ? sortField : "sort_order";
+
       if (params.limit) {
         query = query
-          .order(sortField, { ascending })
+          .order(dbSortField, { ascending })
           .limit(params.limit)
           .range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
       } else {
-        query = query.order(sortField, { ascending });
+        query = query.order(dbSortField, { ascending });
       }
 
       const { data, error } = await query as { data: any[] | null, error: any };
@@ -693,6 +696,21 @@ export async function getAdminCategories(params: {
             parent_name: row.parent_id ? (categoryMap[row.parent_id] || null) : null,
           } as any;
         });
+
+        // In-memory sorting for non-DB columns
+        if (!validDbFields.includes(sortField)) {
+          if (sortField === "name") {
+            mapped.sort((a: any, b: any) => {
+              const aVal = a.name || "";
+              const bVal = b.name || "";
+              return ascending ? aVal.localeCompare(bVal, "vi") : bVal.localeCompare(aVal, "vi");
+            });
+          } else if (sortField === "product_count") {
+            mapped.sort((a: any, b: any) => {
+              return ascending ? a.product_count - b.product_count : b.product_count - a.product_count;
+            });
+          }
+        }
 
         if (params.withTotal) return { data: mapped, total };
         return mapped;

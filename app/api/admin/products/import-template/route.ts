@@ -364,9 +364,9 @@ export async function GET(req: NextRequest) {
     wsInstr.addRow(["", ""]).height = 10;
 
     const instrLines = [
-      ["🔵 Cột bắt buộc (*)", "Các cột đánh dấu * là bắt buộc. Bỏ trống sẽ báo lỗi."],
+      ["▲ Cột bắt buộc (*)", "Các cột đánh dấu * là bắt buộc. Bỏ trống sẽ báo lỗi."],
       ["🔵 Slug sản phẩm", "Tự động sinh từ Tên (Tiếng Việt) dưới dạng viết thường không dấu nối gạch ngang."],
-      ["🔵 Slug danh mục*", "Chọn từ dropdown list hoặc xem sheet '📂 Danh mục'. Phải dùng danh mục CON (không phải nhóm cha)."],
+      ["🔵 Slug danh mục*", "Chọn từ dropdown list hoặc xem sheet '📂 Danh mục'. Phải dùng Danh mục (không phải nhóm danh mục)."],
       ["🔵 Slug thương hiệu", "Chọn từ dropdown hoặc xem sheet '🏷️ Thương hiệu'."],
       ["🔵 Ảnh chính (URL)*", "Đường dẫn URL ảnh đại diện của sản phẩm (ảnh bìa Cloudinary hoặc nguồn khác)."],
       ["🔵 Thư viện ảnh", "Các đường dẫn ảnh chi tiết cách nhau bởi dấu phẩy (,)."],
@@ -398,7 +398,7 @@ export async function GET(req: NextRequest) {
     const wsCats = workbook.addWorksheet("📂 Danh mục", {
       views: [{ state: 'frozen', ySplit: 1 }]
     });
-    const catHeaders = ["STT", "Nhóm danh mục", "Tên danh mục (Tiếng Việt)", "Slug ← COPY CỘT NÀY", "Loại", "Chỉ danh mục con (để dropdown)"];
+    const catHeaders = ["STT", "Nhóm hàng", "Tên danh mục (Tiếng Việt)", "Slug ← COPY CỘT NÀY", "Loại", "Chỉ Danh mục (để dropdown)"];
     const catHdr = wsCats.addRow(catHeaders);
     catHdr.height = 32;
     catHdr.eachCell((cell) => {
@@ -432,7 +432,7 @@ export async function GET(req: NextRequest) {
           grp,
           c.name,
           c.slug,
-          isGrp ? "🗂️ Nhóm (không dùng)" : "✅ Danh mục con",
+          isGrp ? "🗂️ Nhóm danh mục (không dùng)" : "✅ Danh mục",
           childSlugVal
         ]);
         r.height = 22;
@@ -513,7 +513,7 @@ export async function GET(req: NextRequest) {
 
     const errorDefs = [
       ["ERR_REQUIRED", "Bỏ trống trường bắt buộc", "Các cột đánh dấu * như Tên sản phẩm, Mô tả ngắn, Ảnh chính bị bỏ trống.", "Điền đầy đủ thông tin trước khi import."],
-      ["ERR_CAT_NOT_FOUND", "Không tìm thấy slug danh mục", "Slug danh mục không khớp với danh mục con nào trong hệ thống.", "Kiểm tra sheet '📂 Danh mục' để copy chính xác slug danh mục con."],
+      ["ERR_CAT_NOT_FOUND", "Không tìm thấy slug danh mục", "Slug danh mục không khớp với danh mục nào trong hệ thống.", "Kiểm tra sheet '📂 Danh mục' để copy chính xác slug danh mục."],
       ["ERR_BRAND_NOT_FOUND", "Không tìm thấy slug thương hiệu", "Slug thương hiệu không khớp với thương hiệu nào.", "Xem sheet '🏷️ Thương hiệu' để copy chính xác slug thương hiệu."],
       ["ERR_PRICE_INVALID", "Giá tiền không hợp lệ", "Giá chứa chữ cái, dấu chấm/phẩy phân cách hoặc giá tối thiểu lớn hơn giá tối đa.", "Chỉ nhập số nguyên dương, đảm bảo giá tối thiểu <= giá tối đa."],
       ["ERR_ENUM_INVALID", "Giá trị Dropdown sai", "Cột Trạng thái hoặc Nổi bật nhập sai ký tự (VD: 'active' thay vì 'published').", "Sử dụng dropdown tích hợp sẵn trong ô để chọn giá trị hợp lệ."],

@@ -1378,7 +1378,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           <WorkflowIntro
             icon={Tag}
             title="Hồ sơ danh mục"
-            description="Nhóm sản phẩm cấp cao được giữ cố định; biên tập viên tạo danh mục con với trường song ngữ và SEO sẵn sàng."
+            description="Nhóm sản phẩm cấp cao được giữ cố định; biên tập viên tạo danh mục với trường song ngữ và SEO sẵn sàng."
           />
           <div className="mt-5 grid gap-4">
             <div className="grid gap-4 md:grid-cols-2">

@@ -21,9 +21,9 @@ import {
   Activity,
   FileText,
   X,
-  Sparkle,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Package,
   Tag,
   Globe,
@@ -1028,8 +1028,8 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
       key: "level",
       label: "Cấp danh mục",
       options: [
-        { value: "parent", label: "Danh mục cha (Gốc)" },
-        { value: "child", label: "Danh mục con" }
+        { value: "parent", label: "Nhóm danh mục" },
+        { value: "child", label: "Danh mục" }
       ],
       placeholder: "Tất cả các cấp"
     },
@@ -1065,14 +1065,39 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
     return result;
   };
 
-  const sortedCategories = organizeCategoriesHierarchically(categories);
-  const canDeleteCategory = categoryToDelete?.product_count === 0;
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const isExpanded = (id: string) => expandedGroups[id] !== false;
+
+  const toggleGroup = (id: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [id]: !isExpanded(id)
+    }));
+  };
+
+  const sort = searchParams.get("sort") || "sort_order";
+  const isDefaultSort = sort === "sort_order";
+  const hasSearch = Boolean(searchParams.get("q"));
+
+  const sortedCategories = isDefaultSort ? organizeCategoriesHierarchically(categories) : categories;
+
+  const visibleCategories = (isDefaultSort && !hasSearch)
+    ? sortedCategories.filter(cat => {
+        if (cat.parent_id !== null) {
+          return isExpanded(cat.parent_id);
+        }
+        return true;
+      })
+    : sortedCategories;
+
+  const hasChildren = categoryToDelete ? categories.some(c => c.parent_id === categoryToDelete.id) : false;
+  const canDeleteCategory = categoryToDelete?.product_count === 0 && !hasChildren;
 
   return (
     <div className="space-y-5">
       <AdminPageHeader
         title="Quản trị danh mục"
-        description="Hai nhóm sản phẩm chính được giữ cố định theo nghiệp vụ. Biên tập viên quản lý danh mục con, tên song ngữ, đường dẫn, thứ tự và SEO."
+        description="Hai nhóm sản phẩm chính được giữ cố định theo nghiệp vụ. Biên tập viên quản lý danh mục, tên song ngữ, đường dẫn, thứ tự và SEO."
         actionHref="/admin/categories?create=1"
         actionLabel="Thêm danh mục"
       />
@@ -1094,7 +1119,7 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
       </div>
 
       <DataView
-        data={sortedCategories}
+        data={visibleCategories}
         totalCount={total}
         filterConfigs={filterConfigs}
         searchPlaceholder="Tên danh mục, slug..."
@@ -1102,9 +1127,9 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
         defaultDir="asc"
         defaultLimit={20}
         columns={[
-          { key: "name", label: "Danh mục", width: "1fr", sortable: false },
+          { key: "name", label: "Danh mục", width: "1fr", sortable: true },
           { key: "group_key", label: "Nhóm hàng", width: "150px", sortable: true },
-          { key: "product_count", label: "Sản phẩm", width: "130px", sortable: false },
+          { key: "product_count", label: "Sản phẩm", width: "130px", sortable: true },
           { key: "status", label: "Trạng thái", width: "120px", sortable: true },
           { key: "actions", label: "Thao tác", width: "100px", sortable: false },
         ]}
@@ -1112,11 +1137,30 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
           const category = item as AdminCategory & { group_key?: string | null; parent_name?: string | null };
           const groupLabel = category.group_key === "wooden_furniture" ? "Đồ gỗ" : category.group_key === "sanitary_equipment" ? "Thiết bị vệ sinh" : category.group_key === "tiles" ? "Gạch ốp lát" : category.group_key === "project_solutions" ? "Thiết bị khác" : "Khác";
           const isChild = category.parent_id !== null;
+          const isGrp = category.parent_id === null;
+          const isGrpExpanded = isExpanded(category.id);
+          const hasSubCategories = categories.some(c => c.parent_id === category.id);
+
           return (
             <div key={category.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "1fr 150px 130px 120px 100px" }}>
               <div className="min-w-0 flex items-center">
                 {isChild && (
                   <span className="text-slate-300 font-mono mr-2 select-none pl-4">└─</span>
+                )}
+                {isGrp && isDefaultSort && !hasSearch && hasSubCategories ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(category.id)}
+                    className="mr-1.5 p-0.5 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition cursor-pointer"
+                  >
+                    {isGrpExpanded ? (
+                      <ChevronDown className="size-4" />
+                    ) : (
+                      <ChevronRight className="size-4" />
+                    )}
+                  </button>
+                ) : isGrp && (
+                  <span className="w-5" />
                 )}
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-800 text-sm truncate flex items-center gap-2">
@@ -1124,7 +1168,7 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
                     {category.parent_id === null ? (
                       <span className="bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Nhóm danh mục</span>
                     ) : (
-                      <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Danh mục con</span>
+                      <span className="bg-slate-50 text-slate-600 border border-slate-200 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Danh mục</span>
                     )}
                   </p>
                   <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500">{category.slug}</code>
@@ -1215,7 +1259,11 @@ function CategoryPage({ createMode, categories = [], total = 0 }: { createMode?:
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa danh mục</AlertDialogTitle>
             <AlertDialogDescription>
-              {!canDeleteCategory ? (
+              {hasChildren ? (
+                <span>
+                  Nhóm danh mục <strong>{categoryToDelete?.name}</strong> vẫn còn các danh mục bên trong. Bạn cần xóa hoặc chuyển các danh mục con sang nhóm khác trước khi xóa nhóm danh mục này.
+                </span>
+              ) : !canDeleteCategory ? (
                 <span>
                   Danh mục <strong>{categoryToDelete?.name}</strong> đang chứa <strong>{categoryToDelete?.product_count}</strong> sản phẩm. Bạn cần chuyển hoặc xóa các sản phẩm trước khi xóa danh mục.
                 </span>
@@ -2216,7 +2264,7 @@ function QuotesPage({
           <div className="bg-white rounded-xl p-5 max-w-lg w-full border shadow-xl flex flex-col max-h-[85vh]">
             <div className="flex justify-between items-center border-b pb-3">
               <h4 className="font-heading font-bold text-slate-800 flex items-center gap-2">
-                <Sparkle className="size-4 text-indigo-600" />
+                <Sparkles className="size-4 text-indigo-600" />
                 Mẫu Email báo giá gợi ý
               </h4>
               <button type="button" className="text-slate-400 hover:text-slate-600" onClick={() => setShowEmailDraft(false)}>

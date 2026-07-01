@@ -924,11 +924,30 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
 
 export async function deleteAdminCategory(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
-  
-
   try {
     const supabase = createAdminClient();
+
+    // Check if there are active subcategories
+    const { data: subcats } = await supabase
+      .from("product_categories")
+      .select("id")
+      .eq("parent_id", id)
+      .is("deleted_at", null);
+      
+    if (subcats && subcats.length > 0) {
+      return { success: false, error: "Không thể xóa nhóm danh mục đang chứa danh mục bên trong." };
+    }
+
+    // Check if there are active products
+    const { data: prods } = await supabase
+      .from("products")
+      .select("id")
+      .eq("category_id", id)
+      .is("deleted_at", null);
+      
+    if (prods && prods.length > 0) {
+      return { success: false, error: "Không thể xóa danh mục đang chứa sản phẩm." };
+    }
     
     // Soft delete
     const { error } = await supabase
