@@ -67,6 +67,8 @@ export async function getAdminProducts(params: {
           dimension_unit,
           brand_id,
           brand_series,
+          showroom_code,
+          price_unit,
           created_at,
           updated_at,
           brands (

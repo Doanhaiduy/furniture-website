@@ -1,66 +1,86 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 /.pnpm-store
 
-# testing
-/coverage
+# Build output
+.next/
+out/
+dist/
+build/
+tsconfig.tsbuildinfo
 
-# next.js
-/.next/
-/out/
+# Environment variables
+.env*
+!.env.example
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.example
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
 
-# vercel
-.vercel
+# Editor settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# Playwright
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
+# Test artifacts
+/coverage
+/playwright-report
+/test-results
+/blob-report
 /playwright/.cache/
 /playwright/.auth/
+*.snap
+e2e/results/
 
-.vercel
-
-/artifacts
-/03_Modern_Showroom
-.specify
-.claude
-.agents
-.gemini
-.vscode
-
+# Temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+*.cache
 guillde.txt
-/reports
-/audit_new
-/tests
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Docker local overrides
+docker-compose.override.yml
+
+# Type generation artifacts (if auto-generated)
+src/types/supabase.ts  # only if auto-generated via supabase gen types
+
+# Project-specific tool settings and artifacts
+.specify/
+.claude/
+.agents/
+.gemini/
+.vercel/
+/artifacts/
+/03_Modern_Showroom/
+/reports/
+/audit_new/
+/backups/
+/scratch/
+/test-excel-files/

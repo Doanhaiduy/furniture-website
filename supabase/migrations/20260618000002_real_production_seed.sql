@@ -563,11 +563,11 @@ INSERT INTO public.products (id, category_id, brand_id, reference_code, status, 
   ('00000001-0000-0000-0000-000000000054', 'c0000000-0000-0000-0000-000000000023', 'b0000000-0000-0000-0000-000000000001',
    'PD-54', 'draft', 15000000, 15000000, 'VND', 'CleanCoat Series', true, 11, 12750000, 12750000);
 INSERT INTO public.product_translations (product_id, locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text) VALUES
-  ('00000001-0000-0000-0000-000000000054', 'vi', 'basin-modern-pd-54',
+  ('00000001-0000-0000-0000-000000000054', 'vi', 'lavabo-hien-dai-pd-54-kohler',
    'Lavabo Hiện Đại PD-54 Kohler', 'Chậu rửa đặt bàn cao cấp Kohler với lớp men CleanCoat nano chống bám bẩn vượt trội, thiết kế tối giản tinh tế.',
    '{"vi":"Thiết kế hiện đại, tinh gọn với lòng chậu sâu chống bắn nước tối đa. Men CleanCoat nano siêu kỵ nước và kỵ dầu. Dễ vệ sinh, giữ trắng bền.","en":"Modern minimalist design with deep bowl for maximum splash prevention. CleanCoat nano glaze is super hydrophobic and oleophobic. Easy to clean, stays white longer."}'::jsonb,
    'Sứ tráng men nano CleanCoat cao cấp', '15,000,000 VND', '540 x 380 x 150 mm'),
-  ('00000001-0000-0000-0000-000000000054', 'en', 'basin-modern-pd-54',
+  ('00000001-0000-0000-0000-000000000054', 'en', 'lavabo-hien-dai-pd-54-kohler',
    'Kohler Modern Basin PD-54', 'Kohler premium countertop vessel sink featuring CleanCoat nano glaze technology for superior stain resistance.',
    '{"vi":"Thiết kế hiện đại, tinh gọn với lòng chậu sâu chống bắn nước tối đa. Men CleanCoat nano siêu kỵ nước và kỵ dầu. Dễ vệ sinh, giữ trắng bền.","en":"Modern minimalist design with deep bowl for maximum splash prevention. CleanCoat nano glaze is super hydrophobic and oleophobic. Easy to clean, stays white longer."}'::jsonb,
    'Premium nano-glazed ceramic CleanCoat', '15,000,000 VND', '540 x 380 x 150 mm');

@@ -189,6 +189,13 @@ export async function POST(req: NextRequest) {
       if (b.slug) brandsMap[b.slug.trim().toLowerCase()] = b.id;
     });
 
+    const { data: dbShowrooms } = await supabase
+      .from("showrooms")
+      .select("id, code")
+      .is("deleted_at", null);
+
+    const showroomsSet = new Set((dbShowrooms ?? []).map(s => (s.code || "").trim().toLowerCase()));
+
     // Fetch existing product slugs to check duplicates
     const { data: dbProducts } = await supabase
       .from("products")
@@ -242,6 +249,8 @@ export async function POST(req: NextRequest) {
       const summaryVi = rowData["Mô tả ngắn (Tiếng Việt)*"];
       let categorySlug = rowData["Slug danh mục*"];
       let brandSlug = rowData["Slug thương hiệu"];
+      let showroomCode = rowData["Mã Showroom (Showroom Code)"] || "";
+      const priceUnit = rowData["Đơn vị tính (Unit)"] || "";
 
       if (categorySlug) {
         const match = categorySlug.trim().match(/\(([^)]+)\)$/);
@@ -250,6 +259,10 @@ export async function POST(req: NextRequest) {
       if (brandSlug) {
         const match = brandSlug.trim().match(/\(([^)]+)\)$/);
         if (match) brandSlug = match[1].trim();
+      }
+      if (showroomCode) {
+        const match = showroomCode.trim().match(/\(([^)]+)\)$/);
+        if (match) showroomCode = match[1].trim();
       }
       const coverImageUrl = rowData["Ảnh chính (URL)*"];
       const status = rowData["Trạng thái (draft/published/archived)"] || "draft";
@@ -291,6 +304,11 @@ export async function POST(req: NextRequest) {
         if (!brandId) {
           rowErrors.push(`Thương hiệu có slug '${brandSlug}' không tồn tại trong hệ thống`);
         }
+      }
+
+      // Check showroom existence
+      if (showroomCode && !showroomsSet.has(showroomCode.toLowerCase())) {
+        rowErrors.push(`Showroom có mã '${showroomCode}' không tồn tại trong hệ thống`);
       }
 
       // Validate pricing
@@ -414,8 +432,22 @@ export async function POST(req: NextRequest) {
               description_json_en: null,
               material_vi: rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
               material_en: translated.material_en || rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
-              price_display_text_vi: null,
-              price_display_text_en: null,
+              price_display_text_vi: priceMinNum !== null
+                ? (() => {
+                    const formattedMin = priceMinNum.toLocaleString("vi-VN");
+                    const formattedMax = priceMaxNum !== null ? priceMaxNum.toLocaleString("vi-VN") : null;
+                    const range = formattedMax ? `${formattedMin} - ${formattedMax}` : formattedMin;
+                    return `${range} VND${priceUnit ? "/" + priceUnit : ""}`;
+                  })()
+                : "Liên hệ",
+              price_display_text_en: priceMinNum !== null
+                ? (() => {
+                    const formattedMin = priceMinNum.toLocaleString("en-US");
+                    const formattedMax = priceMaxNum !== null ? priceMaxNum.toLocaleString("en-US") : null;
+                    const range = formattedMax ? `${formattedMin} - ${formattedMax}` : formattedMin;
+                    return `${range} VND${priceUnit ? "/" + priceUnit : ""}`;
+                  })()
+                : "Contact",
               dimension_display_text_vi: rowData["Mô tả kích thước (Tiếng Việt)"] || null,
               dimension_display_text_en: translated.dimension_display_text_en || rowData["Mô tả kích thước (Tiếng Việt)"] || null,
               price_min: priceMinNum,
@@ -428,6 +460,8 @@ export async function POST(req: NextRequest) {
               category_id: categoryId,
               brand_id: brandId,
               brand_series: rowData["Dòng sản phẩm/Series"] || null,
+              showroom_code: showroomCode || null,
+              price_unit: priceUnit || null,
               featured: featured === "TRUE",
               status: status.toLowerCase() as any,
               cover_image: coverImageUrl,

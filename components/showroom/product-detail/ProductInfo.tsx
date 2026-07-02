@@ -5,8 +5,9 @@ import type { Locale } from "@/i18n/routing";
 import type { Product } from "@/lib/showroom-data";
 import { localized } from "@/lib/showroom-data";
 
-export function ProductTrustMetrics({ locale }: { locale: Locale }) {
+export function ProductTrustMetrics({ locale, showroomName }: { locale: Locale; showroomName?: string }) {
   const isVi = locale === "vi";
+  const defaultText = isVi ? "Sẵn hàng tại Q7, TP.HCM" : "Available in District 7, HCMC";
   return (
     <div className="grid gap-3 sm:grid-cols-3 border-t border-slate-100 pt-5 mt-5">
       <div className="flex items-start gap-2.5">
@@ -16,7 +17,7 @@ export function ProductTrustMetrics({ locale }: { locale: Locale }) {
             {isVi ? "Trưng bày tại showroom" : "Showroom Availability"}
           </h4>
           <p className="text-[11px] text-slate-500 leading-normal mt-0.5">
-            {isVi ? "Sẵn hàng tại Q7, TP.HCM" : "Available in District 7, HCMC"}
+            {showroomName || defaultText}
           </p>
         </div>
       </div>

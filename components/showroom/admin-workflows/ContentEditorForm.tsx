@@ -111,7 +111,7 @@ export function ContentEditorForm({
   mode?: "create" | "edit";
   idOrSlug?: string;
 }) {
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isProduct = kind === "product";
@@ -138,9 +138,11 @@ export function ContentEditorForm({
 
   // --- Product-specific fields ---
   const [price, setPrice] = useState(""); // stored as raw digits string
+  const [priceMax, setPriceMax] = useState("");
+  const [priceUnit, setPriceUnit] = useState("");
   const [quoteOnly, setQuoteOnly] = useState(true);
   const [category, setCategory] = useState(isProduct ? "wood" : "wood-knowledge");
-  const [brand, setBrand] = useState("Atelier Select");
+  const [brand, setBrand] = useState("none");
   const [refCode, setRefCode] = useState("PD-SF-184");
   const [showroom, setShowroom] = useState("district-7");
   const [featured, setFeatured] = useState(true);
@@ -272,12 +274,15 @@ export function ContentEditorForm({
               setEnglishEnabled(!!p.name_en);
               
               setPrice(p.price_min ? String(p.price_min) : "");
+              setPriceMax(p.price_max ? String(p.price_max) : "");
+              setPriceUnit(p.price_unit || "");
               setQuoteOnly(p.price_display_text_vi === "Liên hệ" || !p.price_min);
               
               const catSlug = catList.find(c => c.id === p.category_id)?.slug || "wood";
               setCategory(catSlug);
-              setBrand(p.brand_id || "Atelier Select");
+              setBrand(p.brand_id || "none");
               setRefCode(p.reference_code || "");
+              setShowroom(p.showroom_code || "district-7");
               setFeatured(p.featured || false);
               setStatus(p.status || "draft");
               
@@ -578,6 +583,11 @@ export function ContentEditorForm({
   const handleSave = async (targetStatus?: "draft" | "published" | "archived") => {
     const statusToSave = targetStatus || status;
     try {
+      showLoading(
+        mode === "create"
+          ? (isProduct ? "Đang tạo sản phẩm mới..." : "Đang tạo bài viết mới...")
+          : (isProduct ? "Đang cập nhật sản phẩm..." : "Đang cập nhật bài viết...")
+      );
       if (isProduct) {
         const { createAdminProduct, updateAdminProduct } = await import("@/lib/supabase/mutations");
         const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
@@ -590,11 +600,14 @@ export function ContentEditorForm({
 
         const brands = await getAdminBrands();
         const brandsList = Array.isArray(brands) ? brands : (brands as any)?.data || [];
-        const brandObj = brandsList.find((b: any) => b.id === brand || b.name?.vi === brand || b.name === brand) || brandsList[0];
+        const brandObj = (brand === "none" || !brand)
+          ? null
+          : (brandsList.find((b: any) => b.id === brand || b.name?.vi === brand || b.name === brand) || null);
         const brandId = brandObj ? brandObj.id : null;
 
         if (!categoryId) {
-          toast.error("Không tìm thấy danh mục hợp lệ.");
+          hideLoading();
+          showAlert("Lỗi", "Không tìm thấy danh mục hợp lệ.", "error");
           return;
         }
 
@@ -609,16 +622,36 @@ export function ContentEditorForm({
           description_json_en: enBody || null,
           material_vi: materialsVi || null,
           material_en: materialsEn || null,
-          price_display_text_vi: quoteOnly ? "Liên hệ" : `${parseInt(price.replace(/[^0-9]/g, "") || "0").toLocaleString("vi-VN")} VND`,
-          price_display_text_en: quoteOnly ? "Contact" : `${parseInt(price.replace(/[^0-9]/g, "") || "0").toLocaleString("en-US")} VND`,
+          price_display_text_vi: quoteOnly 
+            ? "Liên hệ" 
+            : (() => {
+                const minVal = parseInt(price.replace(/[^0-9]/g, "") || "0");
+                const maxVal = priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
+                const range = (maxVal > minVal) 
+                  ? `${minVal.toLocaleString("vi-VN")} - ${maxVal.toLocaleString("vi-VN")}` 
+                  : minVal.toLocaleString("vi-VN");
+                return `${range} VND${priceUnit ? "/" + priceUnit : ""}`;
+              })(),
+          price_display_text_en: quoteOnly 
+            ? "Contact" 
+            : (() => {
+                const minVal = parseInt(price.replace(/[^0-9]/g, "") || "0");
+                const maxVal = priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
+                const range = (maxVal > minVal) 
+                  ? `${minVal.toLocaleString("en-US")} - ${maxVal.toLocaleString("en-US")}` 
+                  : minVal.toLocaleString("en-US");
+                return `${range} VND${priceUnit ? "/" + priceUnit : ""}`;
+              })(),
           dimension_display_text_vi: dimensionsVi || null,
           dimension_display_text_en: dimensionsEn || null,
           category_id: categoryId,
           price_min: price ? parseFloat(price.replace(/[^0-9]/g, "")) : null,
-          price_max: null,
+          price_max: priceMax ? parseFloat(priceMax.replace(/[^0-9]/g, "")) : null,
           currency: "VND",
           brand_id: brandId,
           brand_series: null,
+          showroom_code: showroom,
+          price_unit: priceUnit || null,
           featured: featured,
           status: statusToSave,
           cover_image: coverImage || null,
@@ -648,12 +681,20 @@ export function ContentEditorForm({
           ? await createAdminProduct(productData)
           : await updateAdminProduct(entityId || idOrSlug!, productData);
 
+        hideLoading();
+
         if (res.success) {
-          toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
-          router.push("/admin/products");
-          router.refresh();
+          showAlert(
+            "Thành công",
+            statusToSave === "published" ? "Đã xuất bản sản phẩm thành công!" : "Đã lưu bản nháp sản phẩm thành công!",
+            "success",
+            () => {
+              router.push("/admin/products");
+              router.refresh();
+            }
+          );
         } else {
-          toast.error("Lỗi khi lưu sản phẩm: " + res.error);
+          showAlert("Thất bại", "Lỗi khi lưu sản phẩm: " + res.error, "error");
         }
       } else {
         const { createAdminBlogPost, updateAdminBlogPost } = await import("@/lib/supabase/mutations");
@@ -679,17 +720,26 @@ export function ContentEditorForm({
           ? await createAdminBlogPost(blogData)
           : await updateAdminBlogPost(entityId || idOrSlug!, blogData);
 
+        hideLoading();
+
         if (res.success) {
-          toast.success(statusToSave === "published" ? "Đã xuất bản thành công!." : "Đã lưu bản nháp thành công!.");
-          router.push("/admin/blog");
-          router.refresh();
+          showAlert(
+            "Thành công",
+            statusToSave === "published" ? "Đã xuất bản bài viết thành công!" : "Đã lưu bản nháp bài viết thành công!",
+            "success",
+            () => {
+              router.push("/admin/blog");
+              router.refresh();
+            }
+          );
         } else {
-          toast.error("Lỗi khi lưu bài viết: " + res.error);
+          showAlert("Thất bại", "Lỗi khi lưu bài viết: " + res.error, "error");
         }
       }
     } catch (err) {
+      hideLoading();
       console.error(err);
-      toast.error("Lỗi hệ thống: " + String(err));
+      showAlert("Lỗi hệ thống", String(err), "error");
     }
   };
 
@@ -819,6 +869,10 @@ export function ContentEditorForm({
           <ProductBusinessFields
             price={price}
             setPrice={setPrice}
+            priceMax={priceMax}
+            setPriceMax={setPriceMax}
+            priceUnit={priceUnit}
+            setPriceUnit={setPriceUnit}
             quoteOnly={quoteOnly}
             setQuoteOnly={setQuoteOnly}
             category={category}
@@ -1342,6 +1396,10 @@ function BilingualAuthoringFields({
 function ProductBusinessFields({
   price,
   setPrice,
+  priceMax,
+  setPriceMax,
+  priceUnit,
+  setPriceUnit,
   quoteOnly,
   setQuoteOnly,
   category,
@@ -1382,6 +1440,10 @@ function ProductBusinessFields({
 }: {
   price: string;
   setPrice: (val: string) => void;
+  priceMax: string;
+  setPriceMax: (val: string) => void;
+  priceUnit: string;
+  setPriceUnit: (val: string) => void;
   quoteOnly: boolean;
   setQuoteOnly: (val: boolean) => void;
   category: string;
@@ -1465,9 +1527,10 @@ function ProductBusinessFields({
     ? categoriesList
     : [{ value: category, label: category === "wood" ? "Đồ gỗ / Sofa" : category === "sanitary" ? "Thiết bị vệ sinh / Sen tắm" : category === "tiles" ? "Gạch ốp lát / Bề mặt hoàn thiện" : category }, ...categoriesList];
 
-  const brandOptions = brandsList.some(b => b.value === brand)
-    ? brandsList
-    : (brand ? [{ value: brand, label: brand }, ...brandsList] : brandsList);
+  const brandOptions = [
+    { value: "none", label: "Không có thương hiệu" },
+    ...brandsList.map(b => ({ value: b.value, label: b.label }))
+  ];
 
   const showroomOptions = showroomsList.some(s => s.value === showroom)
     ? showroomsList
@@ -1555,46 +1618,103 @@ function ProductBusinessFields({
           compact
         />
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {/* Price field with formatting */}
-          <div className="grid gap-1.5">
-            <label htmlFor="product-price" className="label-pd">Giá sản phẩm (VNĐ)</label>
-            <input
-              id="product-price"
-              type="text"
-              inputMode="numeric"
-              className="input-pd bg-white"
-              placeholder="Nhập giá (ví dụ: 18000000)"
-              value={price ? formatVnNumber(price) : ""}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9]/g, "");
-                setPrice(raw);
-              }}
-            />
-            {price && (
-              <p className="text-xs font-semibold text-emerald-700 mt-0.5">
-                💬 {readVnNumber(price)}
-              </p>
-            )}
-            {!price && (
-              <p className="text-xs text-slate-400 mt-0.5">
-                Nhập số không có dấu phẩy — sẽ tự định dạng.
-              </p>
-            )}
+          <div 
+            onClick={() => setQuoteOnly(!quoteOnly)}
+            className={`group relative flex items-center justify-between gap-4 p-4 rounded-xl border-2 transition-all duration-350 cursor-pointer select-none ${
+              quoteOnly 
+                ? "border-amber-500 bg-amber-50/10 shadow-[0_4px_20px_rgba(245,158,11,0.05)]" 
+                : "border-slate-200 hover:border-slate-350 bg-white hover:bg-slate-50/30"
+            }`}
+          >
+            <div className="flex items-center gap-3.5 text-left">
+              <div className={`flex size-10 items-center justify-center rounded-lg border transition-all duration-300 ${
+                quoteOnly 
+                  ? "bg-amber-100/60 border-amber-300 text-amber-600 scale-105" 
+                  : "bg-slate-100 border-slate-200 text-slate-400 group-hover:bg-slate-200/50 group-hover:text-slate-500"
+              }`}>
+                {quoteOnly ? <Lock className="size-5" /> : <EyeOff className="size-5" />}
+              </div>
+              <div>
+                <span className="block text-sm font-bold text-slate-800 transition-colors">
+                  Chỉ hiển thị báo giá
+                </span>
+                <span className="block text-xs font-light text-slate-500 mt-0.5">
+                  Ẩn giá chính xác cho đến khi tư vấn.
+                </span>
+              </div>
+            </div>
+            
+            {/* Custom Switch Toggle */}
+            <div className={`relative w-10 h-6 rounded-full transition-colors duration-300 shrink-0 ${
+              quoteOnly ? "bg-amber-500" : "bg-slate-200"
+            }`}>
+              <div className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white transition-transform duration-300 shadow-sm ${
+                quoteOnly ? "translate-x-4" : "translate-x-0"
+              }`} />
+            </div>
           </div>
-
-          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
-            <input 
-              className="mt-1" 
-              type="checkbox" 
-              checked={quoteOnly}
-              onChange={(e) => setQuoteOnly(e.target.checked)} 
-            />
-            <span>
-              <strong className="block text-[var(--admin-text)]">Chỉ hiển thị báo giá</strong>
-              <span className="text-[var(--admin-text-muted)]">Ẩn giá chính xác cho đến khi tư vấn.</span>
-            </span>
-          </label>
         </div>
+
+        {!quoteOnly && (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="grid gap-1.5">
+              <label htmlFor="product-price" className="label-pd">Giá tối thiểu (VNĐ) *</label>
+              <input
+                id="product-price"
+                type="text"
+                inputMode="numeric"
+                className="input-pd bg-white"
+                placeholder="Nhập giá tối thiểu (ví dụ: 18000000)"
+                value={price ? formatVnNumber(price) : ""}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, "");
+                  setPrice(raw);
+                }}
+              />
+              {price && (
+                <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                  💬 {readVnNumber(price)}
+                </p>
+              )}
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="product-price-max" className="label-pd">Giá tối đa (VNĐ) - Không bắt buộc</label>
+              <input
+                id="product-price-max"
+                type="text"
+                inputMode="numeric"
+                className="input-pd bg-white"
+                placeholder="Nhập giá tối đa (ví dụ: 24000000)"
+                value={priceMax ? formatVnNumber(priceMax) : ""}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, "");
+                  setPriceMax(raw);
+                }}
+              />
+              {priceMax && (
+                <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                  💬 {readVnNumber(priceMax)}
+                </p>
+              )}
+            </div>
+
+            <div className="grid gap-1.5">
+              <label htmlFor="product-price-unit" className="label-pd">Đơn vị tính (Hậu tố giá) - Không bắt buộc</label>
+              <input
+                id="product-price-unit"
+                type="text"
+                className="input-pd bg-white"
+                placeholder="ví dụ: m², vỉ, bộ, cái, mét"
+                value={priceUnit}
+                onChange={(e) => setPriceUnit(e.target.value)}
+              />
+              <p className="text-xs text-slate-400 mt-0.5">
+                Ví dụ: vỉ, m², bộ, cái, mét...
+              </p>
+            </div>
+          </div>
+        )}
 
 
         {/* Bilingual Materials and Dimensions */}

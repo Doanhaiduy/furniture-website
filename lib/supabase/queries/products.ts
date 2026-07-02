@@ -125,6 +125,8 @@ export async function getProductBySlug(
         dimension_unit,
         brand_id,
         brand_series,
+        showroom_code,
+        price_unit,
         created_at,
         updated_at,
         tags,
@@ -206,10 +208,14 @@ export async function getProductBySlug(
         }))
       : [];
 
+    // Canonical slug: prefer vi translation slug (unified slug strategy), fallback to current locale, then raw param
+    const viSlug = viTranslation?.slug || "";
+    const canonicalSlug = viSlug || currentTranslation?.slug || slug;
+
     return {
       id: row.id,
       referenceCode: row.reference_code,
-      slug: currentTranslation?.slug || slug,
+      slug: canonicalSlug,
       name: { vi: viTranslation?.name || "", en: enTranslation?.name || "" },
       summary: { vi: viTranslation?.summary || "", en: enTranslation?.summary || "" },
       descriptionJson: currentTranslation?.description_json || {},
@@ -406,7 +412,7 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
   }
 
   return {
-    slug: dbProduct.slug,
+    slug: dbProduct.slug || dbProduct.slug_vi || dbProduct.slug_en || "",
     referenceCode,
     categoryKey,
     materialKey: dbProduct.material_key || dbProduct.materialKey || findAttrValue("material") || (typeof dbProduct.material === "object" ? dbProduct.material.en : dbProduct.material || ""),
@@ -415,6 +421,8 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     collectionKey: dbProduct.collection_key || dbProduct.collectionKey || findAttrValue("collection") || "",
     toneKey: dbProduct.tone_key || dbProduct.toneKey || findAttrValue("tone") || "",
     availabilityKey: dbProduct.availability_key || dbProduct.availabilityKey || findAttrValue("availability") || "",
+    showroomCode: dbProduct.showroom_code || dbProduct.showroomCode || null,
+    priceUnit: dbProduct.price_unit || dbProduct.priceUnit || null,
     brand_id: dbProduct.brand_id || dbProduct.brandId || null,
     brand_name: dbProduct.brand_name || dbProduct.brandName || null,
     status: "published" as const,

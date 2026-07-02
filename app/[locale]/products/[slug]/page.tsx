@@ -18,7 +18,7 @@ import {
   ProductTrustMetrics,
 } from "@/components/showroom/product-detail-experience";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings, getPromotions } from "@/lib/supabase/queries";
+import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings, getPromotions, getShowrooms } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
@@ -54,6 +54,7 @@ export default async function ProductDetailPage({
   const supabase = createPublicClient();
   const settings = await getPublicSiteSettings(supabase, locale);
   const dbProduct = await getDBProductBySlug(supabase, slug, locale).catch(() => null);
+  const dbShowrooms = await getShowrooms(supabase, locale).catch(() => []);
   let product: any = null;
   if (dbProduct) {
     const fallbackMappings = [
@@ -119,6 +120,14 @@ export default async function ProductDetailPage({
     product = getMockProductBySlug(slug) || null;
   }
   if (!product) notFound();
+
+  let showroomName = "";
+  if (product.showroomCode) {
+    const matchedShowroom = dbShowrooms.find((s: any) => s.code === product.showroomCode);
+    if (matchedShowroom) {
+      showroomName = matchedShowroom.name || "";
+    }
+  }
   
   const t = await getTranslations("products");
   const contact = await getTranslations("contact");
@@ -230,7 +239,7 @@ export default async function ProductDetailPage({
           />
           
           {/* Trust badges and showroom availability */}
-          <ProductTrustMetrics locale={locale} />
+          <ProductTrustMetrics locale={locale} showroomName={showroomName} />
           
           {/* Social share */}
           <div className="mt-5 pt-4 border-t border-slate-100">

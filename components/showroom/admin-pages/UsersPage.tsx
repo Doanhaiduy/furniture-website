@@ -134,7 +134,7 @@ export function UsersPage({
   profiles?: AdminUser[];
   total?: number;
 }) {
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [editRole, setEditRole] = useState("editor");
@@ -150,7 +150,7 @@ export function UsersPage({
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    setIsUpdating(true);
+    showLoading("Đang cập nhật quyền thành viên...");
     try {
       const res = await fetch("/api/admin/users", {
         method: "PUT",
@@ -158,15 +158,18 @@ export function UsersPage({
         body: JSON.stringify({ id: editingUser.id, role: editRole, isActive: editActive }),
       });
       const data = await res.json();
+      hideLoading();
       if (data.success) {
-        toast.success("Cập nhật quyền thành viên thành công!");
-        setEditingUser(null);
-        router.refresh();
+        showAlert("Thành công", "Cập nhật quyền thành viên thành công!", "success", () => {
+          setEditingUser(null);
+          router.refresh();
+        });
       } else {
-        toast.error(data.error || "Lỗi khi cập nhật tài khoản.");
+        showAlert("Thất bại", data.error || "Lỗi khi cập nhật tài khoản.", "error");
       }
     } catch (err) {
-      toast.error("Lỗi kết nối tới máy chủ.");
+      hideLoading();
+      showAlert("Lỗi hệ thống", "Lỗi kết nối tới máy chủ.", "error");
     } finally {
       setIsUpdating(false);
     }

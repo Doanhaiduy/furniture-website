@@ -51,6 +51,60 @@ export function ProductInformationTabs({
     );
   };
 
+  const getProductGroup = (): "wood" | "sanitary" | "tiles" | "other" => {
+    const prodCat = product.category as any;
+    const catGroupKey = (prodCat?.groupKey || "").toLowerCase();
+    const catSlug = (prodCat?.slug || "").toLowerCase();
+    const catKey = (product.categoryKey || "").toLowerCase();
+
+    // Check sanitary
+    if (
+      catGroupKey === "sanitary" ||
+      catSlug === "thiet-bi-ve-sinh" ||
+      catKey === "thiet-bi-ve-sinh" ||
+      ["bathtub", "toilet", "basin", "shower", "faucet"].some(k => 
+        catGroupKey === k || catSlug === k || catKey === k
+      )
+    ) {
+      return "sanitary";
+    }
+
+    // Check tiles
+    if (
+      catGroupKey === "tiles" ||
+      catSlug === "gach-op-lat" ||
+      catKey === "gach-op-lat" ||
+      ["floor", "wall", "tiles"].some(k => 
+        catGroupKey === k || catSlug === k || catKey === k
+      )
+    ) {
+      return "tiles";
+    }
+
+    // Check wood
+    if (
+      catGroupKey === "wood" ||
+      catSlug === "do-go-noi-that" ||
+      catKey === "do-go-noi-that" ||
+      ["sofa", "coffee-table", "tv-cabinet", "dining-table", "chair", "bed", "wardrobe"].some(k => 
+        catGroupKey === k || catSlug === k || catKey === k
+      )
+    ) {
+      return "wood";
+    }
+
+    // Fallback using product name
+    const nameLower = (localized(product.name, locale) || "").toLowerCase();
+    if (nameLower.includes("bồn tắm") || nameLower.includes("bồn cầu") || nameLower.includes("lavabo") || nameLower.includes("sen tắm") || nameLower.includes("vòi") || nameLower.includes("kohler") || nameLower.includes("toto") || nameLower.includes("bravat") || nameLower.includes("grohe") || nameLower.includes("basin") || nameLower.includes("toilet") || nameLower.includes("bathtub")) {
+      return "sanitary";
+    }
+    if (nameLower.includes("gạch") || nameLower.includes("mosaic") || nameLower.includes("porcelain") || nameLower.includes("tile")) {
+      return "tiles";
+    }
+
+    return "wood"; // Default to wood
+  };
+
   const getMaterialCards = () => {
     const nameLower = (localized(product.name, locale) || "").toLowerCase();
     const cards = [];
@@ -110,20 +164,39 @@ export function ProductInformationTabs({
               ? "Tuyển chọn da bò thuộc nguyên tấm (top-grain) nhập khẩu trực tiếp từ Ý. Chất da mềm mại thoáng khí vượt trội, có độ đàn hồi cao, càng sử dụng lâu da càng bóng mịn tự nhiên và nâng niu xúc giác."
               : "Upholstered in top-grain genuine cowhide leather directly imported from Italy. Highly breathable and elastic, this leather develops a beautiful natural patina and grows softer with age.")
           : (isVi
-              ? "Vải nỉ nhung cao cấp dệt sợi siêu mảnh kháng khuẩn, chất vải dày dặn êm ái, thân thiện với làn da nhạy cảm và hạn chế bám bụi bẩn, dễ dàng vệ sinh định kỳ."
+              ? "Vải nỉ nhung cao cấp dệt sợi siêu mảnh kháng khuẩn, chất vải dệt dày dặn êm ái, thân thiện với làn da nhạy cảm và hạn chế bám bụi bẩn, dễ dàng vệ sinh định kỳ."
               : "Upholstered in high-grade micro-weave velour fabric. Soft, hypoallergenic, dust-resistant, and easy to clean, ensuring a premium seating experience."),
         origin: isVi ? "Châu Âu" : "Europe",
       });
     }
 
     if (cards.length === 0) {
-      cards.push({
-        title: isVi ? "Vật Liệu Tuyển Chọn Khắt Khe" : "Curated Materials",
-        desc: isVi
-          ? "Sản phẩm tuân thủ quy trình kiểm định vật liệu xuất khẩu cao cấp, kết hợp kết cấu thép gia cường chống rỉ sét cùng chất lượng sơn tĩnh điện/xi mạ PVD cao cấp nhất, nâng tầm vẻ sang trọng cho không gian bày trí."
-          : "Built to high-end export standards, combining reinforced steel frames, rust-proofing treatments, and premium PVD electroplating or powder coatings for maximum aesthetic durability.",
-        origin: isVi ? "Chất lượng cao" : "Premium Grade",
-      });
+      const group = getProductGroup();
+      if (group === "sanitary") {
+        cards.push({
+          title: isVi ? "Sứ Tráng Men Cao Cấp" : "Premium Glazed Ceramic",
+          desc: isVi
+            ? "Vật liệu sứ cao cấp chịu nhiệt lực tốt, tráng lớp men nano chống bám bẩn ưu việt, hạn chế tối đa vi khuẩn tích tụ giúp thiết bị luôn trắng sáng bóng mịn."
+            : "High-grade glazed ceramic featuring advanced stain-proof properties, preventing bacterial accumulation and ensuring a sparkling clean surface.",
+          origin: isVi ? "Chất lượng cao" : "Premium Grade",
+        });
+      } else if (group === "tiles") {
+        cards.push({
+          title: isVi ? "Porcelain & Bán Sứ Cao Cấp" : "Premium Porcelain Base",
+          desc: isVi
+            ? "Cốt liệu bột đá nung nhiệt ép lực lớn tạo độ cứng chống mài mòn vượt trội, hệ số chống thấm cực thấp dưới 0.5% thích nghi lý tưởng với thời tiết ẩm ướt."
+            : "Pressed under massive pressure for heavy-duty structural strength and low water absorption rates under 0.5%, performing beautifully in wet spaces.",
+          origin: isVi ? "Chất lượng cao" : "Premium Grade",
+        });
+      } else {
+        cards.push({
+          title: isVi ? "Vật Liệu Tuyển Chọn Khắt Khe" : "Curated Materials",
+          desc: isVi
+            ? "Sản phẩm tuân thủ quy trình kiểm định vật liệu xuất khẩu cao cấp, kết cấu khung chắc chắn kết hợp kỹ nghệ xử lý bề mặt hoàn hảo nhất, nâng tầm vẻ sang trọng cho không gian bày trí."
+            : "Built to high-end export standards, combining stable structuring and premium surface finishes to bring comfort and sophistication to your interior space.",
+          origin: isVi ? "Chất lượng cao" : "Premium Grade",
+        });
+      }
     }
     return cards;
   };
@@ -135,20 +208,65 @@ export function ProductInformationTabs({
     if (cleanTags.length > 0) {
       return cleanTags;
     }
-    const nameLower = (localized(product.name, locale) || "").toLowerCase();
-    if (nameLower.includes("đá") || nameLower.includes("marble") || nameLower.includes("calacatta")) {
+    const group = getProductGroup();
+    if (group === "sanitary") {
       return isVi
-        ? ["Đá tự nhiên nhập khẩu nguyên tấm", "Đánh bóng thủ công tinh xảo", "Xử lý chống thấm ố 5 lớp", "Kết cấu chân chịu lực tối ưu"]
-        : ["Imported natural slab marble", "Exquisite hand-polished finish", "5-layer stain-proof sealer", "Heavy-duty load bearing base"];
+        ? [
+            "Men sứ cao cấp kháng khuẩn, chống bám bẩn",
+            "Công nghệ xả nước tối ưu hiệu năng cao",
+            "Thiết kế tinh gọn, dễ dàng vệ sinh làm sạch",
+            "Độ bền cơ học vượt trội, bảo hành dài hạn"
+          ]
+        : [
+            "Premium antibacterial, stain-resistant glaze",
+            "High-efficiency water-saving flush technology",
+            "Sleek minimalist design, effortless cleaning",
+            "Superior structural durability, long warranty"
+          ];
     }
-    if (nameLower.includes("sofa") || nameLower.includes("da") || nameLower.includes("nỉ") || nameLower.includes("velour")) {
+    if (group === "tiles") {
       return isVi
-        ? ["Đệm mút HR đàn hồi kháng xẹp", "Khung xương tự nhiên gia cường", "Đường may thủ công chuẩn xác", "Vải/Da bọc nhập khẩu cao cấp"]
-        : ["Sag-resistant HR foam cushioning", "Reinforced solid wood framing", "High-precision master stitching", "Premium imported upholstery fabric"];
+        ? [
+            "Xương gạch bán sứ / porcelain chịu lực tốt",
+            "Chống thấm nước tuyệt đối, kháng rêu mốc",
+            "Bề mặt hoàn thiện tỉ mỉ, chống trơn trượt",
+            "Họa tiết vân đá sắc nét tự nhiên sang trọng"
+          ]
+        : [
+            "Heavy-duty porcelain core with high load capacity",
+            "100% waterproof, mold and mildew resistant",
+            "Meticulously finished surface with anti-slip tech",
+            "High-definition natural stone look for elegant spaces"
+          ];
     }
     return isVi
-      ? ["Gỗ tự nhiên tẩm sấy tiêu chuẩn", "Phủ sơn lau cao cấp bảo vệ vân", "Liên kết mộng gỗ truyền thống", "Độ hoàn thiện bề mặt tinh xảo"]
-      : ["Kiln-dried solid hardwood base", "Premium protective oil coating", "Traditional joinery craftsmanship", "Exceptional surface finishing"];
+      ? [
+          "Gỗ tự nhiên tuyển chọn tẩm sấy đạt chuẩn",
+          "Phủ sơn lau cao cấp bảo vệ và tôn màu vân",
+          "Mộng gỗ chắc chắn liên kết kết cấu vững chãi",
+          "Chi tiết góc cạnh bo tròn tinh tế an toàn"
+        ]
+      : [
+          "Curated kiln-dried solid hardwood base",
+          "Premium protective oil coating highlighting grains",
+          "Robust traditional joinery for lifelong stability",
+          "Softened corners and edges for safe daily use"
+        ];
+  };
+
+  const getCraftsmanshipNote = () => {
+    const group = getProductGroup();
+    if (group === "sanitary") {
+      return isVi
+        ? "Mỗi thiết bị vệ sinh đều trải qua quy trình nung ở nhiệt độ cao trên 1200°C và kiểm tra áp lực nước nghiêm ngặt nhằm đảm bảo lớp men sứ không rạn nứt, bền bỉ và giữ màu trắng sáng tuyệt đối."
+        : "Each sanitary fixture is fired at over 1200°C and subjected to rigorous water pressure tests to ensure a crack-free glaze, superior hygiene, and long-lasting glossy white finish.";
+    }
+    if (group === "tiles") {
+      return isVi
+        ? "Gạch được sản xuất bằng công nghệ ép lực lớn và nung nhiệt độ cao, đảm bảo độ phẳng tối đa, kích thước đồng đều và sai số tối thiểu, giúp các mạch nối hoàn hảo và chịu lực nén cực tốt."
+        : "Tiles are manufactured using high-pressure pressing and high-temperature firing, ensuring maximum flatness, consistent sizing, and high load capacity for seamless tile joints.";
+    }
+    return labels.craftsmanshipNote;
   };
 
   const displayTags = getProductTags();
@@ -291,7 +409,7 @@ export function ProductInformationTabs({
           <div className="bg-slate-900 text-white border border-slate-900 p-6 rounded-2xl flex gap-4 shadow-lg hover:bg-slate-950 transition-colors duration-300">
             <Sparkles className="size-5 text-primary shrink-0 mt-0.5 animate-pulse" />
             <p className="text-xs leading-relaxed text-slate-300 font-light">
-              {labels.craftsmanshipNote}
+              {getCraftsmanshipNote()}
             </p>
           </div>
         </div>

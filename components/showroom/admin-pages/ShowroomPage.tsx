@@ -128,7 +128,7 @@ import {
 export function ShowroomPage({ createMode, showrooms = [], total = 0 }: { createMode?: boolean; showrooms?: AdminShowroom[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
   const [excelModalOpen, setExcelModalOpen] = useState(false);
 
@@ -289,23 +289,25 @@ export function ShowroomPage({ createMode, showrooms = [], total = 0 }: { create
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={async () => {
               if (!showroomToDelete) return;
-              setIsDeleting(true);
+              showLoading("Đang xóa showroom...");
               try {
                 const res = await deleteAdminShowroom(showroomToDelete.id);
+                hideLoading();
                 if (res.success) {
-                  toast.success("Xóa showroom thành công!");
-                  router.refresh();
+                  showAlert("Thành công", `Đã xóa showroom "${showroomToDelete.name}" thành công!`, "success", () => {
+                    router.refresh();
+                  });
                 } else {
-                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                  showAlert("Thất bại", "Xóa thất bại: " + (res.error ?? "Không xác định"), "error");
                 }
               } catch (err) {
-                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+                hideLoading();
+                showAlert("Lỗi hệ thống", "Đã xảy ra lỗi khi xóa: " + String(err), "error");
               } finally {
-                setIsDeleting(false);
                 setShowroomToDelete(null);
               }
-            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {isDeleting ? "Đang xóa..." : "Xóa"}
+            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

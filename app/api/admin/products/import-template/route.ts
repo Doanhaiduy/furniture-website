@@ -26,6 +26,12 @@ export async function GET(req: NextRequest) {
       .select("id, slug, brand_translations(locale, name)")
       .is("deleted_at", null);
 
+    // 3. Fetch showrooms
+    const { data: dbShowrooms } = await supabase
+      .from("showrooms")
+      .select("id, code, showroom_translations(locale, name, address)")
+      .is("deleted_at", null);
+
     const categoriesList = (dbCategories ?? []).map(row => {
       const trans = Array.isArray(row.product_category_translations) ? row.product_category_translations : [];
       const viTrans = trans.find((t: any) => t.locale === "vi") || trans[0];
@@ -45,6 +51,17 @@ export async function GET(req: NextRequest) {
         id: row.id,
         slug: row.slug || "",
         name: viTrans?.name || ""
+      };
+    });
+
+    const showroomsList = (dbShowrooms ?? []).map(row => {
+      const trans = Array.isArray(row.showroom_translations) ? row.showroom_translations : [];
+      const viTrans = trans.find((t: any) => t.locale === "vi") || trans[0];
+      return {
+        id: row.id,
+        code: row.code || "",
+        name: viTrans?.name || "",
+        address: viTrans?.address || ""
       };
     });
 
@@ -84,6 +101,8 @@ export async function GET(req: NextRequest) {
       "Mô tả kích thước (Tiếng Việt)",
       "Giá tối thiểu (VND)",
       "Giá tối đa (VND)",
+      "Đơn vị tính (Unit)",
+      "Mã Showroom (Showroom Code)",
       "Chiều rộng (mm)",
       "Chiều sâu (mm)",
       "Chiều cao (mm)",
@@ -108,6 +127,8 @@ export async function GET(req: NextRequest) {
       "Mô tả kích thước (Tiếng Việt)": "W2200 x D900 x H850 mm",
       "Giá tối thiểu (VND)": 45000000,
       "Giá tối đa (VND)": 50000000,
+      "Đơn vị tính (Unit)": "vỉ",
+      "Mã Showroom (Showroom Code)": "district-7",
       "Chiều rộng (mm)": 2200,
       "Chiều sâu (mm)": 900,
       "Chiều cao (mm)": 850,
@@ -132,10 +153,12 @@ export async function GET(req: NextRequest) {
       "Mô tả kích thước (Tiếng Việt)": "FFEAF2F8",
       "Giá tối thiểu (VND)": "FFFDEBD0", // Soft Gold
       "Giá tối đa (VND)": "FFFDEBD0",
+      "Đơn vị tính (Unit)": "FFFDEBD0",
+      "Mã Showroom (Showroom Code)": "FFF5EEF8", // Soft Purple
       "Chiều rộng (mm)": "FFFDF2E9", // Soft Peach
       "Chiều sâu (mm)": "FFFDF2E9",
       "Chiều cao (mm)": "FFFDF2E9",
-      "Slug danh mục*": "FFF5EEF8", // Soft Purple
+      "Slug danh mục*": "FFF5EEF8",
       "Slug thương hiệu": "FFF5EEF8",
       "Dòng sản phẩm/Series": "FFF5EEF8",
       "Ảnh chính (URL)*": "FFE8F6F3", // Soft Cyan
@@ -176,6 +199,14 @@ export async function GET(req: NextRequest) {
       "Giá tối đa (VND)": {
         title: "Giá tối đa",
         prompt: "Chỉ nhập số nguyên dương không chứa dấu phẩy/chấm phân cách (ví dụ: 50000000)."
+      },
+      "Đơn vị tính (Unit)": {
+        title: "Đơn vị tính",
+        prompt: "Đơn vị tính của giá sản phẩm (ví dụ: m², vỉ, bộ, cái, mét). Để trống nếu mặc định là VND."
+      },
+      "Mã Showroom (Showroom Code)": {
+        title: "Mã Showroom",
+        prompt: "Mã showroom trưng bày sản phẩm (ví dụ: district-7, hanoi, project-only). Xem danh sách ở sheet '🏢 Showroom'."
       },
       "Chiều rộng (mm)": {
         title: "Chiều rộng (mm)",
@@ -280,29 +311,36 @@ export async function GET(req: NextRequest) {
 
       const rowIdx = r + 3; // Row indices start at 3 since row 1 is header, row 2 is sample
 
-      // Data validation for Category Slug (Col 11 / K) pointing to child categories
-      wsMain.getCell(`K${rowIdx}`).dataValidation = {
+      // Data validation for Category Slug (Col 13 / M) pointing to child categories
+      wsMain.getCell(`M${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
         formulae: ["='📂 Danh mục'!$F$2:$F$500"]
       };
 
-      // Data validation for Brand Slug (Col 12 / L)
-      wsMain.getCell(`L${rowIdx}`).dataValidation = {
+      // Data validation for Brand Slug (Col 14 / N)
+      wsMain.getCell(`N${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
         formulae: ["='🏷️ Thương hiệu'!$C$2:$C$500"]
       };
 
-      // Data validation for Featured (Col 16 / P)
-      wsMain.getCell(`P${rowIdx}`).dataValidation = {
+      // Data validation for Showroom Code (Col 9 / I)
+      wsMain.getCell(`I${rowIdx}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: ["='🏢 Showroom'!$C$2:$C$500"]
+      };
+
+      // Data validation for Featured (Col 18 / R)
+      wsMain.getCell(`R${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
         formulae: ['"TRUE,FALSE"']
       };
 
-      // Data validation for Status (Col 17 / Q)
-      wsMain.getCell(`Q${rowIdx}`).dataValidation = {
+      // Data validation for Status (Col 19 / S)
+      wsMain.getCell(`S${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
         formulae: ['"draft,published,archived"']
@@ -499,6 +537,51 @@ export async function GET(req: NextRequest) {
     wsBrands.getColumn(1).width = 6;
     wsBrands.getColumn(2).width = 30;
     wsBrands.getColumn(3).width = 34;
+
+    // ─── Reference sheet: Showrooms ───
+    const wsShowrooms = workbook.addWorksheet("🏢 Showroom", {
+      views: [{ state: 'frozen', ySplit: 1 }]
+    });
+    const showroomHeaders = ["STT", "Tên showroom", "Mã showroom ← COPY CỘT NÀY", "Địa chỉ"];
+    const sHdr = wsShowrooms.addRow(showroomHeaders);
+    sHdr.height = 32;
+    sHdr.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C.refHdr } };
+      cell.font = { bold: true, color: { argb: C.white }, size: 11, name: "Calibri" };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = borderStyle;
+    });
+
+    if (showroomsList.length === 0) {
+      const r = wsShowrooms.addRow(["—", "Chưa có showroom", "—", "—"]);
+      r.height = 22;
+      r.eachCell(c => { c.alignment = { horizontal: "center", vertical: "middle" }; c.border = borderStyle; });
+    } else {
+      showroomsList.forEach((s: any, idx) => {
+        const bg = idx % 2 === 0 ? "FFEAFAF1" : "FFFFFFFF";
+        const r = wsShowrooms.addRow([
+          String(idx + 1),
+          s.name,
+          s.code ? `${s.name} (${s.code})` : "",
+          s.address
+        ]);
+        r.height = 22;
+        r.eachCell((cell, colIdx) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+          cell.border = borderStyle;
+          cell.alignment = { horizontal: "left", vertical: "middle" };
+          if (colIdx === 3) {
+            cell.font = { bold: true, color: { argb: "FFC0392B" }, size: 10, name: "Calibri" };
+          } else {
+            cell.font = { size: 10, name: "Calibri", color: { argb: "FF333333" } };
+          }
+        });
+      });
+    }
+    wsShowrooms.getColumn(1).width = 6;
+    wsShowrooms.getColumn(2).width = 30;
+    wsShowrooms.getColumn(3).width = 34;
+    wsShowrooms.getColumn(4).width = 46;
 
     // ─── Sheet: Lỗi thường gặp ───
     const wsErrors = workbook.addWorksheet("❌ Lỗi thường gặp");

@@ -134,7 +134,7 @@ export function PromotionsPage({
   promotions?: AdminPromotion[];
   total?: number;
 }) {
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
   const editId = searchParams.get("edit");
@@ -386,23 +386,25 @@ export function PromotionsPage({
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={async () => {
               if (!promoToDelete) return;
-              setIsDeleting(true);
+              showLoading("Đang xóa khuyến mãi...");
               try {
                 const res = await deleteAdminPromotion(promoToDelete.id);
+                hideLoading();
                 if (res.success) {
-                  toast.success("Xóa khuyến mãi thành công!");
-                  router.refresh();
+                  showAlert("Thành công", `Đã xóa khuyến mãi "${promoToDelete.title_vi}" thành công!`, "success", () => {
+                    router.refresh();
+                  });
                 } else {
-                  toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                  showAlert("Thất bại", "Xóa thất bại: " + (res.error ?? "Không xác định"), "error");
                 }
               } catch (err) {
-                toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+                hideLoading();
+                showAlert("Lỗi hệ thống", "Đã xảy ra lỗi khi xóa: " + String(err), "error");
               } finally {
-                setIsDeleting(false);
                 setPromoToDelete(null);
               }
-            }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {isDeleting ? "Đang xóa..." : "Xóa"}
+            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

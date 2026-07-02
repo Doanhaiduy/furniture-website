@@ -32,6 +32,8 @@ export const productSchema = z.object({
   dimension_unit: z.string().default("mm"),
   brand_id: z.string().uuid().nullable().optional(),
   brand_series: optionalText,
+  showroom_code: optionalText,
+  price_unit: optionalText,
   featured: z.boolean().default(false),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   promotion_id: z.string().uuid().nullable().optional(),
@@ -268,10 +270,10 @@ export const settingsSchema = z.object({
   quoteLeadEn: optionalText,
 });
 
-export type ProductInput = z.infer<typeof productSchema>;
-export type CategoryInput = z.infer<typeof categorySchema>;
-export type BlogPostInput = z.infer<typeof blogPostSchema>;
-export type ShowroomInput = z.infer<typeof showroomSchema>;
-export type BrandInput = z.infer<typeof brandSchema>;
-export type PromotionInput = z.infer<typeof promotionSchema>;
-export type SettingsInput = z.infer<typeof settingsSchema>;
+export type ProductInput = z.input<typeof productSchema>;
+export type CategoryInput = z.input<typeof categorySchema>;
+export type BlogPostInput = z.input<typeof blogPostSchema>;
+export type ShowroomInput = z.input<typeof showroomSchema>;
+export type BrandInput = z.input<typeof brandSchema>;
+export type PromotionInput = z.input<typeof promotionSchema>;
+export type SettingsInput = z.input<typeof settingsSchema>;

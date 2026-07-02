@@ -251,6 +251,7 @@ function UserCreateEntityForm() {
 }
 
 function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const { showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = idOrSlug || searchParams.get("edit");
@@ -450,6 +451,7 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         return;
       }
 
+      showLoading(isEdit ? "Đang cập nhật showroom..." : "Đang tạo showroom mới...");
       const { createAdminShowroom, updateAdminShowroom } = await import("@/lib/supabase/mutations");
       let res;
       if (isEdit && showroomId) {
@@ -458,15 +460,27 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         res = await createAdminShowroom(payload);
       }
 
+      hideLoading();
+
       if (res.success) {
         setSaveSuccess(true);
-        router.push("/admin/showrooms");
-        router.refresh();
+        showAlert(
+          "Thành công",
+          isEdit ? "Cập nhật showroom thành công!" : "Tạo showroom mới thành công!",
+          "success",
+          () => {
+            router.push("/admin/showrooms");
+            router.refresh();
+          }
+        );
       } else {
         setSaveError(res.error || "Không thể lưu showroom.");
+        showAlert("Thất bại", res.error || "Không thể lưu showroom.", "error");
       }
     } catch (err) {
+      hideLoading();
       setSaveError(String(err));
+      showAlert("Lỗi hệ thống", String(err), "error");
     } finally {
       setIsSaving(false);
     }
@@ -716,6 +730,7 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
+  const { showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = idOrSlug || searchParams.get("edit");
@@ -918,6 +933,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         return;
       }
 
+      showLoading(isEdit ? "Đang cập nhật danh mục..." : "Đang tạo danh mục mới...");
       const { createAdminCategory, updateAdminCategory } = await import("@/lib/supabase/mutations");
       let res;
       if (isEdit && categoryId) {
@@ -926,15 +942,27 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         res = await createAdminCategory(payload);
       }
 
+      hideLoading();
+
       if (res.success) {
         setSaveSuccess(true);
-        router.push("/admin/categories");
-        router.refresh();
+        showAlert(
+          "Thành công",
+          isEdit ? "Cập nhật danh mục thành công!" : "Tạo danh mục mới thành công!",
+          "success",
+          () => {
+            router.push("/admin/categories");
+            router.refresh();
+          }
+        );
       } else {
         setSaveError(res.error || "Không thể lưu danh mục.");
+        showAlert("Thất bại", res.error || "Không thể lưu danh mục.", "error");
       }
     } catch (err) {
+      hideLoading();
       setSaveError(String(err));
+      showAlert("Lỗi hệ thống", String(err), "error");
     } finally {
       setIsSaving(false);
     }
@@ -1189,7 +1217,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 
 
 function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const searchParams = useSearchParams();
   const editId = idOrSlug || searchParams.get("edit") || "";
   const isEdit = Boolean(editId);
@@ -1274,6 +1302,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         return;
       }
 
+      showLoading(isEdit ? "Đang cập nhật thương hiệu..." : "Đang tạo thương hiệu mới...");
       const { createAdminBrand, updateAdminBrand } = await import("@/lib/supabase/brands-mutations");
 
       let res;
@@ -1283,14 +1312,25 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         res = await createAdminBrand(brandData);
       }
 
+      hideLoading();
+
       if (res.success) {
-        toast.success(isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!");
-        window.location.href = "/admin/brands";
+        showAlert(
+          "Thành công",
+          isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!",
+          "success",
+          () => {
+            window.location.href = "/admin/brands";
+          }
+        );
       } else {
         setFormError(res.error || "Có lỗi xảy ra.");
+        showAlert("Thất bại", res.error || "Có lỗi xảy ra.", "error");
       }
     } catch (err) {
+      hideLoading();
       setFormError("Lỗi kết nối.");
+      showAlert("Lỗi hệ thống", String(err), "error");
     } finally {
       setFormLoading(false);
     }
@@ -1387,7 +1427,7 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const searchParams = useSearchParams();
   const editId = idOrSlug || searchParams.get("edit") || "";
   const isEdit = Boolean(editId);
@@ -1532,7 +1572,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         end_at: endAt ? new Date(endAt).toISOString() : null,
         original_price: null,
         items: [],
-        status,
+        status: targetStatus,
         productIds: selectedProductIds,
       };
 
@@ -1552,6 +1592,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         return;
       }
 
+      showLoading(isEdit ? "Đang cập nhật khuyến mãi..." : "Đang tạo khuyến mãi mới...");
       const { createAdminPromotion, updateAdminPromotion } = await import("@/lib/supabase/admin-queries");
 
       let res;
@@ -1561,14 +1602,25 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         res = await createAdminPromotion(promotionData);
       }
 
+      hideLoading();
+
       if (res.success) {
-        toast.success(isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!");
-        window.location.href = "/admin/promotions";
+        showAlert(
+          "Thành công",
+          isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!",
+          "success",
+          () => {
+            window.location.href = "/admin/promotions";
+          }
+        );
       } else {
         setFormError(res.error || "Có lỗi xảy ra.");
+        showAlert("Thất bại", res.error || "Có lỗi xảy ra.", "error");
       }
     } catch (err) {
+      hideLoading();
       setFormError("Lỗi kết nối.");
+      showAlert("Lỗi hệ thống", String(err), "error");
     } finally {
       setFormLoading(false);
     }

@@ -128,7 +128,7 @@ import {
 export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?: boolean; brands?: Brand[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
-  const { toast } = useToast();
+  const { toast, showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
 
   const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null);
@@ -310,24 +310,26 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
                 <AlertDialogCancel onClick={() => setBrandStep(1)}>Hủy</AlertDialogCancel>
                 <AlertDialogAction onClick={async () => {
                   if (!brandToDelete) return;
-                  setIsDeleting(true);
+                  showLoading("Đang xóa thương hiệu...");
                   try {
                     const res = await deleteAdminBrand(brandToDelete.id);
+                    hideLoading();
                     if (res.success) {
-                      toast.success("Xóa thương hiệu thành công!");
-                      router.refresh();
+                      showAlert("Thành công", `Đã xóa thương hiệu "${brandToDelete.name?.vi}" thành công!`, "success", () => {
+                        router.refresh();
+                      });
                     } else {
-                      toast.error("Xóa thất bại: " + (res.error ?? "Không xác định"));
+                      showAlert("Thất bại", "Xóa thất bại: " + (res.error ?? "Không xác định"), "error");
                     }
                   } catch (err) {
-                    toast.error("Đã xảy ra lỗi khi xóa: " + String(err));
+                    hideLoading();
+                    showAlert("Lỗi hệ thống", "Đã xảy ra lỗi khi xóa: " + String(err), "error");
                   } finally {
-                    setIsDeleting(false);
                     setBrandToDelete(null);
                     setBrandStep(1);
                   }
-                }} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  {isDeleting ? "Đang xóa..." : "Xóa"}
+                }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Xóa
                 </AlertDialogAction>
               </>
             )}
