@@ -2,6 +2,7 @@
 "use server";
 
 import { createAdminClient } from "../server";
+import { resolveTranslationMatchIds } from "../search-helpers";
 
 interface RawBlogCategory {
   id: string;
@@ -61,10 +62,16 @@ export async function getAdminBlogPosts(params: {
         ),
         profiles!fk_blog_posts_author (full_name)
       `;
+      selectStr += `, blog_post_translations (slug, title, excerpt, seo_title, seo_description)`;
+
+      // Free-text search: both searched columns live on the translation table, so
+      // resolve matching post ids there, then filter parents by id. (Dotted embedded
+      // refs inside .or() do not parse in PostgREST — see lib/supabase/search-helpers.ts.)
+      let searchIds: string[] | null = null;
       if (params.q) {
-        selectStr += `, blog_post_translations!inner (slug, title, excerpt, seo_title, seo_description)`;
-      } else {
-        selectStr += `, blog_post_translations (slug, title, excerpt, seo_title, seo_description)`;
+        searchIds = await resolveTranslationMatchIds(
+          supabase, "blog_post_translations", "post_id", ["title", "excerpt"], params.q,
+        );
       }
 
       let blogQuery = supabase
@@ -89,15 +96,15 @@ export async function getAdminBlogPosts(params: {
       if (params.dateTo) {
         blogQuery = blogQuery.lte("created_at", params.dateTo + "T23:59:59.999Z");
       }
-      if (params.q) {
-        blogQuery = blogQuery.or(`blog_post_translations.title.ilike.%${params.q}%,blog_post_translations.excerpt.ilike.%${params.q}%`);
+      if (searchIds) {
+        blogQuery = blogQuery.in("id", searchIds);
       }
 
       let total = 0;
       if (params.withTotal) {
         let countQ = supabase
           .from("blog_posts")
-          .select("id" + (params.q ? ", blog_post_translations!inner(title)" : ""), { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .is("deleted_at", null);
         if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
         if (params.categoryId) countQ = countQ.eq("category_id", params.categoryId);
@@ -105,8 +112,8 @@ export async function getAdminBlogPosts(params: {
         else if (params.featured === "false") countQ = countQ.eq("featured", false);
         if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
         if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
-        if (params.q) {
-          countQ = countQ.or(`blog_post_translations.title.ilike.%${params.q}%,blog_post_translations.excerpt.ilike.%${params.q}%`);
+        if (searchIds) {
+          countQ = countQ.in("id", searchIds);
         }
         const { count } = await countQ;
         total = count ?? 0;

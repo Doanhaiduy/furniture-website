@@ -6,6 +6,7 @@ import { createAdminClient, createClient } from "./server";
 import { writeAuditLog } from "./audit";
 import { revalidatePath } from "next/cache";
 import { type SupabaseClient } from "@supabase/supabase-js";
+import { resolveTranslationMatchIds, buildTranslationSearchOr } from "./search-helpers";
 
 // Types
 export interface BrandInput {
@@ -254,6 +255,24 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
     const supabase = await createClient();
     const logoMediaId = await getOrCreateMediaAssetId(supabase, data.logo_url, user.id);
 
+    // Resolve id-or-slug to the real UUID. The admin Edit link passes the brand slug
+    // (?edit=<slug>), so without this the update matched no row and the save silently
+    // did nothing (edits were lost).
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    let brandId = id;
+    if (!isUuid) {
+      const { data: found } = await supabase
+        .from("brands")
+        .select("id")
+        .eq("slug", id)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (!found) {
+        return { success: false, error: "Brand not found" };
+      }
+      brandId = found.id;
+    }
+
     // Update brand
     const { error: brandError } = await supabase
       .from("brands")
@@ -267,7 +286,7 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
         updated_at: new Date().toISOString(),
         published_at: data.status === "published" ? new Date().toISOString() : null,
       })
-      .eq("id", id);
+      .eq("id", brandId);
 
     if (brandError) {
       return { success: false, error: brandError.message };
@@ -277,7 +296,7 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
     const { error: viError } = await supabase
       .from("brand_translations")
       .upsert({
-        brand_id: id,
+        brand_id: brandId,
         locale: "vi",
         name: data.name_vi,
         description: data.description_vi,
@@ -291,7 +310,7 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
     const { error: enError } = await supabase
       .from("brand_translations")
       .upsert({
-        brand_id: id,
+        brand_id: brandId,
         locale: "en",
         name: data.name_en || data.name_vi,
         description: data.description_en || data.description_vi,
@@ -307,7 +326,7 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
       actorId: user.id,
       action: "update",
       entityType: "brand",
-      entityId: id,
+      entityId: brandId,
       metadata: { name: data.name_vi },
     });
 
@@ -442,10 +461,16 @@ export async function getAdminBrands(params: {
         logo_media:media_assets!fk_brands_logo_media(public_url)
     `;
 
+    selectStr += `, brand_translations (locale, name)`;
+
+    // Free-text search via translation-id resolution (dotted embedded refs inside .or()
+    // do not parse in PostgREST — see lib/supabase/search-helpers.ts).
+    let searchOr: string | null = null;
     if (params.q) {
-      selectStr += `, brand_translations!inner (locale, name)`;
-    } else {
-      selectStr += `, brand_translations (locale, name)`;
+      const ids = await resolveTranslationMatchIds(
+        supabase, "brand_translations", "brand_id", ["name"], params.q,
+      );
+      searchOr = buildTranslationSearchOr("origin", params.q, ids);
     }
 
     let query = supabase
@@ -462,21 +487,21 @@ export async function getAdminBrands(params: {
     if (params.dateTo) {
       query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
     }
-    if (params.q) {
-      query = query.or(`origin.ilike.%${params.q}%,brand_translations.name.ilike.%${params.q}%`);
+    if (searchOr) {
+      query = query.or(searchOr);
     }
 
     let total = 0;
     if (params.withTotal) {
       let countQ = supabase
         .from("brands")
-        .select("id" + (params.q ? ", brand_translations!inner(name)" : ""), { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .is("deleted_at", null);
       if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
       if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
       if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
-      if (params.q) {
-        countQ = countQ.or(`origin.ilike.%${params.q}%,brand_translations.name.ilike.%${params.q}%`);
+      if (searchOr) {
+        countQ = countQ.or(searchOr);
       }
       const { count } = await countQ;
       total = count ?? 0;

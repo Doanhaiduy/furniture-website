@@ -1,74 +1,77 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
+ * E2E config for the admin suite.
+ *
+ * Design goals (see tests/e2e/support/*):
+ *  - One browser (chromium) for admin flows: role login is expensive and multi-browser
+ *    only multiplied flakiness without adding admin-behaviour coverage.
+ *  - A `setup` project logs in once as admin and once as editor and caches the Supabase
+ *    cookie session to tests/e2e/.auth/*.json. Specs opt into a role via
+ *    `test.use({ storageState })` instead of logging in per test.
+ *  - baseURL + DB host come from env so the exact same specs run locally and in Docker.
+ *  - The dev server is auto-started locally, but skipped in Docker where the app runs as
+ *    its own container (set E2E_SKIP_WEBSERVER=1).
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+const BASE_URL = process.env.E2E_BASE_URL || "http://localhost:3000";
+const SKIP_WEBSERVER = process.env.E2E_SKIP_WEBSERVER === "1";
+
 export default defineConfig({
-  testDir: './tests/e2e',
-  timeout: 90000,
-  /* Run tests in files in parallel */
+  testDir: "./tests/e2e",
+  // Generous timeouts: the app runs in dev mode, so the first hit to a heavy admin route
+  // or server action pays a Turbopack compile cost (much slower in the Docker container).
+  // These ceilings only bite on genuine hangs; fast (warm/host) runs finish well under them.
+  timeout: 120_000,
+  expect: { timeout: 30_000 },
   fullyParallel: false,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  retries: process.env.CI ? 1 : 0,
+  workers: 1,
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }]]
+    : [["list"], ["html", { open: "never" }]],
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    baseURL: BASE_URL,
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    actionTimeout: 30_000,
+    navigationTimeout: 60_000,
+    // In Docker the app is reached over plain HTTP at a single-label host (http://app:3000).
+    // Chromium's automatic HTTPS upgrade turns that into an https:// attempt against a
+    // plaintext dev server -> ERR_SSL_PROTOCOL_ERROR. Disable the upgrade features.
+    // (No effect locally: localhost is exempt from HTTPS upgrades anyway.)
+    launchOptions: {
+      args: [
+        "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2",
+      ],
+    },
   },
 
-  /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "setup",
+      testMatch: /support[\\/]auth\.setup\.ts/,
+      use: { ...devices["Desktop Chrome"] },
     },
-
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: "chromium",
+      dependencies: ["setup"],
+      // Ignore the setup file and the quarantined legacy specs (superseded flaky/
+      // false-confidence tests kept under _legacy/ for reference, not run by default).
+      testIgnore: [/support[\\/]auth\.setup\.ts/, /[\\/]_legacy[\\/]/],
+      use: { ...devices["Desktop Chrome"] },
     },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
+  ...(SKIP_WEBSERVER
+    ? {}
+    : {
+        webServer: {
+          command: "pnpm dev",
+          url: BASE_URL,
+          reuseExistingServer: true,
+          timeout: 180_000,
+        },
+      }),
 });

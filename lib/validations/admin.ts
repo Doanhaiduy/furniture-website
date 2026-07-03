@@ -90,7 +90,21 @@ export const categorySchema = z.object({
   description_vi: optionalText,
   description_en: optionalText,
   parent_id: z.string().uuid().nullable().optional(),
-  group_key: z.enum(["wood", "sanitary", "tiles"]).nullable().optional(),
+  // Accept both the DB group_key enum values (what the category form actually submits,
+  // read from the selected parent) and the legacy short aliases that mapGroupKeyToDb()
+  // still normalises. Previously only the short aliases were allowed, so creating a
+  // category under any non-"tiles" group silently failed client-side validation.
+  group_key: z
+    .enum([
+      "wooden_furniture",
+      "sanitary_equipment",
+      "tiles",
+      "project_solutions",
+      "wood",
+      "sanitary",
+    ])
+    .nullable()
+    .optional(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   sort_order: z.number().int().default(0),
   cover_image: optionalText,

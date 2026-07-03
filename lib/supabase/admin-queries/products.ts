@@ -2,6 +2,7 @@
 "use server";
 
 import { createClient, createAdminClient } from "../server";
+import { resolveTranslationMatchIds, buildTranslationSearchOr } from "../search-helpers";
 
 export type AdminProduct = {
   id: string;
@@ -100,16 +101,23 @@ export async function getAdminProducts(params: {
           )
       `;
 
-      if (params.q) {
-        selectStr += `, product_translations!inner(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
-      } else {
-        selectStr += `, product_translations(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
-      }
+      selectStr += `, product_translations(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
 
       let query = supabase
         .from("products")
         .select(selectStr)
         .is("deleted_at", null);
+
+      // Free-text search: resolve translation matches to product ids first, then OR
+      // them with the parent reference_code. (A dotted embedded ref inside .or() does
+      // not parse in PostgREST — see lib/supabase/search-helpers.ts.)
+      let searchOr: string | null = null;
+      if (params.q) {
+        const ids = await resolveTranslationMatchIds(
+          supabase, "product_translations", "product_id", ["name"], params.q,
+        );
+        searchOr = buildTranslationSearchOr("reference_code", params.q, ids);
+      }
 
       if (params.status && params.status !== "all") {
         query = query.eq("status", params.status);
@@ -131,8 +139,8 @@ export async function getAdminProducts(params: {
       if (params.dateTo) {
         query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
       }
-      if (params.q) {
-        query = query.or(`reference_code.ilike.%${params.q}%,product_translations.name.ilike.%${params.q}%`);
+      if (searchOr) {
+        query = query.or(searchOr);
       }
 
       // Get total count for pagination
@@ -140,7 +148,7 @@ export async function getAdminProducts(params: {
       if (params.withTotal) {
         let countQuery = supabase
           .from("products")
-          .select("id" + (params.q ? ", product_translations!inner(name)" : ""), { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .is("deleted_at", null);
         if (params.status && params.status !== "all") countQuery = countQuery.eq("status", params.status);
         if (params.categoryId) countQuery = countQuery.eq("category_id", params.categoryId);
@@ -149,8 +157,8 @@ export async function getAdminProducts(params: {
         else if (params.featured === "false") countQuery = countQuery.eq("featured", false);
         if (params.dateFrom) countQuery = countQuery.gte("created_at", params.dateFrom);
         if (params.dateTo) countQuery = countQuery.lte("created_at", params.dateTo + "T23:59:59.999Z");
-        if (params.q) {
-          countQuery = countQuery.or(`reference_code.ilike.%${params.q}%,product_translations.name.ilike.%${params.q}%`);
+        if (searchOr) {
+          countQuery = countQuery.or(searchOr);
         }
         const { count } = await countQuery;
         total = count ?? 0;
@@ -241,23 +249,34 @@ export async function getAdminProducts(params: {
 export async function searchAdminProducts(q: string): Promise<any[]> {
   try {
     const supabase = await createClient();
+    // Resolve product ids whose VI name matches, then OR with reference_code on the
+    // parent. (A dotted embedded ref inside .or() does not parse in PostgREST.)
+    const { data: matches } = await supabase
+      .from("product_translations")
+      .select("product_id")
+      .eq("locale", "vi")
+      .ilike("name", `%${q}%`);
+    const ids = [...new Set((matches ?? []).map((m: any) => m.product_id).filter(Boolean))];
+    const searchOr = buildTranslationSearchOr("reference_code", q, ids);
+    if (!searchOr) return [];
+
     const { data, error } = await supabase
       .from("products")
       .select(`
         id,
         reference_code,
-        product_translations!inner (name, locale)
+        product_translations (name, locale)
       `)
-      .eq("product_translations.locale", "vi")
-      .or(`reference_code.ilike.%${q}%,product_translations.name.ilike.%${q}%`)
+      .is("deleted_at", null)
+      .or(searchOr)
       .limit(10);
-    
-    if (error) return [];
-    return data.map(p => ({
-      id: p.id,
-      reference_code: p.reference_code,
-      name: p.product_translations[0]?.name || ""
-    }));
+
+    if (error || !data) return [];
+    return data.map((p: any) => {
+      const t = Array.isArray(p.product_translations) ? p.product_translations : [];
+      const vi = t.find((x: any) => x.locale === "vi") || t[0];
+      return { id: p.id, reference_code: p.reference_code, name: vi?.name || "" };
+    });
   } catch (e) {
     console.error("Failed to search products:", e);
     return [];

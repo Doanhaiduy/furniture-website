@@ -3,6 +3,7 @@
 
 import { createClient, createAdminClient } from "../server";
 import { requireEditorOrAdmin } from "../auth";
+import { resolveTranslationMatchIds, buildTranslationSearchOr } from "../search-helpers";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isUuid(value: string) {
@@ -95,10 +96,17 @@ export async function getAdminPromotions(params: {
         created_at,
         updated_at
       `;
+      selectStr += `, promotion_translations (locale, title, description)`;
+
+      // Free-text search: resolve translation matches to promotion ids first, then OR
+      // with the parent code. (A dotted embedded ref inside .or() does not parse in
+      // PostgREST — see lib/supabase/search-helpers.ts.)
+      let searchOr: string | null = null;
       if (params.q) {
-        selectStr += `, promotion_translations!inner (locale, title, description)`;
-      } else {
-        selectStr += `, promotion_translations (locale, title, description)`;
+        const ids = await resolveTranslationMatchIds(
+          supabase, "promotion_translations", "promotion_id", ["title"], params.q,
+        );
+        searchOr = buildTranslationSearchOr("code", params.q, ids);
       }
 
       let query = supabase
@@ -115,8 +123,8 @@ export async function getAdminPromotions(params: {
       if (params.dateTo) {
         query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
       }
-      if (params.q) {
-        query = query.or(`code.ilike.%${params.q}%,promotion_translations.title.ilike.%${params.q}%`);
+      if (searchOr) {
+        query = query.or(searchOr);
       }
       if (params.discountType === "percentage") {
         query = query.not("discount_percentage", "is", null);
@@ -135,13 +143,13 @@ export async function getAdminPromotions(params: {
       if (params.withTotal) {
         let countQ = supabase
           .from("promotions")
-          .select("id" + (params.q ? ", promotion_translations!inner(title)" : ""), { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .is("deleted_at", null);
         if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
         if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
         if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
-        if (params.q) {
-          countQ = countQ.or(`code.ilike.%${params.q}%,promotion_translations.title.ilike.%${params.q}%`);
+        if (searchOr) {
+          countQ = countQ.or(searchOr);
         }
         if (params.discountType === "percentage") {
           countQ = countQ.not("discount_percentage", "is", null);
@@ -353,9 +361,26 @@ export async function updateAdminPromotion(
   }
 ): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
+
   try {
     const supabase = await createClient();
+
+    // The edit link passes promo.code (a non-UUID) as `id`, so resolve it to the real
+    // UUID before keying writes on it — otherwise `.eq("id", <code>)` matches no row and
+    // the update silently fails. (Same class of bug as brand/showroom edit.)
+    let promotionId = id;
+    if (!isUuid(id)) {
+      const { data: existing } = await supabase
+        .from("promotions")
+        .select("id")
+        .eq("code", id)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (!existing) {
+        return { success: false, error: `Promotion not found: ${id}` };
+      }
+      promotionId = existing.id;
+    }
 
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
     const meta = {
@@ -385,7 +410,7 @@ export async function updateAdminPromotion(
         updated_by: user.id,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq("id", promotionId)
       .select()
       .single();
 
@@ -428,11 +453,11 @@ export async function updateAdminPromotion(
     );
 
     // Sync product links (N-N)
-    await supabase.from("product_promotions").delete().eq("promotion_id", id);
+    await supabase.from("product_promotions").delete().eq("promotion_id", promotionId);
     if (data.productIds && data.productIds.length > 0) {
       const inserts = data.productIds.map((pid: string) => ({
         product_id: pid,
-        promotion_id: id,
+        promotion_id: promotionId,
       }));
       await supabase.from("product_promotions").insert(inserts);
     }
@@ -534,11 +559,11 @@ export async function getAdminPromotionById(id: string): Promise<{ success: bool
       return { success: false, error: error?.message || "Promotion not found" };
     }
 
-    // Query associated products
+    // Query associated products (key on the resolved UUID, not the code/slug passed in).
     const { data: pLinks } = await supabase
       .from("product_promotions")
       .select("product_id")
-      .eq("promotion_id", id);
+      .eq("promotion_id", promo.id);
     const productIds = pLinks ? pLinks.map((l: any) => l.product_id) : [];
 
     const translations = Array.isArray(promo.promotion_translations) ? promo.promotion_translations : [];

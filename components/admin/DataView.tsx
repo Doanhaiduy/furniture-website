@@ -167,7 +167,10 @@ export function DataView({
 
       {/* Empty state */}
       {!isLoading && !error && data.length === 0 && (
-        <div className="rounded-xl border border-dashed bg-slate-50 p-12 text-center text-slate-400">
+        <div
+          data-testid="admin-list-empty"
+          className="rounded-xl border border-dashed bg-slate-50 p-12 text-center text-slate-400"
+        >
           {emptyIcon && <div className="mb-3 flex justify-center">{emptyIcon}</div>}
           <p className="text-sm">{emptyMessage}</p>
         </div>
@@ -178,7 +181,7 @@ export function DataView({
         <>
           {/* List view */}
           {(viewMode === "list" || disableGrid) && (
-            <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+            <div data-testid="admin-list" className="overflow-hidden rounded-xl border bg-white shadow-sm">
               {/* Column headers */}
               {columns.length > 0 && (
                 <div

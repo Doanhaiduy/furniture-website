@@ -345,13 +345,24 @@ export function QuotesPage({
               <p className="p-8 text-center text-sm text-slate-400">Không tìm thấy yêu cầu báo giá nào khớp điều kiện.</p>
             ) : (
               localQuotes.map((quote) => (
-                <button
+                // Row is a div (not a button): it contains the AssigneePopover trigger, which is
+                // itself a <button>, and a <button> inside a <button> is invalid HTML — it caused a
+                // hydration error and made the browser reparent the pagination + detail column out
+                // to <body> (duplicate detail panel). role/tabIndex/keydown keep it keyboard-usable.
+                <div
                   key={quote.id}
-                  type="button"
-                  className={`w-full text-left grid grid-cols-[1.2fr_1fr_1fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
+                  role="button"
+                  tabIndex={0}
+                  className={`w-full cursor-pointer text-left grid grid-cols-[1.2fr_1fr_1fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
                     selectedQuote?.id === quote.id ? "bg-indigo-50/30" : ""
                   }`}
                   onClick={() => setSelectedQuoteId(quote.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedQuoteId(quote.id);
+                    }
+                  }}
                 >
                   <div className="min-w-0 pr-2">
                     <p className="font-semibold text-slate-800 truncate">{quote.full_name}</p>
@@ -400,7 +411,7 @@ export function QuotesPage({
                   <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
                     {statusLabels[quote.status] ?? quote.status}
                   </span>
-                </button>
+                </div>
               ))
             )}
           </div>

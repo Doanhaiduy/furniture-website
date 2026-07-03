@@ -251,6 +251,23 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
 
   try {
     const supabase = createAdminClient();
+
+    // The admin Edit link passes the showroom code (?edit=<code>), but every write below
+    // keys on the showroom UUID. Resolve code -> id so edits actually persist instead of
+    // silently matching no row.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    if (!isUuid) {
+      const { data: found } = await supabase
+        .from("showrooms")
+        .select("id")
+        .eq("code", id)
+        .maybeSingle();
+      if (!found) {
+        return { success: false, error: "Showroom not found" };
+      }
+      id = found.id;
+    }
+
     const translations = [
       {
         showroom_id: id,

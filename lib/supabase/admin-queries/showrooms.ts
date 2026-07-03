@@ -2,6 +2,7 @@
 "use server";
 
 import { createClient } from "../server";
+import { resolveTranslationMatchIds } from "../search-helpers";
 
 interface RawMediaAsset {
   public_url: string;
@@ -48,10 +49,16 @@ export async function getAdminShowrooms(params: {
       sort_order,
       showroom_media (media_id, is_primary, media:media_assets (public_url))
     `;
+    selectStr += `, showroom_translations (locale, name, address, opening_hours)`;
+
+    // Free-text search: both searched columns live on the translation table, so resolve
+    // matching showroom ids there, then filter parents by id. (Dotted embedded refs
+    // inside .or() do not parse in PostgREST — see lib/supabase/search-helpers.ts.)
+    let searchIds: string[] | null = null;
     if (params.q) {
-      selectStr += `, showroom_translations!inner (locale, name, address, opening_hours)`;
-    } else {
-      selectStr += `, showroom_translations (locale, name, address, opening_hours)`;
+      searchIds = await resolveTranslationMatchIds(
+        supabase, "showroom_translations", "showroom_id", ["name", "address"], params.q,
+      );
     }
 
     let query = supabase
@@ -68,21 +75,21 @@ export async function getAdminShowrooms(params: {
     if (params.dateTo) {
       query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
     }
-    if (params.q) {
-      query = query.or(`showroom_translations.name.ilike.%${params.q}%,showroom_translations.address.ilike.%${params.q}%`);
+    if (searchIds) {
+      query = query.in("id", searchIds);
     }
 
     let srTotal = 0;
     if (params.withTotal) {
       let countQ = supabase
         .from("showrooms")
-        .select("id" + (params.q ? ", showroom_translations!inner(name)" : ""), { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .is("deleted_at", null);
       if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
       if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
       if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
-      if (params.q) {
-        countQ = countQ.or(`showroom_translations.name.ilike.%${params.q}%,showroom_translations.address.ilike.%${params.q}%`);
+      if (searchIds) {
+        countQ = countQ.in("id", searchIds);
       }
       const { count } = await countQ;
       srTotal = count ?? 0;

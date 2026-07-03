@@ -79,6 +79,17 @@ export async function GET(req: NextRequest) {
       cell.border = borderStyle;
     });
 
+    // Sample/example row at row 2 so the exported file matches the import template layout:
+    // the importer skips row 2 and reads data from row 3. Without it, re-importing an export
+    // silently dropped the first record (off-by-one).
+    const sampleRow = ws.addRow(headers.map((h) => (h.endsWith("*") ? "(ví dụ)" : "")));
+    sampleRow.height = 18;
+    sampleRow.eachCell((cell) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEBF3FB" } };
+      cell.font = { italic: true, color: { argb: "FF6B7280" }, size: 9, name: "Calibri" };
+      cell.border = borderStyle;
+    });
+
     // Populate rows
     (dbProducts ?? []).forEach((p) => {
       const trans = Array.isArray(p.product_translations) ? p.product_translations : [];

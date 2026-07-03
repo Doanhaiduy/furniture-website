@@ -1,0 +1,80 @@
+# Reproducible E2E stack: app container + Playwright runner container, both joined to
+# the external Supabase CLI network so the DB/auth are the same ones `supabase start` runs.
+#
+# Run with:  pnpm test:e2e:docker   (see scripts/e2e-docker.sh)
+#
+# Networking note: the browser runs INSIDE the e2e container, so the client-side Supabase
+# URL must resolve from there. We therefore point NEXT_PUBLIC_SUPABASE_URL at the Kong
+# service name (reachable on supabase_network), not 127.0.0.1.
+
+services:
+  app:
+    container_name: furniture-e2e-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      - NODE_ENV=development
+      - CI=true
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - SUPABASE_URL_INTERNAL=http://supabase_kong_furniture-website:8000
+      - NEXT_PUBLIC_SUPABASE_URL=http://supabase_kong_furniture-website:8000
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_furniture-website:5432/postgres
+    env_file:
+      - .env
+    # No source bind-mount on purpose: the app runs from the freshly built image (the image
+    # is rebuilt with current source each run). This isolates the app's filesystem from the
+    # e2e container and avoids a stale reused .next volume, which caused nondeterministic
+    # /admin/login 404s when both containers shared the host repo.
+    # Healthy only once /admin/login has actually compiled and rendered the login form.
+    # (Turbopack dev serves a 404 for an un-compiled route, which a status-only check would
+    # wrongly accept, letting the e2e container race a cold-compiling app.)
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/admin/login').then(r=>r.text()).then(t=>process.exit(t.indexOf('input-pd')>=0?0:1)).catch(()=>process.exit(1))\""]
+      interval: 8s
+      timeout: 15s
+      retries: 40
+      start_period: 30s
+    networks:
+      - default
+      - supabase_network
+
+  e2e:
+    container_name: furniture-e2e-runner
+    image: mcr.microsoft.com/playwright:v1.60.0-noble
+    depends_on:
+      app:
+        condition: service_healthy
+    # Share the app container's network namespace: the browser then reaches the app at
+    # http://localhost:3000, which Chromium never auto-upgrades to HTTPS (unlike the
+    # single-label host `app`, which caused net::ERR_SSL_PROTOCOL_ERROR). The DB is still
+    # reachable because app is joined to supabase_network.
+    network_mode: "service:app"
+    environment:
+      - CI=true
+      - E2E_SKIP_WEBSERVER=1
+      - E2E_BASE_URL=http://localhost:3000
+      - DATABASE_URL=postgresql://postgres:postgres@supabase_db_furniture-website:5432/postgres
+    working_dir: /work
+    volumes:
+      - .:/work
+      - e2e_node_modules:/work/node_modules
+      - /work/.next
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - >
+        corepack enable &&
+        corepack prepare pnpm@11.5.0 --activate &&
+        pnpm install --frozen-lockfile &&
+        pnpm exec playwright test ${E2E_ARGS:-} --reporter=list 2>&1 | tee test-results/docker-e2e.log ;
+        exit $${PIPESTATUS[0]}
+
+networks:
+  supabase_network:
+    name: supabase_network_furniture-website
+    external: true
+
+volumes:
+  e2e_node_modules:

@@ -2,6 +2,7 @@
 "use server";
 
 import { createAdminClient } from "../server";
+import { resolveTranslationMatchIds } from "../search-helpers";
 
 export type AdminCategory = {
   id: string;
@@ -38,10 +39,17 @@ export async function getAdminCategories(params: {
         parent_id,
         group_key
       `;
+      selectStr += `, product_category_translations (locale, slug, name, description)`;
+
+      // Free-text search: both name and slug live on the translation table (slug is NOT
+      // a column on product_categories), so resolve matching category ids there and filter
+      // parents by id. (Dotted embedded refs inside .or() do not parse in PostgREST —
+      // see lib/supabase/search-helpers.ts.)
+      let searchIds: string[] | null = null;
       if (params.q) {
-        selectStr += `, product_category_translations!inner (locale, slug, name, description)`;
-      } else {
-        selectStr += `, product_category_translations (locale, slug, name, description)`;
+        searchIds = await resolveTranslationMatchIds(
+          supabase, "product_category_translations", "category_id", ["name", "slug"], params.q,
+        );
       }
 
       let query = supabase
@@ -61,8 +69,8 @@ export async function getAdminCategories(params: {
       if (params.dateTo) {
         query = query.lte("created_at", params.dateTo + "T23:59:59.999Z");
       }
-      if (params.q) {
-        query = query.or("slug.ilike.%" + params.q + "%,product_category_translations.name.ilike.%" + params.q + "%");
+      if (searchIds) {
+        query = query.in("id", searchIds);
       }
       if (params.level === "parent") {
         query = query.is("parent_id", null);
@@ -74,14 +82,14 @@ export async function getAdminCategories(params: {
       if (params.withTotal) {
         let countQ = supabase
           .from("product_categories")
-          .select("id" + (params.q ? ", product_category_translations!inner(name)" : ""), { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .is("deleted_at", null);
         if (params.status && params.status !== "all") countQ = countQ.eq("status", params.status);
         if (params.groupKey && params.groupKey !== "all") countQ = countQ.eq("group_key", params.groupKey);
         if (params.dateFrom) countQ = countQ.gte("created_at", params.dateFrom);
         if (params.dateTo) countQ = countQ.lte("created_at", params.dateTo + "T23:59:59.999Z");
-        if (params.q) {
-          countQ = countQ.or("slug.ilike.%" + params.q + "%,product_category_translations.name.ilike.%" + params.q + "%");
+        if (searchIds) {
+          countQ = countQ.in("id", searchIds);
         }
         if (params.level === "parent") {
           countQ = countQ.is("parent_id", null);
