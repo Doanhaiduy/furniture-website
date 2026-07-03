@@ -56,7 +56,7 @@ async function buildImportXlsx(headers: string[], rows: Record<string, string>[]
 /** Parse an exported workbook: header row + count of real data rows (excludes header + sample). */
 async function parseExport(body: Buffer): Promise<{ headers: string[]; dataRows: number }> {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(body);
+  await wb.xlsx.load(body as unknown as ArrayBuffer);
   const ws = wb.worksheets[0];
   const headers: string[] = [];
   ws.getRow(1).eachCell((c, i) => { headers[i - 1] = c.text.trim(); });
