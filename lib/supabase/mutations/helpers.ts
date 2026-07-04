@@ -23,13 +23,26 @@ export async function getOrCreateMediaAssetId(
   if (!urlOrUuid) return null;
   const value = urlOrUuid.trim();
   if (!value) return null;
-  if (isUuid(value)) return value;
 
-  // Check if asset already exists with the same public URL
+  // A UUID must resolve to a LIVE media asset. Returning it blindly (BL-MEDIA-02) could
+  // relink an asset that was soft-deleted (and whose Cloudinary file may be gone),
+  // producing a broken image on the public site.
+  if (isUuid(value)) {
+    const { data: liveById } = await supabase
+      .from("media_assets")
+      .select("id")
+      .eq("id", value)
+      .is("deleted_at", null)
+      .maybeSingle();
+    return liveById?.id ?? null;
+  }
+
+  // Check if a LIVE asset already exists with the same public URL
   const { data: existing } = await supabase
     .from("media_assets")
     .select("id")
     .eq("public_url", value)
+    .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 

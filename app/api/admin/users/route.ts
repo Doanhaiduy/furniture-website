@@ -116,8 +116,16 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    
-    
+    // Self-demotion / self-deactivation guard (BL-USER-01). Even with multiple admins,
+    // the logged-in admin must not strip their OWN admin role or deactivate themselves
+    // (they would be pushed out of the CMS mid-session). Changing other fields on their
+    // own profile is still allowed.
+    if (id === actor.id && (role !== "admin" || isActive === false)) {
+      return NextResponse.json(
+        { error: "Không thể tự hạ quyền hoặc tự khóa tài khoản của chính mình." },
+        { status: 400 }
+      );
+    }
 
     const supabase = createAdminClient();
 

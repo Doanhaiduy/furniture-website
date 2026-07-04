@@ -751,7 +751,6 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                     onChange={(val) => { setContactPhone(val); setPhoneError(""); markDirty(); }}
                     error={phoneError}
                   />
-                  {phoneError && <p className="text-red-500 text-xs font-semibold">{phoneError}</p>}
                 </div>
                 <div className="grid gap-1">
                   <AdminField
@@ -761,7 +760,6 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                     onChange={(val) => { setContactEmail(val); setEmailError(""); markDirty(); }}
                     error={emailError}
                   />
-                  {emailError && <p className="text-red-500 text-xs font-semibold">{emailError}</p>}
                 </div>
               </div>
               <div className="grid gap-4">

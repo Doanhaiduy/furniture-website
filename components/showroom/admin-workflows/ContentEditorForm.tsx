@@ -677,12 +677,17 @@ export function ContentEditorForm({
             care_vi: specCareVi || null,
             care_en: specCareEn || null,
           },
-          custom_attributes: customAttributes.map(attr => ({
-            name_vi: attr.nameVi,
-            name_en: attr.nameEn,
-            value_vi: attr.valueVi,
-            value_en: attr.valueEn,
-          })),
+          // Drop fully-empty attribute rows (e.g. a trailing blank the user never filled)
+          // so they don't trip the server-side productSchema; partially-filled rows are
+          // kept and validated so incomplete data is surfaced rather than silently saved.
+          custom_attributes: customAttributes
+            .filter(attr => (attr.nameVi?.trim() || attr.nameEn?.trim() || attr.valueVi?.trim() || attr.valueEn?.trim()))
+            .map(attr => ({
+              name_vi: attr.nameVi,
+              name_en: attr.nameEn,
+              value_vi: attr.valueVi,
+              value_en: attr.valueEn,
+            })),
           seo_title_vi: seoTitleVi || null,
           seo_title_en: seoTitleEn || null,
           seo_description_vi: seoDescVi || null,

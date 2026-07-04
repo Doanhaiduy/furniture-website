@@ -18,12 +18,23 @@ async function getOrCreateMediaAssetId(
   if (!urlOrUuid) return null;
   const value = urlOrUuid.trim();
   if (!value) return null;
-  if (isUuid(value)) return value;
+
+  // Only ever return a LIVE media asset (BL-MEDIA-02).
+  if (isUuid(value)) {
+    const { data: liveById } = await supabase
+      .from("media_assets")
+      .select("id")
+      .eq("id", value)
+      .is("deleted_at", null)
+      .maybeSingle();
+    return liveById?.id ?? null;
+  }
 
   const { data: existing } = await supabase
     .from("media_assets")
     .select("id")
     .eq("public_url", value)
+    .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 
@@ -278,6 +289,11 @@ export async function createAdminPromotion(data: {
   try {
     const supabase = await createClient();
 
+    // Reversed date range is always a data-entry error (mirrors promotionSchema).
+    if (data.start_at && data.end_at && new Date(data.start_at) >= new Date(data.end_at)) {
+      return { success: false, error: "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc." };
+    }
+
     // BUG 1 — block overlapping promotions on a shared product (friendly pre-check).
     const conflict = await findOverlappingPromotion(
       supabase,
@@ -329,6 +345,15 @@ export async function createAdminPromotion(data: {
       return { success: false, error: promoError?.message || "Failed to insert promotion" };
     }
 
+    // Cleanup helper (BL-PROMO-01): the create path is not a single transaction, so if a
+    // later step fails we hard-delete the just-created rows instead of leaving a rump
+    // promotion (empty / half-translated) published to the public site.
+    const rollbackPromotion = async () => {
+      await supabase.from("product_promotions").delete().eq("promotion_id", promo.id);
+      await supabase.from("promotion_translations").delete().eq("promotion_id", promo.id);
+      await supabase.from("promotions").delete().eq("id", promo.id);
+    };
+
     // Insert translations
     const translations = [];
     if (data.title_vi) {
@@ -354,11 +379,26 @@ export async function createAdminPromotion(data: {
         .insert(translations);
 
       if (transError) {
-        console.error("Failed to insert promotion translations:", transError);
+        await rollbackPromotion();
+        return { success: false, error: transError.message };
       }
     }
 
-    // Create Audit Log
+    // Sync product links (N-N). If this fails (e.g. the overlap trigger rejects a link
+    // that slipped past the pre-check due to a race), roll the whole promotion back.
+    if (data.productIds && data.productIds.length > 0) {
+      const inserts = data.productIds.map((pid: string) => ({
+        product_id: pid,
+        promotion_id: promo.id,
+      }));
+      const { error: linkError } = await supabase.from("product_promotions").insert(inserts);
+      if (linkError) {
+        await rollbackPromotion();
+        return { success: false, error: linkError.message };
+      }
+    }
+
+    // Create Audit Log (only after all writes have succeeded).
     await createAuditLog(
       supabase,
       user.id,
@@ -367,15 +407,6 @@ export async function createAdminPromotion(data: {
       promo.id,
       { code: data.code, title_vi: data.title_vi }
     );
-
-    // Sync product links (N-N)
-    if (data.productIds && data.productIds.length > 0) {
-      const inserts = data.productIds.map((pid: string) => ({
-        product_id: pid,
-        promotion_id: promo.id,
-      }));
-      await supabase.from("product_promotions").insert(inserts);
-    }
 
     return {
       success: true,
@@ -424,6 +455,11 @@ export async function updateAdminPromotion(
 
   try {
     const supabase = await createClient();
+
+    // Reversed date range is always a data-entry error (mirrors promotionSchema).
+    if (data.start_at && data.end_at && new Date(data.start_at) >= new Date(data.end_at)) {
+      return { success: false, error: "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc." };
+    }
 
     // The edit link passes promo.code (a non-UUID) as `id`, so resolve it to the real
     // UUID before keying writes on it — otherwise `.eq("id", <code>)` matches no row and
@@ -643,6 +679,37 @@ export async function updatePromotionStatus(
   const user = await requireEditorOrAdmin();
   try {
     const supabase = await createClient();
+
+    // Overlap pre-check (BL-PROMO-04): quick status toggles on the list also publish a
+    // promotion, so mirror the create/update path and surface a friendly conflict
+    // message instead of letting the DB trigger throw a raw exception.
+    if (status === "published") {
+      const { data: promo } = await supabase
+        .from("promotions")
+        .select("start_at, end_at")
+        .eq("id", id)
+        .maybeSingle();
+      const { data: links } = await supabase
+        .from("product_promotions")
+        .select("product_id")
+        .eq("promotion_id", id);
+      const productIds = (links ?? []).map((l: any) => l.product_id);
+      const conflict = await findOverlappingPromotion(
+        supabase,
+        productIds,
+        "published",
+        promo?.start_at ?? null,
+        promo?.end_at ?? null,
+        id
+      );
+      if (conflict) {
+        return {
+          success: false,
+          error: `Sản phẩm đang thuộc khuyến mãi "${conflict.code}" có thời gian trùng lặp. Hãy đổi lịch, kết thúc khuyến mãi cũ, hoặc bỏ sản phẩm khỏi khuyến mãi đó trước.`,
+        };
+      }
+    }
+
     const { error } = await supabase
       .from("promotions")
       .update({

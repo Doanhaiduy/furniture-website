@@ -101,7 +101,7 @@ export async function getAdminProducts(params: {
           )
       `;
 
-      selectStr += `, product_translations(slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
+      selectStr += `, product_translations(locale, slug, name, summary, description_json, material, price_display_text, dimension_display_text)`;
 
       let query = supabase
         .from("products")
@@ -175,9 +175,13 @@ export async function getAdminProducts(params: {
       const { data, error } = await query as { data: any[] | null, error: any };
       if (!error && data) {
         const mapped = data.map((row) => {
-          const translation = Array.isArray(row.product_translations)
-            ? row.product_translations[0]
-            : row.product_translations;
+          // Prefer the admin working locale (vi) instead of a non-deterministic array
+          // position, so the list never shows a random EN/VI mix (BL-PROD-04).
+          const translationList = Array.isArray(row.product_translations)
+            ? row.product_translations
+            : row.product_translations ? [row.product_translations] : [];
+          const translation =
+            translationList.find((t: any) => t.locale === "vi") || translationList[0];
           const category = row.product_categories as any;
           const categoryTranslation = category?.product_category_translations?.[0];
           

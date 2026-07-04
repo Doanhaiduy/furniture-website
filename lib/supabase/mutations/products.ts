@@ -4,8 +4,8 @@
 import { createClient, createAdminClient } from "../server";
 import { requireEditorOrAdmin } from "../auth";
 import { writeAuditLog } from "../audit";
-import { type ProductInput } from "../../validations/admin";
-import { triggerRevalidation, getOrCreateMediaAssetId } from "./helpers";
+import { productSchema, type ProductInput } from "../../validations/admin";
+import { triggerRevalidation, getOrCreateMediaAssetId, validationMessages } from "./helpers";
 
 export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
@@ -105,7 +105,16 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
 }
 
 export async function createAdminProduct(data: ProductInput): Promise<{ success: boolean; id?: string; error?: string }> {
-  const user = await requireEditorOrAdmin();  
+  const user = await requireEditorOrAdmin();
+
+  // Server-side validation (BL-PROD-01): the product path previously bypassed Zod
+  // entirely (unlike blog/showroom), letting malformed slugs / out-of-range prices
+  // through to the DB. Gate on productSchema so bad input is rejected with a friendly
+  // message before any write.
+  const validation = productSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validationMessages(validation.error.issues) };
+  }
 
   try {
     const supabase = await createClient();
@@ -270,6 +279,12 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
 export async function updateAdminProduct(id: string, data: ProductInput): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
 
+  // Server-side validation (BL-PROD-01): mirror createAdminProduct.
+  const validation = productSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validationMessages(validation.error.issues) };
+  }
+
   try {
     const supabase = await createClient();
     
@@ -357,24 +372,12 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
       if (enError) return { success: false, error: enError.message };
     }
 
-    // Sync media: delete existing associations and insert new ones
-    await supabase.from("product_media").delete().eq("product_id", id);
-
+    // Sync media (BL-PROD-03): resolve every media id FIRST, so a failure while
+    // resolving/creating assets can't leave the product with its old images already
+    // wiped. Only once the full new set is known do we replace the associations.
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
-    if (coverMediaId) {
-      await supabase
-        .from("product_media")
-        .insert({
-          product_id: id,
-          media_id: coverMediaId,
-          context: "gallery",
-          is_primary: true,
-          sort_order: 0,
-        });
-    }
-
+    const galleryInserts: Array<{ product_id: string; media_id: string; context: string; is_primary: boolean; sort_order: number }> = [];
     if (data.gallery_images && data.gallery_images.length > 0) {
-      const galleryInserts = [];
       let sortOrder = 1;
       for (const imgUrl of data.gallery_images) {
         const mediaId = await getOrCreateMediaAssetId(supabase, imgUrl, user.id);
@@ -388,9 +391,25 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
           });
         }
       }
-      if (galleryInserts.length > 0) {
-        await supabase.from("product_media").insert(galleryInserts);
-      }
+    }
+
+    // New set is fully resolved — now replace the associations.
+    await supabase.from("product_media").delete().eq("product_id", id);
+
+    if (coverMediaId) {
+      await supabase
+        .from("product_media")
+        .insert({
+          product_id: id,
+          media_id: coverMediaId,
+          context: "gallery",
+          is_primary: true,
+          sort_order: 0,
+        });
+    }
+
+    if (galleryInserts.length > 0) {
+      await supabase.from("product_media").insert(galleryInserts);
     }
 
     // Write audit log

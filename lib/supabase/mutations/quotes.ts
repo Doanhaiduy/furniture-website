@@ -8,6 +8,21 @@ export async function updateQuoteAssignee(id: string, assignedTo: string | null)
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+
+    // Guard (BL-QUOTE-01): a lead may only be assigned to a staff member who can still
+    // act on it. Reject assignment to an inactive or soft-deleted profile so leads are
+    // never routed into a black hole.
+    if (assignedTo) {
+      const { data: assignee } = await supabase
+        .from("profiles")
+        .select("id, is_active, deleted_at")
+        .eq("id", assignedTo)
+        .maybeSingle();
+      if (!assignee || !assignee.is_active || assignee.deleted_at) {
+        return { success: false, error: "Không thể phân công cho nhân sự đã bị khóa hoặc không còn hoạt động." };
+      }
+    }
+
     const { error } = await supabase
       .from("quote_requests")
       .update({
