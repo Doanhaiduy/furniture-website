@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, Tag, Calendar, ArrowRight } from "lucide-react";
+import { copyTextToClipboard } from "@/lib/clipboard";
 
 export function PromotionCouponButton({
   code,
@@ -15,12 +16,10 @@ export function PromotionCouponButton({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
+    const ok = await copyTextToClipboard(code);
+    if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.warn("Failed to copy coupon code:", err);
     }
   };
 

@@ -69,6 +69,8 @@ import {
 } from "@/tests/fixtures/showroom-data-fixture";
 import enMessages from "@/messages/en.json";
 import viMessages from "@/messages/vi.json";
+import { DateTimePickerField } from "@/components/ui/datetime-picker";
+import { assetUrl } from "@/lib/asset-url";
 
 
 import {
@@ -1903,7 +1905,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                             <div className="size-10 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60">
                               {prod.primary_media?.url ? (
                                 <img
-                                  src={prod.primary_media.url}
+                                  src={assetUrl(prod.primary_media.url)}
                                   alt={prod.name}
                                   className="size-full object-cover"
                                   loading="lazy"
@@ -1950,7 +1952,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                     >
                       <div className="size-7 rounded-lg overflow-hidden bg-indigo-100 shrink-0">
                         {prod.primary_media?.url ? (
-                          <img src={prod.primary_media.url} alt={prod.name} className="size-full object-cover" />
+                          <img src={assetUrl(prod.primary_media.url)} alt={prod.name} className="size-full object-cover" />
                         ) : (
                           <div className="size-full flex items-center justify-center">
                             <Package className="size-3.5 text-indigo-400" />
@@ -2007,21 +2009,23 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
               <span className="label-pd">Thời gian bắt đầu</span>
-              <input
-                className={`input-pd bg-white ${fieldErrors.start_at ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                type="datetime-local"
+              <DateTimePickerField
                 value={startAt}
-                onChange={(e) => setStartAt(e.target.value)}
+                onChange={setStartAt}
+                placeholder="Chọn ngày & giờ bắt đầu"
+                ariaLabel="Thời gian bắt đầu"
+                error={Boolean(fieldErrors.start_at)}
               />
               {fieldErrors.start_at && <span className="text-red-600 text-xs font-medium -mt-1">{fieldErrors.start_at}</span>}
             </label>
             <label className="grid gap-2">
               <span className="label-pd">Thời gian kết thúc</span>
-              <input
-                className={`input-pd bg-white ${fieldErrors.end_at ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                type="datetime-local"
+              <DateTimePickerField
                 value={endAt}
-                onChange={(e) => setEndAt(e.target.value)}
+                onChange={setEndAt}
+                placeholder="Chọn ngày & giờ kết thúc"
+                ariaLabel="Thời gian kết thúc"
+                error={Boolean(fieldErrors.end_at)}
               />
               {fieldErrors.end_at && <span className="text-red-600 text-xs font-medium -mt-1">{fieldErrors.end_at}</span>}
             </label>

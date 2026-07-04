@@ -87,7 +87,6 @@ import {
   getAssetName,
   getFocusableElements,
   WorkflowIntro,
-  ReadinessPanel,
   BilingualPair,
   AdminField,
   ImageUploadDropzone,
@@ -232,6 +231,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [clientReady, setClientReady] = useState(false);
 
   const markDirty = () => {
@@ -342,7 +342,16 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
       return;
     }
     setEmailError("");
-    
+
+    // Validate hotline/phone format (digits + optional + - ( ) space; 8–15 digits).
+    // Mirrors the server-side settingsSchema so invalid hotlines can't be saved.
+    const phoneDigits = contactPhone.replace(/\D/g, "");
+    if (!/^[0-9+().\-\s]+$/.test(contactPhone.trim()) || phoneDigits.length < 8 || phoneDigits.length > 15) {
+      setPhoneError("Số điện thoại không hợp lệ (chỉ gồm chữ số, có thể kèm + - ( ) và khoảng trắng; 8–15 chữ số).");
+      return;
+    }
+    setPhoneError("");
+
     setIsSaving(true);
     try {
       const settingsData = {
@@ -591,12 +600,6 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
     brandNameVi,
     contactPhone,
   };
-  const settingsReadinessItems = [
-    { label: "Tài khoản biên tập viên bị hạn chế truy cập tab Tích hợp", state: "ready" },
-    { label: "Đã cấu hình email hỗ trợ hợp lệ", state: emailError ? "warning" : "ready" },
-    { label: "Khóa bí mật chỉ lưu và xử lý phía máy chủ", state: "ready" },
-    { label: "Tất cả trường thương hiệu đã có song ngữ VI/EN", state: "ready" },
-  ] as const;
   const renderLegacySectionDetails = false;
   const renderHomepagePreview = false;
 
@@ -740,18 +743,23 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
             
             <div className="mt-4 grid gap-4 bg-white p-4 rounded-xl border">
               <div className="grid gap-4 md:grid-cols-2">
-                <AdminField 
-                  label="Hotline tư vấn *" 
-                  name="contact-phone" 
-                  value={contactPhone} 
-                  onChange={(val) => { setContactPhone(val); markDirty(); }} 
-                />
                 <div className="grid gap-1">
-                  <AdminField 
-                    label="Email nhận báo giá *" 
-                    name="contact-email" 
-                    value={contactEmail} 
-                    onChange={(val) => { setContactEmail(val); markDirty(); }} 
+                  <AdminField
+                    label="Hotline tư vấn *"
+                    name="contact-phone"
+                    value={contactPhone}
+                    onChange={(val) => { setContactPhone(val); setPhoneError(""); markDirty(); }}
+                    error={phoneError}
+                  />
+                  {phoneError && <p className="text-red-500 text-xs font-semibold">{phoneError}</p>}
+                </div>
+                <div className="grid gap-1">
+                  <AdminField
+                    label="Email nhận báo giá *"
+                    name="contact-email"
+                    value={contactEmail}
+                    onChange={(val) => { setContactEmail(val); setEmailError(""); markDirty(); }}
+                    error={emailError}
                   />
                   {emailError && <p className="text-red-500 text-xs font-semibold">{emailError}</p>}
                 </div>
@@ -906,12 +914,19 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                     )}
                   </div>
                 </div>
-                <AdminField
-                  label="Giới hạn SLA phản hồi (giờ)"
-                  name="sla-hours" 
-                  value={slaHours} 
-                  onChange={(val) => { setSlaHours(val); markDirty(); }} 
-                />
+                <div className="grid content-start gap-2">
+                  <AdminField
+                    label="Giới hạn SLA phản hồi (giờ)"
+                    name="sla-hours"
+                    inputType="number"
+                    value={slaHours}
+                    onChange={(val) => { setSlaHours(val); markDirty(); }}
+                    placeholder="Ví dụ: 2"
+                  />
+                  <p className="text-[11px] leading-relaxed text-slate-400">
+                    Thời gian tối đa đội ngũ phản hồi một yêu cầu báo giá (đơn vị: giờ).
+                  </p>
+                </div>
               </div>
               <p className="text-xs text-slate-400 font-semibold italic">
                 * Toàn bộ thông số API trên chỉ được lưu trữ và truy cập an toàn trong cơ sở dữ liệu phía máy chủ.
@@ -1534,9 +1549,6 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
           )}
           </div>
         )}
-      <div className="max-w-3xl">
-        <ReadinessPanel items={settingsReadinessItems} />
-      </div>
     </div>
   );
 }

@@ -306,7 +306,44 @@ export default async function ProductsPage({
     return withLocale(locale, `/products${queryString ? `?${queryString}` : ""}`);
   };
   const activeCategory = typeof query.category === "string" && query.category !== "all" ? query.category : undefined;
-  const secondaryGroups = productGroups.filter((group) => group.key !== activeCategory);
+
+  // "Browse by product group" cards + per-group product counts.
+  // BUGFIX: previously this used static productGroups keys ("wood"/"sanitary"/"tiles")
+  // and counted with filterProducts({ category: group.key }); DB products carry
+  // categoryKey = category_slug (e.g. "do-go-noi-that"), so every group showed 0.
+  // Now cards + counts are derived from real DB root categories (child slugs rolled up).
+  // Counts must reflect the FULL catalog, so re-fetch all products only when a filter
+  // is active (otherwise reuse the already-fetched unfiltered set).
+  const hasActiveProductFilter = Boolean(
+    productsCategorySlug || productsGroupKey || q || featured || brandId || Object.keys(attributeFilters).length > 0,
+  );
+  const productsForCounts: any[] = hasActiveProductFilter
+    ? (await getProducts(supabase, { locale, limit: 1000 }).catch(() => [])).map((p: any) => mapDBProductToPublicProduct(p, locale))
+    : dbProductsMapped;
+
+  const secondaryGroups = (
+    hasCategoryGroups
+      ? rootCatOptions.map((root: any) => {
+          const childSlugs = dbCategories.filter((c: any) => c.parentId === root.id).map((c: any) => c.slug);
+          const slugSet = new Set([root.slug, ...childSlugs].filter(Boolean));
+          return {
+            key: root.slug as string,
+            href: `/products?category=${root.slug}`,
+            image: root.image,
+            title: root.name as string,
+            summary: (root.description as string) || "",
+            count: productsForCounts.filter((p: any) => p.categoryKey && slugSet.has(p.categoryKey)).length,
+          };
+        })
+      : productGroups.map((group) => ({
+          key: group.key,
+          href: group.href,
+          image: group.image,
+          title: localized(group.title, locale),
+          summary: localized(group.summary, locale),
+          count: filterProducts({ category: group.key }, dbProductsMapped).length,
+        }))
+  ).filter((group) => group.key !== activeCategory);
 
   // The 3 category quick-filter cards above the filter panel — sourced from DB root categories
   // (falls back to static product groups only when the catalog has no categories yet).
@@ -496,9 +533,7 @@ export default async function ProductsPage({
             <p className="mt-3 text-sm leading-6 text-secondary">{t("otherCategoriesLead")}</p>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {secondaryGroups.map((group) => {
-              const count = filterProducts({ category: group.key }, dbProductsMapped).length;
-              return (
+            {secondaryGroups.map((group) => (
               <Link
                 key={group.key}
                 href={withLocale(locale, group.href)}
@@ -506,20 +541,19 @@ export default async function ProductsPage({
                 className="interactive-card surface-card group grid min-h-52 overflow-hidden"
               >
                 <span className="relative h-28 overflow-hidden">
-                  <RemoteImage src={group.image} alt={localized(group.title, locale)} className="image-lift h-full w-full object-cover" sizes="(min-width: 1280px) 25vw, 50vw" />
+                  <RemoteImage src={group.image} alt={group.title} className="image-lift h-full w-full object-cover" sizes="(min-width: 1280px) 25vw, 50vw" />
                   <span className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 </span>
                 <span className="grid gap-2 p-4">
-                  <span className="type-card-title text-xl text-primary">{localized(group.title, locale)}</span>
-                  <span className="text-sm leading-6 text-secondary">{localized(group.summary, locale)}</span>
+                  <span className="type-card-title text-xl text-primary">{group.title}</span>
+                  <span className="text-sm leading-6 text-secondary line-clamp-2">{group.summary}</span>
                   <span className="mt-1 inline-flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.12em] text-outline">
-                    {t("productsCount", { count })}
+                    {t("productsCount", { count: group.count })}
                     <ArrowRight className="size-4 text-primary transition group-hover:translate-x-0.5" />
                   </span>
                 </span>
               </Link>
-              );
-            })}
+            ))}
           </div>
         </div>
       </section>

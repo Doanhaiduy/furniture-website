@@ -7,6 +7,7 @@ import type { Product } from "@/lib/showroom-data";
 import { localized } from "@/lib/showroom-data";
 import { useToast } from "@/components/providers/toast-provider";
 import { RemoteImage } from "@/components/showroom/remote-image";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ProductDetailLabels = {
@@ -61,8 +62,15 @@ export function ProductInformationTabs({
 
   const overviewHtml = localized(product.description, locale) || localized(product.summary, locale) || "";
 
+  // Real product imagery pulled from the DB (primary media + gallery), used to
+  // illustrate the Overview and Materials tabs. Clickable → full-screen lightbox.
+  const hasRealPrimary = Boolean(product.image) && !product.image.includes("placeholder");
+  const overviewImage = galleryImages[0] || (hasRealPrimary ? product.image : "");
+  const materialImage = galleryImages[1] || galleryImages[0] || (hasRealPrimary ? product.image : "");
+  const productName = localized(product.name, locale);
+
   const renderOverview = () => {
-    const hasSideContent = displayTags.length > 0 || galleryImages.length > 0;
+    const hasSideContent = Boolean(overviewImage) || displayTags.length > 0;
     return (
       <div className={`grid gap-10 items-start ${hasSideContent ? "lg:grid-cols-[1.15fr_0.85fr]" : "grid-cols-1"}`}>
         <div className="space-y-6">
@@ -90,9 +98,30 @@ export function ProductInformationTabs({
         </div>
 
         {hasSideContent && (
-          <div className="bg-slate-50/50 border border-slate-100/80 p-6 rounded-2xl space-y-4 shadow-sm">
-            {displayTags.length > 0 ? (
-              <>
+          <div className="space-y-4">
+            {overviewImage && (
+              <figure className="space-y-2">
+                <ZoomableImage
+                  src={overviewImage}
+                  alt={productName}
+                  className="w-full rounded-2xl border border-slate-100 shadow-sm"
+                >
+                  <RemoteImage
+                    src={overviewImage}
+                    alt={productName}
+                    className="aspect-[4/3] w-full object-cover"
+                    sizes="(min-width: 1024px) 40vw, 100vw"
+                  />
+                </ZoomableImage>
+                <figcaption className="flex items-center gap-1.5 text-[11px] font-light text-slate-400">
+                  <ImageIcon className="size-3.5" />
+                  {isVi ? "Nhấn vào ảnh để xem toàn màn hình" : "Click the image to view full screen"}
+                </figcaption>
+              </figure>
+            )}
+
+            {displayTags.length > 0 && (
+              <div className="bg-slate-50/50 border border-slate-100/80 p-5 rounded-2xl space-y-3 shadow-sm">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono flex items-center gap-2">
                   <Sparkles className="size-4 text-primary" />
                   {isVi ? "Đặc điểm nổi bật" : "Highlights"}
@@ -101,32 +130,14 @@ export function ProductInformationTabs({
                   {displayTags.map((tag) => (
                     <div
                       key={tag}
-                      className="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-b-0 hover:translate-x-1 transition-transform"
+                      className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-b-0"
                     >
                       <CheckCircle2 className="size-4 text-primary shrink-0 opacity-80" />
                       <p className="text-xs sm:text-sm font-medium text-slate-700">{tag}</p>
                     </div>
                   ))}
                 </div>
-              </>
-            ) : (
-              <>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono flex items-center gap-2">
-                  <ImageIcon className="size-4 text-primary" />
-                  {labels.galleryLabel}
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {galleryImages.slice(0, 4).map((src, idx) => (
-                    <RemoteImage
-                      key={`${src}-${idx}`}
-                      src={src}
-                      alt={`${localized(product.name, locale)} ${idx + 1}`}
-                      className="aspect-square w-full rounded-xl object-cover"
-                      sizes="20vw"
-                    />
-                  ))}
-                </div>
-              </>
+              </div>
             )}
           </div>
         )}
@@ -190,6 +201,9 @@ export function ProductInformationTabs({
     const customMat = product.material ? localized(product.material, locale) : "";
     const specMat = product.specifications ? (isVi ? product.specifications.material_vi : product.specifications.material_en) : "";
     const specFinish = product.specifications ? (isVi ? product.specifications.finish_vi : product.specifications.finish_en) : "";
+    // Real per-product care / craftsmanship note (from DB specifications), replacing
+    // the previous generic hard-coded copy on the left column.
+    const specCare = product.specifications ? (isVi ? product.specifications.care_vi : product.specifications.care_en) : "";
 
     const dbCards = [
       customMat && {
@@ -214,6 +228,7 @@ export function ProductInformationTabs({
 
     return (
       <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] items-start">
+        {/* LEFT — real per-product content: material imagery + care/craftsmanship note */}
         <div className="space-y-5">
           <div className="space-y-1 hidden md:block">
             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 block font-mono">
@@ -223,14 +238,46 @@ export function ProductInformationTabs({
               {labels.materialsTitle}
             </h2>
           </div>
-          <p className="text-slate-500 leading-relaxed text-sm font-light">{labels.materialsLead}</p>
 
-          <div className="bg-slate-900 text-white border border-slate-900 p-6 rounded-2xl flex gap-4 shadow-lg">
-            <Sparkles className="size-5 text-primary shrink-0 mt-0.5" />
-            <p className="text-xs leading-relaxed text-slate-300 font-light">{labels.craftsmanshipNote}</p>
-          </div>
+          {materialImage ? (
+            <ZoomableImage
+              src={materialImage}
+              alt={productName}
+              className="w-full rounded-2xl border border-slate-100 shadow-sm"
+            >
+              <RemoteImage
+                src={materialImage}
+                alt={productName}
+                className="aspect-[4/3] w-full object-cover"
+                sizes="(min-width: 1024px) 34vw, 100vw"
+              />
+            </ZoomableImage>
+          ) : null}
+
+          {specCare ? (
+            <div className="bg-slate-900 text-white border border-slate-900 p-6 rounded-2xl flex gap-4 shadow-lg">
+              <Sparkles className="size-5 text-primary shrink-0 mt-0.5" />
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono">
+                  {isVi ? "Bảo quản & Chế tác" : "Care & Craftsmanship"}
+                </p>
+                <p className="text-xs leading-relaxed text-slate-300 font-light">{specCare}</p>
+              </div>
+            </div>
+          ) : customMat ? (
+            <p className="text-slate-500 leading-relaxed text-sm font-light border-l-2 border-primary/30 pl-4">
+              {customMat}
+            </p>
+          ) : (
+            <p className="text-slate-400 leading-relaxed text-sm font-light italic">
+              {isVi
+                ? "Thông tin chất liệu chi tiết đang được cập nhật cho sản phẩm này."
+                : "Detailed material information is being updated for this product."}
+            </p>
+          )}
         </div>
 
+        {/* RIGHT — material / finish specifics from the database */}
         <div className="grid gap-4 sm:grid-cols-2">
           {dbCards.length > 0 ? (
             dbCards.map((card, idx) => (

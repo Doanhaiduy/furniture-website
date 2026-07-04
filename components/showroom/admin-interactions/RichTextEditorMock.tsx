@@ -153,8 +153,20 @@ export function RichTextEditorMock({
     editable: !disabled,
     editorProps: {
       handlePaste: (_view, event) => {
-        const files = event.clipboardData?.files;
-        if (files && files.length > 0 && handleImageFiles(files)) {
+        const dt = event.clipboardData;
+        if (!dt) return false;
+        // 1) Direct files (screenshot / file paste).
+        if (dt.files && dt.files.length > 0 && handleImageFiles(dt.files)) {
+          event.preventDefault();
+          return true;
+        }
+        // 2) Clipboard items (image copied from a web page — no File in `files`).
+        const imgItem = Array.from(dt.items || []).find(
+          (it) => it.kind === "file" && it.type.startsWith("image/"),
+        );
+        const file = imgItem?.getAsFile();
+        if (file) {
+          uploadInsertRef.current?.(file);
           event.preventDefault();
           return true;
         }

@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useToast } from "@/components/providers/toast-provider";
+import { DateTimePickerField } from "@/components/ui/datetime-picker";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -148,6 +149,8 @@ export function ContentEditorForm({
   const [showroom, setShowroom] = useState("");
   const [featured, setFeatured] = useState(true);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  // Blog publish datetime (datetime-local format "YYYY-MM-DDTHH:mm"), controlled by the picker.
+  const [publishedAt, setPublishedAt] = useState("");
 
   // Spec & Dimension states (Bilingual)
   const [materialsVi, setMaterialsVi] = useState(mode === "edit" ? "Gỗ óc chó tự nhiên, khung xương chắc chắn, lớp hoàn thiện tinh tế." : "");
@@ -351,6 +354,14 @@ export function ContentEditorForm({
               setCategory(b.category_id || "insights");
               setFeatured(b.featured || false);
               setStatus(b.status || "draft");
+              // Convert stored ISO publish time to datetime-local ("YYYY-MM-DDTHH:mm", local tz).
+              if (b.published_at) {
+                const d = new Date(b.published_at);
+                if (!isNaN(d.getTime())) {
+                  const pad = (n: number) => String(n).padStart(2, "0");
+                  setPublishedAt(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`);
+                }
+              }
               setCoverImage(b.cover_image || "");
               
               setSeoTitleVi(b.seo_title_vi || "");
@@ -711,6 +722,7 @@ export function ContentEditorForm({
           category_id: category || "insights",
           status: statusToSave,
           featured: featured,
+          published_at: publishedAt || null,
           cover_image: coverImage || null,
           seo_title_vi: seoTitleVi || null,
           seo_title_en: seoTitleEn || null,
@@ -923,6 +935,8 @@ export function ContentEditorForm({
             setStatus={setStatus}
             featured={featured}
             setFeatured={setFeatured}
+            publishedAt={publishedAt}
+            setPublishedAt={setPublishedAt}
           />
         )}
 
@@ -1996,6 +2010,8 @@ function BlogBusinessFields({
   setStatus,
   featured,
   setFeatured,
+  publishedAt,
+  setPublishedAt,
 }: {
   category: string;
   setCategory: (val: string) => void;
@@ -2003,35 +2019,137 @@ function BlogBusinessFields({
   setStatus: (val: any) => void;
   featured: boolean;
   setFeatured: (val: boolean) => void;
+  publishedAt: string;
+  setPublishedAt: (val: string) => void;
 }) {
+  const { toast } = useToast();
+  // Real blog categories loaded from the DB (no more hard-coded options).
+  const [catOptions, setCatOptions] = useState<{ value: string; label: string }[]>([]);
+  const [catsLoaded, setCatsLoaded] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [creatingCat, setCreatingCat] = useState(false);
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/filter-options?type=blog-categories");
+      if (res.ok) {
+        const data = await res.json();
+        const opts: { value: string; label: string }[] = data.options ?? [];
+        setCatOptions(opts);
+        setCatsLoaded(true);
+        // If the current category isn't a valid option (e.g. new post default), select the first.
+        if (opts.length > 0 && !opts.some((o) => o.value === category)) {
+          setCategory(opts[0].value);
+        }
+      }
+    } catch {
+      /* keep whatever is selected */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  // Ensure the selected value always has a label even before the list loads (edit mode).
+  const categorySelectOptions =
+    category && !catOptions.some((o) => o.value === category)
+      ? [{ value: category, label: "Danh mục hiện tại" }, ...catOptions]
+      : catOptions;
+
+  const handleCreateCategory = async () => {
+    const name = newCatName.trim();
+    if (!name) return;
+    setCreatingCat(true);
+    try {
+      const { createBlogCategory } = await import("@/lib/supabase/mutations/blog");
+      const res = await createBlogCategory(name);
+      if (res.success && res.id) {
+        setCatOptions((prev) => [...prev, { value: res.id!, label: res.name || name }]);
+        setCategory(res.id);
+        setNewCatName("");
+        setAdding(false);
+        toast.success(`Đã tạo danh mục "${res.name || name}".`);
+      } else {
+        toast.error(res.error || "Không tạo được danh mục.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Lỗi tạo danh mục.");
+    } finally {
+      setCreatingCat(false);
+    }
+  };
+
   return (
     <>
       <section className="surface-soft p-4">
         <WorkflowIntro
           icon={CalendarClock}
           title="Phân luồng biên tập và xuất bản"
-          description="Làm rõ chủ đề, tác giả, lịch xuất bản và trạng thái kiểm duyệt trước khi xuất bản."
+          description="Làm rõ chủ đề, lịch xuất bản và trạng thái kiểm duyệt trước khi xuất bản."
           compact
         />
         <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <span className="label-pd">Danh mục bài viết</span>
+              <button
+                type="button"
+                onClick={() => setAdding((v) => !v)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--admin-accent)] hover:underline"
+              >
+                <Plus className="size-3.5" /> Thêm danh mục
+              </button>
+            </div>
+            {adding ? (
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateCategory(); } if (e.key === "Escape") setAdding(false); }}
+                  placeholder="Tên danh mục mới…"
+                  className="input-pd h-9 flex-1 bg-white text-sm"
+                  disabled={creatingCat}
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={creatingCat || !newCatName.trim()}
+                  className="inline-flex h-9 items-center gap-1 rounded-lg bg-[var(--admin-accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                >
+                  {creatingCat ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                  Lưu
+                </button>
+                <button type="button" onClick={() => setAdding(false)} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                  <X className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <PremiumSelect
+                value={category}
+                onValueChange={setCategory}
+                ariaLabel="Danh mục bài viết"
+                placeholder={catsLoaded ? "Chọn danh mục bài viết" : "Đang tải danh mục…"}
+                tone="admin"
+                options={categorySelectOptions}
+              />
+            )}
+          </div>
+
           <label className="grid gap-2">
-            <span className="label-pd">Danh mục bài viết</span>
-            <PremiumSelect
-              value={category}
-              onValueChange={setCategory}
-              ariaLabel="Danh mục bài viết"
-              placeholder="Danh mục bài viết"
-              tone="admin"
-              options={[
-                { value: "wood-knowledge", label: "Kiến thức đồ gỗ" },
-                { value: "sanitary-guides", label: "Hướng dẫn mua thiết bị vệ sinh" },
-                { value: "showroom-news", label: "Tin tức showroom" },
-              ]}
+            <span className="label-pd">Ngày xuất bản</span>
+            <DateTimePickerField
+              value={publishedAt}
+              onChange={setPublishedAt}
+              placeholder="Chọn ngày & giờ xuất bản"
+              ariaLabel="Ngày xuất bản"
             />
+            <span className="text-[11px] text-[var(--admin-text-muted)]">Để trống sẽ dùng thời điểm xuất bản.</span>
           </label>
-          <AdminField label="Tác giả" name="author" defaultValue="Đội ngũ biên tập Phương Đông" />
-          <AdminField label="Thẻ" name="tags" defaultValue="gỗ óc chó, phòng khách, hướng dẫn vật liệu" />
-          <AdminField label="Ngày xuất bản" name="published-at" defaultValue="2026-06-10 09:00" />
+
           <label className="grid gap-2">
             <span className="label-pd">Trạng thái xuất bản</span>
             <PremiumSelect
@@ -2047,36 +2165,24 @@ function BlogBusinessFields({
               ]}
             />
           </label>
-          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
-            <input 
-              className="mt-1 cursor-pointer" 
-              type="checkbox" 
-              checked={featured}
-              onChange={(e) => setFeatured(e.target.checked)}
-            />
-            <span>
-              <strong className="block text-[var(--admin-text)]">Bài viết nổi bật</strong>
-              <span className="text-[var(--admin-text-muted)]">Hiển thị trong khu vực biên tập trên trang chủ.</span>
-            </span>
-          </label>
-        </div>
-      </section>
 
-      <section className="surface-soft p-4">
-        <WorkflowIntro
-          icon={ImageUp}
-          title="Ảnh bìa và tệp hỗ trợ"
-          description="Cần có ảnh bìa để xuất bản. Thư viện tệp phụ là tùy chọn nhưng nên có văn bản thay thế song ngữ."
-          compact
-        />
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {["Ảnh bìa", "Ảnh chèn trong bài", "Tệp thư viện"].map((label) => (
-            <div key={label} className="rounded-[var(--radius-card)] border border-dashed border-[var(--admin-border-strong)] bg-white p-4 text-sm">
-              <ImageUp className="size-5 text-[var(--admin-accent)]" />
-              <p className="mt-3 font-semibold text-[var(--admin-text)]">{label}</p>
-              <p className="mt-1 text-xs text-[var(--admin-text-muted)]">Chọn từ bộ sưu tập media có alt_vi và alt_en.</p>
-            </div>
-          ))}
+          {/* Featured — premium toggle switch */}
+          <button
+            type="button"
+            onClick={() => setFeatured(!featured)}
+            className={`group flex items-center justify-between gap-4 rounded-[var(--radius-card)] border p-3 text-left transition ${
+              featured ? "border-[var(--admin-accent)] bg-[var(--admin-accent)]/5" : "border-[var(--admin-border)] bg-white hover:border-slate-300"
+            }`}
+            aria-pressed={featured}
+          >
+            <span>
+              <strong className="block text-sm text-[var(--admin-text)]">Bài viết nổi bật</strong>
+              <span className="text-xs text-[var(--admin-text-muted)]">Hiển thị trong khu vực biên tập trên trang chủ.</span>
+            </span>
+            <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-300 ${featured ? "bg-[var(--admin-accent)]" : "bg-slate-200"}`}>
+              <span className={`absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${featured ? "translate-x-5" : "translate-x-0"}`} />
+            </span>
+          </button>
         </div>
       </section>
     </>

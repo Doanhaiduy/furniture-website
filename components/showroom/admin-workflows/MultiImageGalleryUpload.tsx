@@ -30,6 +30,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  Maximize2,
   Menu,
   Monitor,
   Package,
@@ -68,6 +69,8 @@ import {
 } from "@/tests/fixtures/showroom-data-fixture";
 import enMessages from "@/messages/en.json";
 import viMessages from "@/messages/vi.json";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
+import { assetUrl } from "@/lib/asset-url";
 
 
 // --- MULTI-IMAGE GALLERY UPLOAD ---
@@ -87,18 +90,22 @@ export function MultiImageGalleryUpload({
       {value.map((url, index) => (
         <div key={index} className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm group">
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-slate-100">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={`Ảnh thư viện ${index + 1}`} className="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <button
-                type="button"
-                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
-                onClick={() => handleRemoveImage(index)}
-                title="Xóa ảnh"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+            <ZoomableImage src={url} alt={`Ảnh thư viện ${index + 1}`} className="block h-full w-full" hint={false}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={assetUrl(url)} alt={`Ảnh thư viện ${index + 1}`} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+            </ZoomableImage>
+            {/* Visual-only hover hint; clicks pass through to open the lightbox. */}
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <Maximize2 className="size-5 text-white/90" />
             </div>
+            <button
+              type="button"
+              className="absolute right-1.5 top-1.5 z-10 hidden rounded-full bg-red-600 p-1.5 text-white shadow-sm transition hover:bg-red-700 group-hover:block"
+              onClick={() => handleRemoveImage(index)}
+              title="Xóa ảnh"
+            >
+              <Trash2 className="size-3.5" />
+            </button>
           </div>
         </div>
       ))}

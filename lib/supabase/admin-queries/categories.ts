@@ -16,6 +16,8 @@ export type AdminCategory = {
   parent_name?: string | null;
   group_key?: string | null;
   image_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export async function getAdminCategories(params: {
@@ -38,7 +40,9 @@ export async function getAdminCategories(params: {
         status,
         sort_order,
         parent_id,
-        group_key
+        group_key,
+        created_at,
+        updated_at
       `;
       selectStr += `, product_category_translations (locale, slug, name, description)`;
       selectStr += `, image_media:media_assets!fk_product_categories_image_media (public_url)`;
@@ -182,6 +186,8 @@ export async function getAdminCategories(params: {
             product_count: productCountMap[row.id] || 0,
             parent_name: row.parent_id ? (categoryMap[row.parent_id] || null) : null,
             image_url: (row as any).image_media?.public_url ?? null,
+            created_at: (row as any).created_at ?? null,
+            updated_at: (row as any).updated_at ?? null,
           } as any;
         });
 

@@ -1100,11 +1100,22 @@
     opacity: 0.8;
   }
 
-  .public-app > header,
   .public-app > main,
   .public-app > footer {
     position: relative;
     z-index: 1;
+  }
+
+  /*
+   * The header must NOT get `position: relative` here: `.public-app > header`
+   * (specificity 0,1,1) would override the `sticky` utility (0,1,0) if the CSS
+   * layer order ever changes, making the whole-site header scroll away on long
+   * pages (e.g. /promotions). It relies on its `sticky top-0 z-50` utilities and
+   * still stacks above the fixed `::before` background because `sticky` creates
+   * its own stacking context.
+   */
+  .public-app > header {
+    isolation: isolate;
   }
 
   .admin-app {

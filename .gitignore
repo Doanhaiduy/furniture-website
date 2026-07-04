@@ -75,6 +75,8 @@ src/types/supabase.ts  # only if auto-generated via supabase gen types
 
 # Deploy runbook with real production secrets — never commit
 docs/deploy/deploy.md
+# Production deploy script with inline secrets — never commit
+deploy.prod.sh
 
 # Project-specific tool settings and artifacts
 .specify/

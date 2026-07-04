@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Check, Globe2, Link2, Send, Share2 } from "lucide-react";
 import { useToast } from "@/components/providers/toast-provider";
+import { copyTextToClipboard } from "@/lib/clipboard";
 
 export function SocialShare({
   label,
@@ -37,12 +38,12 @@ export function SocialShare({
   const copiedMessage = copiedLabel || copyLabel;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(absoluteUrl());
+    const ok = await copyTextToClipboard(absoluteUrl());
+    if (ok) {
       setCopied(true);
       toast.success(copiedMessage);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       toast.error(copyLabel);
     }
   };

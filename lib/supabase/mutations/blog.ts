@@ -52,6 +52,75 @@ function bodyJsonToEditorText(value: unknown) {
   return JSON.stringify(value);
 }
 
+// Vietnamese-aware slug generator for inline blog-category creation.
+function slugifyVi(input: string): string {
+  return input
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/đ/g, "d").replace(/Đ/g, "D")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "danh-muc";
+}
+
+/**
+ * Create a blog category inline (from the blog editor). Handles the publish trigger
+ * that requires both vi + en translations: insert draft → translations → publish.
+ * Returns the new category id + slug + name so the editor can select it immediately.
+ */
+export async function createBlogCategory(
+  name: string,
+): Promise<{ success: boolean; id?: string; slug?: string; name?: string; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  const trimmed = (name || "").trim();
+  if (!trimmed) return { success: false, error: "Tên danh mục là bắt buộc" };
+  const supabase = createAdminClient();
+  const baseSlug = slugifyVi(trimmed);
+
+  try {
+    const { data: cat, error: catErr } = await supabase
+      .from("blog_categories")
+      .insert({ status: "draft", created_by: user.id, updated_by: user.id })
+      .select("id")
+      .single();
+    if (catErr || !cat) return { success: false, error: catErr?.message || "Không tạo được danh mục" };
+
+    // Ensure the slug is unique (unique per locale). Append a short suffix on collision.
+    let slug = baseSlug;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { error: transErr } = await supabase.from("blog_category_translations").insert([
+        { category_id: cat.id, locale: "vi", slug, name: trimmed },
+        { category_id: cat.id, locale: "en", slug, name: trimmed },
+      ]);
+      if (!transErr) break;
+      if (attempt === 2) {
+        await supabase.from("blog_categories").delete().eq("id", cat.id);
+        return { success: false, error: transErr.message };
+      }
+      slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
+
+    const { error: pubErr } = await supabase
+      .from("blog_categories")
+      .update({ status: "published", published_at: new Date().toISOString(), updated_by: user.id })
+      .eq("id", cat.id);
+    if (pubErr) return { success: false, error: pubErr.message };
+
+    triggerRevalidation();
+    return { success: true, id: cat.id, slug, name: trimmed };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+// Resolve a datetime-local ("YYYY-MM-DDTHH:mm") or ISO string to an ISO timestamp.
+function toIsoOrNull(value?: string | null): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 async function resolveBlogCategoryId(
   supabase: ReturnType<typeof createAdminClient>,
   categoryIdOrSlug: string
@@ -105,6 +174,7 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
     category_id: string;
     status: "draft" | "published" | "archived";
     featured: boolean;
+    published_at: string | null;
     seo_title_vi: string;
     seo_title_en: string;
     seo_description_vi: string;
@@ -126,6 +196,7 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
         category_id,
         status,
         featured,
+        published_at,
         cover_media_id,
         cover_media:media_assets!cover_media_id(public_url),
         blog_post_translations (
@@ -166,6 +237,7 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
         category_id: post.category_id,
         status: post.status as "draft" | "published" | "archived",
         featured: Boolean(post.featured),
+        published_at: (post as any).published_at || null,
         seo_title_vi: localizedText(viTrans?.seo_title),
         seo_title_en: localizedText(enTrans?.seo_title),
         seo_description_vi: localizedText(viTrans?.seo_description),
@@ -248,7 +320,7 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
         .from("blog_posts")
         .update({
           status: "published",
-          published_at: new Date().toISOString(),
+          published_at: toIsoOrNull(values.published_at) || new Date().toISOString(),
           updated_by: user.id,
           updated_at: new Date().toISOString(),
         })
@@ -335,7 +407,9 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
         featured: values.featured,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
-        published_at: values.status === "published" ? new Date().toISOString() : null,
+        published_at: values.status === "published"
+          ? (toIsoOrNull(values.published_at) || new Date().toISOString())
+          : null,
         deleted_at: values.status === "archived" ? new Date().toISOString() : null,
       })
       .eq("id", id);

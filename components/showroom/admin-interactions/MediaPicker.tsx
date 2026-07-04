@@ -50,6 +50,8 @@ import {
 import { PremiumSelect } from "../premium-select";
 import { Pagination } from "../admin-pages";
 import { ModalPortal } from "@/components/ui/modal-portal";
+import { ZoomableImage } from "@/components/ui/zoomable-image";
+import { assetUrl } from "@/lib/asset-url";
 
 
 export function MediaPicker({
@@ -161,14 +163,18 @@ export function MediaPicker({
       {/* Trigger */}
       <div className="space-y-2">
         {value && (
-          <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+          <ZoomableImage
+            src={value}
+            alt="Ảnh đã chọn"
+            className="flex h-40 w-full items-center justify-center rounded-lg border border-slate-200 bg-slate-100"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={value}
+              src={assetUrl(value)}
               alt="Ảnh đã chọn"
-              className="max-h-full max-w-full object-contain"
+              className="max-h-40 max-w-full object-contain"
             />
-          </div>
+          </ZoomableImage>
         )}
         <button
           type="button"

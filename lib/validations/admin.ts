@@ -1,11 +1,24 @@
 import { z } from "zod";
 
 const slugRegex = /^[a-z0-9-]+$/;
+// Vietnamese-friendly phone/hotline: only digits and + - ( ) . and spaces, with
+// 8–15 actual digits (covers mobiles, landlines and 1900/1800 hotlines).
+const phoneAllowed = /^[0-9+().\-\s]+$/;
+const digitCount = (v: string) => v.replace(/\D/g, "").length;
 
 // Common text validation helper
 const requiredText = (msg: string) => z.string().trim().min(1, msg);
 const optionalText = z.string().trim().nullish().transform(val => val || null);
 const slugSchema = z.string().trim().min(1, "Slug không được để trống").regex(slugRegex, "Slug chỉ được chứa ký tự thường, số và dấu gạch ngang (e.g. sofa-curve)");
+// Shared phone validator used for hotlines / contact numbers.
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, "Số điện thoại là bắt buộc")
+  .refine(
+    (v) => phoneAllowed.test(v) && digitCount(v) >= 8 && digitCount(v) <= 15,
+    "Số điện thoại không hợp lệ (chỉ gồm chữ số, có thể kèm + - ( ) và khoảng trắng; 8–15 chữ số)",
+  );
 
 export const productSchema = z.object({
   reference_code: optionalText,
@@ -125,6 +138,8 @@ export const blogPostSchema = z.object({
   category_id: requiredText("Danh mục bài viết là bắt buộc"),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   featured: z.boolean().default(false),
+  // Optional scheduled/actual publish datetime (datetime-local "YYYY-MM-DDTHH:mm" or ISO).
+  published_at: z.string().trim().nullish().transform((v) => v || null),
   cover_image: optionalText,
   seo_title_vi: optionalText,
   seo_title_en: optionalText,
@@ -146,7 +161,7 @@ export const showroomSchema = z.object({
   street_address: optionalText,
   opening_hours_vi: optionalText,
   opening_hours_en: optionalText,
-  hotline: requiredText("Số hotline là bắt buộc"),
+  hotline: phoneSchema,
   google_maps_embed_url: requiredText("URL bản đồ nhúng bắt buộc"),
   google_maps_fallback_url: requiredText("URL bản đồ dự phòng bắt buộc"),
   latitude: z.number().nullable().optional(),
@@ -222,7 +237,7 @@ export const settingsSchema = z.object({
   brandNameEn: optionalText,
   logoUrl: optionalText,
   faviconUrl: optionalText,
-  contactPhone: requiredText("Số điện thoại liên hệ là bắt buộc"),
+  contactPhone: phoneSchema,
   contactEmail: z.string().trim().email("Email liên hệ không hợp lệ").min(1, "Email liên hệ là bắt buộc"),
   quoteSenderEmail: z.string().trim().email("Email gửi báo giá không hợp lệ").optional().or(z.string().max(0)),
   addressVi: requiredText("Địa chỉ tiếng Việt là bắt buộc"),
