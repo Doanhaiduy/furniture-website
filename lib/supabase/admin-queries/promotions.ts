@@ -33,6 +33,50 @@ async function getOrCreateMediaAssetId(
   return null;
 }
 
+/**
+ * BUG 1 — overlapping promotions. Given the products about to be attached and the
+ * intended schedule/status of THIS promotion, return the code of a conflicting
+ * published promotion (or null). Mirrors the DB trigger check_promotion_product_overlap
+ * so the CMS can show a friendly, specific error instead of a raw trigger exception.
+ * The DB trigger remains the hard guarantee against direct-API bypass.
+ */
+async function findOverlappingPromotion(
+  supabase: any,
+  productIds: string[],
+  status: string,
+  startAt: string | null,
+  endAt: string | null,
+  excludePromotionId: string | null
+): Promise<{ code: string; productId: string } | null> {
+  // A non-published promotion cannot conflict with anything.
+  if (status !== "published" || !productIds || productIds.length === 0) return null;
+
+  // All published, live promotions attached to any of these products.
+  const { data: links } = await supabase
+    .from("product_promotions")
+    .select("product_id, promotions!inner(id, code, status, start_at, end_at, deleted_at)")
+    .in("product_id", productIds);
+
+  if (!links) return null;
+
+  const overlaps = (aStart: string | null, aEnd: string | null, bStart: string | null, bEnd: string | null) => {
+    // open bounds: null start = -inf, null end = +inf
+    const startsBeforeOtherEnds = aStart === null || bEnd === null || bEnd >= aStart;
+    const endsAfterOtherStarts = aEnd === null || bStart === null || bStart <= aEnd;
+    return startsBeforeOtherEnds && endsAfterOtherStarts;
+  };
+
+  for (const link of links as any[]) {
+    const other = link.promotions;
+    if (!other || other.deleted_at || other.status !== "published") continue;
+    if (excludePromotionId && other.id === excludePromotionId) continue;
+    if (overlaps(startAt, endAt, other.start_at, other.end_at)) {
+      return { code: other.code, productId: link.product_id };
+    }
+  }
+  return null;
+}
+
 async function createAuditLog(
   supabase: any,
   actorId: string | null,
@@ -233,7 +277,23 @@ export async function createAdminPromotion(data: {
   
   try {
     const supabase = await createClient();
-    
+
+    // BUG 1 — block overlapping promotions on a shared product (friendly pre-check).
+    const conflict = await findOverlappingPromotion(
+      supabase,
+      data.productIds || [],
+      data.status,
+      data.start_at || null,
+      data.end_at || null,
+      null
+    );
+    if (conflict) {
+      return {
+        success: false,
+        error: `Sản phẩm đang thuộc khuyến mãi "${conflict.code}" có thời gian trùng lặp. Hãy đổi lịch, kết thúc khuyến mãi cũ, hoặc bỏ sản phẩm khỏi khuyến mãi đó trước.`,
+      };
+    }
+
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
     const meta = {
       tag_vi: data.discount_percentage ? `Combo Giảm ${data.discount_percentage}%` : "Combo Độc Quyền",
@@ -382,6 +442,23 @@ export async function updateAdminPromotion(
       promotionId = existing.id;
     }
 
+    // BUG 1 — block overlapping promotions on a shared product (friendly pre-check),
+    // excluding this promotion itself from the comparison.
+    const conflict = await findOverlappingPromotion(
+      supabase,
+      data.productIds || [],
+      data.status,
+      data.start_at || null,
+      data.end_at || null,
+      promotionId
+    );
+    if (conflict) {
+      return {
+        success: false,
+        error: `Sản phẩm đang thuộc khuyến mãi "${conflict.code}" có thời gian trùng lặp. Hãy đổi lịch, kết thúc khuyến mãi cũ, hoặc bỏ sản phẩm khỏi khuyến mãi đó trước.`,
+      };
+    }
+
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
     const meta = {
       tag_vi: data.discount_percentage ? `Combo Giảm ${data.discount_percentage}%` : "Combo Độc Quyền",
@@ -394,74 +471,34 @@ export async function updateAdminPromotion(
       badgeColor: "bg-amber-500 text-black"
     };
 
-    // Update promotions row
-    const { data: promo, error: promoError } = await supabase
-      .from("promotions")
-      .update({
-        code: data.code,
-        discount_percentage: data.discount_percentage,
-        status: data.status,
-        start_at: data.start_at || null,
-        end_at: data.end_at || null,
-        cover_media_id: coverMediaId,
-        combo_price: data.combo_price || null,
-        original_price: data.original_price || null,
-        metadata_jsonb: meta,
-        updated_by: user.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", promotionId)
-      .select()
-      .single();
+    // Atomic update (remaining-risk #4): the promotion row, translations and product
+    // links are written inside one Postgres transaction (admin_update_promotion). If
+    // any step fails — e.g. the overlap trigger rejects a link — everything rolls back
+    // instead of leaving a half-applied promotion.
+    const { data: rpcData, error: rpcError } = await supabase.rpc("admin_update_promotion", {
+      p_id: promotionId,
+      p_code: data.code,
+      p_discount: data.discount_percentage,
+      p_status: data.status,
+      p_start: data.start_at || null,
+      p_end: data.end_at || null,
+      p_cover_media_id: coverMediaId,
+      p_combo_price: data.combo_price || null,
+      p_original_price: data.original_price || null,
+      p_metadata: meta,
+      p_title_vi: data.title_vi,
+      p_desc_vi: data.description_vi,
+      p_title_en: data.title_en,
+      p_desc_en: data.description_en,
+      p_product_ids: data.productIds && data.productIds.length > 0 ? data.productIds : null,
+      p_actor: user.id,
+    });
 
-    if (promoError || !promo) {
-      return { success: false, error: promoError?.message || "Failed to update promotion" };
+    if (rpcError || !rpcData) {
+      return { success: false, error: rpcError?.message || "Failed to update promotion" };
     }
 
-    // Upsert translations
-    if (data.title_vi) {
-      await supabase
-        .from("promotion_translations")
-        .upsert({
-          promotion_id: promo.id,
-          locale: "vi",
-          title: data.title_vi,
-          description: data.description_vi,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "promotion_id,locale" });
-    }
-    if (data.title_en) {
-      await supabase
-        .from("promotion_translations")
-        .upsert({
-          promotion_id: promo.id,
-          locale: "en",
-          title: data.title_en,
-          description: data.description_en,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "promotion_id,locale" });
-    }
-
-    // Create Audit Log
-    await createAuditLog(
-      supabase,
-      user.id,
-      "update",
-      "promotion",
-      promo.id,
-      { code: data.code, title_vi: data.title_vi }
-    );
-
-    // Sync product links (N-N)
-    await supabase.from("product_promotions").delete().eq("promotion_id", promotionId);
-    if (data.productIds && data.productIds.length > 0) {
-      const inserts = data.productIds.map((pid: string) => ({
-        product_id: pid,
-        promotion_id: promotionId,
-      }));
-      await supabase.from("product_promotions").insert(inserts);
-    }
-
+    const promo = rpcData as any;
     return {
       success: true,
       data: {

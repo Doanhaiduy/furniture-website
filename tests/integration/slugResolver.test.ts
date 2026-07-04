@@ -55,8 +55,9 @@ describe("Cross-Locale Slug Resolver Integration Tests", () => {
     await dbClient.query("DELETE FROM public.product_category_translations WHERE category_id = $1", [testCategoryId]);
     await dbClient.query("DELETE FROM public.product_categories WHERE id = $1", [testCategoryId]);
     
-    // Seed Category
-    await dbClient.query("INSERT INTO public.product_categories (id, sort_order) VALUES ($1, 0)", [testCategoryId]);
+    // Seed Category (published — a public product's category must be published; S3
+    // now hides products under draft/archived categories).
+    await dbClient.query("INSERT INTO public.product_categories (id, sort_order, status, published_at) VALUES ($1, 0, 'published', now())", [testCategoryId]);
     await dbClient.query("INSERT INTO public.product_category_translations (category_id, locale, name, slug) VALUES ($1, 'vi', 'Gạch', 'gach')", [testCategoryId]);
     
     // Seed Product

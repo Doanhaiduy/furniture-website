@@ -10,6 +10,7 @@ export async function getContentPage(
   locale: "vi" | "en" = "vi"
 ) {
   try {
+    // BUG 2 — locale fallback: fetch all translations, prefer requested locale then vi.
     const { data, error } = await supabase
       .from("content_pages")
       .select(`
@@ -17,7 +18,7 @@ export async function getContentPage(
         key,
         status,
         published_at,
-        content_page_translations!inner (
+        content_page_translations (
           slug,
           title,
           lead,
@@ -30,11 +31,14 @@ export async function getContentPage(
       .eq("key", key)
       .eq("status", "published")
       .is("deleted_at", null)
-      .eq("content_page_translations.locale", locale)
       .maybeSingle();
 
     if (!error && data) {
-      const translation = data.content_page_translations[0];
+      const translations = Array.isArray(data.content_page_translations) ? data.content_page_translations : [];
+      const translation =
+        translations.find((t: any) => t.locale === locale) ||
+        translations.find((t: any) => t.locale === "vi") ||
+        translations[0];
       return {
         id: data.id,
         key: data.key,
@@ -101,7 +105,7 @@ export async function getPublicSiteSettings(
         contact_email,
         logo_media:media_assets!logo_media_id(public_url),
         favicon_media:media_assets!favicon_media_id(public_url),
-        site_setting_translations!inner (
+        site_setting_translations (
           locale,
           brand_name,
           contact_address,
@@ -110,7 +114,6 @@ export async function getPublicSiteSettings(
         )
       `)
       .eq("singleton_key", "default")
-      .eq("site_setting_translations.locale", locale)
       .maybeSingle();
 
     if (error || !data) {
@@ -120,7 +123,14 @@ export async function getPublicSiteSettings(
       return defaults;
     }
 
-    const translation = data.site_setting_translations?.[0] || {};
+    // BUG 2 — locale fallback: prefer requested locale, then vi, then any translation,
+    // rather than dropping the admin-configured settings and using hardcoded defaults.
+    const allTranslations = Array.isArray(data.site_setting_translations) ? data.site_setting_translations : [];
+    const translation =
+      allTranslations.find((t: any) => t.locale === locale) ||
+      allTranslations.find((t: any) => t.locale === "vi") ||
+      allTranslations[0] ||
+      {};
     return {
       brandName: translation.brand_name || defaults.brandName,
       logoUrl: (data.logo_media as any)?.public_url || defaults.logoUrl,

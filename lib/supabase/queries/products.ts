@@ -142,6 +142,8 @@ export async function getProductBySlug(
         product_categories (
           id,
           group_key,
+          status,
+          deleted_at,
           product_category_translations (
             name,
             slug
@@ -181,6 +183,12 @@ export async function getProductBySlug(
 
     // 3. Chuẩn hóa dữ liệu sang dạng phẳng tương thích với mapDBProductToPublicProduct
     const category = (Array.isArray(row.product_categories) ? row.product_categories[0] : row.product_categories) || {};
+
+    // S3: hide the product detail page when its category is archived/unpublished or
+    // deleted, consistent with the public list/search/filter (public_products RPC).
+    if ((category as any).deleted_at || (category as any).status !== "published") {
+      return null;
+    }
     const categoryTranslation = (category as any).product_category_translations?.find((t: any) => t.locale === locale) || (category as any).product_category_translations?.[0];
     
     const brand = (Array.isArray(row.brands) ? row.brands[0] : row.brands) || {};

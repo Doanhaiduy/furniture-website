@@ -24,6 +24,32 @@ export async function DELETE(
 
   const supabase = await createClient();
 
+  // S6: refuse to delete media that is still referenced by a live entity. Deleting
+  // it would destroy the physical Cloudinary file while product/blog/etc. still point
+  // at it, breaking those images. Report exactly what is using it so the admin can
+  // detach it first. get_media_references() is the authoritative, DB-side check.
+  const { data: refs, error: refsError } = await supabase.rpc("get_media_references", {
+    p_media_id: id,
+  });
+  if (refsError) {
+    console.error("Failed to check media references:", refsError);
+    return NextResponse.json(
+      { error: "Không kiểm tra được nơi ảnh đang được sử dụng. Vui lòng thử lại." },
+      { status: 500 }
+    );
+  }
+  if (Array.isArray(refs) && refs.length > 0) {
+    const items = refs.map((r: { entity_type: string; label: string }) => `${r.entity_type}: ${r.label}`);
+    return NextResponse.json(
+      {
+        error: "Không thể xóa ảnh đang được sử dụng. Hãy gỡ ảnh khỏi các mục sau trước:",
+        references: refs,
+        items,
+      },
+      { status: 409 }
+    );
+  }
+
   // Fetch the media asset first (for public_url in audit logs and physical deletion)
   const { data: media } = await supabase
     .from("media_assets")

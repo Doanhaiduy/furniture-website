@@ -121,6 +121,35 @@ export async function PUT(request: Request) {
 
     const supabase = createAdminClient();
 
+    // Last-admin guard (self-discovered CRITICAL). If this change strips admin rights
+    // (role change or deactivation) from a user who is currently an active admin,
+    // ensure at least one OTHER active admin remains. The DB trigger enforces this
+    // hard; this pre-check returns a clean, localized message. See migration 0003.
+    const losesAdminRights = role !== "admin" || isActive === false;
+    if (losesAdminRights) {
+      const { data: target } = await supabase
+        .from("profiles")
+        .select("role, is_active, deleted_at")
+        .eq("id", id)
+        .maybeSingle();
+      const wasActiveAdmin = target?.role === "admin" && target?.is_active && !target?.deleted_at;
+      if (wasActiveAdmin) {
+        const { count } = await supabase
+          .from("profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "admin")
+          .eq("is_active", true)
+          .is("deleted_at", null)
+          .neq("id", id);
+        if ((count ?? 0) === 0) {
+          return NextResponse.json(
+            { error: "Không thể gỡ bỏ quản trị viên cuối cùng. Hãy chỉ định một admin khác trước." },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // 1. Cập nhật bảng profiles
     const { error: profileError } = await supabase
       .from("profiles")
