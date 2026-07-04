@@ -49,6 +49,7 @@ import {
   X,
 } from "lucide-react";
 import { PremiumSelect } from "../premium-select";
+import { VietnamAddressPicker } from "../vietnam-address-picker";
 import {
   MediaUploadPanel,
   PublishWorkflow,
@@ -281,6 +282,11 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [code, setCode] = useState("");
   const [addressVi, setAddressVi] = useState("");
   const [addressEn, setAddressEn] = useState("");
+  const [provinceCode, setProvinceCode] = useState("");
+  const [provinceName, setProvinceName] = useState("");
+  const [wardCode, setWardCode] = useState("");
+  const [wardName, setWardName] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
   const [hoursVi, setHoursVi] = useState("");
   const [hoursEn, setHoursEn] = useState("");
   const [mapsEmbed, setMapsEmbed] = useState("https://www.google.com/maps/embed?pb=...");
@@ -303,6 +309,13 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setNameEn(match.name_en || "");
             setAddressVi(match.address_vi || "");
             setAddressEn(match.address_en || "");
+            setProvinceCode(match.province_code || "");
+            setProvinceName(match.province_name || "");
+            setWardCode(match.ward_code || "");
+            setWardName(match.ward_name || "");
+            // Fallback: legacy rows have no structured street yet — seed it with the old composed
+            // address so it stays visible/editable until re-structured via the picker.
+            setStreetAddress(match.street_address || (!match.province_code ? (match.address_vi || "") : ""));
             setHotline(match.hotline || "");
             setCode(match.code || "");
             setHoursVi(match.opening_hours_vi || "");
@@ -333,6 +346,11 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setNameEn("");
       setAddressVi("");
       setAddressEn("");
+      setProvinceCode("");
+      setProvinceName("");
+      setWardCode("");
+      setWardName("");
+      setStreetAddress("");
       setHotline("");
       setCode("");
       setHoursVi("");
@@ -425,6 +443,11 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       name_en: englishEnabled ? nameEn.trim() : "",
       address_vi: addressVi.trim(),
       address_en: englishEnabled ? addressEn.trim() : "",
+      province_code: provinceCode || undefined,
+      province_name: provinceName || undefined,
+      ward_code: wardCode || undefined,
+      ward_name: wardName || undefined,
+      street_address: streetAddress || undefined,
       opening_hours_vi: hoursVi.trim() || null,
       opening_hours_en: englishEnabled && hoursEn.trim() ? hoursEn.trim() : null,
       hotline: hotline.trim(),
@@ -615,22 +638,20 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
               <AdminField label="Mã nội bộ (Đường dẫn)" name="showroom-code" value={code} onChange={setCode} disabled={true} />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <AdminField 
-                label="Địa chỉ - Tiếng Việt" 
-                name="showroom-address-vi" 
-                value={addressVi} 
-                onChange={setAddressVi} 
-                multiline
-              />
-              <AdminField 
-                label="Địa chỉ - Tiếng Anh" 
-                name="showroom-address-en" 
-                value={addressEn} 
-                onChange={setAddressEn}
-                disabled={!englishEnabled}
-                placeholder={!englishEnabled ? "Bật bản dịch tiếng Anh để chỉnh sửa" : ""}
-                multiline
+            <div className="grid gap-4">
+              <VietnamAddressPicker
+                label="Địa chỉ showroom (Tỉnh/Thành phố → Phường/Xã)"
+                value={{ provinceCode, provinceName, wardCode, wardName, street: streetAddress }}
+                onChange={(v) => {
+                  setProvinceCode(v.provinceCode);
+                  setProvinceName(v.provinceName);
+                  setWardCode(v.wardCode);
+                  setWardName(v.wardName);
+                  setStreetAddress(v.street);
+                  setAddressVi(v.fullAddress);
+                  // Vietnamese place names are not translated; keep EN address in sync.
+                  setAddressEn(v.fullAddress);
+                }}
               />
             </div>
 
@@ -1216,6 +1237,30 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 }
 
 
+// Common countries of origin for partner brands (Vietnamese labels, ISO-style controlled list).
+const BRAND_COUNTRY_OPTIONS: { value: string; label: string }[] = [
+  { value: "Việt Nam", label: "Việt Nam" },
+  { value: "Đức", label: "Đức (Germany)" },
+  { value: "Ý", label: "Ý (Italy)" },
+  { value: "Pháp", label: "Pháp (France)" },
+  { value: "Tây Ban Nha", label: "Tây Ban Nha (Spain)" },
+  { value: "Anh", label: "Anh (UK)" },
+  { value: "Bỉ", label: "Bỉ (Belgium)" },
+  { value: "Ba Lan", label: "Ba Lan (Poland)" },
+  { value: "Thụy Điển", label: "Thụy Điển (Sweden)" },
+  { value: "Đan Mạch", label: "Đan Mạch (Denmark)" },
+  { value: "Thổ Nhĩ Kỳ", label: "Thổ Nhĩ Kỳ (Turkey)" },
+  { value: "Mỹ", label: "Mỹ (USA)" },
+  { value: "Nhật Bản", label: "Nhật Bản (Japan)" },
+  { value: "Hàn Quốc", label: "Hàn Quốc (Korea)" },
+  { value: "Trung Quốc", label: "Trung Quốc (China)" },
+  { value: "Đài Loan", label: "Đài Loan (Taiwan)" },
+  { value: "Thái Lan", label: "Thái Lan (Thailand)" },
+  { value: "Malaysia", label: "Malaysia" },
+  { value: "Indonesia", label: "Indonesia" },
+  { value: "Ấn Độ", label: "Ấn Độ (India)" },
+];
+
 function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const { toast, showLoading, hideLoading, showAlert } = useToast();
   const searchParams = useSearchParams();
@@ -1336,6 +1381,12 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     }
   };
 
+  // Keep any pre-existing free-text origin selectable so editing an old brand doesn't lose it.
+  const originOptions =
+    !origin || BRAND_COUNTRY_OPTIONS.some((o) => o.value === origin)
+      ? BRAND_COUNTRY_OPTIONS
+      : [{ value: origin, label: origin }, ...BRAND_COUNTRY_OPTIONS];
+
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
       <section className="surface-soft p-4">
@@ -1383,37 +1434,34 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             multiline
             error={fieldErrors.description_en}
           />
-          <AdminField
-            label="Xuất xứ"
-            name="origin"
-            value={origin}
-            onChange={setOrigin}
-            placeholder="Ví dụ: Đức, Mỹ, Nhật Bản"
-            error={fieldErrors.origin}
-          />
           <div className="grid gap-2">
-            <span className="label-pd">Logo thương hiệu</span>
-            <ImageUploadDropzone
-              value={logoUrl}
-              onChange={(url) => setLogoUrl(url)}
-              label="Tải logo thương hiệu lên"
+            <span className="label-pd">Xuất xứ</span>
+            <PremiumSelect
+              tone="admin"
+              name="origin"
+              value={origin}
+              options={originOptions}
+              placeholder="Chọn quốc gia xuất xứ"
+              ariaLabel="Xuất xứ"
+              onValueChange={setOrigin}
             />
-            {fieldErrors.logo_url && <span className="text-red-600 text-xs font-medium">{fieldErrors.logo_url}</span>}
+            {fieldErrors.origin && <span className="text-red-600 text-xs font-medium">{fieldErrors.origin}</span>}
           </div>
         </div>
       </section>
       <aside className="space-y-5">
         <section className="surface-soft p-4">
-          <AdminField
-            label="Thứ tự hiển thị"
-            name="sort_order"
-            inputType="number"
-            value={String(sortOrder)}
-            onChange={(val) => setSortOrder(Number(val))}
-            error={fieldErrors.sort_order}
-          />
+          <span className="label-pd">Logo thương hiệu</span>
+          <div className="mt-2">
+            <ImageUploadDropzone
+              value={logoUrl}
+              onChange={(url) => setLogoUrl(url)}
+              label="Tải logo thương hiệu lên"
+            />
+          </div>
+          {fieldErrors.logo_url && <span className="mt-1 block text-red-600 text-xs font-medium">{fieldErrors.logo_url}</span>}
         </section>
-        <PublishWorkflow 
+        <PublishWorkflow
           status={status}
           onStatusChange={setStatus}
           errors={[]} 
@@ -1853,9 +1901,9 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                           >
                             {/* Product thumbnail */}
                             <div className="size-10 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60">
-                              {prod.primary_media ? (
+                              {prod.primary_media?.url ? (
                                 <img
-                                  src={prod.primary_media as string}
+                                  src={prod.primary_media.url}
                                   alt={prod.name}
                                   className="size-full object-cover"
                                   loading="lazy"
@@ -1901,8 +1949,8 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
                       className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-900 text-xs pl-1.5 pr-2 py-1 rounded-xl shadow-sm animate-in zoom-in-95 duration-100"
                     >
                       <div className="size-7 rounded-lg overflow-hidden bg-indigo-100 shrink-0">
-                        {prod.primary_media ? (
-                          <img src={prod.primary_media as string} alt={prod.name} className="size-full object-cover" />
+                        {prod.primary_media?.url ? (
+                          <img src={prod.primary_media.url} alt={prod.name} className="size-full object-cover" />
                         ) : (
                           <div className="size-full flex items-center justify-center">
                             <Package className="size-3.5 text-indigo-400" />

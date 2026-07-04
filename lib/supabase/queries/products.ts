@@ -432,6 +432,9 @@ export function mapDBProductToPublicProduct(dbProduct: any, locale: "vi" | "en")
     price: displayPrice,
     oldPrice,
     discountPercentage,
+    // Numeric fields used for sorting (price / newest); not rendered directly.
+    priceValue: promoPriceMin !== null ? Number(promoPriceMin) : priceMin !== null ? Number(priceMin) : null,
+    publishedAt: dbProduct.published_at || dbProduct.publishedAt || null,
     name: { vi: nameVi, en: nameEn },
     category: { vi: categoryNameVi, en: categoryNameEn },
     summary: { vi: summaryVi, en: summaryEn },

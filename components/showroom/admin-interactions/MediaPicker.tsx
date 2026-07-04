@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { PremiumSelect } from "../premium-select";
 import { Pagination } from "../admin-pages";
+import { ModalPortal } from "@/components/ui/modal-portal";
 
 
 export function MediaPicker({
@@ -160,12 +161,12 @@ export function MediaPicker({
       {/* Trigger */}
       <div className="space-y-2">
         {value && (
-          <div className="relative">
+          <div className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value}
               alt="Ảnh đã chọn"
-              className="h-32 w-full rounded-lg border border-slate-200 object-cover"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
         )}
@@ -188,9 +189,11 @@ export function MediaPicker({
         )}
       </div>
 
-      {/* Dialog */}
+      {/* Dialog — portaled to <body> so it is never trapped inside a scroll/transform ancestor,
+          and elevated above every editing dialog (z-modal=80) while staying below the toast confirm it triggers. */}
       {open && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
+        <ModalPortal>
+        <div className="fixed inset-0 z-99990 flex items-center justify-center bg-black/60 p-4">
           <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
             <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
               <h2 className="font-heading text-lg font-semibold">Chọn ảnh</h2>
@@ -312,6 +315,7 @@ export function MediaPicker({
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

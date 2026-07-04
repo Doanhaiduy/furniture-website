@@ -1,8 +1,9 @@
 "use client";
 
-import { Search, X, SlidersHorizontal, ChevronDown, Calendar } from "lucide-react";
+import { Search, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { DatePickerField } from "@/components/ui/date-picker";
 
 export interface SelectOption {
   value: string;
@@ -141,23 +142,21 @@ export function FilterBar({
           <div className="flex flex-col gap-1.5 sm:col-span-2 w-full">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Khoảng thời gian</span>
             <div className="flex items-center gap-2 w-full">
-              <div className="relative flex-1 min-w-[110px]">
-                <Calendar className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
-                  type="date"
-                  className="input-pd w-full bg-white h-9 pl-8 pr-2 py-1 text-xs border border-slate-200 rounded-lg focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary outline-none text-slate-600 font-medium"
+              <div className="flex-1 min-w-[120px]">
+                <DatePickerField
                   value={values.dateFrom ?? ""}
-                  onChange={(e) => onFilterChange("dateFrom", e.target.value)}
+                  onChange={(v) => onFilterChange("dateFrom", v)}
+                  placeholder="Từ ngày"
+                  ariaLabel="Từ ngày"
                 />
               </div>
               <span className="text-slate-400 text-xs shrink-0">—</span>
-              <div className="relative flex-1 min-w-[110px]">
-                <Calendar className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                <input
-                  type="date"
-                  className="input-pd w-full bg-white h-9 pl-8 pr-2 py-1 text-xs border border-slate-200 rounded-lg focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary outline-none text-slate-600 font-medium"
+              <div className="flex-1 min-w-[120px]">
+                <DatePickerField
                   value={values.dateTo ?? ""}
-                  onChange={(e) => onFilterChange("dateTo", e.target.value)}
+                  onChange={(v) => onFilterChange("dateTo", v)}
+                  placeholder="Đến ngày"
+                  ariaLabel="Đến ngày"
                 />
               </div>
             </div>
@@ -293,12 +292,7 @@ function FilterControl({
         <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {filter.label}
         </label>
-        <input
-          type="date"
-          className="input-pd w-full bg-white h-9 py-1 text-xs border border-slate-200 rounded-lg px-2"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <DatePickerField value={value} onChange={onChange} placeholder={filter.label} ariaLabel={filter.label} />
       </div>
     );
   }

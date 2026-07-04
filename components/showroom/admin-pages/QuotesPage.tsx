@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { ExcelImportExportModal } from "../admin-excel";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { useToast } from "@/components/providers/toast-provider";
 import Link from "next/link";
 import {
@@ -673,6 +674,7 @@ export function QuotesPage({
       </div>
 
       {showEmailDraft && selectedQuote && (
+        <ModalPortal>
         <div className="fixed inset-0 z-[calc(var(--z-modal)+1)] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl p-5 max-w-lg w-full border shadow-xl flex flex-col max-h-[85vh]">
             <div className="flex justify-between items-center border-b pb-3">
@@ -703,6 +705,7 @@ Trân trọng,
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

@@ -243,7 +243,7 @@ export default async function ProductDetailPage({
           
           {/* Social share */}
           <div className="mt-5 pt-4 border-t border-slate-100">
-            <SocialShare label={common("share")} copyLabel={common("copyLink")} url={`/${locale}/products/${product.slug}`} />
+            <SocialShare label={common("share")} copyLabel={common("copyLink")} copiedLabel={common("copied")} url={`/${locale}/products/${product.slug}`} title={localized(product.name, locale)} />
           </div>
         </div>
       </section>

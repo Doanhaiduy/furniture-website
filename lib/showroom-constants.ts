@@ -380,16 +380,62 @@ export function filterProducts(
   });
 }
 
-export type ProductSort = "newest" | "featured";
+export type ProductSort = "newest" | "featured" | "price-asc" | "price-desc" | "discount";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function numericPriceOf(product: any): number | null {
+  const raw =
+    product.priceValue ??
+    product.promoPriceMin ??
+    product.price_min ??
+    product.priceMin ??
+    null;
+  const value = typeof raw === "string" ? Number(raw) : raw;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function publishedTimeOf(product: any): number {
+  const raw = product.publishedAt || product.published_at || product.createdAt || product.created_at;
+  const time = raw ? new Date(raw).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function sortProducts(items: readonly any[], sort: ProductSort = "newest") {
-  return [...items].sort((a, b) => {
-    if (sort === "featured") {
-      if (a.featured !== b.featured) return a.featured ? -1 : 1;
-    }
-    return (a.slug || "").localeCompare(b.slug || "");
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const bySlug = (a: any, b: any) => (a.slug || "").localeCompare(b.slug || "");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byPrice = (a: any, b: any, dir: 1 | -1) => {
+    const pa = numericPriceOf(a);
+    const pb = numericPriceOf(b);
+    if (pa === null && pb === null) return bySlug(a, b);
+    if (pa === null) return 1; // products without a price go last
+    if (pb === null) return -1;
+    return pa === pb ? bySlug(a, b) : (pa - pb) * dir;
+  };
+
+  const arr = [...items];
+  switch (sort) {
+    case "featured":
+      return arr.sort((a, b) => (a.featured === b.featured ? bySlug(a, b) : a.featured ? -1 : 1));
+    case "price-asc":
+      return arr.sort((a, b) => byPrice(a, b, 1));
+    case "price-desc":
+      return arr.sort((a, b) => byPrice(a, b, -1));
+    case "discount":
+      return arr.sort((a, b) => {
+        const da = a.discountPercentage || 0;
+        const db = b.discountPercentage || 0;
+        return da === db ? bySlug(a, b) : db - da;
+      });
+    case "newest":
+    default:
+      return arr.sort((a, b) => {
+        const diff = publishedTimeOf(b) - publishedTimeOf(a);
+        return diff === 0 ? bySlug(a, b) : diff;
+      });
+  }
 }
 
 export function paginateItems<T>(items: readonly T[], page: number, pageSize: number) {

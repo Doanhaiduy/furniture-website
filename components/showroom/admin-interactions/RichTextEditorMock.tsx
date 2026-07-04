@@ -10,6 +10,51 @@ import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image";
+
+// Uploads an image file via the signed Cloudinary flow and returns its public URL.
+async function uploadEditorImage(file: File): Promise<string> {
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif", "image/svg+xml"];
+  if (!allowed.includes(file.type)) throw new Error(`Định dạng ảnh không hỗ trợ: ${file.type}`);
+  if (file.size > 50 * 1024 * 1024) throw new Error("Ảnh quá lớn (tối đa 50MB).");
+
+  const signRes = await fetch("/api/admin/cloudinary-sign", { method: "POST" });
+  if (!signRes.ok) throw new Error("Không thể lấy chữ ký upload.");
+  const { signature, timestamp, folder, apiKey, cloudName } = await signRes.json();
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("api_key", apiKey);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
+  formData.append("folder", folder);
+
+  const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+    method: "POST",
+    body: formData,
+  }).then((r) => {
+    if (!r.ok) throw new Error("Upload ảnh thất bại.");
+    return r.json();
+  });
+
+  const persistRes = await fetch("/api/admin/media/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      public_id: cloudRes.public_id,
+      secure_url: cloudRes.secure_url,
+      format: cloudRes.format,
+      bytes: cloudRes.bytes,
+      width: cloudRes.width,
+      height: cloudRes.height,
+      original_filename: cloudRes.original_filename,
+      resource_type: cloudRes.resource_type,
+    }),
+  });
+  if (!persistRes.ok) throw new Error("Không thể lưu ảnh vào thư viện.");
+  const asset = await persistRes.json();
+  return asset.public_url as string;
+}
 
 import {
   Archive,
@@ -65,6 +110,20 @@ export function RichTextEditorMock({
   disabled?: boolean;
 }) {
   const initialContent = value !== undefined ? value : (defaultValue ?? "");
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  // Holds the latest upload-and-insert function so paste/drop handlers (captured in the
+  // editor config) can call it once the editor instance exists.
+  const uploadInsertRef = useRef<((file: File) => void) | null>(null);
+
+  const handleImageFiles = (files: FileList | File[] | null): boolean => {
+    if (!files) return false;
+    const image = Array.from(files).find((f) => f.type.startsWith("image/"));
+    if (!image) return false;
+    uploadInsertRef.current?.(image);
+    return true;
+  };
 
   const editor = useEditor({
     extensions: [
@@ -82,12 +141,34 @@ export function RichTextEditorMock({
         openOnClick: false,
         HTMLAttributes: { class: "text-indigo-600 underline cursor-pointer" },
       }),
+      Image.configure({
+        inline: false,
+        HTMLAttributes: { class: "rounded-lg max-w-full my-3" },
+      }),
       Placeholder.configure({
-        placeholder: placeholder || "Nhập chi tiết nội dung ở đây. Hỗ trợ Ctrl+B (đậm), Ctrl+I (nghiêng), Ctrl+U (gạch chân)...",
+        placeholder: placeholder || "Nhập chi tiết nội dung ở đây. Hỗ trợ Ctrl+B (đậm), Ctrl+I (nghiêng), dán ảnh trực tiếp...",
       }),
     ],
     content: initialContent,
     editable: !disabled,
+    editorProps: {
+      handlePaste: (_view, event) => {
+        const files = event.clipboardData?.files;
+        if (files && files.length > 0 && handleImageFiles(files)) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      },
+      handleDrop: (_view, event) => {
+        const files = (event as DragEvent).dataTransfer?.files;
+        if (files && files.length > 0 && handleImageFiles(files)) {
+          event.preventDefault();
+          return true;
+        }
+        return false;
+      },
+    },
     onUpdate({ editor }) {
       if (onChange) {
         onChange(editor.getHTML());
@@ -111,6 +192,24 @@ export function RichTextEditorMock({
     if (!editor) return;
     editor.setEditable(!disabled);
   }, [disabled, editor]);
+
+  const insertUploadedImage = useCallback(async (file: File) => {
+    if (!editor) return;
+    setUploadingImage(true);
+    try {
+      const url = await uploadEditorImage(file);
+      editor.chain().focus().setImage({ src: url }).run();
+      toast.success("Đã chèn ảnh vào nội dung.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Lỗi tải ảnh.");
+    } finally {
+      setUploadingImage(false);
+    }
+  }, [editor, toast]);
+
+  useEffect(() => {
+    uploadInsertRef.current = insertUploadedImage;
+  }, [insertUploadedImage]);
 
   function ToolbarBtn({
     onClick,
@@ -271,7 +370,30 @@ export function RichTextEditorMock({
           <Link2 className="size-3.5" />
         </ToolbarBtn>
 
-        <div className="ml-auto flex items-center">
+        {/* Image upload (also supports paste / drag-drop) */}
+        <ToolbarBtn
+          title="Chèn ảnh (hoặc dán ảnh trực tiếp vào nội dung)"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {uploadingImage ? <Loader2 className="size-3.5 animate-spin" /> : <ImageUp className="size-3.5" />}
+        </ToolbarBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            handleImageFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+
+        <div className="ml-auto flex items-center gap-2">
+          {uploadingImage && (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-indigo-500">
+              <Loader2 className="size-3 animate-spin" /> Đang tải ảnh...
+            </span>
+          )}
           <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded">
             WYSIWYG Editor
           </span>

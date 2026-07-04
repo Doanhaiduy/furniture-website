@@ -3,7 +3,7 @@
 import { useId, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
-import { PremiumSelect, type PremiumSelectOption } from "./premium-select";
+import { PremiumSelect, type PremiumSelectOption, type PremiumSelectGroup } from "./premium-select";
 
 type ProductFilterLabels = {
   filters: string;
@@ -54,6 +54,7 @@ export type ProductFilterPanelProps = {
     featured: PremiumSelectOption[];
     brand?: PremiumSelectOption[];
   };
+  categoryGroups?: PremiumSelectGroup[];
   resetHref: string;
   defaultExpanded?: boolean;
 };
@@ -62,6 +63,7 @@ export function ProductFilterPanel({
   labels,
   query,
   options,
+  categoryGroups,
   resetHref,
 }: ProductFilterPanelProps) {
   const router = useRouter();
@@ -129,7 +131,7 @@ export function ProductFilterPanel({
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-outline" />
             <input
               ref={searchRef}
-              className="input-pd pl-9"
+              className="input-pd pl-9 uppercase placeholder:normal-case"
               name="q"
               defaultValue={query.q}
               onChange={handleSearchChange}
@@ -145,6 +147,7 @@ export function ProductFilterPanel({
             name="category"
             value={query.category || "all"}
             options={options.category}
+            groups={categoryGroups}
             placeholder={labels.category}
             ariaLabel={labels.category}
             onValueChange={(v) => navigate({ category: v })}

@@ -46,6 +46,11 @@ export async function getAdminShowroomByIdOrCode(idOrCode: string): Promise<{
     longitude: number | null;
     status: "draft" | "published" | "archived";
     sort_order: number;
+    province_code: string;
+    province_name: string;
+    ward_code: string;
+    ward_name: string;
+    street_address: string;
     cover_image: string;
   };
   error?: string;
@@ -68,6 +73,11 @@ export async function getAdminShowroomByIdOrCode(idOrCode: string): Promise<{
         longitude,
         status,
         sort_order,
+        province_code,
+        province_name,
+        ward_code,
+        ward_name,
+        street_address,
         showroom_translations (
           locale,
           name,
@@ -113,6 +123,11 @@ export async function getAdminShowroomByIdOrCode(idOrCode: string): Promise<{
         longitude: showroom.longitude === null ? null : Number(showroom.longitude),
         status: showroom.status as "draft" | "published" | "archived",
         sort_order: Number(showroom.sort_order ?? 0),
+        province_code: localizedText((showroom as any).province_code),
+        province_name: localizedText((showroom as any).province_name),
+        ward_code: localizedText((showroom as any).ward_code),
+        ward_name: localizedText((showroom as any).ward_name),
+        street_address: localizedText((showroom as any).street_address),
         cover_image: localizedText(mediaRecord?.public_url),
       },
     };
@@ -148,6 +163,11 @@ export async function createAdminShowroom(data: ShowroomInput): Promise<{ succes
         longitude: values.longitude,
         status: initialStatus,
         sort_order: values.sort_order,
+        province_code: values.province_code || null,
+        province_name: values.province_name || null,
+        ward_code: values.ward_code || null,
+        ward_name: values.ward_name || null,
+        street_address: values.street_address || null,
         created_by: user.id,
         updated_by: user.id,
         published_at: null,
@@ -328,6 +348,11 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
         longitude: values.longitude,
         status: values.status,
         sort_order: values.sort_order,
+        province_code: values.province_code || null,
+        province_name: values.province_name || null,
+        ward_code: values.ward_code || null,
+        ward_name: values.ward_name || null,
+        street_address: values.street_address || null,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
         published_at: values.status === "published" ? new Date().toISOString() : null,

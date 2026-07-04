@@ -88,7 +88,7 @@ export function PublishWorkflow({
     confirm === "publish"
       ? {
           title: "Xác nhận xuất bản",
-          description: "Nội dung chỉ hiển thị công khai sau khi kiểm tra song ngữ, tệp và SEO trong Payload đạt yêu cầu.",
+          description: "Nội dung chỉ hiển thị công khai sau khi hoàn tất kiểm tra nội dung song ngữ, hình ảnh và SEO.",
           action: "Xuất bản",
         }
       : {

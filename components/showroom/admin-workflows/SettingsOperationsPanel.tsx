@@ -49,6 +49,7 @@ import {
   X,
 } from "lucide-react";
 import { PremiumSelect } from "../premium-select";
+import { VietnamAddressPicker } from "../vietnam-address-picker";
 import {
   MediaUploadPanel,
   PublishWorkflow,
@@ -94,13 +95,17 @@ import {
   SectionVisibilityCard,
 } from "../admin-workflows";
 
-export function SettingsOperationsPanel() {
+export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const { toast } = useToast();
+  // Integration secrets (e.g. Gemini key) are admin-only. This is defense-in-depth on top of
+  // the server guards (/admin/settings redirects editors; /api/admin/settings returns 401).
+  const isAdmin = role !== "editor";
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
-  const initialTab: SettingsTab = requestedTab === "contact" || requestedTab === "seo" || requestedTab === "integrations" || requestedTab === "sections"
+  const initialTabRaw: SettingsTab = requestedTab === "contact" || requestedTab === "seo" || requestedTab === "integrations" || requestedTab === "sections"
     ? requestedTab
     : "identity";
+  const initialTab: SettingsTab = initialTabRaw === "integrations" && !isAdmin ? "identity" : initialTabRaw;
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const desktopPreviewId = useId();
   const mobilePreviewId = useId();
@@ -115,6 +120,11 @@ export function SettingsOperationsPanel() {
   const [contactEmail, setContactEmail] = useState("contact@phuongdong.vn");
   const [addressVi, setAddressVi] = useState("124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
   const [addressEn, setAddressEn] = useState("124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
+  const [contactProvinceCode, setContactProvinceCode] = useState("");
+  const [contactProvinceName, setContactProvinceName] = useState("");
+  const [contactWardCode, setContactWardCode] = useState("");
+  const [contactWardName, setContactWardName] = useState("");
+  const [contactStreet, setContactStreet] = useState("");
   const [defaultLocale, setDefaultLocale] = useState("vi");
 
   const [seoTitleVi, setSeoTitleVi] = useState("Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
@@ -126,6 +136,33 @@ export function SettingsOperationsPanel() {
   const [cloudinaryPreset, setCloudinaryPreset] = useState("phuongdong_unsigned_preset");
   const [geminiKey, setGeminiKey] = useState("AIzaSy••••••••••••••••");
   const [slaHours, setSlaHours] = useState("24");
+  const [verifyingGemini, setVerifyingGemini] = useState(false);
+  const [geminiStatus, setGeminiStatus] = useState<{ ok: boolean; message: string } | null>(null);
+
+  async function handleVerifyGemini() {
+    setVerifyingGemini(true);
+    setGeminiStatus(null);
+    try {
+      const res = await fetch("/api/admin/settings/verify-gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: geminiKey }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.ok) {
+        setGeminiStatus({ ok: true, message: data.message || "Khóa hợp lệ." });
+        toast.success(data.message || "Khóa Gemini hợp lệ.");
+      } else {
+        setGeminiStatus({ ok: false, message: data.error || "Khóa không hợp lệ." });
+        toast.error(data.error || "Khóa Gemini không hợp lệ.");
+      }
+    } catch {
+      setGeminiStatus({ ok: false, message: "Lỗi kết nối khi kiểm tra khóa." });
+      toast.error("Lỗi kết nối khi kiểm tra khóa Gemini.");
+    } finally {
+      setVerifyingGemini(false);
+    }
+  }
 
   // Site Sections State
   const [heroHeadlineVi, setHeroHeadlineVi] = useState(settingsHomepageDefaults.heroHeadlineVi);
@@ -221,6 +258,12 @@ export function SettingsOperationsPanel() {
         if (data.contactEmail !== undefined) setContactEmail(data.contactEmail);
         if (data.addressVi !== undefined) setAddressVi(data.addressVi);
         if (data.addressEn !== undefined) setAddressEn(data.addressEn);
+        setContactProvinceCode(data.contactProvinceCode || "");
+        setContactProvinceName(data.contactProvinceName || "");
+        setContactWardCode(data.contactWardCode || "");
+        setContactWardName(data.contactWardName || "");
+        // Fallback: seed street with the legacy composed address if no structured data yet.
+        setContactStreet(data.contactStreet || (!data.contactProvinceCode ? (data.addressVi || "") : ""));
         if (data.defaultLocale !== undefined) setDefaultLocale(data.defaultLocale);
         if (data.seoTitleVi !== undefined) setSeoTitleVi(data.seoTitleVi);
         if (data.seoTitleEn !== undefined) setSeoTitleEn(data.seoTitleEn);
@@ -311,6 +354,11 @@ export function SettingsOperationsPanel() {
         contactEmail,
         addressVi,
         addressEn,
+        contactProvinceCode,
+        contactProvinceName,
+        contactWardCode,
+        contactWardName,
+        contactStreet,
         defaultLocale,
         seoTitleVi,
         seoTitleEn,
@@ -421,6 +469,11 @@ export function SettingsOperationsPanel() {
       setContactEmail(data.contactEmail || "contact@phuongdong.vn");
       setAddressVi(data.addressVi || "124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
       setAddressEn(data.addressEn || "124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
+      setContactProvinceCode(data.contactProvinceCode || "");
+      setContactProvinceName(data.contactProvinceName || "");
+      setContactWardCode(data.contactWardCode || "");
+      setContactWardName(data.contactWardName || "");
+      setContactStreet(data.contactStreet || (!data.contactProvinceCode ? (data.addressVi || "") : ""));
       setDefaultLocale(data.defaultLocale || "vi");
       setSeoTitleVi(data.seoTitleVi || "Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
       setSeoTitleEn(data.seoTitleEn || "Phuong Dong - Premium Furniture & Sanitary Ware");
@@ -539,10 +592,10 @@ export function SettingsOperationsPanel() {
     contactPhone,
   };
   const settingsReadinessItems = [
-    { label: "Editor accounts restricted from API tab", state: "ready" },
-    { label: "Valid support email routing configured", state: emailError ? "warning" : "ready" },
-    { label: "Secrets stay server-only in Payload CMS runtime", state: "ready" },
-    { label: "All brand fields localized in VI/EN", state: "ready" },
+    { label: "Tài khoản biên tập viên bị hạn chế truy cập tab Tích hợp", state: "ready" },
+    { label: "Đã cấu hình email hỗ trợ hợp lệ", state: emailError ? "warning" : "ready" },
+    { label: "Khóa bí mật chỉ lưu và xử lý phía máy chủ", state: "ready" },
+    { label: "Tất cả trường thương hiệu đã có song ngữ VI/EN", state: "ready" },
   ] as const;
   const renderLegacySectionDetails = false;
   const renderHomepagePreview = false;
@@ -564,7 +617,7 @@ export function SettingsOperationsPanel() {
             { id: "seo", label: "SEO mặc định", icon: Sparkles },
             { id: "integrations", label: "Tích hợp", icon: Settings2 },
             { id: "sections", label: "Khu vực trang chủ", icon: LayoutDashboard },
-          ] as const).map((tab) => {
+          ] as const).filter((tab) => isAdmin || tab.id !== "integrations").map((tab) => {
             const Icon = tab.icon;
             return (
               <button
@@ -703,20 +756,21 @@ export function SettingsOperationsPanel() {
                   {emailError && <p className="text-red-500 text-xs font-semibold">{emailError}</p>}
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <AdminField 
-                  label="Địa chỉ trụ sở chính (Tiếng Việt) *" 
-                  name="addr-vi" 
-                  value={addressVi} 
-                  onChange={(val) => { setAddressVi(val); markDirty(); }} 
-                  multiline 
-                />
-                <AdminField 
-                  label="Địa chỉ trụ sở chính (Tiếng Anh) *" 
-                  name="addr-en" 
-                  value={addressEn} 
-                  onChange={(val) => { setAddressEn(val); markDirty(); }} 
-                  multiline 
+              <div className="grid gap-4">
+                <VietnamAddressPicker
+                  label="Địa chỉ trụ sở chính (Tỉnh/Thành phố → Phường/Xã)"
+                  value={{ provinceCode: contactProvinceCode, provinceName: contactProvinceName, wardCode: contactWardCode, wardName: contactWardName, street: contactStreet }}
+                  onChange={(v) => {
+                    setContactProvinceCode(v.provinceCode);
+                    setContactProvinceName(v.provinceName);
+                    setContactWardCode(v.wardCode);
+                    setContactWardName(v.wardName);
+                    setContactStreet(v.street);
+                    setAddressVi(v.fullAddress);
+                    // Vietnamese place names are not translated; keep EN address in sync.
+                    setAddressEn(v.fullAddress);
+                    markDirty();
+                  }}
                 />
               </div>
               <label className="grid gap-2">
@@ -792,8 +846,8 @@ export function SettingsOperationsPanel() {
           </section>
         )}
 
-        {/* --- TAB CONTENT: WORKFLOW & INTEGRATIONS --- */}
-        {activeTab === "integrations" && (
+        {/* --- TAB CONTENT: WORKFLOW & INTEGRATIONS (admin-only) --- */}
+        {isAdmin && activeTab === "integrations" && (
           <section className="surface-soft p-4 space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
@@ -827,16 +881,33 @@ export function SettingsOperationsPanel() {
                 />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <AdminField 
-                  label="Khóa API Google Gemini" 
-                  name="gemini-key" 
-                  value={geminiKey} 
-                  onChange={(val) => { setGeminiKey(val); markDirty(); }} 
-                  placeholder="AIzaSy..." 
-                  inputType="password"
-                />
-                <AdminField 
-                  label="Giới hạn SLA phản hồi (giờ)" 
+                <div className="grid content-start gap-2">
+                  <AdminField
+                    label="Khóa API Google Gemini"
+                    name="gemini-key"
+                    value={geminiKey}
+                    onChange={(val) => { setGeminiKey(val); markDirty(); setGeminiStatus(null); }}
+                    placeholder="AIzaSy..."
+                    inputType="password"
+                  />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleVerifyGemini}
+                      disabled={verifyingGemini}
+                      className="button-pd-outline py-1.5 px-3 text-xs disabled:opacity-60"
+                    >
+                      {verifyingGemini ? "Đang kiểm tra..." : "Kiểm tra khóa"}
+                    </button>
+                    {geminiStatus && (
+                      <span className={`text-xs font-semibold ${geminiStatus.ok ? "text-emerald-600" : "text-red-600"}`}>
+                        {geminiStatus.ok ? "✓ " : "✕ "}{geminiStatus.message}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <AdminField
+                  label="Giới hạn SLA phản hồi (giờ)"
                   name="sla-hours" 
                   value={slaHours} 
                   onChange={(val) => { setSlaHours(val); markDirty(); }} 

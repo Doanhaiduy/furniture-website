@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { ExcelImportExportModal } from "../admin-excel";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { useToast } from "@/components/providers/toast-provider";
 import Link from "next/link";
 import {
@@ -141,10 +142,58 @@ export function UsersPage({
   const [editActive, setEditActive] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Reset-password modal state
+  const MIN_PASSWORD_LENGTH = 8;
+  const [resetUser, setResetUser] = useState<AdminUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
   const startEdit = (user: AdminUser) => {
     setEditingUser(user);
     setEditRole(user.role);
     setEditActive(user.is_active);
+  };
+
+  const openResetPassword = (user: AdminUser) => {
+    setResetUser(user);
+    setNewPassword("");
+    setConfirmPassword("");
+    setResetError("");
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetUser) return;
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setResetError(`Mật khẩu phải có tối thiểu ${MIN_PASSWORD_LENGTH} ký tự.`);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+    setResetError("");
+    setIsResetting(true);
+    try {
+      const res = await fetch("/api/admin/users/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: resetUser.id, password: newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`Đã đặt lại mật khẩu cho ${resetUser.email}.`);
+        setResetUser(null);
+      } else {
+        setResetError(data.error || "Không thể đặt lại mật khẩu.");
+      }
+    } catch {
+      setResetError("Lỗi kết nối tới máy chủ.");
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const handleUpdateUser = async (e: React.FormEvent) => {
@@ -260,7 +309,8 @@ export function UsersPage({
 
       {/* Edit User Modal Overlay */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+        <ModalPortal>
+        <div className="fixed inset-0 z-[calc(var(--z-modal)+1)] flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
           <div className="w-full max-w-[480px] bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl animate-in zoom-in duration-200 text-slate-900">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -301,26 +351,112 @@ export function UsersPage({
                   <span className="text-slate-500 text-xs mt-0.5 block">Biên tập viên bị tắt không thể truy cập CMS.</span>
                 </span>
               </label>
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button 
-                  type="button" 
-                  onClick={() => setEditingUser(null)}
-                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer text-slate-700 bg-white"
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => { const u = editingUser; setEditingUser(null); if (u) openResetPassword(u); }}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer text-slate-700 bg-white"
                   disabled={isUpdating}
+                >
+                  <Lock className="size-3.5" />
+                  Đặt lại mật khẩu
+                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingUser(null)}
+                    className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer text-slate-700 bg-white"
+                    disabled={isUpdating}
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-primary/90 rounded-lg transition cursor-pointer"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        </ModalPortal>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetUser && (
+        <ModalPortal>
+        <div className="fixed inset-0 z-[calc(var(--z-modal)+1)] flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
+          <div className="w-full max-w-[440px] bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl animate-in zoom-in duration-200 text-slate-900">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Lock className="size-4 text-primary" />
+                  Đặt lại mật khẩu
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Đặt mật khẩu mới cho {resetUser.email}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetUser(null)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer transition-colors p-1"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="grid gap-2">
+                <span className="label-pd">Mật khẩu mới</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => { setNewPassword(e.target.value); setResetError(""); }}
+                  className="input-pd"
+                  placeholder={`Tối thiểu ${MIN_PASSWORD_LENGTH} ký tự`}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="grid gap-2">
+                <span className="label-pd">Xác nhận mật khẩu</span>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setResetError(""); }}
+                  className="input-pd"
+                  placeholder="Nhập lại mật khẩu mới"
+                  autoComplete="new-password"
+                />
+              </div>
+              {resetError && (
+                <p className="flex items-center gap-1.5 text-xs font-medium text-rose-600">
+                  <AlertTriangle className="size-3.5 shrink-0" />
+                  {resetError}
+                </p>
+              )}
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setResetUser(null)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer text-slate-700 bg-white"
+                  disabled={isResetting}
                 >
                   Hủy
                 </button>
-                <button 
-                  type="submit" 
-                  className="px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-primary/90 rounded-lg transition cursor-pointer"
-                  disabled={isUpdating}
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white hover:bg-primary/90 rounded-lg transition cursor-pointer disabled:opacity-60"
+                  disabled={isResetting}
                 >
-                  {isUpdating ? "Đang lưu..." : "Lưu thay đổi"}
+                  {isResetting ? "Đang lưu..." : "Đặt lại mật khẩu"}
                 </button>
               </div>
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

@@ -200,7 +200,10 @@ export default async function ProductsPage({
   delete filterQuery.brand;
 
   const filteredResults = filterProducts(filterQuery, categoryFilteredProducts);
-  const sort: ProductSort = query.sort === "featured" ? "featured" : "newest";
+  const validSorts: ProductSort[] = ["newest", "featured", "price-asc", "price-desc", "discount"];
+  const sort: ProductSort = validSorts.includes(query.sort as ProductSort)
+    ? (query.sort as ProductSort)
+    : "newest";
   const results = sortProducts(filteredResults, sort);
   const requestedPage = Number.parseInt(query.page ?? "1", 10);
   const page = paginateItems(results, Number.isFinite(requestedPage) ? requestedPage : 1, productPageSize);
@@ -208,29 +211,32 @@ export default async function ProductsPage({
   const optionLabel = (value: { vi: string; en: string }) => localized(value, locale);
   const allOption = { value: "all", label: t("all") };
   
-  // Build hierarchical category options: groups first, then children indented
+  // Build hierarchical category options: real grouped select (parent group header + its children).
+  // Groups (nhóm danh mục) are kept clearly separate from their subcategories (danh mục con).
   const rootCatOptions = dbCategories.filter((cat: any) => !cat.parentId && cat.parentId !== cat.id);
-  const buildCategoryOptions = () => {
-    if (dbCategories.length === 0) {
-      return productGroups.slice(0, 3).map((group) => ({
-        value: group.key,
-        label: localized(group.title, locale),
-      }));
-    }
-    const opts: Array<{ value: string; label: string }> = [];
-    // Add root group options
-    rootCatOptions.forEach((root: any) => {
-      // Add the group itself as a selectable option (shows all products in that group)
-      opts.push({ value: root.slug, label: `📁 ${root.name}` });
-      // Add children indented under the group
-      const children = dbCategories.filter((c: any) => c.parentId === root.id);
-      children.forEach((child: any) => {
-        opts.push({ value: child.slug, label: `  → ${child.name}` });
-      });
-    });
-    return opts;
-  };
-  const categoryOptions = [allOption, ...buildCategoryOptions()];
+  const categoryGroups = rootCatOptions.map((root: any) => ({
+    label: root.name,
+    options: [
+      { value: root.slug, label: locale === "vi" ? `Tất cả ${root.name}` : `All ${root.name}` },
+      ...dbCategories
+        .filter((c: any) => c.parentId === root.id)
+        .map((child: any) => ({ value: child.slug, label: child.name })),
+    ],
+  }));
+  const hasCategoryGroups = categoryGroups.length > 0;
+  // Flat fallback used only when there are no DB categories at all.
+  const categoryFallbackOptions = productGroups.slice(0, 3).map((group) => ({
+    value: group.key,
+    label: localized(group.title, locale),
+  }));
+  // Options rendered in the trigger's flat section: only "all" when grouped, else the fallback list.
+  const categoryOptions = hasCategoryGroups ? [allOption] : [allOption, ...categoryFallbackOptions];
+  // Full flat list (every option across groups) used to resolve active-filter chip labels.
+  const categoryOptionsFlat = [
+    allOption,
+    ...categoryGroups.flatMap((g) => g.options),
+    ...(hasCategoryGroups ? [] : categoryFallbackOptions),
+  ];
 
   const brandOptions = [
     { value: "all", label: locale === "vi" ? "Tất cả thương hiệu" : "All brands" },
@@ -255,10 +261,12 @@ export default async function ProductsPage({
   ];
   const sortOptions = [
     { value: "newest", label: t("newest") },
-    { value: "featured", label: t("featuredOnly") },
+    { value: "price-asc", label: t("sortPriceAsc") },
+    { value: "price-desc", label: t("sortPriceDesc") },
+    { value: "discount", label: t("sortDiscount") },
   ];
   const activeFilterSources: Array<[string, string | undefined, Array<{ value: string; label: string }>]> = [
-    ["category", query.category, categoryOptions],
+    ["category", query.category, categoryOptionsFlat],
     ["brand", query.brand, brandOptions],
     ["material", query.material, materialOptions],
     ["room", query.room, roomOptions],
@@ -300,6 +308,24 @@ export default async function ProductsPage({
   const activeCategory = typeof query.category === "string" && query.category !== "all" ? query.category : undefined;
   const secondaryGroups = productGroups.filter((group) => group.key !== activeCategory);
 
+  // The 3 category quick-filter cards above the filter panel — sourced from DB root categories
+  // (falls back to static product groups only when the catalog has no categories yet).
+  const topCategoryCards = hasCategoryGroups
+    ? rootCatOptions.slice(0, 3).map((root: any) => ({
+        key: root.slug,
+        href: `/products?category=${root.slug}`,
+        image: root.image,
+        title: root.name as string,
+        summary: (root.description as string) || "",
+      }))
+    : productGroups.slice(0, 3).map((group) => ({
+        key: group.key,
+        href: group.href,
+        image: group.image,
+        title: localized(group.title, locale),
+        summary: localized(group.summary, locale),
+      }));
+
   return (
     <main>
       <section className="container-pd public-page-header grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
@@ -318,17 +344,19 @@ export default async function ProductsPage({
 
       <section className="container-pd pb-20">
         <div className="mb-8 grid gap-4 md:grid-cols-3">
-          {productGroups.slice(0, 3).map((group) => (
+          {topCategoryCards.map((card) => (
             <Link
-              key={group.key}
-              href={withLocale(locale, group.href)}
+              key={card.key}
+              href={withLocale(locale, card.href)}
               scroll={false}
               className="interactive-card surface-card group grid grid-cols-[92px_1fr] gap-4 p-3"
             >
-              <RemoteImage src={group.image} alt={localized(group.title, locale)} className="public-media-thumb h-24 w-full object-cover" sizes="92px" />
+              <RemoteImage src={card.image} alt={card.title} className="public-media-thumb h-24 w-full object-cover" sizes="92px" />
               <span className="self-center">
-                <span className="type-card-title text-xl text-primary">{localized(group.title, locale)}</span>
-                <span className="mt-1 block text-sm leading-6 text-secondary">{localized(group.summary, locale)}</span>
+                <span className="type-card-title text-xl text-primary">{card.title}</span>
+                {card.summary ? (
+                  <span className="mt-1 block text-sm leading-6 text-secondary line-clamp-2">{card.summary}</span>
+                ) : null}
               </span>
             </Link>
           ))}
@@ -358,6 +386,7 @@ export default async function ProductsPage({
             brandAll: t("brandAll"),
           }}
           query={query}
+          categoryGroups={hasCategoryGroups ? categoryGroups : undefined}
           options={{
             category: categoryOptions,
             material: materialOptions,

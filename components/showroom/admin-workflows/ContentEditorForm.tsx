@@ -140,11 +140,12 @@ export function ContentEditorForm({
   const [price, setPrice] = useState(""); // stored as raw digits string
   const [priceMax, setPriceMax] = useState("");
   const [priceUnit, setPriceUnit] = useState("");
+  const [priceRangeEnabled, setPriceRangeEnabled] = useState(false);
   const [quoteOnly, setQuoteOnly] = useState(true);
   const [category, setCategory] = useState(isProduct ? "wood" : "wood-knowledge");
   const [brand, setBrand] = useState("none");
   const [refCode, setRefCode] = useState("PD-SF-184");
-  const [showroom, setShowroom] = useState("district-7");
+  const [showroom, setShowroom] = useState("");
   const [featured, setFeatured] = useState(true);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
 
@@ -275,6 +276,7 @@ export function ContentEditorForm({
               
               setPrice(p.price_min ? String(p.price_min) : "");
               setPriceMax(p.price_max ? String(p.price_max) : "");
+              setPriceRangeEnabled(Boolean(p.price_max));
               setPriceUnit(p.price_unit || "");
               setQuoteOnly(p.price_display_text_vi === "Liên hệ" || !p.price_min);
               
@@ -282,7 +284,7 @@ export function ContentEditorForm({
               setCategory(catSlug);
               setBrand(p.brand_id || "none");
               setRefCode(p.reference_code || "");
-              setShowroom(p.showroom_code || "district-7");
+              setShowroom(p.showroom_code || "");
               setFeatured(p.featured || false);
               setStatus(p.status || "draft");
               
@@ -626,7 +628,7 @@ export function ContentEditorForm({
             ? "Liên hệ" 
             : (() => {
                 const minVal = parseInt(price.replace(/[^0-9]/g, "") || "0");
-                const maxVal = priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
+                const maxVal = priceRangeEnabled && priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
                 const range = (maxVal > minVal) 
                   ? `${minVal.toLocaleString("vi-VN")} - ${maxVal.toLocaleString("vi-VN")}` 
                   : minVal.toLocaleString("vi-VN");
@@ -636,7 +638,7 @@ export function ContentEditorForm({
             ? "Contact" 
             : (() => {
                 const minVal = parseInt(price.replace(/[^0-9]/g, "") || "0");
-                const maxVal = priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
+                const maxVal = priceRangeEnabled && priceMax ? parseInt(priceMax.replace(/[^0-9]/g, "") || "0") : 0;
                 const range = (maxVal > minVal) 
                   ? `${minVal.toLocaleString("en-US")} - ${maxVal.toLocaleString("en-US")}` 
                   : minVal.toLocaleString("en-US");
@@ -646,11 +648,11 @@ export function ContentEditorForm({
           dimension_display_text_en: dimensionsEn || null,
           category_id: categoryId,
           price_min: price ? parseFloat(price.replace(/[^0-9]/g, "")) : null,
-          price_max: priceMax ? parseFloat(priceMax.replace(/[^0-9]/g, "")) : null,
+          price_max: priceRangeEnabled && priceMax ? parseFloat(priceMax.replace(/[^0-9]/g, "")) : null,
           currency: "VND",
           brand_id: brandId,
           brand_series: null,
-          showroom_code: showroom,
+          showroom_code: showroom || null,
           price_unit: priceUnit || null,
           featured: featured,
           status: statusToSave,
@@ -871,6 +873,8 @@ export function ContentEditorForm({
             setPrice={setPrice}
             priceMax={priceMax}
             setPriceMax={setPriceMax}
+            priceRangeEnabled={priceRangeEnabled}
+            setPriceRangeEnabled={setPriceRangeEnabled}
             priceUnit={priceUnit}
             setPriceUnit={setPriceUnit}
             quoteOnly={quoteOnly}
@@ -1393,11 +1397,26 @@ function BilingualAuthoringFields({
   );
 }
 
+// Common material suggestions for quick tagging in the product form.
+const MATERIAL_SUGGESTIONS = [
+  "Gỗ sồi", "Gỗ óc chó", "Gỗ tần bì", "Gỗ cao su", "MDF phủ Melamine",
+  "Inox 304", "Kính cường lực", "Đá tự nhiên", "Đá nhân tạo", "Da bò thật", "Vải nỉ", "Kim loại sơn tĩnh điện",
+];
+
+// Append a token to a comma-separated field value if it isn't already present.
+function appendToken(current: string, token: string): string {
+  const parts = current.split(",").map((s) => s.trim()).filter(Boolean);
+  if (parts.some((p) => p.toLowerCase() === token.toLowerCase())) return current;
+  return [...parts, token].join(", ");
+}
+
 function ProductBusinessFields({
   price,
   setPrice,
   priceMax,
   setPriceMax,
+  priceRangeEnabled,
+  setPriceRangeEnabled,
   priceUnit,
   setPriceUnit,
   quoteOnly,
@@ -1442,6 +1461,8 @@ function ProductBusinessFields({
   setPrice: (val: string) => void;
   priceMax: string;
   setPriceMax: (val: string) => void;
+  priceRangeEnabled: boolean;
+  setPriceRangeEnabled: (val: boolean) => void;
   priceUnit: string;
   setPriceUnit: (val: string) => void;
   quoteOnly: boolean;
@@ -1485,6 +1506,16 @@ function ProductBusinessFields({
   const [categoriesList, setCategoriesList] = useState<{ value: string; label: string }[]>([]);
   const [brandsList, setBrandsList] = useState<{ value: string; label: string }[]>([]);
   const [showroomsList, setShowroomsList] = useState<{ value: string; label: string }[]>([]);
+  // Local state for the structured dimension composer (L × W × H, cm).
+  const [dimL, setDimL] = useState("");
+  const [dimW, setDimW] = useState("");
+  const [dimH, setDimH] = useState("");
+  const applyDimensions = () => {
+    if (!dimL && !dimW && !dimH) return;
+    const composed = `${dimL || "?"} × ${dimW || "?"} × ${dimH || "?"} cm`;
+    setDimensionsVi(composed);
+    if (englishEnabled) setDimensionsEn(composed);
+  };
 
   useEffect(() => {
     let active = true;
@@ -1532,12 +1563,22 @@ function ProductBusinessFields({
     ...brandsList.map(b => ({ value: b.value, label: b.label }))
   ];
 
-  const showroomOptions = showroomsList.some(s => s.value === showroom)
-    ? showroomsList
-    : [
-        { value: showroom, label: showroom === "district-7" ? "Showroom Quận 7" : showroom === "hanoi" ? "Showroom đối tác Hà Nội" : showroom === "project-only" ? "Chỉ tư vấn dự án" : showroom },
-        ...showroomsList
-      ];
+  // Showrooms come from the database; no hardcoded default. Empty means "not assigned".
+  const showroomOptions = [
+    { value: "", label: "— Không gán showroom —" },
+    ...(showroom && !showroomsList.some((s) => s.value === showroom)
+      ? [{ value: showroom, label: showroom }]
+      : []),
+    ...showroomsList,
+  ];
+
+  // Fixed price-unit suffix options (stored without the leading slash).
+  const PRICE_UNITS = ["cái", "bộ", "m²", "m", "chiếc", "bàn", "ghế", "tủ", "giường", "kệ", "set"];
+  const priceUnitOptions = [
+    { value: "", label: "— Không có —" },
+    ...(priceUnit && !PRICE_UNITS.includes(priceUnit) ? [{ value: priceUnit, label: "/" + priceUnit }] : []),
+    ...PRICE_UNITS.map((u) => ({ value: u, label: "/" + u })),
+  ];
 
   return (
     <>
@@ -1656,63 +1697,70 @@ function ProductBusinessFields({
         </div>
 
         {!quoteOnly && (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div className="grid gap-1.5">
-              <label htmlFor="product-price" className="label-pd">Giá tối thiểu (VNĐ) *</label>
-              <input
-                id="product-price"
-                type="text"
-                inputMode="numeric"
-                className="input-pd bg-white"
-                placeholder="Nhập giá tối thiểu (ví dụ: 18000000)"
-                value={price ? formatVnNumber(price) : ""}
-                onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9]/g, "");
-                  setPrice(raw);
-                }}
-              />
-              {price && (
-                <p className="text-xs font-semibold text-emerald-700 mt-0.5">
-                  💬 {readVnNumber(price)}
-                </p>
-              )}
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-1.5">
+                <label htmlFor="product-price" className="label-pd">
+                  {priceRangeEnabled ? "Giá tối thiểu (VNĐ) *" : "Giá (VNĐ) *"}
+                </label>
+                <input
+                  id="product-price"
+                  type="text"
+                  inputMode="numeric"
+                  className="input-pd bg-white"
+                  placeholder="Nhập giá (ví dụ: 18000000)"
+                  value={price ? formatVnNumber(price) : ""}
+                  onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+                />
+                {price && (
+                  <p className="text-xs font-semibold text-emerald-700 mt-0.5">💬 {readVnNumber(price)}</p>
+                )}
+              </div>
+
+              <div className="grid gap-1.5">
+                <label htmlFor="product-price-unit" className="label-pd">Đơn vị tính (Hậu tố giá)</label>
+                <PremiumSelect
+                  tone="admin"
+                  value={priceUnit}
+                  options={priceUnitOptions}
+                  placeholder="Chọn đơn vị"
+                  ariaLabel="Đơn vị tính"
+                  onValueChange={setPriceUnit}
+                />
+              </div>
             </div>
 
-            <div className="grid gap-1.5">
-              <label htmlFor="product-price-max" className="label-pd">Giá tối đa (VNĐ) - Không bắt buộc</label>
+            {/* Toggle to enable an explicit price range */}
+            <label className="flex w-fit cursor-pointer items-center gap-3 text-sm">
               <input
-                id="product-price-max"
-                type="text"
-                inputMode="numeric"
-                className="input-pd bg-white"
-                placeholder="Nhập giá tối đa (ví dụ: 24000000)"
-                value={priceMax ? formatVnNumber(priceMax) : ""}
+                type="checkbox"
+                className="cursor-pointer"
+                checked={priceRangeEnabled}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/[^0-9]/g, "");
-                  setPriceMax(raw);
+                  setPriceRangeEnabled(e.target.checked);
+                  if (!e.target.checked) setPriceMax("");
                 }}
               />
-              {priceMax && (
-                <p className="text-xs font-semibold text-emerald-700 mt-0.5">
-                  💬 {readVnNumber(priceMax)}
-                </p>
-              )}
-            </div>
+              <span className="font-medium text-slate-700">Kích hoạt khoảng giá (tối thiểu → tối đa)</span>
+            </label>
 
-            <div className="grid gap-1.5">
-              <label htmlFor="product-price-unit" className="label-pd">Đơn vị tính (Hậu tố giá) - Không bắt buộc</label>
-              <input
-                id="product-price-unit"
-                type="text"
-                className="input-pd bg-white"
-                placeholder="ví dụ: m², vỉ, bộ, cái, mét"
-                value={priceUnit}
-                onChange={(e) => setPriceUnit(e.target.value)}
-              />
-              <p className="text-xs text-slate-400 mt-0.5">
-                Ví dụ: vỉ, m², bộ, cái, mét...
-              </p>
-            </div>
+            {priceRangeEnabled && (
+              <div className="grid gap-1.5 md:max-w-[calc(50%-0.5rem)]">
+                <label htmlFor="product-price-max" className="label-pd">Giá tối đa (VNĐ)</label>
+                <input
+                  id="product-price-max"
+                  type="text"
+                  inputMode="numeric"
+                  className="input-pd bg-white"
+                  placeholder="Nhập giá tối đa (ví dụ: 24000000)"
+                  value={priceMax ? formatVnNumber(priceMax) : ""}
+                  onChange={(e) => setPriceMax(e.target.value.replace(/[^0-9]/g, ""))}
+                />
+                {priceMax && (
+                  <p className="text-xs font-semibold text-emerald-700 mt-0.5">💬 {readVnNumber(priceMax)}</p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1721,8 +1769,51 @@ function ProductBusinessFields({
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <div className="bg-slate-50/50 p-4 rounded-xl border space-y-4">
             <p className="text-xs font-bold text-slate-700">Tiếng Việt: Chất liệu và kích thước</p>
-            <AdminField label="Chất liệu / hoàn thiện (Tiếng Việt) *" name="materials-vi" value={materialsVi} onChange={setMaterialsVi} />
-            <AdminField label="Kích thước (Tiếng Việt) *" name="dimensions-vi" value={dimensionsVi} onChange={setDimensionsVi} />
+            <div className="space-y-2">
+              <AdminField label="Chất liệu / hoàn thiện (Tiếng Việt) *" name="materials-vi" value={materialsVi} onChange={setMaterialsVi} />
+              <div className="flex flex-wrap gap-1.5">
+                {MATERIAL_SUGGESTIONS.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMaterialsVi(appendToken(materialsVi, m))}
+                    className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 transition hover:border-primary/40 hover:text-primary"
+                  >
+                    + {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <AdminField label="Kích thước (Tiếng Việt) *" name="dimensions-vi" value={dimensionsVi} onChange={setDimensionsVi} />
+              <div className="flex items-stretch gap-2">
+                <div className="grid flex-1 grid-cols-3 gap-2">
+                  {([
+                    { ph: "Dài", v: dimL, set: setDimL },
+                    { ph: "Rộng", v: dimW, set: setDimW },
+                    { ph: "Cao", v: dimH, set: setDimH },
+                  ] as const).map((d) => (
+                    <input
+                      key={d.ph}
+                      type="number"
+                      inputMode="numeric"
+                      placeholder={d.ph}
+                      className="input-pd bg-white text-sm"
+                      value={d.v}
+                      onChange={(e) => d.set(e.target.value)}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={applyDimensions}
+                  className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-primary/40 hover:text-primary"
+                >
+                  Áp dụng D×R×C
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-400">Nhập số (cm) rồi bấm “Áp dụng”, hoặc gõ trực tiếp ở ô trên.</p>
+            </div>
           </div>
           <div className={`p-4 rounded-xl border space-y-4 ${
             englishEnabled ? "bg-indigo-50/10 border-indigo-100" : "bg-slate-100/50 border-slate-200 opacity-60"

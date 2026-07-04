@@ -1,37 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, ChevronDown, Search } from "lucide-react";
 
-// Vietnam province data - using provinces.open-api.vn API
-type Province = {
-  code: number;
-  name: string;
-  division_type: string;
-};
+// Vietnam 2-tier administrative model (Tỉnh/Thành phố -> Phường/Xã) per the
+// 1/7/2025 reform that abolished districts. Data from provinces.open-api.vn v2.
+const API_BASE = "https://provinces.open-api.vn/api/v2";
 
-type District = {
-  code: number;
-  name: string;
-  division_type: string;
-  province_code: number;
-};
+type Province = { code: number; name: string; division_type?: string };
+type Ward = { code: number; name: string; division_type?: string; province_code?: number };
 
-type Ward = {
-  code: number;
-  name: string;
-  division_type: string;
-  district_code: number;
+export type VietnamAddressValue = {
+  provinceCode: string;
+  provinceName: string;
+  wardCode: string;
+  wardName: string;
+  street: string;
+  /** Composed, human-readable "street, ward, province" string for display/storage. */
+  fullAddress: string;
 };
 
 type VietnamAddressPickerProps = {
-  streetValue: string;
-  onStreetChange: (val: string) => void;
-  onAddressChange: (fullAddress: string) => void;
+  value?: Partial<VietnamAddressValue>;
+  onChange: (value: VietnamAddressValue) => void;
   label?: string;
-  placeholder?: string;
+  streetPlaceholder?: string;
   disabled?: boolean;
 };
+
+function composeAddress(street: string, wardName: string, provinceName: string): string {
+  return [street.trim(), wardName, provinceName].filter(Boolean).join(", ");
+}
 
 const Dropdown = ({
   value,
@@ -54,7 +53,7 @@ const Dropdown = ({
   onOpen: () => void;
   onClose: () => void;
   items: { code: number; name: string }[];
-  onSelect: (item: any) => void;
+  onSelect: (item: { code: number; name: string }) => void;
   loading?: boolean;
   disabled?: boolean;
 }) => (
@@ -119,118 +118,132 @@ const Dropdown = ({
 );
 
 export function VietnamAddressPicker({
-  streetValue,
-  onStreetChange,
-  onAddressChange,
-  label = "Địa chỉ chi tiết (nhập số nhà, tên đường)",
-  placeholder = "Số 123, đường Nguyễn Văn Cừ",
+  value,
+  onChange,
+  label = "Địa chỉ chi tiết (số nhà, tên đường)",
+  streetPlaceholder = "Số 123, đường Nguyễn Văn Cừ",
   disabled = false,
 }: VietnamAddressPickerProps) {
   const [provinces, setProvinces] = useState<Province[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
 
-  const [selectedProvince, setSelectedProvince] = useState<Province | null>(null);
-  const [selectedDistrict, setSelectedDistrict] = useState<District | null>(null);
-  const [selectedWard, setSelectedWard] = useState<Ward | null>(null);
+  const [selectedProvince, setSelectedProvince] = useState<{ code: string; name: string } | null>(
+    value?.provinceCode ? { code: value.provinceCode, name: value.provinceName || "" } : null
+  );
+  const [selectedWard, setSelectedWard] = useState<{ code: string; name: string } | null>(
+    value?.wardCode ? { code: value.wardCode, name: value.wardName || "" } : null
+  );
+  const [street, setStreet] = useState(value?.street ?? "");
 
   const [provinceSearch, setProvinceSearch] = useState("");
-  const [districtSearch, setDistrictSearch] = useState("");
   const [wardSearch, setWardSearch] = useState("");
-
   const [provinceOpen, setProvinceOpen] = useState(false);
-  const [districtOpen, setDistrictOpen] = useState(false);
   const [wardOpen, setWardOpen] = useState(false);
-
   const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
+
+  // Prefill once when an async-loaded value arrives (edit mode). Does NOT emit onChange,
+  // so it never fights the parent's already-loaded composed address.
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (prefilledRef.current) return;
+    if (value?.provinceCode || value?.street) {
+      if (value.provinceCode) {
+        setSelectedProvince({ code: value.provinceCode, name: value.provinceName || "" });
+      }
+      if (value.wardCode) {
+        setSelectedWard({ code: value.wardCode, name: value.wardName || "" });
+      }
+      if (value.street !== undefined) setStreet(value.street);
+      prefilledRef.current = true;
+    }
+  }, [value?.provinceCode, value?.wardCode, value?.provinceName, value?.wardName, value?.street]);
 
   // Load provinces on mount
   useEffect(() => {
+    let cancelled = false;
     async function fetchProvinces() {
       setLoadingProvinces(true);
       try {
-        const res = await fetch("https://provinces.open-api.vn/api/p/");
+        const res = await fetch(`${API_BASE}/p/`);
         const data = await res.json();
-        setProvinces(data);
+        if (!cancelled) setProvinces(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch provinces:", error);
       } finally {
-        setLoadingProvinces(false);
+        if (!cancelled) setLoadingProvinces(false);
       }
     }
     fetchProvinces();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Load districts when selectedProvince changes
+  // Load wards (direct children of province — no district level) when province changes
+  const provinceCode = selectedProvince?.code;
   useEffect(() => {
-    if (!selectedProvince) {
-      setDistricts([]);
-      setSelectedDistrict(null);
-      return;
-    }
-
-    const provinceCode = selectedProvince.code;
-
-    async function fetchDistricts() {
-      setLoadingDistricts(true);
-      try {
-        const res = await fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`);
-        const data = await res.json();
-        setDistricts(data.districts || []);
-      } catch (error) {
-        console.error("Failed to fetch districts:", error);
-      } finally {
-        setLoadingDistricts(false);
-      }
-    }
-    fetchDistricts();
-    setSelectedDistrict(null);
-  }, [selectedProvince]);
-
-  // Load wards when selectedDistrict changes
-  useEffect(() => {
-    if (!selectedDistrict) {
+    if (!provinceCode) {
       setWards([]);
-      setSelectedWard(null);
       return;
     }
-
-    const districtCode = selectedDistrict.code;
-
+    let cancelled = false;
     async function fetchWards() {
       setLoadingWards(true);
       try {
-        const res = await fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`);
+        const res = await fetch(`${API_BASE}/p/${provinceCode}?depth=2`);
         const data = await res.json();
-        setWards(data.wards || []);
+        if (!cancelled) setWards(Array.isArray(data?.wards) ? data.wards : []);
       } catch (error) {
         console.error("Failed to fetch wards:", error);
       } finally {
-        setLoadingWards(false);
+        if (!cancelled) setLoadingWards(false);
       }
     }
     fetchWards();
-    setSelectedWard(null);
-  }, [selectedDistrict]);
+    return () => {
+      cancelled = true;
+    };
+  }, [provinceCode]);
 
-  // Emit full address change
-  useEffect(() => {
-    const parts = [
-      streetValue.trim(),
-      selectedWard?.name,
-      selectedDistrict?.name,
-      selectedProvince?.name,
-    ].filter(Boolean);
-    onAddressChange(parts.join(", "));
-  }, [streetValue, selectedProvince, selectedDistrict, selectedWard, onAddressChange]);
+  function emit(next: {
+    province: { code: string; name: string } | null;
+    ward: { code: string; name: string } | null;
+    street: string;
+  }) {
+    const provinceName = next.province?.name ?? "";
+    const wardName = next.ward?.name ?? "";
+    onChange({
+      provinceCode: next.province?.code ?? "",
+      provinceName,
+      wardCode: next.ward?.code ?? "",
+      wardName,
+      street: next.street,
+      fullAddress: composeAddress(next.street, wardName, provinceName),
+    });
+  }
+
+  function handleSelectProvince(p: { code: number; name: string }) {
+    const province = { code: String(p.code), name: p.name };
+    setSelectedProvince(province);
+    setSelectedWard(null);
+    setWards([]);
+    emit({ province, ward: null, street });
+  }
+
+  function handleSelectWard(w: { code: number; name: string }) {
+    const ward = { code: String(w.code), name: w.name };
+    setSelectedWard(ward);
+    emit({ province: selectedProvince, ward, street });
+  }
+
+  function handleStreetChange(next: string) {
+    setStreet(next);
+    emit({ province: selectedProvince, ward: selectedWard, street: next });
+  }
 
   const filteredProvinces = provinces.filter((p) =>
     p.name.toLowerCase().includes(provinceSearch.toLowerCase())
-  );
-  const filteredDistricts = districts.filter((d) =>
-    d.name.toLowerCase().includes(districtSearch.toLowerCase())
   );
   const filteredWards = wards.filter((w) =>
     w.name.toLowerCase().includes(wardSearch.toLowerCase())
@@ -247,39 +260,26 @@ export function VietnamAddressPicker({
       <input
         className={`input-pd w-full ${disabled ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed" : "bg-white"}`}
         type="text"
-        placeholder={placeholder}
-        value={streetValue}
+        placeholder={streetPlaceholder}
+        value={street}
         disabled={disabled}
-        onChange={(e) => onStreetChange(e.target.value)}
+        onChange={(e) => handleStreetChange(e.target.value)}
       />
 
-      {/* Province / District / Ward row */}
-      <div className="grid gap-2 sm:grid-cols-3">
+      {/* Province / Ward row (2-tier) */}
+      <div className="grid gap-2 sm:grid-cols-2">
         <Dropdown
           value={selectedProvince?.name || null}
           placeholder="Tỉnh / Thành phố"
           search={provinceSearch}
           onSearchChange={setProvinceSearch}
           open={provinceOpen}
-          onOpen={() => { setProvinceOpen(true); setDistrictOpen(false); setWardOpen(false); }}
+          onOpen={() => { setProvinceOpen(true); setWardOpen(false); }}
           onClose={() => setProvinceOpen(false)}
           items={filteredProvinces}
-          onSelect={(p: Province) => setSelectedProvince(p)}
+          onSelect={handleSelectProvince}
           loading={loadingProvinces}
           disabled={disabled}
-        />
-        <Dropdown
-          value={selectedDistrict?.name || null}
-          placeholder="Quận / Huyện"
-          search={districtSearch}
-          onSearchChange={setDistrictSearch}
-          open={districtOpen}
-          onOpen={() => { setDistrictOpen(true); setProvinceOpen(false); setWardOpen(false); }}
-          onClose={() => setDistrictOpen(false)}
-          items={filteredDistricts}
-          onSelect={(d: District) => setSelectedDistrict(d)}
-          loading={loadingDistricts}
-          disabled={disabled || !selectedProvince}
         />
         <Dropdown
           value={selectedWard?.name || null}
@@ -287,23 +287,21 @@ export function VietnamAddressPicker({
           search={wardSearch}
           onSearchChange={setWardSearch}
           open={wardOpen}
-          onOpen={() => { setWardOpen(true); setProvinceOpen(false); setDistrictOpen(false); }}
+          onOpen={() => { setWardOpen(true); setProvinceOpen(false); }}
           onClose={() => setWardOpen(false)}
           items={filteredWards}
-          onSelect={(w: Ward) => setSelectedWard(w)}
+          onSelect={handleSelectWard}
           loading={loadingWards}
-          disabled={disabled || !selectedDistrict}
+          disabled={disabled || !selectedProvince}
         />
       </div>
 
       {/* Full address preview */}
-      {(streetValue || selectedProvince) && (
+      {(street || selectedProvince) && (
         <div className="flex items-start gap-2 bg-indigo-50/60 border border-indigo-100 rounded-lg px-3 py-2 mt-0.5">
           <MapPin className="size-3.5 text-indigo-400 shrink-0 mt-0.5" />
           <span className="text-[11px] text-indigo-700 leading-relaxed">
-            {[streetValue, selectedWard?.name, selectedDistrict?.name, selectedProvince?.name]
-              .filter(Boolean)
-              .join(", ")}
+            {composeAddress(street, selectedWard?.name || "", selectedProvince?.name || "")}
           </span>
         </div>
       )}

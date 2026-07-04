@@ -155,7 +155,7 @@ export function AdminDashboard({
     <div className="space-y-5">
       <AdminPageHeader
         title="Tổng quan vận hành"
-        description="Theo dõi mức độ sẵn sàng nội dung song ngữ, yêu cầu báo giá, quản trị tệp, bản nháp AI và cấu hình hệ thống trước khi kết nối Payload."
+        description="Theo dõi mức độ sẵn sàng nội dung song ngữ, yêu cầu báo giá, quản trị tệp, bản nháp AI và cấu hình hệ thống."
         actionHref="/admin/products?create=1"
         actionLabel="Thêm sản phẩm"
       />
@@ -204,7 +204,7 @@ function DashboardInsight() {
             Nhu cầu báo giá tuần này tập trung ở các sản phẩm nổi bật
           </h2>
           <p className="mt-2 max-w-2xl text-[13px] leading-6 text-secondary">
-            Dùng khu vực này để rà soát mức độ sẵn sàng xuất bản, thiếu sót bản dịch và chất lượng SEO trước khi kết nối phân tích Payload.
+            Dùng khu vực này để rà soát mức độ sẵn sàng xuất bản, thiếu sót bản dịch và chất lượng SEO trước khi xuất bản nội dung.
           </p>
         </div>
         <div className="flex gap-2">

@@ -102,7 +102,7 @@ export function AdminSectionPage({
 }) {
   if (section === "quotes") return <QuotesPage quotes={quotes ?? []} role={role} total={quoteTotal} />;
   if (section === "media") return <MediaPage uploadMode={uploadMode} />;
-  if (section === "settings") return <SettingsPage />;
+  if (section === "settings") return <SettingsPage role={role} />;
   if (section === "users") return <UsersPage createMode={createMode} profiles={profiles ?? []} total={profileTotal} />;
   if (section === "brands") return <BrandsPage createMode={createMode} brands={brands ?? []} total={brandTotal} />;
   if (section === "blog") return <BlogPage createMode={createMode} posts={blogPosts ?? []} total={blogTotal} />;

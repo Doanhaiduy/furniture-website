@@ -125,14 +125,14 @@ import {
   getRelativeTimeString
 } from "./SharedComponents";
 
-export function SettingsPage() {
+export function SettingsPage({ role }: { role?: string } = {}) {
   return (
     <div className="space-y-6">
       <AdminPageHeader
         title="Cài đặt doanh nghiệp"
         description="Cấu hình vận hành cho nhận diện thương hiệu, liên hệ, liên kết mạng xã hội, mặc định SEO, tích hợp và trạng thái bảo mật bí mật."
       />
-      <SettingsOperationsPanel />
+      <SettingsOperationsPanel role={role} />
     </div>
   );
 }

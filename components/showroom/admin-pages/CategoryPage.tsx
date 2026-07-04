@@ -326,7 +326,18 @@ export function CategoryPage({ createMode, categories = [], total = 0 }: { creat
                 ) : isGrp && (
                   <span className="w-8" />
                 )}
-                <div 
+                {category.image_url ? (
+                  <img
+                    src={category.image_url}
+                    alt=""
+                    className="mr-2.5 size-8 shrink-0 rounded-md border border-slate-200 object-cover"
+                  />
+                ) : (
+                  <span className="mr-2.5 grid size-8 shrink-0 place-items-center rounded-md border border-slate-200 bg-slate-100 text-slate-300">
+                    <Tag className="size-4" />
+                  </span>
+                )}
+                <div
                   className={cn("min-w-0", isGrp && isDefaultSort && !hasSearch && hasSubCategories && "cursor-pointer select-none")}
                   onClick={() => isGrp && isDefaultSort && !hasSearch && hasSubCategories && toggleGroup(category.id)}
                 >

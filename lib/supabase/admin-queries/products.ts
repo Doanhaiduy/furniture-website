@@ -293,17 +293,27 @@ export async function getProductsByIds(ids: string[]): Promise<any[]> {
       .select(`
         id,
         reference_code,
-        product_translations!inner (name, locale)
+        product_translations!inner (name, locale),
+        product_media (is_primary, sort_order, media:media_assets (public_url))
       `)
       .eq("product_translations.locale", "vi")
       .in("id", ids);
-    
+
     if (error) return [];
-    return data.map(p => ({
-      id: p.id,
-      reference_code: p.reference_code,
-      name: p.product_translations[0]?.name || ""
-    }));
+    return data.map((p: any) => {
+      const mediaList = Array.isArray(p.product_media)
+        ? p.product_media
+            .map((m: any) => ({ url: m.media?.public_url || "", is_primary: m.is_primary }))
+            .filter((m: any) => m.url)
+        : [];
+      const primary = mediaList.find((m: any) => m.is_primary) || mediaList[0] || null;
+      return {
+        id: p.id,
+        reference_code: p.reference_code,
+        name: p.product_translations[0]?.name || "",
+        primary_media: primary ? { url: primary.url } : null,
+      };
+    });
   } catch (e) {
     console.error("Failed to get products by ids:", e);
     return [];

@@ -187,7 +187,9 @@ export default async function BlogDetailPage({
                 <SocialShare
                   label={common("share")}
                   copyLabel={common("copyLink")}
+                  copiedLabel={common("copied")}
                   url={`/${locale}/blog/${post.slug}`}
+                  title={localized(post.title, locale)}
                 />
               </div>
             </div>

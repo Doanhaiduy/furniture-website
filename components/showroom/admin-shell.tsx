@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { createBrowserClient } from "@/lib/supabase/client";
 
@@ -53,18 +53,27 @@ export const adminNav = [
   { key: "settings", label: "Cài đặt", href: "/admin/settings", icon: Settings },
 ] as const;
 
+/** Map a pathname to the active admin nav key (used when rendered from the persistent layout). */
+function deriveActiveKey(pathname: string): string {
+  const match = adminNav.find((item) => item.href !== "/admin" && pathname.startsWith(item.href));
+  return match?.key ?? "dashboard";
+}
+
 export function AdminShell({
   active,
   children,
   role,
 }: {
-  active: string;
+  /** Optional — when omitted (persistent layout), derived from the current pathname. */
+  active?: string;
   children: ReactNode;
   role?: "admin" | "editor";
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createBrowserClient();
-  const activeItem = adminNav.find((item) => item.key === active) ?? adminNav[0];
+  const resolvedActive = active ?? deriveActiveKey(pathname);
+  const activeItem = adminNav.find((item) => item.key === resolvedActive) ?? adminNav[0];
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -102,7 +111,7 @@ export function AdminShell({
       <div className="admin-app min-h-screen text-[var(--admin-text)]">
         <div className="flex min-h-screen w-full items-stretch bg-transparent">
           <AdminSidebar
-            active={active}
+            active={resolvedActive}
             role={role}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
@@ -112,7 +121,7 @@ export function AdminShell({
           <div className="min-w-0 flex-1">
             <div className="sticky top-0 z-40">
               <AdminHeader
-                active={active}
+                active={resolvedActive}
                 role={role}
                 headerCollapsed={headerCollapsed}
                 setHeaderCollapsed={setHeaderCollapsed}
@@ -122,7 +131,7 @@ export function AdminShell({
               <nav className="flex gap-2 overflow-x-auto border-b border-[var(--admin-border)] bg-white/92 px-4 py-2.5 backdrop-blur-xl lg:hidden" aria-label="Điều hướng quản trị di động">
                 {visibleNav.map((item) => {
                   const Icon = item.icon;
-                  const selected = active === item.key;
+                  const selected = resolvedActive === item.key;
                   return (
                     <Link
                       key={item.key}

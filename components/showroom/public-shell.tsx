@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import {
   Globe2,
   Mail,
+  MapPin,
   MessageCircle,
   Phone,
   X,
@@ -94,7 +95,8 @@ export function PublicShell({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
+  // Expanded by default so contact options are visible without a tap; still collapsible.
+  const [fabOpen, setFabOpen] = useState(true);
 
   useEffect(() => {
     const hideDevBadge = () => {
@@ -379,6 +381,20 @@ export function PublicShell({
                 <MessengerIcon className="size-5" />
               </div>
             </a>
+
+            <Link
+              href={`/${locale}/showrooms`}
+              className="group flex items-center gap-3 mr-[2px] md:mr-[6px]"
+              onClick={() => setFabOpen(false)}
+              aria-label={locale === "vi" ? "Vị trí showroom" : "Showroom location"}
+            >
+              <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                {locale === "vi" ? "Vị trí" : "Location"}
+              </span>
+              <div className="flex size-11 items-center justify-center rounded-full bg-rose-600 text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <MapPin className="size-5" />
+              </div>
+            </Link>
 
             <Link
               href={`/${locale}/contact`}

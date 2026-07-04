@@ -440,32 +440,42 @@ export default async function HomePage({
       )}
 
       {aboutVisible && (
-        <section className="container-pd grid gap-10 py-24 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div className="surface-inverse relative min-h-[520px] overflow-hidden text-white">
-            <RemoteImage src={bodyJson.aboutImage || imageAssets.texture} alt="" className="absolute inset-0 h-full w-full object-cover opacity-55" />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/72 to-primary/20" />
+        <section className="container-pd grid gap-10 py-24 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+          {/* Company image with a floating trust badge */}
+          <div className="surface-inverse relative min-h-[420px] overflow-hidden text-white lg:min-h-[520px]">
+            <RemoteImage
+              src={bodyJson.aboutImage || imageAssets.factory}
+              alt={locale === "vi" ? "Xưởng sản xuất và showroom Phương Đông" : "Phuong Dong workshop and showroom"}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/35 to-transparent" />
+            <div className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-full bg-white/92 px-4 py-2 text-xs font-bold uppercase tracking-wider text-primary shadow-lg backdrop-blur">
+              <BadgeCheck className="size-4" />
+              {locale === "vi" ? "Xưởng sản xuất trực tiếp" : "In-house manufacturing"}
+            </div>
             <div className="absolute bottom-0 p-8 md:p-10">
-              <p className="label-pd text-white/65">
-                {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
-              </p>
-              <h2 className="type-section-title mt-4 max-w-lg text-white">
-                {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
-              </h2>
-              <p className="mt-5 max-w-md text-sm leading-7 text-white/76">
-                {locale === "vi" ? (bodyJson.aboutLeadVi || home("storyLead")) : (bodyJson.aboutLeadEn || home("storyLead"))}
+              <p className="type-card-title max-w-sm text-2xl font-semibold text-white">
+                {locale === "vi" ? "Chế tác thủ công, kiểm soát chất lượng tận xưởng" : "Handcrafted with full in-house quality control"}
               </p>
             </div>
           </div>
+          {/* Story + key stats */}
           <div>
-            <p className="label-pd">
-              {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
-            </p>
+            <p className="label-pd">{locale === "vi" ? "Về Phương Đông" : "About Phuong Dong"}</p>
             <h2 className="type-section-title mt-4 text-primary">
               {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
             </h2>
             <p className="mt-5 text-lg leading-8 text-secondary">
               {locale === "vi" ? (bodyJson.aboutLeadVi || home("storyLead")) : (bodyJson.aboutLeadEn || home("storyLead"))}
             </p>
+            <dl className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
+              {trustBadges.map((badge) => (
+                <div key={badge.value} className="surface-card rounded-[var(--radius-control)] p-4 text-center">
+                  <dt className="font-heading text-2xl font-extrabold text-primary md:text-3xl">{badge.value}</dt>
+                  <dd className="mt-1 text-xs font-medium leading-4 text-secondary">{localized(badge.label, locale)}</dd>
+                </div>
+              ))}
+            </dl>
             <Link href={withLocale(locale, "/about")} className="button-pd-outline mt-8">
               {common("readMore")}
               <ArrowRight className="size-5" />

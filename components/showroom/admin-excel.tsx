@@ -9,7 +9,7 @@ import { StepUpload } from "./admin-excel/StepUpload";
 import { StepPreview } from "./admin-excel/StepPreview";
 import { StepResult } from "./admin-excel/StepResult";
 
-type EntityType = "showroom" | "category" | "product";
+type EntityType = "showroom" | "category" | "product" | "brand";
 
 interface ExcelImportExportModalProps {
   isOpen: boolean;
@@ -65,8 +65,8 @@ export function ExcelImportExportModal({
 
   if (!isOpen || !mounted) return null;
 
-  const modulePath = type === "product" ? "products" : type === "category" ? "categories" : "showrooms";
-  const entityName = type === "product" ? "sản phẩm" : type === "category" ? "danh mục" : "showroom";
+  const modulePath = type === "product" ? "products" : type === "category" ? "categories" : type === "brand" ? "brands" : "showrooms";
+  const entityName = type === "product" ? "sản phẩm" : type === "category" ? "danh mục" : type === "brand" ? "thương hiệu" : "showroom";
 
   // DOWNLOAD TEMPLATE & EXPORT
   const handleDownloadTemplate = () => {
@@ -202,7 +202,7 @@ export function ExcelImportExportModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-800">
-                Nhập & Xuất Excel: {type === "product" ? "Sản phẩm" : type === "category" ? "Danh mục" : "Showroom"}
+                Nhập & Xuất Excel: {type === "product" ? "Sản phẩm" : type === "category" ? "Danh mục" : type === "brand" ? "Thương hiệu" : "Showroom"}
               </h3>
               <p className="text-xs text-slate-400 font-medium">Quy trình 3 bước nhập liệu hàng loạt chuẩn hóa dữ liệu tối đa</p>
             </div>

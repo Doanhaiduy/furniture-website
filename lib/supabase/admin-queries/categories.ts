@@ -15,6 +15,7 @@ export type AdminCategory = {
   product_count: number;
   parent_name?: string | null;
   group_key?: string | null;
+  image_url?: string | null;
 };
 
 export async function getAdminCategories(params: {
@@ -40,6 +41,7 @@ export async function getAdminCategories(params: {
         group_key
       `;
       selectStr += `, product_category_translations (locale, slug, name, description)`;
+      selectStr += `, image_media:media_assets!fk_product_categories_image_media (public_url)`;
 
       // Free-text search: both name and slug live on the translation table (slug is NOT
       // a column on product_categories), so resolve matching category ids there and filter
@@ -179,6 +181,7 @@ export async function getAdminCategories(params: {
             group_key: (row as any).group_key ?? null,
             product_count: productCountMap[row.id] || 0,
             parent_name: row.parent_id ? (categoryMap[row.parent_id] || null) : null,
+            image_url: (row as any).image_media?.public_url ?? null,
           } as any;
         });
 

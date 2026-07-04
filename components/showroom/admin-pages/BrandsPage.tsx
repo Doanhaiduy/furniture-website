@@ -135,6 +135,7 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
   const [brandProductCount, setBrandProductCount] = useState(0);
   const [brandStep, setBrandStep] = useState(1);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [excelModalOpen, setExcelModalOpen] = useState(false);
 
   const STATUS_OPTIONS = [
     { value: "draft", label: "Bản nháp" },
@@ -156,6 +157,24 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
         actionHref="/admin/brands?create=1"
         actionLabel="Thêm thương hiệu"
       />
+
+      {/* Excel Import/Export Toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm">
+          <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
+            <FileSpreadsheet className="size-4 text-indigo-500" />
+            Excel:
+          </span>
+          <button
+            type="button"
+            onClick={() => setExcelModalOpen(true)}
+            className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+          >
+            <Upload className="size-3.5" />
+            Nhập & Xuất Excel
+          </button>
+        </div>
+      </div>
 
       <DataView
         data={brands}
@@ -251,6 +270,13 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
         }}
         emptyMessage="Chưa có thương hiệu nào."
         emptyIcon={<Globe className="size-10 text-slate-200" />}
+      />
+
+      <ExcelImportExportModal
+        isOpen={excelModalOpen}
+        onClose={() => setExcelModalOpen(false)}
+        type="brand"
+        onSuccess={() => router.refresh()}
       />
 
       {/* Create Dialog */}

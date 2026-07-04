@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import {
   AdminSectionPage,
 } from "@/components/showroom/admin-pages";
-import { AdminShell } from "@/components/showroom/admin-shell";
 import { getCurrentUser } from "@/lib/supabase/auth";
 import {
   getAdminQuotesList,
@@ -258,7 +257,6 @@ export default async function AdminDynamicPage({
   }
 
   return (
-    <AdminShell active={section} role={role}>
       <AdminSectionPage
         section={section}
         role={role}
@@ -282,6 +280,5 @@ export default async function AdminDynamicPage({
         profileTotal={profileTotal}
         searchParams={query}
       />
-    </AdminShell>
   );
 }
