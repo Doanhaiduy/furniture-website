@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Tag, Calendar, ArrowRight } from "lucide-react";
+import { Check, Copy, Tag, ArrowRight } from "lucide-react";
 import { copyTextToClipboard } from "@/lib/clipboard";
 
 export function PromotionCouponButton({

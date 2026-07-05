@@ -1,4 +1,4 @@
-import { test, expect, type APIResponse } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import type { Client } from "pg";
 import ExcelJS from "exceljs";
 import { ADMIN_STATE } from "./support/paths";

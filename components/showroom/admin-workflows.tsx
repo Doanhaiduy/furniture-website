@@ -3,24 +3,17 @@
 import viMessages from "@/messages/vi.json";
 import enMessages from "@/messages/en.json";
 import { localized, trustBadges } from "@/lib/showroom-data";
-import { imageAssets, products, blogPosts, showrooms } from "@/tests/fixtures/showroom-data-fixture";
-import { useId, useState } from "react";
+import { imageAssets, products } from "@/tests/fixtures/showroom-data-fixture";
+import { useState } from "react";
 import {
   AlertTriangle,
   Info,
-  Sparkles,
   Lock,
   Eye,
   EyeOff,
   Package,
   BadgeCheck,
-  Award,
-  Heart,
-  MapPin,
-  Phone,
-  Trash2,
 } from "lucide-react";
-import { PremiumSelect } from "./premium-select";
 
 // Re-export components
 export { AdminRouteDialog } from "./admin-workflows/AdminRouteDialog";

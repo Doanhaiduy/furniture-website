@@ -1,4 +1,4 @@
-﻿# Implementation Plan: Showroom Site CMS
+# Implementation Plan: Showroom Site CMS
 
 **Branch**: `001-showroom-site-cms` | **Date**: 2026-05-31 | **Spec**: [spec.md](./spec.md)
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { GET, PUT } from "../../app/api/admin/settings/route";
+import { GET } from "../../app/api/admin/settings/route";
 import { getCurrentUser } from "../../lib/supabase/auth";
 import { createAdminClient } from "../../lib/supabase/server";
 

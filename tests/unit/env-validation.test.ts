@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { envSchema, validateEnv } from "../../lib/env/schema";
+import { validateEnv } from "../../lib/env/schema";
 
 describe("Environment Variables Validation Schema", () => {
   beforeEach(() => {

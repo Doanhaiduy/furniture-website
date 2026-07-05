@@ -1,4 +1,4 @@
-﻿# TÃ³m Táº¯t: Module AI Content Generation & Translation Workflow
+# TÃ³m Táº¯t: Module AI Content Generation & Translation Workflow
 
 **NgÃ y táº¡o:** 2026-06-06
 **Tráº¡ng thÃ¡i:** Sáºµn sÃ ng triá»ƒn khai

@@ -187,7 +187,7 @@ export async function createAdminBrand(data: BrandInput): Promise<{
     // Vietnamese names slugify the same — or a slug freed from a soft-deleted brand —
     // would otherwise hard-fail with a raw duplicate-key error.
     let slug = data.slug || null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     let brand: any = null;
     let brandError: { message: string } | null = null;
     for (let attempt = 0; attempt < 4; attempt++) {

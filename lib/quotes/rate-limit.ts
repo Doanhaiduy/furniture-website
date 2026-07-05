@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createAdminClient } from "@/lib/supabase/server";
 
 const MAX_ENTRIES = 5000;
 const WINDOW_MS = 60_000;

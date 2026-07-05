@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import type { Client } from "pg";
 import { ADMIN_STATE } from "./support/paths";
 import { connect, cleanupE2EData, firstRow } from "./support/db";

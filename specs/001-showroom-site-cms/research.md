@@ -1,4 +1,4 @@
-﻿# Research And ADR Consolidation: Showroom Site CMS
+# Research And ADR Consolidation: Showroom Site CMS
 
 ## Decision: Split Public Frontend And Payload CMS Service
 

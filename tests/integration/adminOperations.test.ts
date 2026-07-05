@@ -35,7 +35,6 @@ vi.mock("@/lib/env/schema", () => {
 
 import { PUT } from "@/app/api/admin/settings/route";
 import { createAdminClient } from "@/lib/supabase/server";
-import { requireEditorOrAdmin, getCurrentUser } from "@/lib/supabase/auth";
 
 // Mock auth check
 vi.mock("@/lib/supabase/auth", () => ({

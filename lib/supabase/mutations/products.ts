@@ -28,7 +28,7 @@ function jsonToEditorText(value: unknown): string {
 
 export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   data?: any;
   error?: string;
 }> {
@@ -60,9 +60,9 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
     const { data: product, error } = await query.maybeSingle();
     if (error || !product) return { success: false, error: error?.message || "Product not found" };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const viTrans = product.product_translations.find((t: any) => t.locale === "vi");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const enTrans = product.product_translations.find((t: any) => t.locale === "en");
 
     const productMedia = Array.isArray(product.product_media) ? product.product_media : [];
@@ -577,12 +577,12 @@ export async function updateProductStatus(id: string, status: string): Promise<{
         .select("locale, name, summary, slug, description_json")
         .eq("product_id", id);
       const rows = Array.isArray(trans) ? trans : [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const hasMeaningful = (r: any) =>
         r && r.slug && r.name && r.summary && r.description_json &&
         !(typeof r.description_json === "object" && Object.keys(r.description_json).length === 0) &&
         !(typeof r.description_json === "string" && r.description_json.trim() === "");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       if (!hasMeaningful(rows.find((r: any) => r.locale === "vi")) || !hasMeaningful(rows.find((r: any) => r.locale === "en"))) {
         return { success: false, error: "Cần nhập đầy đủ nội dung mô tả (tiếng Việt và tiếng Anh) trước khi xuất bản." };
       }

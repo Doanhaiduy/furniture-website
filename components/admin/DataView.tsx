@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import { LayoutGrid, List, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { LayoutGrid, List, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FilterBar, type FilterConfig } from "./FilterBar";
 import { useAdminFilters, type SortDir } from "@/lib/hooks/useAdminFilters";

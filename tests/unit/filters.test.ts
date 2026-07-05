@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProductFilters, productFiltersSchema } from "../../lib/validations/filters";
+import { parseProductFilters } from "../../lib/validations/filters";
 
 describe("productFiltersSchema and parseProductFilters", () => {
   it("should accept valid filters and parse them correctly", () => {

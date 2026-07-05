@@ -1,4 +1,4 @@
-﻿# AI Content Generation & Translation Workflow Specification
+# AI Content Generation & Translation Workflow Specification
 
 **Version:** 1.0
 **Date:** 2026-06-06

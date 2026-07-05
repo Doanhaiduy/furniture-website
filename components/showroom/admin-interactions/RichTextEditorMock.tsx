@@ -57,24 +57,15 @@ async function uploadEditorImage(file: File): Promise<string> {
 }
 
 import {
-  Archive,
-  Bot,
   Bold,
-  CheckCircle2,
   ImageUp,
   Italic,
   Link2,
   List,
   ListOrdered,
   Loader2,
-  RefreshCcw,
-  Rocket,
-  Save,
   Strikethrough,
   UnderlineIcon,
-  UploadCloud,
-  WandSparkles,
-  Trash2,
   AlignLeft,
   AlignCenter,
   AlignRight,
@@ -84,16 +75,8 @@ import {
   Undo2,
   Redo2,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { PremiumSelect } from "../premium-select";
-import { Pagination } from "../admin-pages";
+
+
 
 
 export function RichTextEditorMock({
@@ -197,7 +180,7 @@ export function RichTextEditorMock({
     if (newVal !== currentHtml && newVal !== "<p></p>") {
       editor.commands.setContent(newVal, { emitUpdate: false } as any);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [value, editor]);
 
   useEffect(() => {

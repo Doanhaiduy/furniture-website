@@ -45,7 +45,7 @@ function checkCircularCategory(
 
 export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   data?: any;
   error?: string;
 }> {
@@ -76,9 +76,9 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
     const { data: cat, error } = await query.maybeSingle();
     if (error || !cat) return { success: false, error: error?.message || "Category not found" };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const viTrans = cat.product_category_translations.find((t: any) => t.locale === "vi");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const enTrans = cat.product_category_translations.find((t: any) => t.locale === "en");
 
     const imageMediaRecord = cat.image_media as Record<string, any> | null | undefined;

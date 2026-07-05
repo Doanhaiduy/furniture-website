@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Loader2, Lock } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";

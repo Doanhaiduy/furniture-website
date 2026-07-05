@@ -1,4 +1,4 @@
-﻿# Payload Collection Contracts
+# Payload Collection Contracts
 
 ## API Surface
 

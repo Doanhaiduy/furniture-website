@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { type Locale, isLocale } from "@/i18n/routing";
 import { notFound } from "next/navigation";
-import { ArrowRight, BadgePercent, Calendar, CheckCircle, Clock, CalendarRange, Sparkles, HelpCircle } from "lucide-react";
+import { ArrowRight, BadgePercent, CheckCircle, CalendarRange, Sparkles, HelpCircle } from "lucide-react";
 import { imageAssets } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { QuoteForm } from "@/components/showroom/quote-form";

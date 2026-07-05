@@ -91,3 +91,7 @@ deploy.prod.sh
 /backups/
 /scratch/
 /test-excel-files/
+
+/ban-giao-khach-hang
+/delivery_customer
+/scripts

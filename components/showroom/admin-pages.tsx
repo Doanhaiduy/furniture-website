@@ -33,7 +33,6 @@ export { SettingsPage } from "./admin-pages/SettingsPage";
 export { UsersPage } from "./admin-pages/UsersPage";
 export { PromotionsPage } from "./admin-pages/PromotionsPage";
 
-import { AdminDashboard } from "./admin-pages/AdminDashboard";
 import { ProductsPage } from "./admin-pages/ProductsPage";
 import { BlogPage } from "./admin-pages/BlogPage";
 import { CategoryPage } from "./admin-pages/CategoryPage";

@@ -1,5 +1,4 @@
 import * as XLSX from 'xlsx';
-import { writeFileSync } from 'fs';
 import { join } from 'path';
 
 const BASE_URL = 'https://furniture-website-d4vmgiskj-doanhaiduys-projects.vercel.app';

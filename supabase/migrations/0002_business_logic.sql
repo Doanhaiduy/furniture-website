@@ -1,4 +1,4 @@
-​-- 0002_business_logic.sql
+-- 0002_business_logic.sql
 -- Consolidated migration so a fresh DB builds from just 0001 + 0002.
 -- Merged in order from: 0002_structured_address, 0003_business_logic_fixes,
 -- 0004_business_logic_v2, 0005_audit_fixes (audit hardening).
@@ -1538,11 +1538,6 @@ REVOKE ALL ON TABLE "public"."brand_translations" FROM "anon";
 REVOKE ALL ON TABLE "public"."brand_translations" FROM "authenticated";
 GRANT SELECT ON TABLE "public"."brand_translations" TO "anon";
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "public"."brand_translations" TO "authenticated";
-
-REVOKE ALL ON TABLE "public"."promotion_targets" FROM "anon";
-REVOKE ALL ON TABLE "public"."promotion_targets" FROM "authenticated";
-GRANT SELECT ON TABLE "public"."promotion_targets" TO "anon";
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "public"."promotion_targets" TO "authenticated";
 
 -- ---------------------------------------------------------------------------
 -- M4 — soft-delete-aware, case-insensitive brand slug uniqueness

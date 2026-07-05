@@ -22,7 +22,6 @@ import {
   Info,
   Sparkles,
 } from "lucide-react";
-import type { AdminQuote } from "@/lib/supabase/admin-queries";
 
 // Generate past 7 days dynamically
 const generateDynamicWeekData = () => {

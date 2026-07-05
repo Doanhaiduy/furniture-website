@@ -3,7 +3,6 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  Globe2,
   Mail,
   MapPin,
   MessageCircle,

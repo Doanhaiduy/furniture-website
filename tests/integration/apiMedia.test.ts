@@ -34,8 +34,7 @@ vi.mock("@/lib/env/schema", () => {
 });
 
 import { POST } from "@/app/api/admin/media/upload/route";
-import { requireEditorOrAdmin } from "@/lib/supabase/auth";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 
 // Mock requireEditorOrAdmin to bypass API-level auth

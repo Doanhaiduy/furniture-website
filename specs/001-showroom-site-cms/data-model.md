@@ -1,4 +1,4 @@
-﻿# Data Model: Payload CMS Collections And Globals
+# Data Model: Payload CMS Collections And Globals
 
 ## Scope
 

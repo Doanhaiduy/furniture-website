@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { DatePickerField } from "@/components/ui/date-picker";

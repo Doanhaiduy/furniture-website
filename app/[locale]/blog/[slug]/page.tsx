@@ -236,7 +236,7 @@ export default async function BlogDetailPage({
               </section>
             )}
 
-            {localized(article.quote, locale)?.trim() && (
+            {(localized(article.quote, locale) as string)?.trim() && (
               <aside className="surface-inverse mt-8 p-6 md:p-7">
                 <p className="label-pd text-white/65">{t("fieldNote")}</p>
                 <blockquote className="type-card-title mt-4 text-xl text-white md:text-2xl">

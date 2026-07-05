@@ -24,7 +24,7 @@ import { ProductCard } from "@/components/showroom/product-card";
 import { ProductFilterPanel } from "@/components/showroom/product-filter-panel";
 import { ProductSortSelect } from "@/components/showroom/product-sort-select";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getProducts, getCategories, mapDBProductGroupKeyToUI, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
+import { getProducts, getCategories, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
 
 type ProductSearchParams = {

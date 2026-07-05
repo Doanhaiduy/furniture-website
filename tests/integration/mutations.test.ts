@@ -33,8 +33,7 @@ vi.mock("@/lib/env/schema", () => {
   };
 });
 
-import { requireEditorOrAdmin } from "@/lib/supabase/auth";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import {
   createAdminCategory,
   updateAdminCategory,

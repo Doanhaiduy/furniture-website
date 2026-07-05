@@ -1,4 +1,4 @@
-﻿# Open Questions And Assumptions
+# Open Questions And Assumptions
 
 These items are now scoped so coding can start on foundation and homepage work. Items marked `Slice blocker` must be answered before implementing the affected slice, not before all coding.
 

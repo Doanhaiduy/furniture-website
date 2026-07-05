@@ -49,7 +49,7 @@ export default async function ContactPage({
   const socialLinks = (await getPublicSocialLinks(supabase).catch(() => [])).filter((s) => s.url && s.isEnabled !== false);
 
   // Fetch products from DB for the product selector in QuoteForm
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const rawProducts = await getProducts(supabase, { locale, limit: 200 }).catch(() => []);
   const productsForQuote: ProductForQuote[] = rawProducts
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +64,7 @@ export default async function ContactPage({
     }));
 
   const dbCategories = await getCategories(supabase, locale).catch(() => []);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const categoriesForQuote = dbCategories
     .filter((c: any) => c.parentId !== null)
     .map((c: any) => ({

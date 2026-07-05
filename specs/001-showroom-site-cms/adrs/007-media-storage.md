@@ -1,4 +1,4 @@
-﻿# ADR-007: Cloudinary For Media
+# ADR-007: Cloudinary For Media
 
 ## Status
 

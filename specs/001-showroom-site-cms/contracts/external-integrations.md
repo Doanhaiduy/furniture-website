@@ -1,4 +1,4 @@
-﻿# External Integration Contracts
+# External Integration Contracts
 
 ## Resend Email
 

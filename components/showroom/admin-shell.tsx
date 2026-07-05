@@ -14,16 +14,10 @@ interface SearchResult {
 }
 import Link from "next/link";
 import {
-  ChevronRight,
-  ChevronsDown,
-  ChevronsLeft,
-  ChevronsRight,
-  ChevronsUp,
   FileText,
   FolderTree,
   Gauge,
   LayoutDashboard,
-  LogOut,
   Package,
   Search,
   Settings,
@@ -34,7 +28,6 @@ import {
 } from "lucide-react";
 import {
   AdminDateProvider,
-  NotificationButton,
 } from "./admin-dashboard-widgets";
 import { AdminSidebar } from "./admin/AdminSidebar";
 import { AdminHeader } from "./admin/AdminHeader";
@@ -216,11 +209,11 @@ function AdminSearchPalette({
     if (!query || query.trim().length < 2) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchResults([]);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setIsLoading(false);
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setIsLoading(true);
     debounceRef.current = setTimeout(async () => {
       try {

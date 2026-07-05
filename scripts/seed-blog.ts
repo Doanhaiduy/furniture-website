@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * Seed a realistic set of blog posts (bilingual vi/en) so the /blog list can be
  * exercised with a professional featured + grid + pagination + category-filter UI.

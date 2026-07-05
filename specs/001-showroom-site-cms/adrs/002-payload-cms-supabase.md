@@ -1,4 +1,4 @@
-﻿# ADR-002: Payload CMS With managed PostgreSQL
+# ADR-002: Payload CMS With managed PostgreSQL
 
 ## Status
 

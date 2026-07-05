@@ -1,4 +1,4 @@
-﻿# Tasks: Showroom Site CMS
+# Tasks: Showroom Site CMS
 
 **Input**: Design documents from `specs/001-showroom-site-cms/`
 

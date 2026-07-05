@@ -1,4 +1,4 @@
-﻿# Quickstart: Showroom Site CMS Planning Artifacts
+# Quickstart: Showroom Site CMS Planning Artifacts
 
 ## Purpose
 
