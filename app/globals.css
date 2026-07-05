@@ -1682,8 +1682,12 @@
   box-shadow: none !important;
 }
 
-/* Fix: Radix UI Select dropdown renders above modal dialogs (--z-modal=80) */
-[data-radix-popper-content-wrapper] {
+/* Fix: Radix UI Select dropdown renders above modal dialogs (--z-modal=80).
+   Covers both position="popper" (wrapper) and the default position="item-aligned"
+   content, which has no popper wrapper and would otherwise keep its z-50 and hide
+   behind custom modal overlays (e.g. the edit-user role select). */
+[data-radix-popper-content-wrapper],
+[data-slot="select-content"] {
   z-index: 9999 !important;
 }
 

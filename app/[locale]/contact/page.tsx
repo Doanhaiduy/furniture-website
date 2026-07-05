@@ -7,8 +7,9 @@ import { notFound } from "next/navigation";
 import { imageAssets } from "@/lib/showroom-constants";
 import { QuoteForm, type ProductForQuote } from "@/components/showroom/quote-form";
 import { RemoteImage } from "@/components/showroom/remote-image";
+import { SocialIcon } from "@/components/showroom/social-icons";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getShowrooms, getProducts, getCategories, getPublicSiteSettings } from "@/lib/supabase/queries";
+import { getShowrooms, getProducts, getCategories, getPublicSiteSettings, getPublicSocialLinks } from "@/lib/supabase/queries";
 
 export async function generateMetadata({
   params,
@@ -45,6 +46,7 @@ export default async function ContactPage({
 
   const supabase = createPublicClient();
   const settings = await getPublicSiteSettings(supabase, locale);
+  const socialLinks = (await getPublicSocialLinks(supabase).catch(() => [])).filter((s) => s.url && s.isEnabled !== false);
 
   // Fetch products from DB for the product selector in QuoteForm
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -134,6 +136,12 @@ export default async function ContactPage({
                 <Mail className="size-5 text-primary" />
                 <span><strong>Email</strong><br />{settings.contactEmail}</span>
               </p>
+              {settings.contactAddress ? (
+                <p className="flex gap-3">
+                  <MapPin className="size-5 text-primary" />
+                  <span><strong>{locale === "vi" ? "Địa chỉ" : "Address"}</strong><br />{settings.contactAddress}</span>
+                </p>
+              ) : null}
               <div className="flex gap-3">
                 <MapPin className="size-5 text-primary" />
                 <div>
@@ -146,6 +154,27 @@ export default async function ContactPage({
                 </div>
               </div>
             </div>
+
+            {socialLinks.length > 0 ? (
+              <div className="mt-6 border-t border-[var(--border-subtle,rgba(0,0,0,0.08))] pt-5">
+                <strong className="text-sm">{locale === "vi" ? "Kết nối với chúng tôi" : "Connect with us"}</strong>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {socialLinks.map((link, idx) => (
+                    <a
+                      key={`${link.platform}-${idx}`}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={link.label || link.platform}
+                      title={link.label || link.platform}
+                      className="inline-flex size-10 items-center justify-center rounded-full border border-primary/20 bg-primary/5 text-primary transition hover:bg-primary hover:text-white"
+                    >
+                      <SocialIcon platform={link.platform} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
           <Link href={`/${locale}/showrooms`} className="interactive-card public-image-panel group relative block">
             <RemoteImage src={imageAssets.showroom} alt={displayShowrooms[0]?.name || ""} className="image-lift h-72 w-full object-cover" />

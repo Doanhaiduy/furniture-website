@@ -362,8 +362,8 @@ export function PublicShell({
               <span className="rounded bg-black/75 px-2.5 py-1 text-xs font-semibold text-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 {labels.nav.zalo}
               </span>
-              <div className="flex size-11 items-center justify-center rounded-full bg-[#0068FF] text-white shadow-lg transition-transform hover:scale-110 active:scale-95">
-                <ZaloIcon className="size-5" />
+              <div className="flex size-11 items-center justify-center overflow-hidden rounded-full bg-white shadow-lg transition-transform hover:scale-110 active:scale-95">
+                <img src="/icon_zalo.webp" alt="Zalo" className="size-full object-cover" />
               </div>
             </a>
 
@@ -431,14 +431,6 @@ export function PublicShell({
         </button>
       </div>
     </div>
-  );
-}
-
-function ZaloIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M12 2C6.477 2 2 5.86 2 10.62c0 2.68 1.42 5.08 3.65 6.64-.17.76-.7 2.46-.77 2.68-.1.33.1.66.45.62.33-.04 2.24-.86 3.6-1.58C10.02 19.14 11.02 19.24 12 19.24c5.523 0 10-3.86 10-8.62C22 5.86 17.523 2 12 2zm.2 11.66h-2.3v-1.63l1.37-1.74h-1.37v-1.12h2.24v1.54l-1.34 1.83h1.4v1.12z" />
-    </svg>
   );
 }
 

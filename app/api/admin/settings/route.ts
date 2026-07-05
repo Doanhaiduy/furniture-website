@@ -53,6 +53,25 @@ export async function GET() {
     .eq("singleton_key", "default")
     .maybeSingle();
 
+  // Get configured social / contact links for the singleton settings row
+  const settingsRowId = (settings as any)?.id;
+  let socialLinks: Array<{ platform: string; label: string; url: string; isEnabled: boolean }> = [];
+  if (settingsRowId) {
+    const { data: socialRows } = await supabase
+      .from("social_links")
+      .select("platform, label, url, is_enabled, sort_order")
+      .eq("site_settings_id", settingsRowId)
+      .order("sort_order");
+    if (socialRows) {
+      socialLinks = socialRows.map((s: any) => ({
+        platform: s.platform,
+        label: s.label || "",
+        url: s.url || "",
+        isEnabled: s.is_enabled,
+      }));
+    }
+  }
+
   // Get integration secrets
   const { data: secrets } = await supabase
     .from("integration_secrets")
@@ -163,6 +182,7 @@ export async function GET() {
     quoteHeadingEn: enHomeBody.quoteHeadingEn || "Get Consultation & Quote",
     quoteLeadVi: viHomeBody.quoteLeadVi || "Để lại thông tin, đội ngũ chuyên gia của chúng tôi sẽ liên hệ trong 24 giờ.",
     quoteLeadEn: enHomeBody.quoteLeadEn || "Submit info and our experts will contact you within 24 hours.",
+    socialLinks,
   });
 }
 
@@ -435,6 +455,44 @@ export async function PUT(request: Request) {
 
   if (enHomeError) {
     return NextResponse.json({ error: enHomeError.message }, { status: 500 });
+  }
+
+  // 5. Sync social / contact links. Replace the full set for this settings row so
+  // cleared links are removed. Only rows with a URL are persisted; URLs are
+  // normalised to satisfy the chk_social_links_url_http (^https?://) constraint.
+  if (body.socialLinks !== undefined) {
+    const { error: deleteSocialError } = await supabase
+      .from("social_links")
+      .delete()
+      .eq("site_settings_id", settingsId);
+    if (deleteSocialError) {
+      return NextResponse.json({ error: deleteSocialError.message }, { status: 500 });
+    }
+
+    const rowsToInsert = body.socialLinks
+      .map((link, index) => {
+        const rawUrl = (link.url || "").trim();
+        if (!rawUrl) return null;
+        const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
+        return {
+          site_settings_id: settingsId,
+          platform: link.platform,
+          label: link.label || null,
+          url,
+          is_enabled: link.isEnabled !== false,
+          sort_order: index,
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
+
+    if (rowsToInsert.length > 0) {
+      const { error: insertSocialError } = await supabase
+        .from("social_links")
+        .insert(rowsToInsert);
+      if (insertSocialError) {
+        return NextResponse.json({ error: insertSocialError.message }, { status: 500 });
+      }
+    }
   }
 
   return NextResponse.json({ success: true });

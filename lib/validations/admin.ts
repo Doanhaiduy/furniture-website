@@ -349,6 +349,18 @@ export const settingsSchema = z.object({
   quoteHeadingEn: optionalText,
   quoteLeadVi: optionalText,
   quoteLeadEn: optionalText,
+  // Public social / contact links. URLs are optional here; the API only persists
+  // rows that have a URL and normalises them to an https:// prefix.
+  socialLinks: z
+    .array(
+      z.object({
+        platform: z.enum(["facebook", "zalo", "youtube", "tiktok", "instagram", "other"]),
+        label: optionalText,
+        url: optionalText,
+        isEnabled: z.boolean().optional().default(true),
+      })
+    )
+    .optional(),
 });
 
 export type ProductInput = z.input<typeof productSchema>;

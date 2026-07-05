@@ -94,6 +94,26 @@ import {
   SectionVisibilityCard,
 } from "../admin-workflows";
 
+type SocialPlatform = "facebook" | "zalo" | "youtube" | "tiktok" | "instagram" | "other";
+type SocialLinkState = { platform: SocialPlatform; label: string; url: string; isEnabled: boolean };
+
+// Fixed set of configurable public links. "other" is used for the general website URL.
+const SOCIAL_PLATFORMS: { platform: SocialPlatform; label: string; placeholder: string }[] = [
+  { platform: "facebook", label: "Facebook", placeholder: "https://facebook.com/tentrang" },
+  { platform: "zalo", label: "Zalo", placeholder: "https://zalo.me/0908xxxxxx" },
+  { platform: "youtube", label: "YouTube", placeholder: "https://youtube.com/@kenh" },
+  { platform: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@tentrang" },
+  { platform: "instagram", label: "Instagram", placeholder: "https://instagram.com/tentrang" },
+  { platform: "other", label: "Website / Liên kết khác", placeholder: "https://phuongdong.vn" },
+];
+
+const DEFAULT_SOCIAL_LINKS: SocialLinkState[] = SOCIAL_PLATFORMS.map((p) => ({
+  platform: p.platform,
+  label: p.label,
+  url: "",
+  isEnabled: true,
+}));
+
 export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const { toast } = useToast();
   // Integration secrets (e.g. Gemini key) are admin-only. This is defense-in-depth on top of
@@ -125,6 +145,30 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const [contactWardName, setContactWardName] = useState("");
   const [contactStreet, setContactStreet] = useState("");
   const [defaultLocale, setDefaultLocale] = useState("vi");
+  const [socialLinks, setSocialLinks] = useState<SocialLinkState[]>(DEFAULT_SOCIAL_LINKS);
+
+  const updateSocialLink = (platform: SocialPlatform, patch: Partial<SocialLinkState>) => {
+    setSocialLinks((prev) =>
+      prev.map((link) => (link.platform === platform ? { ...link, ...patch } : link))
+    );
+    markDirty();
+  };
+
+  // Merge server-provided links over the fixed platform template so every row renders.
+  const mergeSocialLinks = (incoming: unknown): SocialLinkState[] => {
+    const list = Array.isArray(incoming) ? incoming : [];
+    return DEFAULT_SOCIAL_LINKS.map((base) => {
+      const found = list.find((l: any) => l?.platform === base.platform);
+      return found
+        ? {
+            platform: base.platform,
+            label: found.label || base.label,
+            url: found.url || "",
+            isEnabled: found.isEnabled !== false,
+          }
+        : base;
+    });
+  };
 
   const [seoTitleVi, setSeoTitleVi] = useState("Đồ Gỗ Nội Thất & Thiết Bị Vệ Sinh Phương Đông");
   const [seoTitleEn, setSeoTitleEn] = useState("Phuong Dong - Premium Furniture & Sanitary Ware");
@@ -327,6 +371,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         if (data.quoteHeadingEn !== undefined) setQuoteHeadingEn(data.quoteHeadingEn);
         if (data.quoteLeadVi !== undefined) setQuoteLeadVi(data.quoteLeadVi);
         if (data.quoteLeadEn !== undefined) setQuoteLeadEn(data.quoteLeadEn);
+        if (data.socialLinks !== undefined) setSocialLinks(mergeSocialLinks(data.socialLinks));
       } catch (e) {
         console.error("Lỗi khi tải cấu hình settings:", e);
       }
@@ -429,6 +474,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         quoteHeadingEn,
         quoteLeadVi,
         quoteLeadEn,
+        socialLinks,
       };
 
       const res = await fetch("/api/admin/settings", {
@@ -552,7 +598,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
       setQuoteHeadingEn(data.quoteHeadingEn || settingsHomepageDefaults.quoteHeadingEn);
       setQuoteLeadVi(data.quoteLeadVi || settingsHomepageDefaults.quoteLeadVi);
       setQuoteLeadEn(data.quoteLeadEn || settingsHomepageDefaults.quoteLeadEn);
-      
+      setSocialLinks(mergeSocialLinks(data.socialLinks));
+
       setIsDirty(false);
       setEmailError("");
       setSaveSuccess(false);
@@ -793,6 +840,46 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                   ]}
                 />
               </label>
+            </div>
+
+            {/* Social / contact links */}
+            <div className="flex items-start gap-3 pt-2">
+              <div className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-panel)] bg-slate-100 text-slate-800">
+                <Share2 className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-slate-800">Mạng xã hội &amp; liên kết website</h3>
+                <p className="text-xs text-secondary">Các liên kết này hiển thị ở footer và widget liên hệ của trang công khai. Để trống để ẩn một nền tảng.</p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 bg-white p-4 rounded-xl border">
+              {socialLinks.map((link) => {
+                const meta = SOCIAL_PLATFORMS.find((p) => p.platform === link.platform);
+                return (
+                  <div key={link.platform} className="grid gap-2 md:grid-cols-[160px_1fr_auto] md:items-center">
+                    <span className="text-sm font-semibold text-slate-700">{meta?.label || link.platform}</span>
+                    <input
+                      type="url"
+                      inputMode="url"
+                      className="input-pd"
+                      placeholder={meta?.placeholder || "https://..."}
+                      value={link.url}
+                      onChange={(e) => updateSocialLink(link.platform, { url: e.target.value })}
+                    />
+                    <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 justify-self-start md:justify-self-end">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={link.isEnabled}
+                        onChange={(e) => updateSocialLink(link.platform, { isEnabled: e.target.checked })}
+                      />
+                      <span className="relative inline-flex h-5 w-9 shrink-0 rounded-full border border-[var(--admin-border)] bg-slate-200 transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:after:translate-x-4" />
+                      {link.isEnabled ? "Hiển thị" : "Ẩn"}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
