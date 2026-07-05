@@ -4,6 +4,7 @@ import {
   categorySchema,
   brandSchema,
   promotionSchema,
+  blogPostSchema,
   settingsSchema,
 } from "@/lib/validations/admin";
 
@@ -64,22 +65,33 @@ describe("Admin Schemas Unit Tests", () => {
       }
     });
 
-    it("should reject product where promo_price_min >= price_min", () => {
+    it("should reject a published product with an empty VI description", () => {
       const invalid = {
         slug: "bon-cau-toto-x1",
         name_vi: "Bồn cầu Toto X1",
         summary_vi: "Bồn cầu cao cấp",
         category_id: "777e7bc6-0c1a-46d6-a8a3-c15c91606041",
-        price_min: 15000000,
-        price_max: 18000000,
-        promo_price_min: 16000000,
-        status: "draft" as const,
+        status: "published" as const,
+        description_json_vi: {},
       };
       const result = productSchema.safeParse(invalid);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain("Giá khuyến mãi");
+        expect(result.error.issues.some((i) => i.path.includes("description_json_vi"))).toBe(true);
       }
+    });
+
+    it("should allow a draft product with an empty description", () => {
+      const valid = {
+        slug: "bon-cau-toto-x1",
+        name_vi: "Bồn cầu Toto X1",
+        summary_vi: "Bồn cầu cao cấp",
+        category_id: "777e7bc6-0c1a-46d6-a8a3-c15c91606041",
+        status: "draft" as const,
+        description_json_vi: {},
+      };
+      const result = productSchema.safeParse(valid);
+      expect(result.success).toBe(true);
     });
   });
 
@@ -132,9 +144,23 @@ describe("Admin Schemas Unit Tests", () => {
         code: "SUMMER2026",
         discount_percentage: 15,
         title_vi: "Khuyến mãi mùa hè",
+        start_at: "2026-06-01T00:00:00Z",
       };
       const result = promotionSchema.safeParse(valid);
       expect(result.success).toBe(true);
+    });
+
+    it("should reject a promotion without a start_at (item 4.3)", () => {
+      const invalid = {
+        code: "SUMMER2026",
+        discount_percentage: 15,
+        title_vi: "Khuyến mãi mùa hè",
+      };
+      const result = promotionSchema.safeParse(invalid);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some((i) => i.path.includes("start_at"))).toBe(true);
+      }
     });
 
     it("should reject discount percentage out of range", () => {
@@ -142,6 +168,7 @@ describe("Admin Schemas Unit Tests", () => {
         code: "SALE150",
         discount_percentage: 150, // invalid: max 100
         title_vi: "Gia re bat ngo",
+        start_at: "2026-06-01T00:00:00Z",
       };
       const result = promotionSchema.safeParse(invalid);
       expect(result.success).toBe(false);
@@ -167,6 +194,7 @@ describe("Admin Schemas Unit Tests", () => {
         code: "SUMMER2026",
         discount_percentage: 15,
         title_vi: "Khuyến mãi mùa hè",
+        start_at: "2026-06-01T00:00:00Z",
         combo_price: 20000000,
         original_price: 15000000,
       };
@@ -175,6 +203,55 @@ describe("Admin Schemas Unit Tests", () => {
       if (!result.success) {
         expect(result.error.issues[0].message).toContain("Giá combo");
       }
+    });
+  });
+
+  describe("blogPostSchema validation", () => {
+    const base = {
+      slug: "tin-tuc-moi",
+      title_vi: "Tin tức mới",
+      excerpt_vi: "Trích dẫn",
+      category_id: "777e7bc6-0c1a-46d6-a8a3-c15c91606041",
+    };
+
+    it("should accept a draft post without a cover image or body", () => {
+      const result = blogPostSchema.safeParse({ ...base, status: "draft" as const });
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject publishing without a cover image (item 4.1)", () => {
+      const result = blogPostSchema.safeParse({
+        ...base,
+        status: "published" as const,
+        body_json_vi: { type: "doc", content: [{ type: "paragraph" }] },
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some((i) => i.path.includes("cover_image"))).toBe(true);
+      }
+    });
+
+    it("should reject publishing with an empty VI body (item 4.6)", () => {
+      const result = blogPostSchema.safeParse({
+        ...base,
+        status: "published" as const,
+        cover_image: "https://cdn.example.com/cover.jpg",
+        body_json_vi: {},
+      });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some((i) => i.path.includes("body_json_vi"))).toBe(true);
+      }
+    });
+
+    it("should accept publishing with a cover image and real body content", () => {
+      const result = blogPostSchema.safeParse({
+        ...base,
+        status: "published" as const,
+        cover_image: "https://cdn.example.com/cover.jpg",
+        body_json_vi: { type: "doc", content: [{ type: "paragraph" }] },
+      });
+      expect(result.success).toBe(true);
     });
   });
 

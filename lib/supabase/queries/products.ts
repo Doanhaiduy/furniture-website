@@ -220,6 +220,20 @@ export async function getProductBySlug(
     const viSlug = viTranslation?.slug || "";
     const canonicalSlug = viSlug || currentTranslation?.slug || slug;
 
+    // Promo pricing (single source of truth, item 1): derive from the product's active,
+    // published Promotion via the same DB function public_products (the list) uses, so
+    // the detail page can never show a different discount than the list.
+    let promoPriceMin: number | null = null;
+    let promoPriceMax: number | null = null;
+    const { data: discountPct } = await supabase.rpc("get_active_discount_percentage", {
+      p_product_id: productId,
+    });
+    const discount = discountPct !== null && discountPct !== undefined ? Number(discountPct) : null;
+    if (discount !== null && !Number.isNaN(discount)) {
+      if (row.price_min !== null) promoPriceMin = Math.round(Number(row.price_min) * (1 - discount / 100) * 100) / 100;
+      if (row.price_max !== null) promoPriceMax = Math.round(Number(row.price_max) * (1 - discount / 100) * 100) / 100;
+    }
+
     return {
       id: row.id,
       referenceCode: row.reference_code,
@@ -264,8 +278,8 @@ export async function getProductBySlug(
       specifications: row.specifications || {},
       custom_attributes: row.custom_attributes || [],
       tags: Array.isArray(row.tags) ? row.tags : [],
-      promo_price_min: null as number | null,
-      promo_price_max: null as number | null,
+      promo_price_min: promoPriceMin,
+      promo_price_max: promoPriceMax,
     };
   } catch (e) {
     console.error("Exception in getProductBySlug directly:", e);

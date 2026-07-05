@@ -465,6 +465,9 @@ export function ContentEditorForm({
     if (!seoDescEn.trim()) validationErrors.push("Cần nhập mô tả meta tiếng Anh khi đã bật tiếng Anh.");
   }
 
+  // Item 4.1: blog posts require a cover image before they can be published.
+  if (!isProduct && !coverImage.trim()) validationErrors.push("Cần có ảnh bìa trước khi xuất bản bài viết.");
+
   // Define dynamic readiness items based on current validation errors
   const dynamicReadiness = [
     { 

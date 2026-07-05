@@ -2008,7 +2008,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="grid gap-2">
-              <span className="label-pd">Thời gian bắt đầu</span>
+              <span className="label-pd">Thời gian bắt đầu *</span>
               <DateTimePickerField
                 value={startAt}
                 onChange={setStartAt}

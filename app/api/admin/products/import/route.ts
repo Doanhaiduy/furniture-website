@@ -467,8 +467,6 @@ export async function POST(req: NextRequest) {
               cover_image: coverImageUrl,
               gallery_images: galleryImages,
               promotion_id: null,
-              promo_price_min: null,
-              promo_price_max: null,
               specifications: {
                 material_vi: rowData["Vật liệu chi tiết (Tiếng Việt)"] || null,
                 material_en: translated.spec_material_en || rowData["Vật liệu chi tiết (Tiếng Việt)"] || null,

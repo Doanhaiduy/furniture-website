@@ -9,6 +9,20 @@ const digitCount = (v: string) => v.replace(/\D/g, "").length;
 // Common text validation helper
 const requiredText = (msg: string) => z.string().trim().min(1, msg);
 const optionalText = z.string().trim().nullish().transform(val => val || null);
+// Mirrors the client-side isBodyEmpty() check (ContentEditorForm.tsx) so a rich-text
+// body/description that is null, {}, [], or an empty TipTap doc is rejected the same
+// way server-side as it already visually blocks the Publish button client-side.
+const hasMeaningfulJson = (value: unknown): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "object") {
+    const v = value as Record<string, unknown>;
+    if (Array.isArray(v)) return v.length > 0;
+    if (v.type === "doc" && Array.isArray(v.content)) return (v.content as unknown[]).length > 0;
+    return Object.keys(v).length > 0;
+  }
+  return false;
+};
 const slugSchema = z.string().trim().min(1, "Slug không được để trống").regex(slugRegex, "Slug chỉ được chứa ký tự thường, số và dấu gạch ngang (e.g. sofa-curve)");
 // Shared phone validator used for hotlines / contact numbers.
 export const phoneSchema = z
@@ -50,8 +64,6 @@ export const productSchema = z.object({
   featured: z.boolean().default(false),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   promotion_id: z.string().uuid().nullable().optional(),
-  promo_price_min: z.number().nullable().optional(),
-  promo_price_max: z.number().nullable().optional(),
   cover_image: optionalText,
   gallery_images: z.array(z.string()).optional().default([]),
   specifications: z.object({
@@ -85,14 +97,21 @@ export const productSchema = z.object({
   }
 ).refine(
   (data) => {
-    if (data.promo_price_min !== null && data.promo_price_min !== undefined && data.price_min !== null && data.price_min !== undefined) {
-      return data.promo_price_min < data.price_min;
-    }
-    return true;
+    if (data.status !== "published") return true;
+    return hasMeaningfulJson(data.description_json_vi);
   },
   {
-    message: "Giá khuyến mãi phải nhỏ hơn giá gốc",
-    path: ["promo_price_min"],
+    message: "Nội dung mô tả tiếng Việt không được để trống khi xuất bản",
+    path: ["description_json_vi"],
+  }
+).refine(
+  (data) => {
+    if (data.status !== "published" || !data.name_en) return true;
+    return hasMeaningfulJson(data.description_json_en);
+  },
+  {
+    message: "Nội dung mô tả tiếng Anh không được để trống khi đã nhập tên tiếng Anh và xuất bản",
+    path: ["description_json_en"],
   }
 );
 
@@ -145,7 +164,25 @@ export const blogPostSchema = z.object({
   seo_title_en: optionalText,
   seo_description_vi: optionalText,
   seo_description_en: optionalText,
-});
+}).refine(
+  (data) => data.status !== "published" || Boolean(data.cover_image),
+  {
+    message: "Cần có ảnh bìa trước khi xuất bản bài viết",
+    path: ["cover_image"],
+  }
+).refine(
+  (data) => data.status !== "published" || hasMeaningfulJson(data.body_json_vi),
+  {
+    message: "Nội dung bài viết tiếng Việt không được để trống khi xuất bản",
+    path: ["body_json_vi"],
+  }
+).refine(
+  (data) => data.status !== "published" || !data.title_en || hasMeaningfulJson(data.body_json_en),
+  {
+    message: "Nội dung bài viết tiếng Anh không được để trống khi đã nhập tiêu đề tiếng Anh và xuất bản",
+    path: ["body_json_en"],
+  }
+);
 
 export const showroomSchema = z.object({
   code: slugSchema, // Internal unique code (slug-like)
@@ -198,7 +235,10 @@ export const promotionSchema = z.object({
   title_en: optionalText,
   description_vi: optionalText,
   description_en: optionalText,
-  start_at: z.string().nullable().optional(),
+  // Required (item 4.3): a blank start date made it too easy to publish a campaign
+  // that goes live immediately by accident. end_at stays optional (open-ended promos
+  // remain valid).
+  start_at: requiredText("Ngày bắt đầu là bắt buộc"),
   end_at: z.string().nullable().optional(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   cover_image: optionalText,

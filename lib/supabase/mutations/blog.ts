@@ -121,6 +121,26 @@ function toIsoOrNull(value?: string | null): string | null {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+const FEATURED_POST_CAP = 8;
+
+// Item 4.2: at most FEATURED_POST_CAP posts can be featured + published at once.
+// Friendly pre-check mirroring the DB trigger check_blog_post_publish_requirements,
+// which remains the hard guarantee against direct-API bypass.
+async function wouldExceedFeaturedCap(
+  supabase: ReturnType<typeof createAdminClient>,
+  excludePostId?: string
+): Promise<boolean> {
+  let query = supabase
+    .from("blog_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("featured", true)
+    .eq("status", "published")
+    .is("deleted_at", null);
+  if (excludePostId) query = query.neq("id", excludePostId);
+  const { count } = await query;
+  return (count ?? 0) >= FEATURED_POST_CAP;
+}
+
 async function resolveBlogCategoryId(
   supabase: ReturnType<typeof createAdminClient>,
   categoryIdOrSlug: string
@@ -263,6 +283,10 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
   const category = await resolveBlogCategoryId(supabase, values.category_id);
   if (!category.id) return { success: false, error: category.error };
 
+  if (values.status === "published" && values.featured && (await wouldExceedFeaturedCap(supabase))) {
+    return { success: false, error: `Đã đạt giới hạn ${FEATURED_POST_CAP} bài viết nổi bật. Hãy bỏ nổi bật một bài khác trước.` };
+  }
+
   try {
     const coverMediaId = await getOrCreateMediaAssetId(supabase, values.cover_image, user.id);
     const initialStatus = values.status === "published" ? "draft" : values.status;
@@ -365,6 +389,10 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
   const category = await resolveBlogCategoryId(supabase, values.category_id);
   if (!category.id) return { success: false, error: category.error };
 
+  if (values.status === "published" && values.featured && (await wouldExceedFeaturedCap(supabase, id))) {
+    return { success: false, error: `Đã đạt giới hạn ${FEATURED_POST_CAP} bài viết nổi bật. Hãy bỏ nổi bật một bài khác trước.` };
+  }
+
   try {
     const translations = [
       {
@@ -466,6 +494,14 @@ export async function updateBlogPostFeatured(id: string, featured: boolean): Pro
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+
+    if (featured) {
+      const { data: post } = await supabase.from("blog_posts").select("status").eq("id", id).maybeSingle();
+      if (post?.status === "published" && (await wouldExceedFeaturedCap(supabase, id))) {
+        return { success: false, error: `Đã đạt giới hạn ${FEATURED_POST_CAP} bài viết nổi bật. Hãy bỏ nổi bật một bài khác trước.` };
+      }
+    }
+
     const { error } = await supabase
       .from("blog_posts")
       .update({
@@ -493,6 +529,17 @@ export async function updateBlogPostStatus(id: string, status: string): Promise<
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+
+    if (status === "published") {
+      const { data: post } = await supabase.from("blog_posts").select("featured, cover_media_id").eq("id", id).maybeSingle();
+      if (!post?.cover_media_id) {
+        return { success: false, error: "Cần có ảnh bìa trước khi xuất bản bài viết." };
+      }
+      if (post.featured && (await wouldExceedFeaturedCap(supabase, id))) {
+        return { success: false, error: `Đã đạt giới hạn ${FEATURED_POST_CAP} bài viết nổi bật. Hãy bỏ nổi bật một bài khác trước.` };
+      }
+    }
+
     const updateObj: any = {
       status,
       updated_by: user.id,

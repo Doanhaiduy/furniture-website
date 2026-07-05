@@ -142,6 +142,7 @@ export function QuotesPage({
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>("");
   const [showEmailDraft, setShowEmailDraft] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [isArchivingQuote, setIsArchivingQuote] = useState(false);
   const [statusNote, setStatusNote] = useState("");
   const [localQuotes, setLocalQuotes] = useState<AdminQuote[]>(quotes);
   const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([]);
@@ -233,6 +234,28 @@ export function QuotesPage({
     spam:       "status-error",
     cancelled:  "bg-gray-100 text-gray-700 border-gray-200",
   };
+
+  // Item 4.5: soft-delete/archive a quote request (spam/test leads cleanup).
+  async function handleArchiveQuote(quoteId: string) {
+    if (isArchivingQuote) return;
+    setIsArchivingQuote(true);
+    try {
+      const { deleteAdminQuote } = await import("@/lib/supabase/mutations");
+      const result = await deleteAdminQuote(quoteId);
+      if (result.success) {
+        setLocalQuotes((prev) => prev.filter((q) => q.id !== quoteId));
+        setSelectedQuoteId((prev) => (prev === quoteId ? "" : prev));
+        toast.success("Đã lưu trữ yêu cầu báo giá!");
+        router.refresh();
+      } else {
+        toast.error("Lỗi lưu trữ yêu cầu: " + (result.error ?? "Không xác định"));
+      }
+    } catch (err) {
+      toast.error("Đã xảy ra lỗi: " + String(err));
+    } finally {
+      setIsArchivingQuote(false);
+    }
+  }
 
   async function handleStatusTransition(quoteId: string, newStatus: string) {
     if (isUpdatingStatus) return;
@@ -464,9 +487,39 @@ export function QuotesPage({
                   <span className="text-[10px] font-mono text-slate-400 block truncate">{selectedQuote.id}</span>
                   <h4 className="font-heading font-bold text-sm">Chi tiết yêu cầu báo giá</h4>
                 </div>
-                <span className={`status-pill text-[11px] leading-none shrink-0 ${statusColors[selectedQuote.status] ?? "status-muted"}`}>
-                  {statusLabels[selectedQuote.status] ?? selectedQuote.status}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`status-pill text-[11px] leading-none ${statusColors[selectedQuote.status] ?? "status-muted"}`}>
+                    {statusLabels[selectedQuote.status] ?? selectedQuote.status}
+                  </span>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        type="button"
+                        title="Lưu trữ yêu cầu báo giá"
+                        className="rounded p-1 text-slate-400 hover:text-red-400 hover:bg-white/10 transition"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Lưu trữ yêu cầu báo giá?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Yêu cầu này sẽ bị ẩn khỏi danh sách quản trị. Hành động này dùng để dọn dẹp lead rác/spam/dữ liệu thử nghiệm.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={isArchivingQuote}
+                          onClick={() => handleArchiveQuote(selectedQuote.id)}
+                        >
+                          {isArchivingQuote ? "Đang lưu trữ..." : "Lưu trữ"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
 
               <div className="p-4 flex-1 space-y-4 text-xs">

@@ -159,15 +159,48 @@ describe("Business logic guarantees (migration 0003)", () => {
     });
   });
 
-  // ── S5: promo price sanity CHECK constraint ───────────────────────────────
-  describe("promo_price is DB-enforced to be a real discount", () => {
-    it("rejects promo_price_min >= price_min", async () => {
+  // ── Item 1: promo pricing is derived from the active promotion, not a stored
+  // column. list (public_products) and detail both call get_active_discount_percentage,
+  // so they can never disagree again.
+  describe("Promo pricing is derived from the product's active promotion (item 1)", () => {
+    it("public_products computes promo_price_min/max from the linked active promotion", async () => {
       const cat = (await client.query("SELECT id FROM product_categories WHERE deleted_at IS NULL LIMIT 1")).rows[0].id;
-      const bad = await expectDbError(
-        "INSERT INTO products (category_id, status, price_min, promo_price_min) VALUES ($1,'draft',100,150)",
+      await client.query("SET session_replication_role = replica");
+      const pid = (await client.query(
+        "INSERT INTO products (category_id, status, price_min, price_max, published_at) VALUES ($1,'published',1000000,1200000, now()) RETURNING id",
         [cat]
+      )).rows[0].id;
+      await client.query(
+        "INSERT INTO product_translations (product_id, locale, slug, name, summary, description_json) VALUES ($1,'vi','bl-promo-price','SP Promo Test','tt','{}'::jsonb)",
+        [pid]
       );
-      expect(bad).toBe(true);
+      await client.query("SET session_replication_role = origin");
+
+      const promo = (await client.query(
+        "INSERT INTO promotions (code,status,start_at,end_at,discount_percentage) VALUES ('BL_PROMOPRICE','published', now()-interval '1 day', now()+interval '10 days', 20) RETURNING id"
+      )).rows[0].id;
+      await client.query("INSERT INTO product_promotions (product_id, promotion_id) VALUES ($1,$2)", [pid, promo]);
+
+      const res = await client.query("SELECT promo_price_min, promo_price_max FROM public_products('vi') WHERE id=$1", [pid]);
+      expect(Number(res.rows[0].promo_price_min)).toBeCloseTo(800000, 0);
+      expect(Number(res.rows[0].promo_price_max)).toBeCloseTo(960000, 0);
+    });
+
+    it("returns null promo prices when no active promotion is linked", async () => {
+      const cat = (await client.query("SELECT id FROM product_categories WHERE deleted_at IS NULL LIMIT 1")).rows[0].id;
+      await client.query("SET session_replication_role = replica");
+      const pid = (await client.query(
+        "INSERT INTO products (category_id, status, price_min, published_at) VALUES ($1,'published',500000, now()) RETURNING id",
+        [cat]
+      )).rows[0].id;
+      await client.query(
+        "INSERT INTO product_translations (product_id, locale, slug, name, summary, description_json) VALUES ($1,'vi','bl-no-promo','SP No Promo','tt','{}'::jsonb)",
+        [pid]
+      );
+      await client.query("SET session_replication_role = origin");
+
+      const res = await client.query("SELECT promo_price_min FROM public_products('vi') WHERE id=$1", [pid]);
+      expect(res.rows[0].promo_price_min).toBeNull();
     });
   });
 
@@ -301,6 +334,213 @@ describe("Business logic guarantees (migration 0003)", () => {
       expect(String(res.rows[0].r.error)).toMatch(/admin only/i);
       const still = await client.query("SELECT status FROM quote_requests WHERE id=$1", [q]);
       expect(still.rows[0].status).toBe("closed");
+    });
+  });
+
+  // ── Item 4.4: spam leads must be re-triaged before closing/qualifying ─────
+  describe("Quote reopen guard: spam must be re-triaged first (item 4.4)", () => {
+    async function asAdmin(): Promise<string> {
+      const admin = (await client.query(
+        "SELECT id FROM profiles WHERE role='admin' AND is_active AND deleted_at IS NULL LIMIT 1"
+      )).rows[0].id;
+      await client.query("SELECT set_config('request.jwt.claim.sub', $1, true)", [admin]);
+      return admin;
+    }
+    async function makeSpamQuote(): Promise<string> {
+      return (await client.query(
+        `INSERT INTO quote_requests (full_name, phone, message, preferred_locale, source_path, status)
+         VALUES ('Spammer','0123456789','m','vi','/x','spam') RETURNING id`
+      )).rows[0].id;
+    }
+
+    it("rejects spam -> closed", async () => {
+      await asAdmin();
+      const q = await makeSpamQuote();
+      const res = await client.query("SELECT public.update_quote_status($1,'closed',null) AS r", [q]);
+      expect(res.rows[0].r.success).toBe(false);
+      expect(String(res.rows[0].r.error)).toMatch(/spam/i);
+      const still = await client.query("SELECT status FROM quote_requests WHERE id=$1", [q]);
+      expect(still.rows[0].status).toBe("spam");
+    });
+
+    it("rejects spam -> qualified", async () => {
+      await asAdmin();
+      const q = await makeSpamQuote();
+      const res = await client.query("SELECT public.update_quote_status($1,'qualified',null) AS r", [q]);
+      expect(res.rows[0].r.success).toBe(false);
+    });
+
+    it("still allows spam -> new (re-triage)", async () => {
+      await asAdmin();
+      const q = await makeSpamQuote();
+      const res = await client.query("SELECT public.update_quote_status($1,'new',null) AS r", [q]);
+      expect(res.rows[0].r.success).toBe(true);
+    });
+  });
+
+  // ── Item 3: deactivating a blog author must not hide their published posts ─
+  describe("Blog posts stay public when the author is deactivated (item 3)", () => {
+    it("public_blog_posts still returns a published post whose author is_active=false", async () => {
+      const cat = (await client.query("INSERT INTO blog_categories (status) VALUES ('draft') RETURNING id")).rows[0].id;
+      await client.query(
+        "INSERT INTO blog_category_translations (category_id, locale, slug, name) VALUES ($1,'vi','bl-author-cat','Danh muc'),($1,'en','bl-author-cat-en','Category')",
+        [cat]
+      );
+      await client.query("UPDATE blog_categories SET status='published' WHERE id=$1", [cat]);
+
+      // Reuse a seeded editor (never subject to the last-admin lockout trigger) and
+      // deactivate it for the duration of this rolled-back transaction.
+      const author = (await client.query(
+        "SELECT id FROM profiles WHERE role='editor' AND deleted_at IS NULL LIMIT 1"
+      )).rows[0].id;
+      await client.query("UPDATE profiles SET is_active=false WHERE id=$1", [author]);
+
+      const media = (await client.query(
+        `INSERT INTO media_assets (storage_provider, resource_type, public_url, mime_type, format, size_bytes, cloudinary_public_id, status)
+         VALUES ('cloudinary','image','http://x/bl-author.jpg','image/jpeg','jpg',1000,'bl-author-cover','active') RETURNING id`
+      )).rows[0].id;
+
+      const post = (await client.query(
+        "INSERT INTO blog_posts (category_id, author_id, status, cover_media_id) VALUES ($1,$2,'draft',$3) RETURNING id",
+        [cat, author, media]
+      )).rows[0].id;
+      await client.query(
+        `INSERT INTO blog_post_translations (post_id, locale, slug, title, excerpt, body_json) VALUES
+          ($1,'vi','bl-author-post','Tieu de','Trich dan','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb),
+          ($1,'en','bl-author-post-en','Title','Excerpt','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb)`,
+        [post]
+      );
+      await client.query("UPDATE blog_posts SET status='published' WHERE id=$1", [post]);
+
+      const res = await client.query("SELECT count(*)::int c FROM public_blog_posts('vi') WHERE id=$1", [post]);
+      expect(res.rows[0].c).toBe(1);
+    });
+  });
+
+  // ── Items 4.1 / 4.2: blog publish requirements ────────────────────────────
+  describe("Blog publish requires a cover image, and caps featured posts at 8 (items 4.1/4.2)", () => {
+    async function makeCategory(): Promise<string> {
+      const cat = (await client.query("INSERT INTO blog_categories (status) VALUES ('draft') RETURNING id")).rows[0].id;
+      await client.query(
+        "INSERT INTO blog_category_translations (category_id, locale, slug, name) VALUES ($1,'vi',$2,'Danh muc'),($1,'en',$3,'Category')",
+        [cat, `bl-cat-${cat}`, `bl-cat-en-${cat}`]
+      );
+      await client.query("UPDATE blog_categories SET status='published' WHERE id=$1", [cat]);
+      return cat;
+    }
+    async function makeAuthor(): Promise<string> {
+      return (await client.query(
+        "SELECT id FROM profiles WHERE role='editor' AND is_active AND deleted_at IS NULL LIMIT 1"
+      )).rows[0].id;
+    }
+    async function makeMedia(tag: string): Promise<string> {
+      return (await client.query(
+        `INSERT INTO media_assets (storage_provider, resource_type, public_url, mime_type, format, size_bytes, cloudinary_public_id, status)
+         VALUES ('cloudinary','image',$1,'image/jpeg','jpg',1000,$2,'active') RETURNING id`,
+        [`http://x/${tag}.jpg`, tag]
+      )).rows[0].id;
+    }
+    async function makeDraftPost(catId: string, authorId: string, coverMediaId: string | null): Promise<string> {
+      const p = (await client.query(
+        "INSERT INTO blog_posts (category_id, author_id, status, cover_media_id) VALUES ($1,$2,'draft',$3) RETURNING id",
+        [catId, authorId, coverMediaId]
+      )).rows[0].id;
+      await client.query(
+        `INSERT INTO blog_post_translations (post_id, locale, slug, title, excerpt, body_json) VALUES
+          ($1,'vi',$2,'Tieu de','Trich dan','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb),
+          ($1,'en',$3,'Title','Excerpt','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb)`,
+        [p, `bl-post-${p}`, `bl-post-en-${p}`]
+      );
+      return p;
+    }
+
+    it("blocks publishing a blog post without a cover image", async () => {
+      const cat = await makeCategory();
+      const author = await makeAuthor();
+      const post = await makeDraftPost(cat, author, null);
+      const blocked = await expectDbError("UPDATE blog_posts SET status='published' WHERE id=$1", [post]);
+      expect(blocked).toBe(true);
+    });
+
+    it("allows publishing once a cover image is set", async () => {
+      const cat = await makeCategory();
+      const author = await makeAuthor();
+      const media = await makeMedia("bl-cover-ok");
+      const post = await makeDraftPost(cat, author, media);
+      await client.query("UPDATE blog_posts SET status='published' WHERE id=$1", [post]);
+      const row = await client.query("SELECT status FROM blog_posts WHERE id=$1", [post]);
+      expect(row.rows[0].status).toBe("published");
+    });
+
+    it("blocks featuring a 9th published post", async () => {
+      const cat = await makeCategory();
+      const author = await makeAuthor();
+      for (let i = 0; i < 8; i++) {
+        const media = await makeMedia(`bl-feat-${i}-${cat}`);
+        const post = await makeDraftPost(cat, author, media);
+        await client.query("UPDATE blog_posts SET status='published', featured=true WHERE id=$1", [post]);
+      }
+      const media9 = await makeMedia(`bl-feat-9-${cat}`);
+      const post9 = await makeDraftPost(cat, author, media9);
+      await client.query("UPDATE blog_posts SET status='published' WHERE id=$1", [post9]);
+      const blocked = await expectDbError("UPDATE blog_posts SET featured=true WHERE id=$1", [post9]);
+      expect(blocked).toBe(true);
+    });
+  });
+
+  // ── Item 4.3: promotions require a start date to publish ─────────────────
+  describe("Promotions require a start date to publish (item 4.3)", () => {
+    it("blocks publishing a promotion with no start_at", async () => {
+      const p = (await client.query(
+        "INSERT INTO promotions (code,status) VALUES ('BL_NOSTART','draft') RETURNING id"
+      )).rows[0].id;
+      const blocked = await expectDbError("UPDATE promotions SET status='published' WHERE id=$1", [p]);
+      expect(blocked).toBe(true);
+    });
+
+    it("allows publishing once a start_at is set", async () => {
+      const p = (await client.query(
+        "INSERT INTO promotions (code,status,start_at) VALUES ('BL_HASSTART','draft', now()) RETURNING id"
+      )).rows[0].id;
+      await client.query("UPDATE promotions SET status='published' WHERE id=$1", [p]);
+      const row = await client.query("SELECT status FROM promotions WHERE id=$1", [p]);
+      expect(row.rows[0].status).toBe("published");
+    });
+  });
+
+  // ── Item 4.6: publish requires meaningful content, not just non-null JSON ─
+  describe("Publish requires meaningful translation content (item 4.6)", () => {
+    it("blocks publishing a product whose EN description is an empty object", async () => {
+      const cat = (await client.query("SELECT id FROM product_categories WHERE deleted_at IS NULL LIMIT 1")).rows[0].id;
+      const pid = (await client.query(
+        "INSERT INTO products (category_id, status, price_min) VALUES ($1,'draft',100) RETURNING id",
+        [cat]
+      )).rows[0].id;
+      await client.query(
+        `INSERT INTO product_translations (product_id, locale, slug, name, summary, description_json) VALUES
+          ($1,'vi','bl-content-vi','Ten VI','Tom tat VI','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb),
+          ($1,'en','bl-content-en','Name EN','Summary EN','{}'::jsonb)`,
+        [pid]
+      );
+      const blocked = await expectDbError("UPDATE products SET status='published' WHERE id=$1", [pid]);
+      expect(blocked).toBe(true);
+    });
+
+    it("allows publishing once both locales have real doc content", async () => {
+      const cat = (await client.query("SELECT id FROM product_categories WHERE deleted_at IS NULL LIMIT 1")).rows[0].id;
+      const pid = (await client.query(
+        "INSERT INTO products (category_id, status, price_min) VALUES ($1,'draft',100) RETURNING id",
+        [cat]
+      )).rows[0].id;
+      await client.query(
+        `INSERT INTO product_translations (product_id, locale, slug, name, summary, description_json) VALUES
+          ($1,'vi','bl-content-vi2','Ten VI','Tom tat VI','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb),
+          ($1,'en','bl-content-en2','Name EN','Summary EN','{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb)`,
+        [pid]
+      );
+      await client.query("UPDATE products SET status='published' WHERE id=$1", [pid]);
+      const row = await client.query("SELECT status FROM products WHERE id=$1", [pid]);
+      expect(row.rows[0].status).toBe("published");
     });
   });
 
