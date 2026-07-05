@@ -65,10 +65,10 @@ function slugifyVi(input: string): string {
 }
 
 /**
- * Create a blog category inline (from the blog editor). Handles the publish trigger
- * that requires both vi + en translations: insert draft → translations → publish.
- * Returns the new category id + slug + name so the editor can select it immediately.
- */
+* Create a blog category inline (from the blog editor). Handles the publish trigger
+* that requires both vi + en translations: insert draft → translations → publish.
+* Returns the new category id + slug + name so the editor can select it immediately.
+*/
 export async function createBlogCategory(
   name: string,
 ): Promise<{ success: boolean; id?: string; slug?: string; name?: string; error?: string }> {
@@ -109,6 +109,55 @@ export async function createBlogCategory(
 
     triggerRevalidation();
     return { success: true, id: cat.id, slug, name: trimmed };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
+  }
+}
+
+/**
+* Soft-delete a blog category (from the blog editor). Blocked when the category
+* still has active posts so we don't strand published content.
+*/
+export async function deleteBlogCategory(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  const user = await requireEditorOrAdmin();
+  if (!id) return { success: false, error: "Thiếu mã danh mục" };
+  const supabase = createAdminClient();
+
+  try {
+    const { data: posts } = await supabase
+      .from("blog_posts")
+      .select("id")
+      .eq("category_id", id)
+      .is("deleted_at", null)
+      .limit(1);
+    if (posts && posts.length > 0) {
+      return {
+        success: false,
+        error: "Không thể xóa danh mục đang có bài viết. Hãy chuyển hoặc xóa các bài viết trước.",
+      };
+    }
+
+    const { error } = await supabase
+      .from("blog_categories")
+      .update({ deleted_at: new Date().toISOString(), status: "draft", updated_by: user.id })
+      .eq("id", id);
+    if (error) return { success: false, error: error.message };
+
+    try {
+      await writeAuditLog(supabase, {
+        actorId: user.id,
+        action: "archive",
+        entityType: "blog_category",
+        entityId: id,
+      });
+    } catch {
+      /* audit failure should not block the delete */
+    }
+
+    triggerRevalidation();
+    return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
   }
@@ -278,7 +327,7 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
   }
 
   const values = validation.data;
-  
+
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
   if (!category.id) return { success: false, error: category.error };
@@ -310,11 +359,11 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
       return { success: false, error: postError?.message || "Failed to create blog post" };
     }
 
-    const translations = [
+    const buildTranslations = (slug: string) => [
       {
         post_id: post.id,
         locale: "vi",
-        slug: values.slug,
+        slug,
         title: values.title_vi,
         excerpt: values.excerpt_vi,
         body_json: bodyJsonFromEditor(values.body_json_vi, values.title_vi),
@@ -324,7 +373,7 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
       {
         post_id: post.id,
         locale: "en",
-        slug: values.slug,
+        slug,
         title: values.title_en || values.title_vi,
         excerpt: values.excerpt_en || values.excerpt_vi,
         body_json: bodyJsonFromEditor(values.body_json_en || values.body_json_vi, values.title_en || values.title_vi),
@@ -333,7 +382,19 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
       },
     ];
 
-    const { error: transError } = await supabase.from("blog_post_translations").insert(translations);
+    // The (locale, slug) unique index is global with no soft-delete predicate, so a
+    // duplicate title — or a slug left by a soft-deleted post — would collide. Retry
+    // with a short suffix instead of hard-failing on a duplicate-key error.
+    let slug = values.slug;
+    let transError: { message: string } | null = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { error } = await supabase.from("blog_post_translations").insert(buildTranslations(slug));
+      transError = error;
+      if (!error) break;
+      const isDuplicate = /duplicate key|unique constraint/i.test(error.message || "");
+      if (!isDuplicate || attempt === 3) break;
+      slug = `${values.slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
     if (transError) {
       await supabase.from("blog_posts").delete().eq("id", post.id);
       return { success: false, error: transError.message };
@@ -362,7 +423,7 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
         action: "create",
         entityType: "blog_post",
         entityId: post.id,
-        metadata: { title: values.title_vi, slug: values.slug },
+        metadata: { title: values.title_vi, slug },
       });
     } catch (auditError) {
       await supabase.from("blog_posts").delete().eq("id", post.id);
@@ -384,7 +445,7 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
   }
 
   const values = validation.data;
-  
+
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
   if (!category.id) return { success: false, error: category.error };
@@ -461,7 +522,7 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
 
 export async function deleteAdminBlogPost(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
+
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -475,6 +536,24 @@ export async function deleteAdminBlogPost(id: string): Promise<{ success: boolea
       .eq("id", id);
 
     if (error) return { success: false, error: error.message };
+
+    // Free the (locale, slug) namespace so a future post can reuse this slug
+    // (blog_post_translations unique index has no soft-delete predicate).
+    const { data: archivedTrans } = await supabase
+      .from("blog_post_translations")
+      .select("locale, slug")
+      .eq("post_id", id);
+    if (archivedTrans) {
+      for (const t of archivedTrans as { locale: string; slug: string }[]) {
+        if (t.slug && !t.slug.includes("-deleted-")) {
+          await supabase
+            .from("blog_post_translations")
+            .update({ slug: `${t.slug}-deleted-${id.slice(0, 8)}` })
+            .eq("post_id", id)
+            .eq("locale", t.locale);
+        }
+      }
+    }
 
     await writeAuditLog(supabase, {
       actorId: user.id,

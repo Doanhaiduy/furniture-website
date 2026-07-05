@@ -145,6 +145,16 @@ export function AdminRouteDialog({
     setMounted(true);
   }, []);
 
+  // Keep a stable ref to the latest closeDialog so the "on open" effect below
+  // does not depend on it. If it did, the effect would re-run every time
+  // `isDirty` flips (closeDialog is a useCallback of isDirty) — which happens
+  // on the very first keystroke — and its auto-focus setTimeout would steal
+  // focus back to the first field mid-typing.
+  const closeDialogRef = useRef(closeDialog);
+  useEffect(() => {
+    closeDialogRef.current = closeDialog;
+  }, [closeDialog]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -159,7 +169,7 @@ export function AdminRouteDialog({
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        closeDialog();
+        closeDialogRef.current();
       }
     };
 
@@ -169,7 +179,7 @@ export function AdminRouteDialog({
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [closeDialog, isOpen]);
+  }, [isOpen]);
 
   const handleDialogKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Tab") return;
@@ -291,3 +301,4 @@ export function AdminRouteDialog({
     document.body
   );
 }
+ 

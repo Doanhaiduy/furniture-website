@@ -254,29 +254,6 @@ export default async function HomePage({
               </Link>
             );
           })}
-
-          {/* Static Thiết kế khác card */}
-          <Link
-            href={withLocale(locale, "/contact")}
-            className="interactive-card public-image-panel group relative min-h-72"
-          >
-            <RemoteImage src={imageAssets.showroom} alt={locale === "vi" ? "Thiết kế khác" : "Project solutions"} className="image-lift h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-            <div className="absolute bottom-0 p-5 text-white">
-              <h3 className="type-card-title text-2xl text-white">
-                {locale === "vi" ? "Thiết kế khác" : "Project solutions"}
-              </h3>
-              <p className="mt-2 text-sm text-white/80">
-                {locale === "vi" 
-                  ? "Giải pháp tổng thể cho nhà ở và công trình." 
-                  : "Complete solutions for homes and projects."}
-              </p>
-              <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
-                {common("explore")}
-                <ArrowRight className="size-4" />
-              </span>
-            </div>
-          </Link>
         </div>
       </section>
 
@@ -500,7 +477,7 @@ export default async function HomePage({
           {/* Ambient fade edges */}
           <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-surface-page-top via-surface-page-top/80 to-transparent z-10 pointer-events-none" />
-          
+
           <div className="animate-marquee-pd flex items-center gap-6">
             {/* Loop 1 */}
             {displayBrands.map((brand, i) => (
@@ -585,3 +562,4 @@ export default async function HomePage({
     </main>
   );
 }
+ 

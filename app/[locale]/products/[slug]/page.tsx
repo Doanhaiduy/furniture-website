@@ -74,11 +74,11 @@ export default async function ProductDetailPage({
       showroomName = matchedShowroom.name || "";
     }
   }
-  
+
   const t = await getTranslations("products");
   const contact = await getTranslations("contact");
   const common = await getTranslations("common");
-  
+
   let related: any[] = [];
   if (dbProduct?.category?.slug) {
     const dbRelated = await getProducts(supabase, {
@@ -86,7 +86,7 @@ export default async function ProductDetailPage({
       categorySlug: dbProduct.category.slug,
       limit: 10,
     }).catch(() => []);
-    
+
     related = dbRelated
       .map((p: any) => mapDBProductToPublicProduct(p, locale))
       .filter((item: any) => item.slug !== product.slug)
@@ -109,7 +109,7 @@ export default async function ProductDetailPage({
             galleryHelp: t("galleryHelp"),
           }}
         />
-        
+
         {/* Right Info Sidebar */}
         <div className="surface-panel p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div>
@@ -122,7 +122,7 @@ export default async function ProductDetailPage({
             <p className="mt-1.5 text-xs text-slate-400 font-mono">
               Ref: {product.referenceCode || product.slug.toUpperCase()}
             </p>
-            
+
             {/* Price section with context */}
             <div className="mt-5 border-y border-slate-100 py-4 flex flex-col gap-0.5">
               <div className="flex items-baseline gap-2.5">
@@ -143,7 +143,7 @@ export default async function ProductDetailPage({
             <p className="mt-5 text-xs sm:text-sm leading-relaxed text-slate-500 font-light">
               {localized(product.summary, locale)}
             </p>
-            
+
             {/* Minimal Specs List */}
             <div className="mt-6 border-t border-slate-100 pt-5 space-y-3">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
@@ -151,9 +151,9 @@ export default async function ProductDetailPage({
               </h3>
               <div className="grid gap-y-2.5 text-xs sm:text-sm">
                 {product.specs.slice(0, 4).map((spec: any) => (
-                  <div key={localized(spec.label, locale)} className="flex justify-between border-b border-dashed border-slate-100 pb-2">
-                    <span className="text-slate-500 font-light">{localized(spec.label, locale)}</span>
-                    <span className="font-semibold text-slate-800">{localized(spec.value, locale)}</span>
+                  <div key={localized(spec.label, locale)} className="flex items-start justify-between gap-x-6 border-b border-dashed border-slate-100 pb-2">
+                    <span className="shrink-0 text-slate-500 font-light">{localized(spec.label, locale)}</span>
+                    <span className="min-w-0 text-right font-semibold text-slate-800 line-clamp-3">{String(localized(spec.value, locale) ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()}</span>
                   </div>
                 ))}
               </div>
@@ -183,10 +183,10 @@ export default async function ProductDetailPage({
               submitError: contact("submitError"),
             }}
           />
-          
+
           {/* Trust badges and showroom availability */}
           <ProductTrustMetrics locale={locale} showroomName={showroomName} />
-          
+
           {/* Social share */}
           <div className="mt-5 pt-4 border-t border-slate-100">
             <SocialShare label={common("share")} copyLabel={common("copyLink")} copiedLabel={common("copied")} url={`/${locale}/products/${product.slug}`} title={localized(product.name, locale)} />
@@ -240,7 +240,7 @@ export default async function ProductDetailPage({
                 : "Schedule a customized design consultation or request specific material options tailored to your luxury project."}
             </p>
           </div>
-          
+
           <div className="pt-8 border-t border-brand-wood-strong space-y-2 text-xs">
             <p className="text-brand-wood-soft uppercase tracking-widest font-mono text-[9px]">
               {locale === "vi" ? "ĐƯỜNG DÂY NÓNG HỖ TRỢ" : "HOTLINE SUPPORT"}
@@ -251,7 +251,7 @@ export default async function ProductDetailPage({
             </p>
           </div>
         </div>
-        
+
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-100 shadow-lg flex flex-col justify-center">
           <QuoteForm
             locale={locale}
@@ -300,7 +300,7 @@ export default async function ProductDetailPage({
             {locale === "vi" ? "Các thiết kế đồng bộ khuyên dùng" : "Coordinating pieces recommended by curators"}
           </span>
         </div>
-        
+
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           {related.map((item) => (
             <ProductCard key={item.slug} product={item} locale={locale} detailsLabel={common("explore")} compact />
@@ -310,3 +310,4 @@ export default async function ProductDetailPage({
     </main>
   );
 }
+ 

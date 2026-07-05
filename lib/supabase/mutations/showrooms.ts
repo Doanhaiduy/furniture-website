@@ -355,7 +355,7 @@ export async function updateAdminShowroom(id: string, data: ShowroomInput): Prom
         street_address: values.street_address || null,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
-        published_at: values.status === "published" ? new Date().toISOString() : null,
+        // published_at is owned by the set_publish_timestamps trigger — don't re-stamp on edit.
         deleted_at: values.status === "archived" ? new Date().toISOString() : null,
       })
       .eq("id", id);

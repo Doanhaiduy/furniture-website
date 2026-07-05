@@ -160,14 +160,15 @@ export default async function AdminDynamicPage({
       showroomTotal = res.length;
     }
   } else if (section === "categories") {
+    // The categories admin renders a full parent→child TREE (no pagination UI),
+    // so fetch the whole hierarchy. Paginating here would split parents from
+    // their children and dump the children into the "unassigned" bucket.
     const res = await getAdminCategories({
       q,
       status,
       groupKey: query.groupKey,
       sort,
       dir,
-      limit,
-      offset,
       dateFrom,
       dateTo,
       withTotal: true,

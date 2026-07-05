@@ -3,6 +3,7 @@
 
 import { createClient, createAdminClient } from "../server";
 import { requireEditorOrAdmin } from "../auth";
+import { promotionSchema } from "../../validations/admin";
 import { resolveTranslationMatchIds, buildTranslationSearchOr } from "../search-helpers";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -45,12 +46,12 @@ async function getOrCreateMediaAssetId(
 }
 
 /**
- * BUG 1 — overlapping promotions. Given the products about to be attached and the
- * intended schedule/status of THIS promotion, return the code of a conflicting
- * published promotion (or null). Mirrors the DB trigger check_promotion_product_overlap
- * so the CMS can show a friendly, specific error instead of a raw trigger exception.
- * The DB trigger remains the hard guarantee against direct-API bypass.
- */
+* BUG 1 — overlapping promotions. Given the products about to be attached and the
+* intended schedule/status of THIS promotion, return the code of a conflicting
+* published promotion (or null). Mirrors the DB trigger check_promotion_product_overlap
+* so the CMS can show a friendly, specific error instead of a raw trigger exception.
+* The DB trigger remains the hard guarantee against direct-API bypass.
+*/
 async function findOverlappingPromotion(
   supabase: any,
   productIds: string[],
@@ -285,9 +286,19 @@ export async function createAdminPromotion(data: {
   productIds?: string[];
 }): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
+
+  // Server-side validation (defense-in-depth; the form validates too). productIds is
+  // handled separately below, so validate the rest of the payload against the schema.
+  const validation = promotionSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues.map((i) => i.message).join(", ") };
+  }
+
   try {
-    const supabase = await createClient();
+    // Service-role client: `authenticated` has no DELETE grant on `promotions`, so the
+    // rollback below (and the audit_logs insert) would silently fail under the RLS
+    // client, leaving a half-created / published "zombie" promotion behind.
+    const supabase = createAdminClient();
 
     // Reversed date range is always a data-entry error (mirrors promotionSchema).
     if (data.start_at && data.end_at && new Date(data.start_at) >= new Date(data.end_at)) {
@@ -453,6 +464,11 @@ export async function updateAdminPromotion(
 ): Promise<{ success: boolean; data?: AdminPromotion; error?: string }> {
   const user = await requireEditorOrAdmin();
 
+  const validation = promotionSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues.map((i) => i.message).join(", ") };
+  }
+
   try {
     const supabase = await createClient();
 
@@ -561,9 +577,10 @@ export async function updateAdminPromotion(
 
 export async function deleteAdminPromotion(id: string): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
+
   try {
-    const supabase = await createClient();
+    // Service-role client so the audit_logs insert below is not denied by RLS.
+    const supabase = createAdminClient();
 
     // Soft delete
     const { error } = await supabase
@@ -619,7 +636,7 @@ export async function getAdminPromotionById(id: string): Promise<{ success: bool
           description
         )
       `);
-    
+
     if (isUuid) {
       query = query.eq("id", id);
     } else {
@@ -725,3 +742,4 @@ export async function updatePromotionStatus(
     return { success: false, error: err instanceof Error ? err.message : "Database error" };
   }
 }
+ 

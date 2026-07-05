@@ -199,10 +199,18 @@ export const showroomSchema = z.object({
   opening_hours_vi: optionalText,
   opening_hours_en: optionalText,
   hotline: phoneSchema,
-  google_maps_embed_url: requiredText("URL bản đồ nhúng bắt buộc"),
-  google_maps_fallback_url: requiredText("URL bản đồ dự phòng bắt buộc"),
-  latitude: z.number().nullable().optional(),
-  longitude: z.number().nullable().optional(),
+  // DB CHECK chk_showrooms_map_urls_https requires both to start with https://.
+  google_maps_embed_url: requiredText("URL bản đồ nhúng bắt buộc").regex(
+    /^https:\/\//,
+    "URL bản đồ nhúng phải bắt đầu bằng https:// (dán liên kết, không dán mã <iframe>)",
+  ),
+  google_maps_fallback_url: requiredText("URL bản đồ dự phòng bắt buộc").regex(
+    /^https:\/\//,
+    "URL bản đồ dự phòng phải bắt đầu bằng https://",
+  ),
+  // DB CHECK chk_showrooms_coordinates: lat ∈ [-90,90], lng ∈ [-180,180].
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
   sort_order: z.number().int().default(0),
   cover_image: optionalText,

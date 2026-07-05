@@ -1,43 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useToast } from "@/components/providers/toast-provider";
+import { useState } from "react";
 
 // Tiptap WYSIWYG
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
 
 import {
   Archive,
-  Bot,
-  Bold,
-  CheckCircle2,
-  ImageUp,
-  Italic,
-  Link2,
-  List,
-  ListOrdered,
-  Loader2,
-  RefreshCcw,
   Rocket,
   Save,
-  Strikethrough,
-  UnderlineIcon,
-  UploadCloud,
-  WandSparkles,
-  Trash2,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Heading2,
-  Heading3,
-  Quote,
-  Undo2,
-  Redo2,
 } from "lucide-react";
 import {
   Dialog,
@@ -47,8 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PremiumSelect } from "../premium-select";
-import { Pagination } from "../admin-pages";
 
 
 import { StatusPill } from "./StatusPill";
@@ -59,6 +27,7 @@ export function PublishWorkflow({
   onSaveDraft,
   onPublish,
   onArchive,
+  canArchive = true,
 }: {
   status?: "draft" | "published" | "archived";
   onStatusChange?: (status: "draft" | "published" | "archived") => void;
@@ -66,6 +35,7 @@ export function PublishWorkflow({
   onSaveDraft?: () => void;
   onPublish?: () => void;
   onArchive?: () => void;
+  canArchive?: boolean;
 } = {}) {
   const [localStatus, setLocalStatus] = useState<"draft" | "published" | "archived">("draft");
   const status = propStatus !== undefined ? propStatus : localStatus;
@@ -119,10 +89,12 @@ export function PublishWorkflow({
           <Rocket className="size-4" />
           Xuất bản
         </button>
-        <button data-testid="publish-workflow-archive" className="button-pd-outline" type="button" onClick={() => setConfirm("archive")}>
-          <Archive className="size-4" />
-          Lưu trữ
-        </button>
+        {canArchive && (
+          <button data-testid="publish-workflow-archive" className="button-pd-outline" type="button" onClick={() => setConfirm("archive")}>
+            <Archive className="size-4" />
+            Lưu trữ
+          </button>
+        )}
         <button
           data-testid="publish-workflow-save-draft"
           className="button-pd-outline"
@@ -140,7 +112,7 @@ export function PublishWorkflow({
           Lưu nháp
         </button>
       </div>
-      
+
       {hasErrors && (
         <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
           <strong className="block font-semibold mb-1">Vấn đề đang chặn xuất bản:</strong>
@@ -172,8 +144,10 @@ export function PublishWorkflow({
               type="button"
               onClick={() => {
                 if (!confirm) return;
-                setStatus(confirm === "publish" ? "published" : "archived");
-                setFeedback(confirm === "publish" ? "Đã chuyển sang trạng thái xuất bản." : "Đã chuyển sang trạng thái lưu trữ.");
+                // Do NOT flip the status optimistically — the status pill must
+                // reflect the ACTUAL saved result. handleSave updates the status
+                // only after the server confirms success; on failure it stays put.
+                setFeedback("Đang lưu…");
                 if (confirm === "publish" && onPublish) onPublish();
                 if (confirm === "archive" && onArchive) onArchive();
                 setConfirm(null);
@@ -187,4 +161,3 @@ export function PublishWorkflow({
     </div>
   );
 }
-

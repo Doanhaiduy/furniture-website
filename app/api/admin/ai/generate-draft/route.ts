@@ -59,6 +59,7 @@ export async function POST(request: Request) {
 Based on the following topic or product name: "${inputText}", generate comprehensive draft details for a product profile.
 You MUST respond with a single, raw, valid JSON object containing exactly these keys. Ensure the content feels high-end, premium, and professional. Translate/generate both Vietnamese and English versions.
 Do NOT wrap the response in markdown code blocks or add any markdown formatting. Output ONLY the JSON string.
+IMPORTANT — HTML rules: ONLY "viBody" and "enBody" may contain HTML tags. EVERY other field (titles, slugs, summaries, SEO fields, materials, dimensions, and ALL spec* fields) MUST be plain text — NO HTML tags (no <p>, <ul>, <li>, <strong>, etc.), NO markdown, NO bullet/numbered lists, NO line breaks. Each spec* field must be a single short readable phrase (roughly 3-12 words).
 
 JSON Schema:
 {
@@ -74,16 +75,16 @@ JSON Schema:
   "seoTitleEn": "SEO title English (< 60 characters)",
   "seoDescVi": "mô tả SEO tiếng Việt (< 160 ký tự)",
   "seoDescEn": "SEO description English (< 160 characters)",
-  "materialsVi": "chất liệu tiếng Việt",
-  "materialsEn": "materials in English",
+  "materialsVi": "chất liệu tiếng Việt (văn bản thuần, KHÔNG HTML)",
+  "materialsEn": "materials in English (plain text, NO HTML)",
   "dimensionsVi": "kích thước (ví dụ: 2000 x 900 x 750 mm)",
   "dimensionsEn": "dimensions (same or English format)",
-  "specMaterialVi": "thông số chất liệu tiếng Việt",
-  "specMaterialEn": "spec materials in English",
-  "specFinishVi": "hoàn thiện bề mặt tiếng Việt",
-  "specFinishEn": "finish description in English",
-  "specCareVi": "hướng dẫn bảo quản tiếng Việt",
-  "specCareEn": "care instructions in English"
+  "specMaterialVi": "thông số chất liệu tiếng Việt (1 câu ngắn, văn bản thuần, KHÔNG HTML, KHÔNG danh sách)",
+  "specMaterialEn": "spec materials in English (one short phrase, plain text, NO HTML, NO lists)",
+  "specFinishVi": "hoàn thiện bề mặt tiếng Việt (1 câu ngắn, văn bản thuần, KHÔNG HTML, KHÔNG danh sách)",
+  "specFinishEn": "finish description in English (one short phrase, plain text, NO HTML, NO lists)",
+  "specCareVi": "hướng dẫn bảo quản tiếng Việt (1 câu ngắn, văn bản thuần, KHÔNG HTML, KHÔNG danh sách)",
+  "specCareEn": "care instructions in English (one short phrase, plain text, NO HTML, NO lists)"
 }`;
       } else {
         prompt = `You are a professional copywriting assistant for a luxury furniture and sanitary showroom named "Showroom Nội Thất Phương Đông".

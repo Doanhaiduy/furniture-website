@@ -216,32 +216,28 @@ export function PublicShell({
     const root = item.root;
     const children = item.children;
 
-    const columns = children.map((child) => {
+    // Mega menu shows the CHILD CATEGORIES (each with a product-count badge), not
+    // the individual products. The "Sản phẩm tiêu biểu" list (products) is separate.
+    const categoryItems = children.map((child) => {
       const childProducts = finalProducts.filter(
         (p) => p.category_id === child.id || p.categoryId === child.id
       );
       return {
-        title: child.name,
-        items: childProducts.length > 0
-          ? childProducts.slice(0, 5).map((p) => ({
-              href: withLocale(locale, `/products/${p.slug}`),
-              label: getLocalizedValue(p.name, locale),
-            }))
-          : [{
-              href: withLocale(locale, `/products?category=${child.slug}`),
-              label: locale === "vi" ? "Xem tất cả" : "View all",
-            }],
+        href: withLocale(locale, `/products?category=${child.slug}`),
+        label: child.name,
+        count: childProducts.length,
       };
     });
 
-    const finalColumns = columns.length > 0
-      ? columns
+    const columns = categoryItems.length > 0
+      ? [{ title: locale === "vi" ? "Danh mục" : "Categories", items: categoryItems }]
       : [{
-          title: root.name,
-          items: item.associatedProducts.slice(0, 6).map((p) => ({
-            href: withLocale(locale, `/products/${p.slug}`),
-            label: getLocalizedValue(p.name, locale),
-          })),
+          title: locale === "vi" ? "Danh mục" : "Categories",
+          items: [{
+            href: withLocale(locale, `/products?category=${root.slug}`),
+            label: locale === "vi" ? "Xem tất cả" : "View all",
+            count: item.count,
+          }],
         }];
 
     const groupProducts = item.associatedProducts.slice(0, 3).map((p) => ({
@@ -255,7 +251,7 @@ export function PublicShell({
       image: root.image || imageAssets.showroom,
       title: root.name,
       summary: root.description || (locale === "vi" ? "Sản phẩm chất lượng cao." : "High quality products."),
-      columns: finalColumns,
+      columns,
       products: groupProducts,
     };
   });
@@ -268,13 +264,20 @@ export function PublicShell({
       return {
         title: root.name,
         items: children.length > 0
-          ? children.map((child) => ({
-              href: withLocale(locale, `/products?category=${child.slug}`),
-              label: child.name,
-            }))
+          ? children.map((child) => {
+              const childProducts = finalProducts.filter(
+                (p) => p.category_id === child.id || p.categoryId === child.id
+              );
+              return {
+                href: withLocale(locale, `/products?category=${child.slug}`),
+                label: child.name,
+                count: childProducts.length,
+              };
+            })
           : [{
               href: withLocale(locale, `/products?category=${root.slug}`),
               label: locale === "vi" ? "Xem tất cả" : "View all",
+              count: item.count,
             }],
       };
     });

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import DOMPurify from "isomorphic-dompurify";
 import { ArrowRight } from "lucide-react";
 import { type Locale, isLocale } from "@/i18n/routing";
 import {
@@ -42,7 +43,7 @@ export async function generateMetadata({
   if (!isLocale(locale)) notFound();
   const supabase = createPublicClient();
   const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
-  
+
   let title = "";
   let excerpt = "";
   let imageUrl = "";
@@ -61,7 +62,7 @@ export async function generateMetadata({
       imageUrl = mockPost.image || "";
     }
   }
-  
+
   if (!title) return {};
   return generatePageMetadata({
     title,
@@ -80,13 +81,13 @@ export default async function BlogDetailPage({
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  
+
   const supabase = createPublicClient();
   const dbPost = await getDBBlogBySlug(supabase, slug, locale).catch(() => null);
-  
+
   let post: any = null;
   let article: any = null;
-  
+
   if (dbPost) {
     post = {
       slug: dbPost.slug,
@@ -97,7 +98,7 @@ export default async function BlogDetailPage({
       title: { vi: dbPost.title, en: dbPost.title },
       excerpt: { vi: dbPost.excerpt, en: dbPost.excerpt },
     };
-    
+
     const body = dbPost.bodyJson || {};
     article = {
       takeaways: (body.takeaways || []).map((item: any) => ({
@@ -128,12 +129,12 @@ export default async function BlogDetailPage({
       article = getBlogArticleContent(slug);
     }
   }
-  
+
   if (!post || !article) notFound();
-  
+
   const t = await getTranslations("blog");
   const common = await getTranslations("common");
-  
+
   let related: any[] = [];
   if (dbPost?.category?.slug) {
     const dbRelated = await getBlogPosts(supabase, {
@@ -141,7 +142,7 @@ export default async function BlogDetailPage({
       categorySlug: dbPost.category.slug,
       limit: 5,
     }).catch(() => []);
-    
+
     related = dbRelated
       .filter((item: any) => item.slug !== post.slug)
       .slice(0, 2)
@@ -155,13 +156,13 @@ export default async function BlogDetailPage({
         excerpt: { vi: item.excerpt, en: item.excerpt },
       }));
   }
-  
+
   if (related.length === 0) {
     related = blogPosts
       .filter((item) => item.slug !== post.slug)
       .slice(0, 2);
   }
-  
+
   const tocItems = article.sections.map((section: any) => ({
     id: section.id,
     title: localized(section.title, locale),
@@ -216,27 +217,33 @@ export default async function BlogDetailPage({
               <ArticleToc items={tocItems} title={t("toc")} className="mt-5" />
             </details>
 
-            <section className="surface-soft p-5 md:p-6">
-              <p className="label-pd">{t("keyTakeaways")}</p>
-              <div className="mt-5 grid gap-3">
-                {article.takeaways.map((item: any, index: number) => (
-                  <p
-                    key={localized(item, locale)}
-                    className="public-content-card grid gap-3 p-4 text-[0.95rem] leading-7 text-secondary sm:grid-cols-[2rem_1fr]"
-                  >
-                    <span className="font-heading text-lg font-semibold text-primary/36">0{index + 1}</span>
-                    <span>{localized(item, locale)}</span>
-                  </p>
-                ))}
-              </div>
-            </section>
+            {/* Only render when the post actually has takeaways (CMS posts usually
+                don't) — otherwise an empty "Key Takeaways" block shows on every post. */}
+            {article.takeaways.length > 0 && (
+              <section className="surface-soft p-5 md:p-6">
+                <p className="label-pd">{t("keyTakeaways")}</p>
+                <div className="mt-5 grid gap-3">
+                  {article.takeaways.map((item: any, index: number) => (
+                    <p
+                      key={localized(item, locale)}
+                      className="public-content-card grid gap-3 p-4 text-[0.95rem] leading-7 text-secondary sm:grid-cols-[2rem_1fr]"
+                    >
+                      <span className="font-heading text-lg font-semibold text-primary/36">0{index + 1}</span>
+                      <span>{localized(item, locale)}</span>
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
 
-            <aside className="surface-inverse mt-8 p-6 md:p-7">
-              <p className="label-pd text-white/65">{t("fieldNote")}</p>
-              <blockquote className="type-card-title mt-4 text-xl text-white md:text-2xl">
-                {localized(article.quote, locale)}
-              </blockquote>
-            </aside>
+            {localized(article.quote, locale)?.trim() && (
+              <aside className="surface-inverse mt-8 p-6 md:p-7">
+                <p className="label-pd text-white/65">{t("fieldNote")}</p>
+                <blockquote className="type-card-title mt-4 text-xl text-white md:text-2xl">
+                  {localized(article.quote, locale)}
+                </blockquote>
+              </aside>
+            )}
 
             <div className="mt-12 space-y-12">
               {article.sections.map((section: any, index: number) => (
@@ -253,9 +260,12 @@ export default async function BlogDetailPage({
                   >
                     {localized(section.title, locale)}
                   </h2>
-                  <p className="mt-4 text-base leading-8 text-secondary md:text-[1.05rem]">
-                    {localized(section.body, locale)}
-                  </p>
+                  <div
+                    className="rich-content mt-4 text-base leading-8 text-secondary md:text-[1.05rem]"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(localized(section.body, locale)),
+                    }}
+                  />
                   {"image" in section && section.image ? (
                     <figure className="public-image-panel mt-7">
                       <RemoteImage
@@ -308,3 +318,4 @@ export default async function BlogDetailPage({
     </main>
   );
 }
+ 

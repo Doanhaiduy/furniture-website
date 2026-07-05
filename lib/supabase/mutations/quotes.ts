@@ -1,11 +1,14 @@
 "use server";
 
 import { createAdminClient } from "../server";
-import { requireEditorOrAdmin } from "../auth";
+import { requireAdmin } from "../auth";
 import { writeAuditLog } from "../audit";
 
 export async function updateQuoteAssignee(id: string, assignedTo: string | null): Promise<{ success: boolean; error?: string }> {
-  const user = await requireEditorOrAdmin();
+  // Quote leads are private admin-only data (RLS is_admin, UI gates to admin), and
+  // these run on the service-role client which bypasses RLS — so the guard must be
+  // admin-only, otherwise an editor could read/modify/delete customer lead PII.
+  const user = await requireAdmin();
   try {
     const supabase = createAdminClient();
 
@@ -45,7 +48,10 @@ export async function updateQuoteAssignee(id: string, assignedTo: string | null)
 }
 
 export async function updateQuoteSalesNotes(id: string, salesNotes: string | null): Promise<{ success: boolean; error?: string }> {
-  const user = await requireEditorOrAdmin();
+  // Quote leads are private admin-only data (RLS is_admin, UI gates to admin), and
+  // these run on the service-role client which bypasses RLS — so the guard must be
+  // admin-only, otherwise an editor could read/modify/delete customer lead PII.
+  const user = await requireAdmin();
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -63,7 +69,10 @@ export async function updateQuoteSalesNotes(id: string, salesNotes: string | nul
 }
 
 export async function updateQuoteAdminNotes(id: string, adminNotes: string | null): Promise<{ success: boolean; error?: string }> {
-  const user = await requireEditorOrAdmin();
+  // Quote leads are private admin-only data (RLS is_admin, UI gates to admin), and
+  // these run on the service-role client which bypasses RLS — so the guard must be
+  // admin-only, otherwise an editor could read/modify/delete customer lead PII.
+  const user = await requireAdmin();
   try {
     const supabase = createAdminClient();
     const { error } = await supabase
@@ -85,7 +94,10 @@ export async function updateQuoteAdminNotes(id: string, adminNotes: string | nul
 // filters deleted_at IS NULL — this was previously the only entity with no delete
 // path from the CMS.
 export async function deleteAdminQuote(id: string): Promise<{ success: boolean; error?: string }> {
-  const user = await requireEditorOrAdmin();
+  // Quote leads are private admin-only data (RLS is_admin, UI gates to admin), and
+  // these run on the service-role client which bypasses RLS — so the guard must be
+  // admin-only, otherwise an editor could read/modify/delete customer lead PII.
+  const user = await requireAdmin();
   try {
     const supabase = createAdminClient();
     const { error } = await supabase

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import { CheckCircle2, Download, Award, Sparkles, ChevronDown, Truck, ShieldCheck, Image as ImageIcon } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import type { Product } from "@/lib/showroom-data";
@@ -86,8 +87,8 @@ export function ProductInformationTabs({
           <div className="relative pl-6 border-l-2 border-primary/30 py-2">
             {overviewHtml ? (
               <div
-                className="text-slate-600 leading-relaxed text-sm sm:text-base font-light text-justify prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: overviewHtml }}
+                className="rich-content text-slate-600 leading-relaxed text-sm sm:text-base font-light text-justify max-w-none"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(overviewHtml) }}
               />
             ) : (
               <p className="text-slate-500 text-sm font-light italic">
@@ -182,7 +183,7 @@ export function ProductInformationTabs({
                     {localized(spec.label, locale)}
                   </td>
                   <td className="px-6 py-4 font-semibold text-slate-800 leading-relaxed">
-                    {localized(spec.value, locale)}
+                    {String(localized(spec.value, locale) ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()}
                   </td>
                 </tr>
               ))}
@@ -448,3 +449,4 @@ export function ProductInformationTabs({
     </div>
   );
 }
+ 

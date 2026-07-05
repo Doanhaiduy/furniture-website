@@ -114,10 +114,13 @@ export async function getAdminCategories(params: {
       if (params.limit) {
         query = query
           .order(dbSortField, { ascending })
+          .order("created_at", { ascending: true })
           .limit(params.limit)
           .range(params.offset ?? 0, (params.offset ?? 0) + params.limit - 1);
       } else {
-        query = query.order(dbSortField, { ascending });
+        query = query
+          .order(dbSortField, { ascending })
+          .order("created_at", { ascending: true });
       }
 
       const { data, error } = await query as { data: any[] | null, error: any };
@@ -166,7 +169,7 @@ export async function getAdminCategories(params: {
           }
         }
 
-        const mapped = data.map((row) => {
+        const mapRow = (row: any) => {
           const translations = Array.isArray(row.product_category_translations)
             ? row.product_category_translations
             : row.product_category_translations
@@ -189,25 +192,63 @@ export async function getAdminCategories(params: {
             created_at: (row as any).created_at ?? null,
             updated_at: (row as any).updated_at ?? null,
           } as any;
-        });
+        };
+
+        const mapped = data.map(mapRow);
+
+        // Drop rows with no usable translation at all (blank name AND slug). A real
+        // category always has at least a Vietnamese translation, so these are broken
+        // leftover rows from failed creates — they must not render as empty categories.
+        const cleaned = mapped.filter(
+          (c: any) => (c.name && String(c.name).trim()) || (c.slug && String(c.slug).trim())
+        );
+
+        // Guarantee the parent GROUP of every returned child is present. The admin
+        // tree attaches children to their group purely by parent_id, so if a filter
+        // (status/group), pagination, or the translation cleanup above dropped the
+        // parent row, its children would wrongly fall into "Danh mục chưa gán nhóm".
+        // Re-fetch and merge any missing parents (regardless of status) to prevent that.
+        const presentIds = new Set<string>(cleaned.map((c: any) => c.id));
+        const missingParentIds = Array.from(
+          new Set(
+            cleaned
+              .map((c: any) => c.parent_id)
+              .filter((pid: any): pid is string => Boolean(pid) && !presentIds.has(pid))
+          )
+        );
+        if (missingParentIds.length > 0) {
+          const { data: parentRows } = await supabase
+            .from("product_categories")
+            .select(selectStr)
+            .in("id", missingParentIds)
+            .is("deleted_at", null);
+          if (parentRows && parentRows.length > 0) {
+            parentRows.forEach((row: any) => {
+              const trans = Array.isArray(row.product_category_translations) ? row.product_category_translations : [];
+              const viTrans = trans.find((t: any) => t?.locale === "vi") || trans[0];
+              categoryMap[row.id] = viTrans?.name ?? categoryMap[row.id] ?? "";
+            });
+            cleaned.unshift(...parentRows.map(mapRow));
+          }
+        }
 
         // In-memory sorting for non-DB columns
         if (!validDbFields.includes(sortField)) {
           if (sortField === "name") {
-            mapped.sort((a: any, b: any) => {
+            cleaned.sort((a: any, b: any) => {
               const aVal = a.name || "";
               const bVal = b.name || "";
               return ascending ? aVal.localeCompare(bVal, "vi") : bVal.localeCompare(aVal, "vi");
             });
           } else if (sortField === "product_count") {
-            mapped.sort((a: any, b: any) => {
+            cleaned.sort((a: any, b: any) => {
               return ascending ? a.product_count - b.product_count : b.product_count - a.product_count;
             });
           }
         }
 
-        if (params.withTotal) return { data: mapped, total };
-        return mapped;
+        if (params.withTotal) return { data: cleaned, total };
+        return cleaned;
       }
     } catch (e) {
       console.warn("Exception fetching admin categories, falling back to mock:", e);

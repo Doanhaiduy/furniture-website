@@ -1,7 +1,8 @@
-"use client";
+​"use client";
 
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useToast } from "@/components/providers/toast-provider";
+import { friendlySaveError } from "@/lib/admin-error-messages";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -264,10 +265,7 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [aiFilling, setAiFilling] = useState(false);
   const [aiFillSuccess, setAiFillSuccess] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [seoTitleVi, setSeoTitleVi] = useState("");
-  const [seoDescVi, setSeoDescVi] = useState("");
-  const [seoTitleEn, setSeoTitleEn] = useState("");
-  const [seoDescEn, setSeoDescEn] = useState("");
+  // (SEO state removed — showrooms have no SEO columns / no public SEO consumer.)
 
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -276,6 +274,8 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   const [showroomId, setShowroomId] = useState<string | null>(null);
+  // Preserved so editing a showroom doesn't reset its manual ordering to 0.
+  const [sortOrder, setSortOrder] = useState(0);
 
   // Bind input states
   const [nameVi, setNameVi] = useState("");
@@ -291,8 +291,10 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [streetAddress, setStreetAddress] = useState("");
   const [hoursVi, setHoursVi] = useState("");
   const [hoursEn, setHoursEn] = useState("");
-  const [mapsEmbed, setMapsEmbed] = useState("https://www.google.com/maps/embed?pb=...");
-  const [mapsFallback, setMapsFallback] = useState("https://maps.google.com/?q=Phuong+Dong");
+  // Empty by default so the required + https validation forces a real URL rather than
+  // letting a broken "…pb=..." placeholder save through.
+  const [mapsEmbed, setMapsEmbed] = useState("");
+  const [mapsFallback, setMapsFallback] = useState("");
   const [coverImage, setCoverImage] = useState("");
 
   // Sync state with edit entity
@@ -322,16 +324,12 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setCode(match.code || "");
             setHoursVi(match.opening_hours_vi || "");
             setHoursEn(match.opening_hours_en || "");
-            setMapsEmbed(match.google_maps_embed_url || "https://www.google.com/maps/embed?pb=...");
+            setMapsEmbed(match.google_maps_embed_url || "");
             setMapsFallback(match.google_maps_fallback_url || "https://maps.google.com/?q=Phuong+Dong");
             setCoverImage(match.cover_image || "");
-            
-            setSeoTitleVi((match as any).seo_title_vi || `${match.name_vi} | Showroom Nội Thất Phương Đông`);
-            setSeoTitleEn((match as any).seo_title_en || `${match.name_en || match.name_vi} | Phuong Dong Premium Showroom`);
-            setSeoDescVi((match as any).seo_description_vi || `Ghé thăm ${match.name_vi} tại ${match.address_vi}. Hotline: ${match.hotline}.`);
-            setSeoDescEn((match as any).seo_description_en || `Visit ${match.name_en || match.name_vi} at ${match.address_en || match.address_vi}. Hotline: ${match.hotline}.`);
             setEnglishEnabled(Boolean(match.name_en));
             setStatus(match.status || "draft");
+            setSortOrder(match.sort_order ?? 0);
           } else {
             setLoadError(res.error || `Không tìm thấy showroom: ${editSlug}`);
           }
@@ -357,13 +355,9 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setCode("");
       setHoursVi("");
       setHoursEn("");
-      setMapsEmbed("https://www.google.com/maps/embed?pb=...");
+      setMapsEmbed("");
       setMapsFallback("https://maps.google.com/?q=Phuong+Dong");
       setCoverImage("");
-      setSeoTitleVi("");
-      setSeoDescVi("");
-      setSeoTitleEn("");
-      setSeoDescEn("");
       setEnglishEnabled(false);
       setStatus("draft");
     }
@@ -402,20 +396,11 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         }
         if (addressVi) setAddressEn(`${addressVi} (English translation)`);
         if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
-        
-        if (data.seoTitleVi) setSeoTitleVi(data.seoTitleVi);
-        if (data.seoTitleEn) setSeoTitleEn(data.seoTitleEn);
-        if (data.seoDescVi) setSeoDescVi(data.seoDescVi);
-        if (data.seoDescEn) setSeoDescEn(data.seoDescEn);
       } else {
         // Fallback
         setNameEn(`${nameVi} Premium Showroom`);
         if (addressVi) setAddressEn(`${addressVi} (English translation)`);
         if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
-        setSeoTitleVi(`${nameVi} | Showroom Nội Thất Phương Đông`);
-        setSeoTitleEn(`${nameVi} | Phuong Dong Premium Showroom`);
-        setSeoDescVi(`Ghé thăm ${nameVi} tại ${addressVi}. Trải nghiệm nội thất cao cấp.`);
-        setSeoDescEn(`Visit ${nameVi} at ${addressVi}. Experience premium furniture collections.`);
       }
       setAiFillSuccess(true);
     } catch {
@@ -423,8 +408,6 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       setNameEn(`${nameVi} Premium Showroom`);
       if (addressVi) setAddressEn(`${addressVi} (English translation)`);
       if (hoursVi) setHoursEn("8:00 AM - 8:00 PM daily");
-      setSeoTitleVi(`${nameVi} | Showroom Nội Thất Phương Đông`);
-      setSeoTitleEn(`${nameVi} | Phuong Dong Premium Showroom`);
       setAiFillSuccess(true);
     } finally {
       setAiFilling(false);
@@ -458,12 +441,8 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       latitude: null,
       longitude: null,
       status: statusToSave,
-      sort_order: 0,
+      sort_order: Number(sortOrder) || 0,
       cover_image: coverImage || null,
-      seo_title_vi: seoTitleVi.trim() || null,
-      seo_title_en: englishEnabled && seoTitleEn.trim() ? seoTitleEn.trim() : null,
-      seo_description_vi: seoDescVi.trim() || null,
-      seo_description_en: englishEnabled && seoDescEn.trim() ? seoDescEn.trim() : null,
     };
 
     try {
@@ -499,13 +478,15 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           }
         );
       } else {
-        setSaveError(res.error || "Không thể lưu showroom.");
-        showAlert("Thất bại", res.error || "Không thể lưu showroom.", "error");
+        const friendly = friendlySaveError(res.error) || "Không thể lưu showroom.";
+        setSaveError(friendly);
+        showAlert("Thất bại", friendly, "error");
       }
     } catch (err) {
       hideLoading();
-      setSaveError(String(err));
-      showAlert("Lỗi hệ thống", String(err), "error");
+      const friendly = friendlySaveError(err instanceof Error ? err.message : String(err));
+      setSaveError(friendly);
+      showAlert("Lỗi hệ thống", friendly, "error");
     } finally {
       setIsSaving(false);
     }
@@ -675,27 +656,24 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <AdminField label="URL nhúng Google Maps" name="maps-embed" value={mapsEmbed} onChange={setMapsEmbed} />
-              <AdminField label="URL bản đồ dự phòng" name="maps-fallback" value={mapsFallback} onChange={setMapsFallback} />
+              <AdminField
+                label="URL nhúng Google Maps"
+                name="maps-embed"
+                value={mapsEmbed}
+                placeholder="Dán liên kết https://… (hoặc mã <iframe> — hệ thống tự lấy src)"
+                onChange={(v) => {
+                  // Google's "Embed a map" gives an <iframe … src="https://…">. Extract
+                  // the src so the stored value is the bare https URL the DB CHECK expects.
+                  const m = v.match(/src=["']([^"']+)["']/i);
+                  setMapsEmbed(m ? m[1] : v);
+                }}
+              />
+              <AdminField label="URL bản đồ dự phòng" name="maps-fallback" value={mapsFallback} placeholder="https://maps.google.com/?q=…" onChange={setMapsFallback} />
             </div>
           </div>
         </section>
-
-        {/* --- SEO Fields --- */}
-        <SeoFieldset
-          kind="showroom"
-          seoTitleVi={seoTitleVi}
-          setSeoTitleVi={setSeoTitleVi}
-          seoTitleEn={seoTitleEn}
-          setSeoTitleEn={setSeoTitleEn}
-          seoDescVi={seoDescVi}
-          setSeoDescVi={setSeoDescVi}
-          seoDescEn={seoDescEn}
-          setSeoDescEn={setSeoDescEn}
-          englishEnabled={englishEnabled}
-          viTitle={nameVi}
-          enTitle={nameEn}
-        />
+        {/* SEO fields removed: showrooms have no SEO columns and no public detail page
+            consumes them. (Re-add here + columns on showroom_translations if needed.) */}
       </div>
       <aside className="space-y-5">
         <section className="surface-soft p-4 space-y-4">
@@ -726,13 +704,14 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           </div>
         )}
 
-        <PublishWorkflow 
+        <PublishWorkflow
           status={status}
           onStatusChange={setStatus}
-          errors={validationErrors} 
+          errors={validationErrors}
           onSaveDraft={() => handleSave("draft")}
           onPublish={() => handleSave("published")}
           onArchive={() => handleSave("archived")}
+          canArchive={isEdit}
         />
       </aside>
       {previewOpen && (
@@ -782,6 +761,8 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  // Preserved so editing a category doesn't reset its manual ordering to 0.
+  const [sortOrder, setSortOrder] = useState(0);
   const [slug, setSlug] = useState("");
   const [coverImage, setCoverImage] = useState("");
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
@@ -816,29 +797,35 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     if (editSlug) {
       setIsLoadingEdit(true);
       setLoadError("");
-      import("@/lib/supabase/admin-queries")
-        .then(async ({ getAdminCategories }) => {
-          const cats = await getAdminCategories();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const match = (cats as any[]).find((c: any) => c.slug === editSlug || c.id === editSlug);
-          if (match) {
-            setCategoryId(match.id);
-            setNameVi(match.name || "");
-            setNameEn(match.name_en || "");
-            setDescriptionVi(match.description || "");
-            setDescriptionEn(match.description_en || "");
-            setParentGroup(match.group_key || match.parent_group || "wood");
-            setParentId(match.parent_id || null);
-            setSlug(match.slug || "");
-            setCoverImage(match.cover_image_url || match.image || "");
-            setSeoTitleVi(match.seo_title_vi || `${match.name || ""} | Đồ Gỗ Phương Đông`);
-            setSeoTitleEn(match.seo_title_en || `${match.name_en || match.name || ""} | Phuong Dong`);
-            setSeoDescVi(match.seo_description_vi || match.description || "");
-            setSeoDescEn(match.seo_description_en || match.description_en || "");
-            setEnglishEnabled(Boolean(match.name_en));
-            setStatus(match.status || "draft");
+      // Use the single-entity loader (NOT the list query): it returns cover_image,
+      // name_en, description_en and seo_* — the list query does not, so reading from
+      // the list defaulted them to blank and SAVING then wiped the cover, English
+      // translation and SEO. This loader round-trips every field correctly.
+      import("@/lib/supabase/mutations")
+        .then(async ({ getAdminCategoryByIdOrSlug }) => {
+          const res = await getAdminCategoryByIdOrSlug(editSlug);
+          if (res.success && res.data) {
+            const d = res.data;
+            setCategoryId(d.id);
+            setNameVi(d.name_vi || "");
+            setNameEn(d.name_en || "");
+            setDescriptionVi(d.description_vi || "");
+            setDescriptionEn(d.description_en || "");
+            setParentGroup(d.group_key || "wood");
+            setParentId(d.parent_id || null);
+            setSortOrder(d.sort_order ?? 0);
+            setSlug(d.slug || "");
+            setCoverImage(d.cover_image || "");
+            setSeoTitleVi(d.seo_title_vi || `${d.name_vi || ""} | Đồ Gỗ Phương Đông`);
+            setSeoTitleEn(d.seo_title_en || `${d.name_en || d.name_vi || ""} | Phuong Dong`);
+            setSeoDescVi(d.seo_description_vi || d.description_vi || "");
+            setSeoDescEn(d.seo_description_en || d.description_en || "");
+            // Only treat English as "enabled" when it's a real, distinct translation
+            // (the mutation always stores an en row that falls back to vi).
+            setEnglishEnabled(Boolean(d.name_en && d.name_en !== d.name_vi));
+            setStatus(d.status || "draft");
           } else {
-            setLoadError(`Không tìm thấy danh mục: ${editSlug}`);
+            setLoadError(res.error || `Không tìm thấy danh mục: ${editSlug}`);
           }
         })
         .catch((err) => {
@@ -937,7 +924,7 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       group_key: parentGroup as any,
       status: statusToSave,
-      sort_order: 0,
+      sort_order: Number(sortOrder) || 0,
       cover_image: coverImage || null,
       seo_title_vi: seoTitleVi.trim() || null,
       seo_title_en: englishEnabled && seoTitleEn.trim() ? seoTitleEn.trim() : null,
@@ -979,13 +966,15 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           }
         );
       } else {
-        setSaveError(res.error || "Không thể lưu danh mục.");
-        showAlert("Thất bại", res.error || "Không thể lưu danh mục.", "error");
+        const friendly = friendlySaveError(res.error) || "Không thể lưu danh mục.";
+        setSaveError(friendly);
+        showAlert("Thất bại", friendly, "error");
       }
     } catch (err) {
       hideLoading();
-      setSaveError(String(err));
-      showAlert("Lỗi hệ thống", String(err), "error");
+      const friendly = friendlySaveError(err instanceof Error ? err.message : String(err));
+      setSaveError(friendly);
+      showAlert("Lỗi hệ thống", friendly, "error");
     } finally {
       setIsSaving(false);
     }
@@ -995,6 +984,10 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   if (!nameVi.trim()) validationErrors.push("Cần nhập tên danh mục tiếng Việt.");
   if (!slug.trim()) validationErrors.push("Cần nhập đường dẫn (slug).");
   if (englishEnabled && !nameEn.trim()) validationErrors.push("Cần nhập tên danh mục tiếng Anh khi đã bật tiếng Anh.");
+  // On create this form always makes a LEAF category, so a parent group is
+  // required. Without it the category would be saved as a top-level group by
+  // mistake (e.g. if submitted before the group list finished loading).
+  if (!isEdit && !parentId) validationErrors.push("Cần chọn nhóm danh mục cha.");
 
   if (isLoadingEdit) {
     return (
@@ -1213,13 +1206,14 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           </div>
         )}
 
-        <PublishWorkflow 
+        <PublishWorkflow
           status={status}
           onStatusChange={setStatus}
-          errors={validationErrors} 
+          errors={validationErrors}
           onSaveDraft={() => handleSave("draft")}
           onPublish={() => handleSave("published")}
           onArchive={() => handleSave("archived")}
+          canArchive={isEdit}
         />
       </aside>
       {previewOpen && (
@@ -1278,6 +1272,10 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [logoUrl, setLogoUrl] = useState("");
   const [sortOrder, setSortOrder] = useState(0);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  const [seoTitleVi, setSeoTitleVi] = useState("");
+  const [seoTitleEn, setSeoTitleEn] = useState("");
+  const [seoDescVi, setSeoDescVi] = useState("");
+  const [seoDescEn, setSeoDescEn] = useState("");
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1306,6 +1304,10 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setLogoUrl(b.logo_url || "");
             setSortOrder(b.sort_order || 0);
             setStatus(b.status || "draft");
+            setSeoTitleVi(b.seo_title_vi || "");
+            setSeoTitleEn(b.seo_title_en || "");
+            setSeoDescVi(b.seo_description_vi || "");
+            setSeoDescEn(b.seo_description_en || "");
           }
         } catch (e) {
           console.error("Failed to load brand:", e);
@@ -1331,6 +1333,10 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         sort_order: Number(sortOrder),
         status: targetStatus,
         slug,
+        seo_title_vi: seoTitleVi.trim() || undefined,
+        seo_title_en: seoTitleEn.trim() || undefined,
+        seo_description_vi: seoDescVi.trim() || undefined,
+        seo_description_en: seoDescEn.trim() || undefined,
       };
 
       const { brandSchema } = await import("@/lib/validations/admin");
@@ -1371,13 +1377,15 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           }
         );
       } else {
-        setFormError(res.error || "Có lỗi xảy ra.");
-        showAlert("Thất bại", res.error || "Có lỗi xảy ra.", "error");
+        const friendly = friendlySaveError(res.error) || "Có lỗi xảy ra.";
+        setFormError(friendly);
+        showAlert("Thất bại", friendly, "error");
       }
     } catch (err) {
       hideLoading();
-      setFormError("Lỗi kết nối.");
-      showAlert("Lỗi hệ thống", String(err), "error");
+      const friendly = friendlySaveError(err instanceof Error ? err.message : String(err));
+      setFormError(friendly);
+      showAlert("Lỗi hệ thống", friendly, "error");
     } finally {
       setFormLoading(false);
     }
@@ -1449,6 +1457,11 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             />
             {fieldErrors.origin && <span className="text-red-600 text-xs font-medium">{fieldErrors.origin}</span>}
           </div>
+          {/* SEO — lưu trong brand_translations */}
+          <AdminField label="Tiêu đề SEO (VI)" name="seo_title_vi" value={seoTitleVi} onChange={setSeoTitleVi} />
+          <AdminField label="Tiêu đề SEO (EN)" name="seo_title_en" value={seoTitleEn} onChange={setSeoTitleEn} />
+          <AdminField label="Mô tả SEO (VI)" name="seo_desc_vi" value={seoDescVi} onChange={setSeoDescVi} multiline />
+          <AdminField label="Mô tả SEO (EN)" name="seo_desc_en" value={seoDescEn} onChange={setSeoDescEn} multiline />
         </div>
       </section>
       <aside className="space-y-5">
@@ -1466,10 +1479,11 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         <PublishWorkflow
           status={status}
           onStatusChange={setStatus}
-          errors={[]} 
+          errors={[]}
           onSaveDraft={() => handleSave("draft")}
           onPublish={() => handleSave("published")}
           onArchive={() => handleSave("archived")}
+          canArchive={isEdit}
         />
       </aside>
     </div>
@@ -1492,6 +1506,11 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
+  // Preserved-only (no dedicated UI yet): keep any existing combo pricing / bullet
+  // items so editing a promotion doesn't wipe them (they can be set via seed/import).
+  const [comboPrice, setComboPrice] = useState<number | null>(null);
+  const [originalPrice, setOriginalPrice] = useState<number | null>(null);
+  const [promoItems, setPromoItems] = useState<string[]>([]);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -1588,6 +1607,16 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             setEndAt(p.end_at ? p.end_at.substring(0, 16) : "");
             setStatus(p.status || "draft");
             setEnglishEnabled(Boolean(p.title_en));
+            // Preserve combo pricing + bullet items across edits (no UI yet).
+            setComboPrice(p.combo_price ?? null);
+            setOriginalPrice(p.original_price ?? null);
+            setPromoItems(
+              Array.isArray(p.items)
+                ? p.items
+                : Array.isArray(p.metadata_jsonb?.items_vi)
+                  ? p.metadata_jsonb.items_vi
+                  : [],
+            );
 
             if (p.productIds && p.productIds.length > 0) {
               setSelectedProductIds(p.productIds);
@@ -1617,11 +1646,11 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         description_vi: descriptionVi,
         description_en: descriptionEn,
         cover_image: coverImage,
-        combo_price: null,
+        combo_price: comboPrice,
         start_at: startAt ? new Date(startAt).toISOString() : null,
         end_at: endAt ? new Date(endAt).toISOString() : null,
-        original_price: null,
-        items: [],
+        original_price: originalPrice,
+        items: promoItems,
         status: targetStatus,
         productIds: selectedProductIds,
       };
@@ -1664,13 +1693,15 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           }
         );
       } else {
-        setFormError(res.error || "Có lỗi xảy ra.");
-        showAlert("Thất bại", res.error || "Có lỗi xảy ra.", "error");
+        const friendly = friendlySaveError(res.error) || "Có lỗi xảy ra.";
+        setFormError(friendly);
+        showAlert("Thất bại", friendly, "error");
       }
     } catch (err) {
       hideLoading();
-      setFormError("Lỗi kết nối.");
-      showAlert("Lỗi hệ thống", String(err), "error");
+      const friendly = friendlySaveError(err instanceof Error ? err.message : String(err));
+      setFormError(friendly);
+      showAlert("Lỗi hệ thống", friendly, "error");
     } finally {
       setFormLoading(false);
     }

@@ -1,7 +1,8 @@
-"use client";
+​"use client";
 
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useToast } from "@/components/providers/toast-provider";
+import { friendlySaveError } from "@/lib/admin-error-messages";
 import { DateTimePickerField } from "@/components/ui/datetime-picker";
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -145,7 +146,10 @@ export function ContentEditorForm({
   const [quoteOnly, setQuoteOnly] = useState(true);
   const [category, setCategory] = useState(isProduct ? "wood" : "wood-knowledge");
   const [brand, setBrand] = useState("none");
-  const [refCode, setRefCode] = useState("PD-SF-184");
+  // Create mode must NOT default to a hardcoded code — every new product would
+  // then collide on uq_products_reference_code_active. Empty → stored as NULL
+  // (the partial unique index ignores NULLs), so it's optional and safe.
+  const [refCode, setRefCode] = useState(mode === "edit" ? "PD-SF-184" : "");
   const [showroom, setShowroom] = useState("");
   const [featured, setFeatured] = useState(true);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
@@ -611,7 +615,13 @@ export function ContentEditorForm({
 
         const cats = await getAdminCategories();
         const catList = Array.isArray(cats) ? cats : cats?.data || [];
-        const catObj = catList.find(c => c.slug === category) || catList[0];
+        // Products must map to a LEAF category (one with a parent group), never a
+        // top-level group. Prefer the exact leaf match, then any leaf, as fallback.
+        const catObj =
+          catList.find((c: any) => c.slug === category && c.parent_id) ||
+          catList.find((c: any) => c.slug === category) ||
+          catList.find((c: any) => c.parent_id) ||
+          catList[0];
         const categoryId = catObj ? catObj.id : null;
 
         const brands = await getAdminBrands();
@@ -705,9 +715,15 @@ export function ContentEditorForm({
         hideLoading();
 
         if (res.success) {
+          // Reflect the actual saved status on the pill (not optimistic).
+          setStatus(statusToSave);
           showAlert(
             "Thành công",
-            statusToSave === "published" ? "Đã xuất bản sản phẩm thành công!" : "Đã lưu bản nháp sản phẩm thành công!",
+            statusToSave === "published"
+              ? "Đã xuất bản sản phẩm thành công!"
+              : statusToSave === "archived"
+                ? "Đã lưu trữ sản phẩm thành công!"
+                : "Đã lưu bản nháp sản phẩm thành công!",
             "success",
             () => {
               router.push("/admin/products");
@@ -715,7 +731,7 @@ export function ContentEditorForm({
             }
           );
         } else {
-          showAlert("Thất bại", "Lỗi khi lưu sản phẩm: " + res.error, "error");
+          showAlert("Thất bại", friendlySaveError(res.error), "error");
         }
       } else {
         const { createAdminBlogPost, updateAdminBlogPost } = await import("@/lib/supabase/mutations");
@@ -745,9 +761,14 @@ export function ContentEditorForm({
         hideLoading();
 
         if (res.success) {
+          setStatus(statusToSave);
           showAlert(
             "Thành công",
-            statusToSave === "published" ? "Đã xuất bản bài viết thành công!" : "Đã lưu bản nháp bài viết thành công!",
+            statusToSave === "published"
+              ? "Đã xuất bản bài viết thành công!"
+              : statusToSave === "archived"
+                ? "Đã lưu trữ bài viết thành công!"
+                : "Đã lưu bản nháp bài viết thành công!",
             "success",
             () => {
               router.push("/admin/blog");
@@ -755,13 +776,13 @@ export function ContentEditorForm({
             }
           );
         } else {
-          showAlert("Thất bại", "Lỗi khi lưu bài viết: " + res.error, "error");
+          showAlert("Thất bại", friendlySaveError(res.error), "error");
         }
       }
     } catch (err) {
       hideLoading();
       console.error(err);
-      showAlert("Lỗi hệ thống", String(err), "error");
+      showAlert("Lỗi hệ thống", friendlySaveError(err instanceof Error ? err.message : String(err)), "error");
     }
   };
 
@@ -889,6 +910,7 @@ export function ContentEditorForm({
         {/* --- SHARED STRUCTURED DATA FIELDS (Excluded from tabs to avoid duplicates) --- */}
         {isProduct ? (
           <ProductBusinessFields
+            mode={mode}
             price={price}
             setPrice={setPrice}
             priceMax={priceMax}
@@ -939,8 +961,6 @@ export function ContentEditorForm({
           <BlogBusinessFields
             category={category}
             setCategory={setCategory}
-            status={status}
-            setStatus={setStatus}
             featured={featured}
             setFeatured={setFeatured}
             publishedAt={publishedAt}
@@ -985,13 +1005,14 @@ export function ContentEditorForm({
           </button>
         </section>
         <ReadinessPanel items={dynamicReadiness} />
-        <PublishWorkflow 
+        <PublishWorkflow
           status={status}
           onStatusChange={setStatus}
-          errors={validationErrors} 
+          errors={validationErrors}
           onSaveDraft={() => handleSave("draft")}
           onPublish={() => handleSave("published")}
           onArchive={() => handleSave("archived")}
+          canArchive={mode === "edit"}
         />
       </aside>
 
@@ -1433,6 +1454,7 @@ function appendToken(current: string, token: string): string {
 }
 
 function ProductBusinessFields({
+  mode,
   price,
   setPrice,
   priceMax,
@@ -1524,6 +1546,7 @@ function ProductBusinessFields({
   setGalleryImages: (urls: string[]) => void;
   customAttributes: { id: string; nameVi: string; nameEn: string; valueVi: string; valueEn: string; }[];
   setCustomAttributes: (attrs: { id: string; nameVi: string; nameEn: string; valueVi: string; valueEn: string; }[]) => void;
+  mode: "create" | "edit";
 }) {
   const [categoriesList, setCategoriesList] = useState<{ value: string; label: string }[]>([]);
   const [brandsList, setBrandsList] = useState<{ value: string; label: string }[]>([]);
@@ -1553,15 +1576,25 @@ function ProductBusinessFields({
         if (!active) return;
         
         const catsList = Array.isArray(cats) ? cats : (cats as any)?.data || [];
-        const formattedCats = catsList.map((c: any) => {
-          const parent = c.parent_id ? catsList.find((p: any) => p.id === c.parent_id) : null;
-          const parentName = parent ? parent.name : "";
-          return {
-            value: c.slug,
-            label: parentName ? `${parentName} → ${c.name}` : c.name
-          };
-        });
+        // Only leaf categories (those under a parent group) are selectable — the
+        // top-level category GROUPS (parent_id === null) must not appear as options.
+        const formattedCats = catsList
+          .filter((c: any) => c.parent_id)
+          .map((c: any) => {
+            const parent = catsList.find((p: any) => p.id === c.parent_id);
+            const parentName = parent ? parent.name : "";
+            return {
+              value: c.slug,
+              label: parentName ? `${parentName} → ${c.name}` : c.name,
+            };
+          });
         setCategoriesList(formattedCats);
+        // In create mode the initial `category` default ("wood") is a legacy
+        // placeholder that matches no real leaf slug; snap it to the first real
+        // leaf so the saved product gets a valid (non-group) category_id.
+        if (mode === "create" && !formattedCats.some((c: { value: string }) => c.value === category)) {
+          setCategory(formattedCats[0]?.value ?? "");
+        }
         const brandsArr = Array.isArray(brands) ? brands : (brands as any)?.data || [];
         setBrandsList(brandsArr.map((b: any) => ({ value: b.id, label: b.name?.vi || b.name || "" })));
         const roomsArr = Array.isArray(rooms) ? rooms : (rooms as any)?.data || [];
@@ -1574,6 +1607,7 @@ function ProductBusinessFields({
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const categoryOptions = categoriesList.some(c => c.value === category)
@@ -1634,7 +1668,7 @@ function ProductBusinessFields({
               options={brandOptions}
             />
           </label>
-          <AdminField label="Mã sản phẩm" name="reference-code" value={refCode} onChange={setRefCode} />
+          <AdminField label="Mã sản phẩm" name="reference-code" value={refCode} onChange={setRefCode} placeholder="Tùy chọn — để trống nếu không dùng" />
           <label className="grid gap-2">
             <span className="label-pd">Showroom</span>
             <PremiumSelect
@@ -2014,8 +2048,6 @@ function ProductBusinessFields({
 function BlogBusinessFields({
   category,
   setCategory,
-  status,
-  setStatus,
   featured,
   setFeatured,
   publishedAt,
@@ -2023,8 +2055,6 @@ function BlogBusinessFields({
 }: {
   category: string;
   setCategory: (val: string) => void;
-  status: string;
-  setStatus: (val: any) => void;
   featured: boolean;
   setFeatured: (val: boolean) => void;
   publishedAt: string;
@@ -2037,6 +2067,7 @@ function BlogBusinessFields({
   const [adding, setAdding] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [creatingCat, setCreatingCat] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadCategories = useCallback(async () => {
     try {
@@ -2090,6 +2121,25 @@ function BlogBusinessFields({
     }
   };
 
+  const handleDeleteCategory = async (id: string, label: string) => {
+    setDeletingId(id);
+    try {
+      const { deleteBlogCategory } = await import("@/lib/supabase/mutations/blog");
+      const res = await deleteBlogCategory(id);
+      if (res.success) {
+        setCatOptions((prev) => prev.filter((o) => o.value !== id));
+        if (category === id) setCategory("");
+        toast.success(`Đã xóa danh mục "${label}".`);
+      } else {
+        toast.error(res.error || "Không xóa được danh mục.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Lỗi xóa danh mục.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <>
       <section className="surface-soft p-4">
@@ -2112,28 +2162,49 @@ function BlogBusinessFields({
               </button>
             </div>
             {adding ? (
-              <div className="flex items-center gap-2">
-                <input
-                  autoFocus
-                  value={newCatName}
-                  onChange={(e) => setNewCatName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateCategory(); } if (e.key === "Escape") setAdding(false); }}
-                  placeholder="Tên danh mục mới…"
-                  className="input-pd h-9 flex-1 bg-white text-sm"
-                  disabled={creatingCat}
-                />
-                <button
-                  type="button"
-                  onClick={handleCreateCategory}
-                  disabled={creatingCat || !newCatName.trim()}
-                  className="inline-flex h-9 items-center gap-1 rounded-lg bg-[var(--admin-accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-                >
-                  {creatingCat ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
-                  Lưu
-                </button>
-                <button type="button" onClick={() => setAdding(false)} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
-                  <X className="size-4" />
-                </button>
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    autoFocus
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateCategory(); } if (e.key === "Escape") setAdding(false); }}
+                    placeholder="Tên danh mục mới…"
+                    className="input-pd h-9 flex-1 bg-white text-sm"
+                    disabled={creatingCat}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={creatingCat || !newCatName.trim()}
+                    className="inline-flex h-9 items-center gap-1 rounded-lg bg-[var(--admin-accent)] px-3 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {creatingCat ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                    Lưu
+                  </button>
+                  <button type="button" onClick={() => setAdding(false)} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+                    <X className="size-4" />
+                  </button>
+                </div>
+                {catOptions.length > 0 && (
+                  <div className="max-h-44 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-[var(--admin-border)] bg-white">
+                    {catOptions.map((opt) => (
+                      <div key={opt.value} className="flex items-center justify-between gap-2 px-3 py-2">
+                        <span className="truncate text-sm text-slate-700">{opt.label}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(opt.value, opt.label)}
+                          disabled={deletingId === opt.value}
+                          title="Xóa danh mục"
+                          aria-label={`Xóa danh mục ${opt.label}`}
+                          className="grid size-7 shrink-0 place-items-center rounded-md text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                        >
+                          {deletingId === opt.value ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <PremiumSelect
@@ -2158,21 +2229,8 @@ function BlogBusinessFields({
             <span className="text-[11px] text-[var(--admin-text-muted)]">Để trống sẽ dùng thời điểm xuất bản.</span>
           </label>
 
-          <label className="grid gap-2">
-            <span className="label-pd">Trạng thái xuất bản</span>
-            <PremiumSelect
-              value={status}
-              onValueChange={setStatus}
-              ariaLabel="Trạng thái xuất bản"
-              placeholder="Trạng thái xuất bản"
-              tone="admin"
-              options={[
-                { value: "draft", label: "Bản nháp" },
-                { value: "published", label: "Đã xuất bản" },
-                { value: "archived", label: "Đã lưu trữ" },
-              ]}
-            />
-          </label>
+          {/* Trạng thái xuất bản is controlled by the PublishWorkflow buttons
+              (Xuất bản / Lưu nháp / Lưu trữ), so no redundant status select here. */}
 
           {/* Featured — premium toggle switch */}
           <button

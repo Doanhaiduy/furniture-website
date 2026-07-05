@@ -40,11 +40,15 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, is_active")
+    .select("id, role, is_active, deleted_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profile || !profile.is_active) return null;
+  // Mirror the DB is_admin()/is_editor() helpers: a profile is only valid when it is
+  // active AND not soft-deleted. Checking is_active alone let a soft-deleted-but-active
+  // profile keep full CMS power (most mutations use the service-role client, so RLS
+  // wouldn't catch it).
+  if (!profile || !profile.is_active || profile.deleted_at) return null;
 
   return {
     id: user.id,
@@ -128,3 +132,4 @@ export async function isEditorOrAdmin(
     .maybeSingle();
   return data?.role === "admin" || data?.role === "editor";
 }
+ 

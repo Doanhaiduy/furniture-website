@@ -68,7 +68,7 @@ export function NavigationBar({
   const openCatalog = (mode: CatalogMode, key: string, immediate = false) => {
     cancelCatalogClose();
     cancelCatalogSwitch();
-    
+
     if (immediate || !catalogOpen || activeCatalog.mode !== mode) {
       setActiveCatalog({ mode, key });
       setCatalogOpen(true);
@@ -334,7 +334,7 @@ export function NavigationBar({
                           {activeType.columns.map((column: any) => (
                             <div key={column.title}>
                               <p className="label-pd">{column.title}</p>
-                              <div className="mt-3 grid gap-2">
+                              <div className={`mt-3 grid gap-2 ${activeType.columns.length === 1 && column.items.length > 3 ? "sm:grid-cols-2" : ""}`}>
                                 {column.items.map((item: any) => (
                                   <Link
                                     key={`${activeType.key}-${item.href}-${item.label}`}
@@ -342,8 +342,13 @@ export function NavigationBar({
                                     className="nav-link-pd surface-card group flex min-h-11 items-center gap-1.5 px-3 py-2 text-[13px] text-on-surface hover:text-primary transition-colors leading-snug"
                                     onClick={closeCatalog}
                                   >
-                                    <ChevronRight className="size-3.5 text-primary transition group-hover:translate-x-0.5" />
-                                    {item.label}
+                                    <ChevronRight className="size-3.5 shrink-0 text-primary transition group-hover:translate-x-0.5" />
+                                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                                    {typeof item.count === "number" ? (
+                                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                        {item.count}
+                                      </span>
+                                    ) : null}
                                   </Link>
                                 ))}
                               </div>
@@ -439,3 +444,4 @@ function BrandMegaContent({
     </div>
   );
 }
+ 

@@ -4,6 +4,7 @@
 import { requireEditorOrAdmin } from "./auth";
 import { createAdminClient, createClient } from "./server";
 import { writeAuditLog } from "./audit";
+import { brandSchema } from "../validations/admin";
 import { revalidatePath } from "next/cache";
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { resolveTranslationMatchIds, buildTranslationSearchOr } from "./search-helpers";
@@ -106,9 +107,9 @@ export async function getAdminBrandById(id: string): Promise<{
   };
   error?: string;
 }> {
-  
-  
-  
+
+
+
 
   try {
     const supabase = await createClient();
@@ -120,13 +121,13 @@ export async function getAdminBrandById(id: string): Promise<{
         brand_translations (*),
         logo_media:media_assets!fk_brands_logo_media(public_url)
       `);
-      
+
     if (isUuid) {
       query = query.eq("id", id);
     } else {
       query = query.eq("slug", id);
     }
-    
+
     const { data: brand, error } = await query
       .is("deleted_at", null)
       .maybeSingle();
@@ -169,29 +170,48 @@ export async function createAdminBrand(data: BrandInput): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  
 
-  
+  // Server-side validation (defense-in-depth; the form validates too).
+  const validation = brandSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues.map((i) => i.message).join(", ") };
+  }
 
   try {
-    const supabase = await createClient();
+    // Service-role client so the rollback delete below works and we don't depend on
+    // over-broad table grants (least-privilege grants are enforced separately).
+    const supabase = createAdminClient();
     const logoMediaId = await getOrCreateMediaAssetId(supabase, data.logo_url, user.id);
 
-    // Insert brand
-    const { data: brand, error: brandError } = await supabase
-      .from("brands")
-      .insert({
-        logo_media_id: logoMediaId,
-        origin: data.origin,
-        status: data.status,
-        sort_order: data.sort_order,
-        slug: data.slug || null,
-        created_by: user.id,
-        updated_by: user.id,
-        published_at: data.status === "published" ? new Date().toISOString() : null,
-      })
-      .select()
-      .single();
+    // Insert brand, retrying the slug on collision (uq_brands_slug). Two brands whose
+    // Vietnamese names slugify the same — or a slug freed from a soft-deleted brand —
+    // would otherwise hard-fail with a raw duplicate-key error.
+    let slug = data.slug || null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let brand: any = null;
+    let brandError: { message: string } | null = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await supabase
+        .from("brands")
+        .insert({
+          logo_media_id: logoMediaId,
+          origin: data.origin,
+          status: data.status,
+          sort_order: data.sort_order,
+          slug,
+          created_by: user.id,
+          updated_by: user.id,
+          published_at: data.status === "published" ? new Date().toISOString() : null,
+        })
+        .select()
+        .single();
+      brand = res.data;
+      brandError = res.error;
+      if (!brandError && brand) break;
+      const isDuplicate = /duplicate key|unique constraint/i.test(brandError?.message || "");
+      if (!isDuplicate || !data.slug || attempt === 3) break;
+      slug = `${data.slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
 
     if (brandError || !brand) {
       return { success: false, error: brandError?.message || "Failed to create brand" };
@@ -247,12 +267,14 @@ export async function updateAdminBrand(id: string, data: BrandInput): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  
 
-  
+  const validation = brandSchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validation.error.issues.map((i) => i.message).join(", ") };
+  }
 
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const logoMediaId = await getOrCreateMediaAssetId(supabase, data.logo_url, user.id);
 
     // Resolve id-or-slug to the real UUID. The admin Edit link passes the brand slug
@@ -342,7 +364,7 @@ export async function deleteAdminBrand(id: string): Promise<{
   error?: string;
 }> {
   const user = await requireEditorOrAdmin();
-  
+
   try {
     const supabase = createAdminClient();
 
@@ -356,12 +378,25 @@ export async function deleteAdminBrand(id: string): Promise<{
       console.warn("Failed to clear brand_id reference for products:", clearError);
     }
 
-    // Soft delete
+    // Soft delete + free the slug so a future brand can reuse it (uq_brands_slug is
+    // made soft-delete-aware by migration 0005, but freeing it also keeps older DBs
+    // consistent and avoids reserving a human-friendly slug on an archived brand).
+    const { data: existingBrand } = await supabase
+      .from("brands")
+      .select("slug")
+      .eq("id", id)
+      .maybeSingle();
+    const freedSlug =
+      existingBrand?.slug && !existingBrand.slug.includes("-deleted-")
+        ? `${existingBrand.slug}-deleted-${id.slice(0, 8)}`
+        : existingBrand?.slug ?? null;
+
     const { error } = await supabase
       .from("brands")
       .update({
         deleted_at: new Date().toISOString(),
         status: "archived",
+        slug: freedSlug,
         updated_by: user.id,
       })
       .eq("id", id);
@@ -389,9 +424,9 @@ export async function getPublicBrands(): Promise<{
   data?: any[];
   error?: string;
 }> {
-  
 
-  
+
+
 
   try {
     const supabase = createAdminClient();
@@ -558,4 +593,3 @@ export async function getAdminBrands(params: {
     return [];
   }
 }
-

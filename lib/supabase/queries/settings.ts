@@ -2,8 +2,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Fetch a content page (e.g. home, about) by key and locale, with automatic mock fallback.
- */
+* Fetch a content page (e.g. home, about) by key and locale, with automatic mock fallback.
+*/
 export async function getContentPage(
   supabase: SupabaseClient,
   key: string,
@@ -71,14 +71,14 @@ export interface PublicSiteSettings {
 }
 
 /**
- * Fetches dynamic site settings from site_settings and site_setting_translations,
- * with fallback to mock defaults if not found.
- */
+* Fetches dynamic site settings from site_settings and site_setting_translations,
+* with fallback to mock defaults if not found.
+*/
 export async function getPublicSiteSettings(
   supabase: SupabaseClient,
   locale: "vi" | "en" = "vi"
 ): Promise<PublicSiteSettings> {
-  
+
   const defaults: PublicSiteSettings = {
     brandName: locale === "vi" ? "SHOWROOM NỘI THẤT PHƯƠNG ĐÔNG" : "PHUONG DONG INTERIOR SHOWROOM",
     logoUrl: "/logo-final.svg",
@@ -155,12 +155,12 @@ export interface PublicSocialLink {
 }
 
 /**
- * Fetches enabled social links from DB, with fallback to defaults.
- */
+* Fetches enabled social links from DB, with fallback to defaults.
+*/
 export async function getPublicSocialLinks(
   supabase: SupabaseClient
 ): Promise<PublicSocialLink[]> {
-  
+
   const defaults: PublicSocialLink[] = [
     { platform: "facebook", label: "Facebook", url: "https://facebook.com", isEnabled: true },
     { platform: "instagram", label: "Instagram", url: "https://instagram.com", isEnabled: true },
@@ -181,14 +181,19 @@ export async function getPublicSocialLinks(
       return defaults;
     }
 
-    return data.map((d: any) => ({
-      platform: d.platform,
-      label: d.label || d.platform,
-      url: d.url,
-      isEnabled: d.is_enabled,
-    }));
+    return data
+      // Skip placeholder/seed links pointing at reserved example domains
+      // (e.g. https://example.test/facebook) so they never render publicly.
+      .filter((d: any) => d.url && !/(?:^|[/.@])example\.(test|com|net|org)\b/i.test(d.url))
+      .map((d: any) => ({
+        platform: d.platform,
+        label: d.label || d.platform,
+        url: d.url,
+        isEnabled: d.is_enabled,
+      }));
   } catch (e) {
     console.warn("Exception fetching social links, using defaults:", e);
     return defaults;
   }
 }
+ 

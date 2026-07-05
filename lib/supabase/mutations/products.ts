@@ -7,6 +7,25 @@ import { writeAuditLog } from "../audit";
 import { productSchema, type ProductInput } from "../../validations/admin";
 import { triggerRevalidation, getOrCreateMediaAssetId, validationMessages } from "./helpers";
 
+// The editor works with an HTML/text string. description_json may be a plain string
+// (form-authored), a `{}` empty default, a `{html}` object, or a `{sections:[…]}` doc.
+// Coerce to a string so the edit form never feeds a bare object to Tiptap (which
+// renders blank and then silently drops the content on the next save).
+function jsonToEditorText(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (typeof value !== "object") return String(value);
+  const record = value as Record<string, unknown>;
+  if (typeof record.html === "string") return record.html;
+  if (Array.isArray(record.sections)) {
+    return record.sections
+      .map((s) => (s && typeof s === "object" && typeof (s as any).body === "string" ? (s as any).body : ""))
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  return ""; // unknown/empty object → empty editor, not "{}"
+}
+
 export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,7 +40,7 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
       product_media (media_id, is_primary, media:media_assets (public_url)),
       product_promotions (promotion_id)
     `);
-    
+
     if (idOrSlug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       query = query.eq("id", idOrSlug);
     } else {
@@ -30,7 +49,7 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
         .select("product_id")
         .eq("slug", idOrSlug)
         .limit(1);
-      
+
       if (trans && trans.length > 0) {
         query = query.eq("id", trans[0].product_id);
       } else {
@@ -81,8 +100,8 @@ export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
         name_en: enTrans?.name || "",
         summary_vi: viTrans?.summary || "",
         summary_en: enTrans?.summary || "",
-        description_json_vi: viTrans?.description_json || {},
-        description_json_en: enTrans?.description_json || {},
+        description_json_vi: jsonToEditorText(viTrans?.description_json),
+        description_json_en: jsonToEditorText(enTrans?.description_json),
         material_vi: viTrans?.material || "",
         material_en: enTrans?.material || "",
         price_display_text_vi: viTrans?.price_display_text || "",
@@ -115,8 +134,10 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
   }
 
   try {
-    const supabase = await createClient();
-    
+    // Service-role client: an editor's RLS role has no DELETE grant on `products`,
+    // so the rollback deletes below would silently no-op and leave zombie rows.
+    const supabase = createAdminClient();
+
     const requestedStatus = data.status;
     const isPublishing = requestedStatus === "published";
 
@@ -125,7 +146,10 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
       .from("products")
       .insert({
         category_id: data.category_id,
-        reference_code: data.reference_code,
+        // Empty string must become NULL: uq_products_reference_code_active indexes
+        // lower(reference_code) WHERE NOT NULL, and lower("")="" is non-null, so a
+        // blank code would collide on the 2nd product. Coerce blanks to null.
+        reference_code: data.reference_code?.trim() || null,
         status: "draft",
         price_min: data.price_min,
         price_max: data.price_max,
@@ -160,41 +184,55 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
       });
     }
 
-    // Insert translations
-    const translations = [];
-    translations.push({
-      product_id: product.id,
-      locale: "vi",
-      slug: data.slug,
-      name: data.name_vi,
-      summary: data.summary_vi,
-      description_json: data.description_json_vi || {},
-      material: data.material_vi,
-      price_display_text: data.price_display_text_vi,
-      dimension_display_text: data.dimension_display_text_vi,
-      seo_title: data.seo_title_vi,
-      seo_description: data.seo_description_vi,
-    });
-
-    if (data.name_en || data.summary_en) {
-      translations.push({
+    // Insert translations. ALWAYS create BOTH vi and en rows: the publish trigger
+    // require_publish_translations needs both locales (name, summary, slug, and a
+    // meaningful description_json). When English is left empty we fall back to the
+    // Vietnamese values, otherwise publishing a VI-only product aborts with
+    // "Cannot publish products without required vi and en translations".
+    const buildTranslations = (slug: string) => [
+      {
+        product_id: product.id,
+        locale: "vi",
+        slug,
+        name: data.name_vi,
+        summary: data.summary_vi,
+        description_json: data.description_json_vi || {},
+        material: data.material_vi,
+        price_display_text: data.price_display_text_vi,
+        dimension_display_text: data.dimension_display_text_vi,
+        seo_title: data.seo_title_vi,
+        seo_description: data.seo_description_vi,
+      },
+      {
         product_id: product.id,
         locale: "en",
-        slug: data.slug,
+        slug,
         name: data.name_en || data.name_vi,
         summary: data.summary_en || data.summary_vi,
-        description_json: data.description_json_en || {},
-        material: data.material_en,
-        price_display_text: data.price_display_text_en,
-        dimension_display_text: data.dimension_display_text_en,
-        seo_title: data.seo_title_en,
-        seo_description: data.seo_description_en,
-      });
-    }
+        description_json: data.description_json_en || data.description_json_vi || {},
+        material: data.material_en ?? data.material_vi,
+        price_display_text: data.price_display_text_en ?? data.price_display_text_vi,
+        dimension_display_text: data.dimension_display_text_en ?? data.dimension_display_text_vi,
+        seo_title: data.seo_title_en ?? data.seo_title_vi,
+        seo_description: data.seo_description_en ?? data.seo_description_vi,
+      },
+    ];
 
-    const { error: transError } = await supabase
-      .from("product_translations")
-      .insert(translations);
+    // The (locale, slug) unique index is global and has NO soft-delete predicate,
+    // so two products with the same name — or a slug left behind by a soft-deleted
+    // product — would collide. Retry with a short suffix instead of hard-failing.
+    let slug = data.slug;
+    let transError: { message: string } | null = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { error } = await supabase
+        .from("product_translations")
+        .insert(buildTranslations(slug));
+      transError = error;
+      if (!error) break;
+      const isDuplicate = /duplicate key|unique constraint/i.test(error.message || "");
+      if (!isDuplicate || attempt === 3) break;
+      slug = `${data.slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
 
     if (transError) {
       await supabase.from("products").delete().eq("id", product.id);
@@ -258,7 +296,7 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
         action: "create",
         entityType: "product",
         entityId: product.id,
-        metadata: { name: data.name_vi, slug: data.slug },
+        metadata: { name: data.name_vi, slug },
       });
     } catch (auditError) {
       await supabase.from("products").delete().eq("id", product.id);
@@ -282,15 +320,21 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
   }
 
   try {
-    const supabase = await createClient();
-    
+    const supabase = createAdminClient();
+
     // Update products row
     const { data: product, error: productError } = await supabase
       .from("products")
       .update({
         category_id: data.category_id,
-        reference_code: data.reference_code,
-        status: data.status,
+        // Empty string must become NULL: uq_products_reference_code_active indexes
+        // lower(reference_code) WHERE NOT NULL, and lower("")="" is non-null, so a
+        // blank code would collide on the 2nd product. Coerce blanks to null.
+        reference_code: data.reference_code?.trim() || null,
+        // status + published_at are handled in a SECOND update AFTER translations are
+        // written (see below). This keeps the require_publish_translations trigger from
+        // reading stale translations, and lets the set_publish_timestamps trigger own
+        // published_at (stamped only on the draft→published transition, never re-stamped).
         price_min: data.price_min,
         price_max: data.price_max,
         currency: data.currency,
@@ -306,7 +350,6 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
         custom_attributes: data.custom_attributes || [],
         updated_by: user.id,
         updated_at: new Date().toISOString(),
-        published_at: data.status === "published" ? new Date().toISOString() : null,
       })
       .eq("id", id)
       .select()
@@ -345,26 +388,36 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
 
     if (viError) return { success: false, error: viError.message };
 
-    if (data.name_en || data.summary_en) {
-      const { error: enError } = await supabase
-        .from("product_translations")
-        .upsert({
-          product_id: id,
-          locale: "en",
-          slug: data.slug,
-          name: data.name_en || data.name_vi,
-          summary: data.summary_en || data.summary_vi,
-          description_json: data.description_json_en || {},
-          material: data.material_en,
-          price_display_text: data.price_display_text_en,
-          dimension_display_text: data.dimension_display_text_en,
-          seo_title: data.seo_title_en,
-          seo_description: data.seo_description_en,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "product_id,locale" });
+    // Always keep an English translation too (fall back to Vietnamese when empty)
+    // so the publish trigger's "requires vi and en translations" rule is satisfied.
+    const { error: enError } = await supabase
+      .from("product_translations")
+      .upsert({
+        product_id: id,
+        locale: "en",
+        slug: data.slug,
+        name: data.name_en || data.name_vi,
+        summary: data.summary_en || data.summary_vi,
+        description_json: data.description_json_en || data.description_json_vi || {},
+        material: data.material_en ?? data.material_vi,
+        price_display_text: data.price_display_text_en ?? data.price_display_text_vi,
+        dimension_display_text: data.dimension_display_text_en ?? data.dimension_display_text_vi,
+        seo_title: data.seo_title_en ?? data.seo_title_vi,
+        seo_description: data.seo_description_en ?? data.seo_description_vi,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "product_id,locale" });
 
-      if (enError) return { success: false, error: enError.message };
-    }
+    if (enError) return { success: false, error: enError.message };
+
+    // Two-phase publish: flip the status only AFTER both translations are written,
+    // so require_publish_translations evaluates the fresh translations. published_at
+    // is intentionally omitted — the set_publish_timestamps trigger stamps it on the
+    // draft→published transition and never re-stamps it on later edits.
+    const { error: statusError } = await supabase
+      .from("products")
+      .update({ status: data.status, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (statusError) return { success: false, error: statusError.message };
 
     // Sync media (BL-PROD-03): resolve every media id FIRST, so a failure while
     // resolving/creating assets can't leave the product with its old images already
@@ -427,7 +480,7 @@ export async function deleteAdminProduct(id: string): Promise<{ success: boolean
 
   try {
     const supabase = createAdminClient();
-    
+
     // Delete product_media associations to prevent orphan records
     const { error: pmDeleteError } = await supabase
       .from("product_media")
@@ -448,6 +501,25 @@ export async function deleteAdminProduct(id: string): Promise<{ success: boolean
       .eq("id", id);
 
     if (error) return { success: false, error: error.message };
+
+    // Free the (locale, slug) namespace: the product_translations unique index has
+    // no soft-delete predicate, so leaving the slug intact would block a future
+    // product from reusing it. Suffix the archived rows' slugs.
+    const { data: archivedTrans } = await supabase
+      .from("product_translations")
+      .select("locale, slug")
+      .eq("product_id", id);
+    if (archivedTrans) {
+      for (const t of archivedTrans as { locale: string; slug: string }[]) {
+        if (t.slug && !t.slug.includes("-deleted-")) {
+          await supabase
+            .from("product_translations")
+            .update({ slug: `${t.slug}-deleted-${id.slice(0, 8)}` })
+            .eq("product_id", id)
+            .eq("locale", t.locale);
+        }
+      }
+    }
 
     // Write audit log
     await writeAuditLog(supabase, {
@@ -495,14 +567,33 @@ export async function updateProductStatus(id: string, status: string): Promise<{
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+
+    if (status === "published") {
+      // Friendly pre-check mirroring require_publish_translations, so quick-publishing
+      // a draft with an empty body from the list returns a clear message instead of a
+      // raw trigger error. The DB trigger remains the hard guarantee.
+      const { data: trans } = await supabase
+        .from("product_translations")
+        .select("locale, name, summary, slug, description_json")
+        .eq("product_id", id);
+      const rows = Array.isArray(trans) ? trans : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const hasMeaningful = (r: any) =>
+        r && r.slug && r.name && r.summary && r.description_json &&
+        !(typeof r.description_json === "object" && Object.keys(r.description_json).length === 0) &&
+        !(typeof r.description_json === "string" && r.description_json.trim() === "");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!hasMeaningful(rows.find((r: any) => r.locale === "vi")) || !hasMeaningful(rows.find((r: any) => r.locale === "en"))) {
+        return { success: false, error: "Cần nhập đầy đủ nội dung mô tả (tiếng Việt và tiếng Anh) trước khi xuất bản." };
+      }
+    }
+
+    // published_at is owned by the set_publish_timestamps trigger.
     const updateObj: any = {
       status,
       updated_by: user.id,
       updated_at: new Date().toISOString(),
     };
-    if (status === "published") {
-      updateObj.published_at = new Date().toISOString();
-    }
     const { error } = await supabase
       .from("products")
       .update(updateObj)
@@ -521,3 +612,4 @@ export async function updateProductStatus(id: string, status: string): Promise<{
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
   }
 }
+ 

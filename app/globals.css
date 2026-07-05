@@ -1,4 +1,4 @@
-@import "tailwindcss";
+​@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -1765,6 +1765,65 @@
   pointer-events: none;
 }
 
+/* Public rich-text: rendered HTML authored in the editor (blog articles, etc.).
+   Tailwind preflight strips list markers and heading sizes, so restore them here
+   for content injected via dangerouslySetInnerHTML. */
+.rich-content > :first-child {
+  margin-top: 0;
+}
+.rich-content > :last-child {
+  margin-bottom: 0;
+}
+.rich-content p {
+  margin: 0.85rem 0;
+}
+.rich-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 2rem 0 0.75rem;
+}
+.rich-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 1.5rem 0 0.5rem;
+}
+.rich-content ul,
+.rich-content ol {
+  padding-left: 1.5rem;
+  margin: 0.85rem 0;
+}
+.rich-content ul li {
+  list-style-type: disc;
+  margin: 0.4rem 0;
+}
+.rich-content ol li {
+  list-style-type: decimal;
+  margin: 0.4rem 0;
+}
+.rich-content li p {
+  margin: 0.2rem 0;
+}
+.rich-content strong {
+  font-weight: 700;
+}
+.rich-content em {
+  font-style: italic;
+}
+.rich-content u {
+  text-decoration: underline;
+}
+.rich-content blockquote {
+  border-left: 3px solid var(--accent, #e2b96a);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+}
+.rich-content a {
+  text-decoration: underline;
+}
+
 /* Force cursor: pointer on all buttons, links, and interactive elements */
 button,
 a,
@@ -1779,5 +1838,3 @@ select,
 .admin-icon-button-pd {
   cursor: pointer !important;
 }
-
-

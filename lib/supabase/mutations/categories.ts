@@ -4,13 +4,20 @@
 import { createClient, createAdminClient } from "../server";
 import { requireEditorOrAdmin } from "../auth";
 import { writeAuditLog } from "../audit";
-import { type CategoryInput } from "../../validations/admin";
-import { triggerRevalidation, getOrCreateMediaAssetId } from "./helpers";
+import { categorySchema, type CategoryInput } from "../../validations/admin";
+import { triggerRevalidation, getOrCreateMediaAssetId, validationMessages } from "./helpers";
+
+// Valid values of the product_group_key enum.
+const PRODUCT_GROUP_KEYS = ["wooden_furniture", "sanitary_equipment", "tiles", "project_solutions"];
 
 function mapGroupKeyToDb(groupKey: string | null | undefined): any {
+  // Legacy aliases used by some UI code.
   if (groupKey === "wood") return "wooden_furniture";
   if (groupKey === "sanitary") return "sanitary_equipment";
-  return groupKey || null;
+  // Only ever return a real enum value; anything else (e.g. "solutions", "other")
+  // would raise a Postgres enum-cast error (22P02), so fall back to null instead.
+  if (groupKey && PRODUCT_GROUP_KEYS.includes(groupKey)) return groupKey;
+  return null;
 }
 
 function checkCircularCategory(
@@ -58,7 +65,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
         .select("category_id")
         .eq("slug", idOrSlug)
         .limit(1);
-      
+
       if (trans && trans.length > 0) {
         query = query.eq("id", trans[0].category_id);
       } else {
@@ -104,9 +111,18 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
 export async function createAdminCategory(data: CategoryInput): Promise<{ success: boolean; id?: string; error?: string }> {
   const user = await requireEditorOrAdmin();
 
+  // Server-side validation (defense-in-depth; the form validates too).
+  const validation = categorySchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validationMessages(validation.error.issues) };
+  }
+
   try {
-    const supabase = await createClient();
-    
+    // Use the service-role client: an editor's RLS role can INSERT/UPDATE but has
+    // NO DELETE grant on product_categories, so the rollback deletes below would
+    // silently no-op and leave orphaned "zombie" rows behind on any failure.
+    const supabase = createAdminClient();
+
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
 
     const requestedStatus = data.status;
@@ -132,32 +148,47 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
       return { success: false, error: catError?.message || "Failed to create category" };
     }
 
-    const translations = [];
-    translations.push({
-      category_id: cat.id,
-      locale: "vi",
-      slug: data.slug,
-      name: data.name_vi,
-      description: data.description_vi,
-      seo_title: data.seo_title_vi,
-      seo_description: data.seo_description_vi,
-    });
-
-    if (data.name_en) {
-      translations.push({
+    // Always create BOTH vi and en translations. The DB publish trigger
+    // (require_publish_translations) requires both locales, so when the editor
+    // leaves English empty we fall back to the Vietnamese text — otherwise
+    // publishing aborts with "without required vi and en translations".
+    const buildTranslations = (slug: string) => [
+      {
+        category_id: cat.id,
+        locale: "vi",
+        slug,
+        name: data.name_vi,
+        description: data.description_vi,
+        seo_title: data.seo_title_vi,
+        seo_description: data.seo_description_vi,
+      },
+      {
         category_id: cat.id,
         locale: "en",
-        slug: data.slug,
-        name: data.name_en,
-        description: data.description_en,
-        seo_title: data.seo_title_en,
-        seo_description: data.seo_description_en,
-      });
-    }
+        slug,
+        name: data.name_en || data.name_vi,
+        description: data.description_en || data.description_vi,
+        seo_title: data.seo_title_en || data.seo_title_vi,
+        seo_description: data.seo_description_en || data.seo_description_vi,
+      },
+    ];
 
-    const { error: transError } = await supabase
-      .from("product_category_translations")
-      .insert(translations);
+    // The (locale, slug) unique index is global across all categories, so a
+    // leftover slug (e.g. from an earlier failed attempt) would collide. Retry
+    // with a short suffix so creation stays resilient instead of hard-failing
+    // on a duplicate-key error.
+    let slug = data.slug;
+    let transError: { message: string } | null = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { error } = await supabase
+        .from("product_category_translations")
+        .insert(buildTranslations(slug));
+      transError = error;
+      if (!error) break;
+      const isDuplicate = /duplicate key|unique constraint/i.test(error.message || "");
+      if (!isDuplicate || attempt === 3) break;
+      slug = `${data.slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
 
     if (transError) {
       await supabase.from("product_categories").delete().eq("id", cat.id);
@@ -186,7 +217,7 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
         action: "create",
         entityType: "category",
         entityId: cat.id,
-        metadata: { name: data.name_vi, slug: data.slug },
+        metadata: { name: data.name_vi, slug },
       });
     } catch (auditError) {
       await supabase.from("product_categories").delete().eq("id", cat.id);
@@ -202,14 +233,22 @@ export async function createAdminCategory(data: CategoryInput): Promise<{ succes
 
 export async function updateAdminCategory(id: string, data: CategoryInput): Promise<{ success: boolean; error?: string }> {
   const user = await requireEditorOrAdmin();
-  
+
+  const validation = categorySchema.safeParse(data);
+  if (!validation.success) {
+    return { success: false, error: validationMessages(validation.error.issues) };
+  }
+
   if (data.parent_id && data.parent_id === id) {
     return { success: false, error: "Circular parent-child relationship detected" };
   }
 
   try {
-    const supabase = await createClient();
-    
+    // Match createAdminCategory/deleteAdminCategory: use the service-role client so
+    // this path doesn't silently depend on editor RLS policies (and any future
+    // rollback DELETE would actually work).
+    const supabase = createAdminClient();
+
     if (data.parent_id) {
       const { data: allCategories, error: fetchError } = await supabase
         .from("product_categories")
@@ -224,7 +263,7 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
     }
 
     const coverMediaId = await getOrCreateMediaAssetId(supabase, data.cover_image, user.id);
-    
+
     // Update product_categories
     const { data: cat, error: catError } = await supabase
       .from("product_categories")
@@ -236,7 +275,8 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
         sort_order: data.sort_order,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
-        published_at: data.status === "published" ? new Date().toISOString() : null,
+        // published_at is owned by the set_publish_timestamps trigger (stamps on the
+        // draft→published transition, never re-stamps) — don't overwrite it on edit.
       })
       .eq("id", id)
       .select()
@@ -262,22 +302,22 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
 
     if (viError) return { success: false, error: viError.message };
 
-    if (data.name_en) {
-      const { error: enError } = await supabase
-        .from("product_category_translations")
-        .upsert({
-          category_id: id,
-          locale: "en",
-          slug: data.slug,
-          name: data.name_en,
-          description: data.description_en,
-          seo_title: data.seo_title_en,
-          seo_description: data.seo_description_en,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "category_id,locale" });
+    // Always keep an English translation too (fall back to Vietnamese when empty)
+    // so the publish trigger's "requires vi and en translations" rule is satisfied.
+    const { error: enError } = await supabase
+      .from("product_category_translations")
+      .upsert({
+        category_id: id,
+        locale: "en",
+        slug: data.slug,
+        name: data.name_en || data.name_vi,
+        description: data.description_en || data.description_vi,
+        seo_title: data.seo_title_en || data.seo_title_vi,
+        seo_description: data.seo_description_en || data.seo_description_vi,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "category_id,locale" });
 
-      if (enError) return { success: false, error: enError.message };
-    }
+    if (enError) return { success: false, error: enError.message };
 
     // Write audit log
     await writeAuditLog(supabase, {
@@ -306,7 +346,7 @@ export async function deleteAdminCategory(id: string): Promise<{ success: boolea
       .select("id")
       .eq("parent_id", id)
       .is("deleted_at", null);
-      
+
     if (subcats && subcats.length > 0) {
       return { success: false, error: "Không thể xóa nhóm danh mục đang chứa danh mục bên trong." };
     }
@@ -317,11 +357,11 @@ export async function deleteAdminCategory(id: string): Promise<{ success: boolea
       .select("id")
       .eq("category_id", id)
       .is("deleted_at", null);
-      
+
     if (prods && prods.length > 0) {
       return { success: false, error: "Không thể xóa danh mục đang chứa sản phẩm." };
     }
-    
+
     // Soft delete
     const { error } = await supabase
       .from("product_categories")
@@ -333,6 +373,24 @@ export async function deleteAdminCategory(id: string): Promise<{ success: boolea
       .eq("id", id);
 
     if (error) return { success: false, error: error.message };
+
+    // Free the (locale, slug) namespace so a future category can reuse this slug
+    // (product_category_translations unique index has no soft-delete predicate).
+    const { data: archivedTrans } = await supabase
+      .from("product_category_translations")
+      .select("locale, slug")
+      .eq("category_id", id);
+    if (archivedTrans) {
+      for (const t of archivedTrans as { locale: string; slug: string }[]) {
+        if (t.slug && !t.slug.includes("-deleted-")) {
+          await supabase
+            .from("product_category_translations")
+            .update({ slug: `${t.slug}-deleted-${id.slice(0, 8)}` })
+            .eq("category_id", id)
+            .eq("locale", t.locale);
+        }
+      }
+    }
 
     // Write audit log
     await writeAuditLog(supabase, {
