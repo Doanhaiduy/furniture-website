@@ -36,7 +36,6 @@ import {
   ExternalLink,
   Check,
   FileSpreadsheet,
-  Upload,
 } from "lucide-react";
 import {
   type PublishStatus,
@@ -157,17 +156,13 @@ export function ShowroomPage({ createMode, showrooms = [], total = 0 }: { create
       />
 
       {/* Excel Actions Toolbar */}
-      <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-sm w-fit">
-        <span className="text-xs font-bold text-slate-550 flex items-center gap-1.5 font-mono uppercase tracking-wider select-none">
-          <FileSpreadsheet className="size-4 text-indigo-500" />
-          Excel:
-        </span>
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => setExcelModalOpen(true)}
-          className="button-pd-outline py-1 px-3 text-xs flex items-center gap-1.5 hover:bg-indigo-50 hover:text-indigo-750 hover:border-indigo-200 transition cursor-pointer"
+          className="button-pd-outline flex items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-semibold transition hover:bg-indigo-50 hover:text-indigo-750"
         >
-          <Upload className="size-3.5" />
+          <FileSpreadsheet className="size-3.5 text-indigo-500" />
           Nhập & Xuất Excel
         </button>
       </div>

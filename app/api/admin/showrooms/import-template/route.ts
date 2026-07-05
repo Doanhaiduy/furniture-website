@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       "Hotline*",
       "Email",
       "URL bản đồ nhúng Google Maps*",
-      "URL bản đồ dự phòng Google Maps*",
+      "URL bản đồ dự phòng Google Maps",
       "Latitude",
       "Longitude",
       "Ảnh chính (URL)",
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       "Hotline*": "0901234567",
       "Email": "showroomq7@furniture.vn",
       "URL bản đồ nhúng Google Maps*": "https://www.google.com/maps/embed?pb=...",
-      "URL bản đồ dự phòng Google Maps*": "https://maps.google.com/?q=Showroom+Quan+7",
+      "URL bản đồ dự phòng Google Maps": "https://maps.google.com/?q=Showroom+Quan+7",
       "Ảnh chính (URL)": "https://res.cloudinary.com/demo/image/upload/v1/showroom.jpg",
       "Latitude": 10.7769,
       "Longitude": 106.7009,
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       "Hotline*": "FFF2F3F4",
       "Email": "FFF2F3F4",
       "URL bản đồ nhúng Google Maps*": "FFEAF2F8", // Location, Blue
-      "URL bản đồ dự phòng Google Maps*": "FFEAF2F8",
+      "URL bản đồ dự phòng Google Maps": "FFEAF2F8",
       "Latitude": "FFEAF2F8",
       "Longitude": "FFEAF2F8",
       "Ảnh chính (URL)": "FFE8F6F3", // Media, Cyan
@@ -119,9 +119,9 @@ export async function GET(req: NextRequest) {
         title: "URL bản đồ nhúng*",
         prompt: "Bắt buộc. Link nhúng src copy từ iframe chia sẻ của Google Maps."
       },
-      "URL bản đồ dự phòng Google Maps*": {
-        title: "URL bản đồ dự phòng*",
-        prompt: "Bắt buộc. Link vị trí Google Maps dạng thông thường."
+      "URL bản đồ dự phòng Google Maps": {
+        title: "URL bản đồ dự phòng",
+        prompt: "Không bắt buộc. Link vị trí Google Maps dạng thông thường. Nếu để trống sẽ tự dùng URL bản đồ nhúng."
       },
       "Latitude": {
         title: "Latitude",

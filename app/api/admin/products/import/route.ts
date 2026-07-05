@@ -36,21 +36,23 @@ async function translateProductFields(
     spec_care_vi?: string | null;
   }
 ) {
-  const prompt = `You are a professional translator. Translate the following Vietnamese product attributes to English.
-Ensure the vocabulary matches a luxury furniture and sanitary equipment showroom.
-Preserve tone, formatting and do not summarize.
-Output MUST be a single, valid JSON object containing exactly the translated fields with keys matching the input JSON keys.
+  const prompt = `You are a professional copywriter and translator for a luxury furniture and sanitary equipment showroom.
+Given the following Vietnamese product attributes, do two things:
+1. Translate each attribute to English. Preserve tone, formatting and do not summarize.
+2. Write a polished, premium product description as HTML (use only <p>, <strong>, <ul>, <li> tags — no other tags, no markdown) in BOTH Vietnamese and English, 2-4 short paragraphs, synthesizing the attributes below into engaging marketing copy suitable for a product detail page. Do not just repeat the summary verbatim.
+
+Output MUST be a single, valid JSON object with exactly these keys: name_en, summary_en, material_en, dimension_display_text_en, spec_material_en, spec_finish_en, spec_care_en, description_html_vi, description_html_en.
 Do NOT wrap the response in markdown code blocks or add any text other than the JSON string.
 
 Input JSON:
 ${JSON.stringify({
-  name_en: fields.name_vi,
-  summary_en: fields.summary_vi,
-  material_en: fields.material_vi || "",
-  dimension_display_text_en: fields.dimension_display_text_vi || "",
-  spec_material_en: fields.spec_material_vi || "",
-  spec_finish_en: fields.spec_finish_vi || "",
-  spec_care_en: fields.spec_care_vi || ""
+  name_vi: fields.name_vi,
+  summary_vi: fields.summary_vi,
+  material_vi: fields.material_vi || "",
+  dimension_display_text_vi: fields.dimension_display_text_vi || "",
+  spec_material_vi: fields.spec_material_vi || "",
+  spec_finish_vi: fields.spec_finish_vi || "",
+  spec_care_vi: fields.spec_care_vi || ""
 }, null, 2)}
 `;
 
@@ -76,7 +78,9 @@ ${JSON.stringify({
         dimension_display_text_en: parsed.dimension_display_text_en || null,
         spec_material_en: parsed.spec_material_en || null,
         spec_finish_en: parsed.spec_finish_en || null,
-        spec_care_en: parsed.spec_care_en || null
+        spec_care_en: parsed.spec_care_en || null,
+        description_html_vi: parsed.description_html_vi || null,
+        description_html_en: parsed.description_html_en || null
       };
     } else {
       const errTxt = await apiRes.text();
@@ -94,7 +98,9 @@ ${JSON.stringify({
     dimension_display_text_en: fields.dimension_display_text_vi || null,
     spec_material_en: fields.spec_material_vi || null,
     spec_finish_en: fields.spec_finish_vi || null,
-    spec_care_en: fields.spec_care_vi || null
+    spec_care_en: fields.spec_care_vi || null,
+    description_html_vi: null as string | null,
+    description_html_en: null as string | null
   };
 }
 
@@ -166,13 +172,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch reference data mapping
+    // Only leaf categories (parent_id set) are valid product targets — group/root
+    // categories are organizational only and must never receive products directly,
+    // matching the template's own dropdown (which only lists child categories).
     const { data: dbCats } = await supabase
       .from("product_categories")
-      .select("id, product_category_translations(locale, slug)")
+      .select("id, parent_id, product_category_translations(locale, slug)")
       .is("deleted_at", null);
 
     const categoriesMap: Record<string, string> = {}; // slug -> id
     (dbCats ?? []).forEach(c => {
+      if (!c.parent_id) return;
       const trans = Array.isArray(c.product_category_translations) ? c.product_category_translations : [];
       trans.forEach((t: any) => {
         if (t.slug) categoriesMap[t.slug.trim().toLowerCase()] = c.id;
@@ -202,6 +212,8 @@ export async function POST(req: NextRequest) {
       .select("id, product_translations(locale, slug)")
       .is("deleted_at", null);
 
+    const activeProductIds = new Set((dbProducts ?? []).map(p => p.id));
+
     const productSlugsMap: Record<string, string> = {}; // slug -> product_id
     (dbProducts ?? []).forEach(p => {
       const trans = Array.isArray(p.product_translations) ? p.product_translations : [];
@@ -212,11 +224,15 @@ export async function POST(req: NextRequest) {
 
     const parsedRows: any[] = [];
     const errors: any[] = [];
+    const warnings: any[] = [];
     let successCount = 0;
     let errorCount = 0;
 
     const createdIds: string[] = [];
     const updatedIds: string[] = [];
+
+    // Track slugs seen within this file to catch in-file duplicates
+    const seenSlugs = new Set<string>();
 
     // Limit number of rows
     const rowCount = ws.rowCount;
@@ -365,6 +381,10 @@ export async function POST(req: NextRequest) {
             rowErrors.push(`Tên sản phẩm trùng lặp, slug '${generatedSlug}' đã được sử dụng bởi sản phẩm khác`);
           }
         }
+        if (seenSlugs.has(generatedSlug)) {
+          rowErrors.push(`Slug '${generatedSlug}' bị trùng lặp ngay trong file import`);
+        }
+        seenSlugs.add(generatedSlug);
       }
 
       // Check ID existence if update mode
@@ -373,6 +393,8 @@ export async function POST(req: NextRequest) {
         // Simple uuid regex validation
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idVal)) {
           rowErrors.push("ID sản phẩm không đúng định dạng UUID");
+        } else if (!activeProductIds.has(idVal)) {
+          rowErrors.push("ID sản phẩm không tồn tại hoặc đã bị xóa");
         } else {
           isUpdate = true;
         }
@@ -405,7 +427,9 @@ export async function POST(req: NextRequest) {
               dimension_display_text_en: null as string | null,
               spec_material_en: null as string | null,
               spec_finish_en: null as string | null,
-              spec_care_en: null as string | null
+              spec_care_en: null as string | null,
+              description_html_vi: null as string | null,
+              description_html_en: null as string | null
             };
 
             if (apiKey) {
@@ -421,6 +445,21 @@ export async function POST(req: NextRequest) {
               });
             }
 
+            // Excel has no rich-text column, so description_json is always AI-generated.
+            // "published" requires meaningful description content (productSchema refine) —
+            // if Gemini isn't configured or generation failed, downgrade to draft instead of
+            // hard-failing the whole row, and surface a warning so the admin can finish it manually.
+            let finalStatus = status.toLowerCase();
+            if (finalStatus === "published" && (!translated.description_html_vi || !translated.description_html_en)) {
+              finalStatus = "draft";
+              warnings.push({
+                row: rowNum,
+                field: "status",
+                value: nameVi,
+                message: "Đã tự động lưu ở trạng thái draft vì chưa tạo được nội dung mô tả chi tiết bằng AI (thiếu cấu hình Gemini API hoặc yêu cầu AI thất bại). Vui lòng bổ sung mô tả và xuất bản thủ công."
+              });
+            }
+
             const payload = {
               reference_code: rowData["Mã sản phẩm (Reference Code)"] || null,
               slug: generatedSlug,
@@ -428,8 +467,8 @@ export async function POST(req: NextRequest) {
               name_en: translated.name_en || nameVi,
               summary_vi: summaryVi,
               summary_en: translated.summary_en || summaryVi,
-              description_json_vi: null,
-              description_json_en: null,
+              description_json_vi: translated.description_html_vi || null,
+              description_json_en: translated.description_html_en || null,
               material_vi: rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
               material_en: translated.material_en || rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
               price_display_text_vi: priceMinNum !== null
@@ -463,7 +502,7 @@ export async function POST(req: NextRequest) {
               showroom_code: showroomCode || null,
               price_unit: priceUnit || null,
               featured: featured === "TRUE",
-              status: status.toLowerCase() as any,
+              status: finalStatus as any,
               cover_image: coverImageUrl,
               gallery_images: galleryImages,
               promotion_id: null,
@@ -562,6 +601,7 @@ export async function POST(req: NextRequest) {
       success_count: successCount,
       error_count: errorCount,
       errors,
+      warnings,
       created_ids: createdIds,
       updated_ids: updatedIds,
       preview: parsedRows

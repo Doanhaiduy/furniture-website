@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       "Tên Showroom (Tiếng Việt)*", "Tên Showroom (Tiếng Anh)",
       "Địa chỉ (Tiếng Việt)*", "Địa chỉ (Tiếng Anh)", 
       "Tỉnh/Thành phố*", "Giờ mở cửa (Tiếng Việt)", "Giờ mở cửa (Tiếng Anh)", 
-      "Hotline*", "Email", "URL bản đồ nhúng Google Maps*", "URL bản đồ dự phòng Google Maps*", 
+      "Hotline*", "Email", "URL bản đồ nhúng Google Maps*", "URL bản đồ dự phòng Google Maps", 
       "Ảnh chính (URL)", "Latitude", "Longitude", "Thứ tự hiển thị", "Trạng thái (draft/published/archived)",
       "ID showroom (để trống nếu tạo mới)"
     ];

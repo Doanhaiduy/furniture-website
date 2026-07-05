@@ -149,6 +149,7 @@ export async function POST(req: NextRequest) {
 
     const categoriesMap: Record<string, string> = {}; // slug -> id
     const categoriesList: any[] = [];
+    const activeCategoryIds = new Set((dbCategories ?? []).map(c => c.id));
     (dbCategories ?? []).forEach(c => {
       const trans = Array.isArray(c.product_category_translations) ? c.product_category_translations : [];
       trans.forEach((t: any) => {
@@ -167,6 +168,9 @@ export async function POST(req: NextRequest) {
 
     const createdIds: string[] = [];
     const updatedIds: string[] = [];
+
+    // Track slugs seen within this file to catch in-file duplicates
+    const seenSlugs = new Set<string>();
 
     const rowCount = ws.rowCount;
     const actualDataRowsCount = rowCount - 2;
@@ -240,6 +244,10 @@ export async function POST(req: NextRequest) {
             rowErrors.push(`Tên danh mục trùng lặp, slug '${generatedSlug}' đã được sử dụng bởi danh mục khác`);
           }
         }
+        if (seenSlugs.has(generatedSlug)) {
+          rowErrors.push(`Slug '${generatedSlug}' bị trùng lặp ngay trong file import`);
+        }
+        seenSlugs.add(generatedSlug);
       }
 
       // Check ID existence if update mode
@@ -247,6 +255,8 @@ export async function POST(req: NextRequest) {
       if (idVal) {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idVal)) {
           rowErrors.push("ID danh mục không đúng định dạng UUID");
+        } else if (!activeCategoryIds.has(idVal)) {
+          rowErrors.push("ID danh mục không tồn tại hoặc đã bị xóa");
         } else {
           isUpdate = true;
         }
@@ -270,7 +280,7 @@ export async function POST(req: NextRequest) {
             const groupKeyMapped = rawGroupKey.toLowerCase() === "wood" ? "wooden_furniture"
               : rawGroupKey.toLowerCase() === "sanitary" ? "sanitary_equipment"
               : rawGroupKey.toLowerCase() === "tiles" ? "tiles"
-              : "other";
+              : "project_solutions";
 
             // Call Gemini translation if API key is present
             let translated = {

@@ -43,6 +43,7 @@ export function ExcelImportExportModal({
     success_count: number;
     error_count: number;
     errors: Array<{ row: number; field: string; value: string; message: string }>;
+    warnings?: Array<{ row: number; field: string; value: string; message: string }>;
     created_ids: string[];
     updated_ids: string[];
   } | null>(null);
@@ -153,8 +154,11 @@ export function ExcelImportExportModal({
 
   // DOWNLOAD ERROR REPORT (STEP 3)
   const handleDownloadErrorReport = () => {
-    const activeErrors = importResults?.errors || validationResults?.errors;
-    if (!activeErrors || activeErrors.length === 0) {
+    const activeErrors = [
+      ...(importResults?.errors || validationResults?.errors || []),
+      ...(importResults?.warnings || []),
+    ];
+    if (activeErrors.length === 0) {
       toast.error("Không có lỗi nào để xuất báo cáo!");
       return;
     }

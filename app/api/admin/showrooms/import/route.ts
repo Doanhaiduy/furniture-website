@@ -171,6 +171,7 @@ export async function POST(req: NextRequest) {
     (dbShowrooms ?? []).forEach(s => {
       if (s.code) showroomsMap[s.code.trim().toLowerCase()] = s.id;
     });
+    const activeShowroomIds = new Set((dbShowrooms ?? []).map(s => s.id));
 
     const parsedRows: any[] = [];
     const errors: any[] = [];
@@ -179,6 +180,9 @@ export async function POST(req: NextRequest) {
 
     const createdIds: string[] = [];
     const updatedIds: string[] = [];
+
+    // Track codes seen within this file to catch in-file duplicates
+    const seenCodes = new Set<string>();
 
     const rowCount = ws.rowCount;
     const actualDataRowsCount = rowCount - 2;
@@ -208,7 +212,7 @@ export async function POST(req: NextRequest) {
       const province = rowData["Tỉnh/Thành phố*"];
       const hotline = rowData["Hotline*"];
       const mapUrl = rowData["URL bản đồ nhúng Google Maps*"];
-      const fallbackUrl = rowData["URL bản đồ dự phòng Google Maps*"];
+      const fallbackUrl = rowData["URL bản đồ dự phòng Google Maps"];
       const coverImageUrl = rowData["Ảnh chính (URL)"];
       const latVal = rowData["Latitude"];
       const lngVal = rowData["Longitude"];
@@ -262,6 +266,10 @@ export async function POST(req: NextRequest) {
             rowErrors.push(`Tên showroom trùng lặp, mã code/slug '${generatedCode}' đã được sử dụng bởi showroom khác`);
           }
         }
+        if (seenCodes.has(generatedCode)) {
+          rowErrors.push(`Mã code '${generatedCode}' bị trùng lặp ngay trong file import`);
+        }
+        seenCodes.add(generatedCode);
       }
 
       // Check ID existence if update mode
@@ -269,6 +277,8 @@ export async function POST(req: NextRequest) {
       if (idVal) {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idVal)) {
           rowErrors.push("ID showroom không đúng định dạng UUID");
+        } else if (!activeShowroomIds.has(idVal)) {
+          rowErrors.push("ID showroom không tồn tại hoặc đã bị xóa");
         } else {
           isUpdate = true;
         }

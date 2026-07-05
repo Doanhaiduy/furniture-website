@@ -128,7 +128,7 @@ export async function GET(req: NextRequest) {
       "Giá tối thiểu (VND)": 45000000,
       "Giá tối đa (VND)": 50000000,
       "Đơn vị tính (Unit)": "vỉ",
-      "Mã Showroom (Showroom Code)": "district-7",
+      "Mã Showroom (Showroom Code)": showroomsList[0]?.code || "",
       "Chiều rộng (mm)": 2200,
       "Chiều sâu (mm)": 900,
       "Chiều cao (mm)": 850,
@@ -206,7 +206,7 @@ export async function GET(req: NextRequest) {
       },
       "Mã Showroom (Showroom Code)": {
         title: "Mã Showroom",
-        prompt: "Mã showroom trưng bày sản phẩm (ví dụ: district-7, hanoi, project-only). Xem danh sách ở sheet '🏢 Showroom'."
+        prompt: "Mã showroom trưng bày sản phẩm. Chọn từ dropdown hoặc xem danh sách ở sheet '🏢 Showroom'."
       },
       "Chiều rộng (mm)": {
         title: "Chiều rộng (mm)",
@@ -318,18 +318,18 @@ export async function GET(req: NextRequest) {
         formulae: ["='📂 Danh mục'!$F$2:$F$500"]
       };
 
-      // Data validation for Brand Slug (Col 14 / N)
+      // Data validation for Brand Slug (Col 14 / N) — pick from the dropdown-ready column (Name + slug)
       wsMain.getCell(`N${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
-        formulae: ["='🏷️ Thương hiệu'!$C$2:$C$500"]
+        formulae: ["='🏷️ Thương hiệu'!$D$2:$D$500"]
       };
 
-      // Data validation for Showroom Code (Col 9 / I)
+      // Data validation for Showroom Code (Col 9 / I) — pick from the dropdown-ready column (Name + code)
       wsMain.getCell(`I${rowIdx}`).dataValidation = {
         type: "list",
         allowBlank: true,
-        formulae: ["='🏢 Showroom'!$C$2:$C$500"]
+        formulae: ["='🏢 Showroom'!$D$2:$D$500"]
       };
 
       // Data validation for Featured (Col 18 / R)
@@ -409,6 +409,7 @@ export async function GET(req: NextRequest) {
       ["🔵 Ảnh chính (URL)*", "Đường dẫn URL ảnh đại diện của sản phẩm (ảnh bìa Cloudinary hoặc nguồn khác)."],
       ["🔵 Thư viện ảnh", "Các đường dẫn ảnh chi tiết cách nhau bởi dấu phẩy (,)."],
       ["🔵 Giá tiền (VND)", "Nhập số nguyên dương, không có dấu phẩy hay đơn vị. Giá tối thiểu <= Giá tối đa."],
+      ["🔵 Trạng thái = published", "File Excel không có cột mô tả chi tiết, nên hệ thống sẽ dùng AI (Gemini) để tự soạn nội dung mô tả khi xuất bản. Nếu chưa cấu hình Gemini API hoặc AI tạo lỗi, dòng đó sẽ tự động lưu ở draft kèm cảnh báo — vào sửa & xuất bản thủ công sau."],
       ["🔵 ID sản phẩm (ẩn)", "Dành cho chế độ cập nhật sản phẩm. Nếu tạo mới sản phẩm thì bỏ trống."]
     ];
 
@@ -499,7 +500,7 @@ export async function GET(req: NextRequest) {
     const wsBrands = workbook.addWorksheet("🏷️ Thương hiệu", {
       views: [{ state: 'frozen', ySplit: 1 }]
     });
-    const brandHeaders = ["STT", "Tên thương hiệu", "Slug ← COPY CỘT NÀY"];
+    const brandHeaders = ["STT", "Tên thương hiệu", "Slug ← COPY CỘT NÀY", "Chọn dòng này (dropdown)"];
     const bHdr = wsBrands.addRow(brandHeaders);
     bHdr.height = 32;
     bHdr.eachCell((cell) => {
@@ -510,7 +511,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (brandsList.length === 0) {
-      const r = wsBrands.addRow(["—", "Chưa có thương hiệu", "—"]);
+      const r = wsBrands.addRow(["—", "Chưa có thương hiệu", "—", "—"]);
       r.height = 22;
       r.eachCell(c => { c.alignment = { horizontal: "center", vertical: "middle" }; c.border = borderStyle; });
     } else {
@@ -519,6 +520,7 @@ export async function GET(req: NextRequest) {
         const r = wsBrands.addRow([
           String(idx + 1),
           b.name,
+          b.slug,
           b.slug ? `${b.name} (${b.slug})` : ""
         ]);
         r.height = 22;
@@ -526,7 +528,7 @@ export async function GET(req: NextRequest) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
           cell.border = borderStyle;
           cell.alignment = { horizontal: "left", vertical: "middle" };
-          if (colIdx === 3) {
+          if (colIdx === 3 || colIdx === 4) {
             cell.font = { bold: true, color: { argb: "FFC0392B" }, size: 10, name: "Calibri" };
           } else {
             cell.font = { size: 10, name: "Calibri", color: { argb: "FF333333" } };
@@ -536,13 +538,14 @@ export async function GET(req: NextRequest) {
     }
     wsBrands.getColumn(1).width = 6;
     wsBrands.getColumn(2).width = 30;
-    wsBrands.getColumn(3).width = 34;
+    wsBrands.getColumn(3).width = 22;
+    wsBrands.getColumn(4).width = 34;
 
     // ─── Reference sheet: Showrooms ───
     const wsShowrooms = workbook.addWorksheet("🏢 Showroom", {
       views: [{ state: 'frozen', ySplit: 1 }]
     });
-    const showroomHeaders = ["STT", "Tên showroom", "Mã showroom ← COPY CỘT NÀY", "Địa chỉ"];
+    const showroomHeaders = ["STT", "Tên showroom", "Mã showroom ← COPY CỘT NÀY", "Chọn dòng này (dropdown)", "Địa chỉ"];
     const sHdr = wsShowrooms.addRow(showroomHeaders);
     sHdr.height = 32;
     sHdr.eachCell((cell) => {
@@ -553,7 +556,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (showroomsList.length === 0) {
-      const r = wsShowrooms.addRow(["—", "Chưa có showroom", "—", "—"]);
+      const r = wsShowrooms.addRow(["—", "Chưa có showroom", "—", "—", "—"]);
       r.height = 22;
       r.eachCell(c => { c.alignment = { horizontal: "center", vertical: "middle" }; c.border = borderStyle; });
     } else {
@@ -562,6 +565,7 @@ export async function GET(req: NextRequest) {
         const r = wsShowrooms.addRow([
           String(idx + 1),
           s.name,
+          s.code,
           s.code ? `${s.name} (${s.code})` : "",
           s.address
         ]);
@@ -570,7 +574,7 @@ export async function GET(req: NextRequest) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
           cell.border = borderStyle;
           cell.alignment = { horizontal: "left", vertical: "middle" };
-          if (colIdx === 3) {
+          if (colIdx === 3 || colIdx === 4) {
             cell.font = { bold: true, color: { argb: "FFC0392B" }, size: 10, name: "Calibri" };
           } else {
             cell.font = { size: 10, name: "Calibri", color: { argb: "FF333333" } };
@@ -580,8 +584,9 @@ export async function GET(req: NextRequest) {
     }
     wsShowrooms.getColumn(1).width = 6;
     wsShowrooms.getColumn(2).width = 30;
-    wsShowrooms.getColumn(3).width = 34;
-    wsShowrooms.getColumn(4).width = 46;
+    wsShowrooms.getColumn(3).width = 22;
+    wsShowrooms.getColumn(4).width = 34;
+    wsShowrooms.getColumn(5).width = 46;
 
     // ─── Sheet: Lỗi thường gặp ───
     const wsErrors = workbook.addWorksheet("❌ Lỗi thường gặp");

@@ -8,6 +8,7 @@ interface ImportResult {
   success_count: number;
   error_count: number;
   errors: Array<{ row: number; field: string; value: string; message: string }>;
+  warnings?: Array<{ row: number; field: string; value: string; message: string }>;
   created_ids: string[];
   updated_ids: string[];
 }
@@ -45,7 +46,7 @@ export function StepResult({ importResults, handleDownloadErrorReport }: StepRes
           </div>
         </div>
 
-        {importResults.error_count > 0 ? (
+        {importResults.error_count > 0 && (
           <div className="bg-amber-50 border border-amber-100 text-amber-900 rounded-xl p-4 text-xs text-left leading-relaxed space-y-2">
             <p className="font-bold flex items-center gap-1.5">
               <AlertCircle className="size-4 text-amber-600" />
@@ -62,7 +63,28 @@ export function StepResult({ importResults, handleDownloadErrorReport }: StepRes
               📥 Tải báo cáo chi tiết các lỗi (.xlsx)
             </button>
           </div>
-        ) : (
+        )}
+
+        {importResults.warnings && importResults.warnings.length > 0 && (
+          <div className="bg-sky-50 border border-sky-100 text-sky-900 rounded-xl p-4 text-xs text-left leading-relaxed space-y-2">
+            <p className="font-bold flex items-center gap-1.5">
+              <AlertCircle className="size-4 text-sky-600" />
+              Lưu ý về một số dòng bị hạ trạng thái
+            </p>
+            <p className="font-medium text-sky-850">
+              Có <b>{importResults.warnings.length}</b> dòng đã được lưu thành công nhưng tự động hạ về <b>draft</b> (thay vì published) vì AI chưa tạo được nội dung mô tả chi tiết. Vui lòng bổ sung mô tả và xuất bản thủ công.
+            </p>
+            <button
+              type="button"
+              onClick={handleDownloadErrorReport}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 transition pt-1"
+            >
+              📥 Tải danh sách các dòng này (.xlsx)
+            </button>
+          </div>
+        )}
+
+        {importResults.error_count === 0 && (!importResults.warnings || importResults.warnings.length === 0) && (
           <p className="text-xs text-slate-400 font-medium">
             100% dữ liệu hàng của bạn đã được kiểm chuẩn và nạp vào database hoàn hảo!
           </p>

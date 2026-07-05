@@ -132,6 +132,7 @@ export async function POST(req: NextRequest) {
     (dbBrands ?? []).forEach((b) => {
       if (b.slug) slugMap[b.slug.trim().toLowerCase()] = b.id;
     });
+    const activeBrandIds = new Set((dbBrands ?? []).map((b) => b.id));
 
     const parsedRows: any[] = [];
     const errors: any[] = [];
@@ -195,6 +196,8 @@ export async function POST(req: NextRequest) {
       if (idVal) {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idVal)) {
           rowErrors.push("ID thương hiệu không đúng định dạng UUID");
+        } else if (!activeBrandIds.has(idVal)) {
+          rowErrors.push("ID thương hiệu không tồn tại hoặc đã bị xóa");
         } else {
           isUpdate = true;
         }
