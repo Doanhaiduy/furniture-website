@@ -14,7 +14,7 @@
   <div class="cover-title">Hướng dẫn sử dụng<br/>trang <span>Quản trị</span></div>
   <div class="cover-desc">Cẩm nang vận hành website dành cho khách hàng: quản lý sản phẩm, danh mục, thương hiệu, khuyến mãi, bài viết, showroom, báo giá và cấu hình cửa hàng.</div>
   <div class="cover-meta">
-    <div><span>Phiên bản tài liệu</span><b>1.1</b></div>
+    <div><span>Phiên bản tài liệu</span><b>1.2</b></div>
     <div><span>Ngày phát hành</span><b>Tháng 07 / 2026</b></div>
     <div><span>Loại</span><b>Hướng dẫn người dùng cuối</b></div>
     <div><span>Ngôn ngữ</span><b>Tiếng Việt</b></div>
@@ -185,6 +185,7 @@
     </tbody>
   </table>
   <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Về giá tiền</span>Chỉ nhập chữ số. Ví dụ <strong>đúng</strong>: <code>45000000</code>. <strong>Sai</strong>: <code>45.000.000đ</code> hay <code>45 triệu</code>.</div>
+  <div class="callout note"><span class="ic">ℹ️</span><span class="lead">Ẩn/hiện giá</span>Mỗi sản phẩm có công tắc <strong>“Chỉ hiển thị báo giá”</strong> (mặc định <strong>BẬT</strong> — khách thấy “Liên hệ” thay vì con số). <strong>Tắt</strong> công tắc này nếu muốn hiển thị giá đã nhập.</div>
 
   <h2 class="sec" id="s3-4">3.4 · Trợ lý AI, xuất bản &amp; chỉnh sửa <span class="badge a">AI</span></h2>
   <p>Ở đầu cửa sổ có khối <strong>“Trợ lý biên tập AI”</strong>. Bạn nhập một chủ đề thô (ví dụ: <em>“Bàn ăn gỗ óc chó 6 ghế, phong cách Heritage tối giản”</em>) rồi bấm <strong>“Tạo bản nháp song ngữ”</strong> — hệ thống tự soạn nội dung tiếng Việt &amp; tiếng Anh, đường dẫn và cấu trúc chuẩn SEO.</p>
@@ -199,7 +200,7 @@
 
   <h2 class="sec" id="s4-1">4.1 · Danh mục sản phẩm</h2>
   <p>Vào menu <strong>Danh mục</strong>. Danh mục giúp khách lọc &amp; duyệt sản phẩm. Hệ thống dùng cấu trúc <strong>2 cấp</strong>: 4 nhóm cha cố định → các danh mục con.</p>
-  <figure><img src="screenshots/04-categories-list.png" alt="Danh sách danh mục"/><figcaption><span class="fig-num">Hình 4.1</span> — Cây danh mục với 4 nhóm: Đồ gỗ nội thất, Thiết bị vệ sinh, Gạch ốp lát, Thiết bị khác.</figcaption></figure>
+  <figure><img src="screenshots/04-categories-list.png" alt="Danh sách danh mục"/><figcaption><span class="fig-num">Hình 4.1</span> — Cây danh mục theo các nhóm cha cố định (Đồ gỗ nội thất, Thiết bị vệ sinh, Gạch ốp lát, Thiết bị khác).</figcaption></figure>
   <div class="callout note"><span class="ic">ℹ️</span><span class="lead">Quy tắc quan trọng</span>4 nhóm cha là <strong>cố định</strong>. Bạn chỉ tạo <strong>danh mục con</strong> bên trong. Sản phẩm cũng chỉ gắn được vào danh mục con (ví dụ “Sofa phòng khách”), không gắn trực tiếp vào nhóm cha.</div>
   <p><strong>Thêm danh mục:</strong> bấm <strong>+ Thêm danh mục</strong>. Cửa sổ mở ra như hình dưới:</p>
   <figure><img src="screenshots/05b-category-new-top.png" alt="Form thêm danh mục"/><figcaption><span class="fig-num">Hình 4.2</span> — Cửa sổ “Thêm danh mục”: tên song ngữ, chọn nhóm cha, mô tả, ảnh bìa và SEO.</figcaption></figure>
@@ -210,7 +211,7 @@
       <tr><td>Thuộc nhóm danh mục</td><td><span class="req">Có</span></td><td>Chọn 1 trong 4 nhóm cha cố định từ danh sách.</td><td class="ex">Đồ gỗ nội thất</td></tr>
       <tr><td>Mô tả danh mục</td><td><span class="opt">Không</span></td><td>Giới thiệu ngắn (song ngữ nếu bật tiếng Anh).</td><td class="ex">Các mẫu sofa cao cấp cho phòng khách.</td></tr>
       <tr><td>Ảnh bìa danh mục</td><td><span class="opt">Không</span></td><td>Ảnh đại diện danh mục.</td><td class="ex">(tải file) danhmuc-sofa.jpg</td></tr>
-      <tr><td>SEO &amp; đường dẫn</td><td><span class="opt">Tự sinh</span></td><td>Tiêu đề/mô tả SEO; có nút <strong>“Tạo SEO bằng AI”</strong>. Đường dẫn tự sinh từ tên.</td><td class="ex">sofa-phong-khach</td></tr>
+      <tr><td>SEO &amp; đường dẫn</td><td><span class="opt">Tự sinh</span></td><td>Tiêu đề/mô tả SEO (có nút gợi ý nhanh); đường dẫn tự sinh từ tên.</td><td class="ex">sofa-phong-khach</td></tr>
       <tr><td>Trạng thái</td><td><span class="req">Có</span></td><td>Nháp / Xuất bản / Lưu trữ.</td><td class="ex">Xuất bản</td></tr>
     </tbody>
   </table>
@@ -243,9 +244,9 @@
     <tbody>
       <tr><td>Tiêu đề khuyến mãi (VI)</td><td><span class="req">Có</span></td><td>Tên chương trình hiển thị cho khách.</td><td class="ex">Sale hè – Giảm 20% Sofa</td></tr>
       <tr><td>Mô tả khuyến mãi (VI)</td><td><span class="opt">Không</span></td><td>Chi tiết chương trình.</td><td class="ex">Áp dụng cho bộ sưu tập sofa da…</td></tr>
-      <tr><td>Chiết khấu (%) / Mã code</td><td><span class="opt">Không</span></td><td>Phần trăm giảm và mã (nếu có).</td><td class="ex">20 · HE2026</td></tr>
+      <tr><td>Phần trăm chiết khấu (%)</td><td><span class="req">Có</span></td><td>Giảm giá theo <strong>phần trăm</strong>. Mã khuyến mãi (đường dẫn) tự sinh từ tiêu đề.</td><td class="ex">20</td></tr>
       <tr><td>Chọn sản phẩm giảm giá</td><td><span class="req">Có</span></td><td>Tìm &amp; chọn các sản phẩm trong phạm vi giảm giá.</td><td class="ex">Sofa da Ý Premium…</td></tr>
-      <tr><td>Thời hạn (bắt đầu – kết thúc)</td><td><span class="opt">Không</span></td><td>Khoảng thời gian chạy chương trình.</td><td class="ex">01/07 – 31/07/2026</td></tr>
+      <tr><td>Thời gian bắt đầu / kết thúc</td><td><span class="req">Bắt đầu</span></td><td>Thời gian bắt đầu bắt buộc; kết thúc tuỳ chọn (để trống = chạy vô thời hạn).</td><td class="ex">01/07 – 31/07/2026</td></tr>
       <tr><td>Ảnh bìa · Trạng thái</td><td><span class="opt">Không</span></td><td>Ảnh combo &amp; Nháp/Xuất bản.</td><td class="ex">Xuất bản</td></tr>
     </tbody>
   </table>
@@ -261,7 +262,7 @@
       <tr><td>Đường dẫn (slug)</td><td><span class="req">Có</span></td><td>Tự sinh từ tiêu đề; có thể sửa.</td><td class="ex">phoi-mau-noi-that-2026</td></tr>
       <tr><td>Trích đoạn (VI)</td><td><span class="req">Có</span></td><td>Tóm tắt ngắn hiển thị ở danh sách.</td><td class="ex">Gợi ý bảng màu ấm cho phòng khách…</td></tr>
       <tr><td>Nội dung</td><td><span class="opt">Không</span></td><td>Trình soạn thảo có định dạng, chèn ảnh.</td><td class="ex">(soạn nội dung)</td></tr>
-      <tr><td>Ảnh bìa bài viết · Nổi bật</td><td><span class="opt">Không</span></td><td>Ảnh đại diện; bật Nổi bật để lên đầu.</td><td class="ex">(tải file) baiviet-01.jpg</td></tr>
+      <tr><td>Ảnh bìa bài viết</td><td><span class="req">Khi xuất bản</span></td><td>Ảnh đại diện — <strong>bắt buộc để xuất bản</strong>. Bật “Nổi bật” để lên đầu.</td><td class="ex">(tải file) baiviet-01.jpg</td></tr>
     </tbody>
   </table>
 
@@ -272,11 +273,12 @@
     <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:33%">Cần nhập gì</th><th style="width:24%">Ví dụ</th></tr></thead>
     <tbody>
       <tr><td>Tên showroom (VI)</td><td><span class="req">Có</span></td><td>Tên chi nhánh.</td><td class="ex">Showroom Hà Nội</td></tr>
-      <tr><td>Mã showroom (code)</td><td><span class="req">Có</span></td><td>Mã nội bộ ngắn, không dấu.</td><td class="ex">SR-HN</td></tr>
+      <tr><td>Mã nội bộ (đường dẫn)</td><td><span class="opt">Tự sinh</span></td><td>Tự tạo từ tên showroom — không cần nhập.</td><td class="ex">showroom-ha-noi</td></tr>
       <tr><td>Địa chỉ (Tỉnh/TP → Phường/Xã)</td><td><span class="req">Có</span></td><td>Nhập số nhà/đường rồi chọn Tỉnh &amp; Phường từ danh sách.</td><td class="ex">123 Nguyễn Trãi · Hà Nội</td></tr>
-      <tr><td>Đường dây nóng (Hotline)</td><td><span class="opt">Không</span></td><td>Số điện thoại showroom.</td><td class="ex">0901 234 567</td></tr>
-      <tr><td>URL nhúng Google Maps</td><td><span class="req">Có</span></td><td>Google Maps → Share → Embed → copy link trong <code>src="…"</code>.</td><td class="ex">https://www.google.com/maps/embed?…</td></tr>
-      <tr><td>URL bản đồ dự phòng · Giờ mở cửa · Ảnh</td><td><span class="opt">Không</span></td><td>Link chia sẻ Maps thường, giờ mở cửa, ảnh showroom.</td><td class="ex">8:00–20:00 (T2–CN)</td></tr>
+      <tr><td>Đường dây nóng (Hotline)</td><td><span class="req">Có</span></td><td>Số điện thoại showroom.</td><td class="ex">0901 234 567</td></tr>
+      <tr><td>URL nhúng Google Maps</td><td><span class="req">Có</span></td><td>Google Maps → Share → Embed → copy link trong <code>src="…"</code> (https).</td><td class="ex">https://www.google.com/maps/embed?…</td></tr>
+      <tr><td>URL bản đồ dự phòng</td><td><span class="req">Có</span></td><td>Link chia sẻ Maps thường (https).</td><td class="ex">https://maps.app.goo.gl/…</td></tr>
+      <tr><td>Giờ mở cửa · Ảnh showroom</td><td><span class="opt">Không</span></td><td>Giờ mở cửa và ảnh mặt tiền/không gian.</td><td class="ex">8:00–20:00 (T2–CN)</td></tr>
     </tbody>
   </table>
   <div class="callout tip"><span class="ic">💡</span>Cột phải “Vấn đề đang chặn xuất bản” liệt kê rõ những trường bắt buộc còn thiếu — điền hết là có thể Xuất bản.</div>
@@ -292,7 +294,7 @@
   <ul>
     <li>Mỗi yêu cầu gồm: tên khách, số điện thoại, email, sản phẩm quan tâm, lời nhắn.</li>
     <li>Bạn có thể <strong>gán người phụ trách</strong>, <strong>ghi chú nội bộ</strong>, và theo dõi <strong>trạng thái xử lý</strong>.</li>
-    <li>Hệ thống đồng thời gửi <strong>email thông báo</strong> về hộp thư “Email nhận báo giá” (cấu hình ở Cài đặt → Liên hệ).</li>
+    <li>Hệ thống gửi <strong>email thông báo cho bộ phận phụ trách</strong>. Địa chỉ nhận thông báo được thiết lập khi khởi tạo (lấy từ file “Thông tin cửa hàng”, ô Email nhận báo giá); muốn đổi về sau vui lòng báo đội kỹ thuật. Khách hàng <strong>không</strong> nhận email tự động — nút “Xem mẫu email tư vấn” chỉ tạo <strong>mẫu email để bạn sao chép</strong> và gửi thủ công.</li>
   </ul>
   <div class="callout tip"><span class="ic">💡</span>Màn hình Tổng quan hiển thị số yêu cầu báo giá <strong>đang chờ xử lý</strong> để bạn không bỏ sót khách hàng.</div>
 
@@ -309,6 +311,7 @@
       <tr><td>Tài khoản đang hoạt động</td><td><span class="opt">Không</span></td><td>Bỏ tick để khoá tài khoản (không cho truy cập).</td><td class="ex">Đang bật</td></tr>
     </tbody>
   </table>
+  <p><strong>Sửa người dùng:</strong> bấm ✏️ để mở cửa sổ <strong>“Hiệu chỉnh quyền thành viên”</strong> — đổi vai trò, bật/tắt hoạt động và <strong>đặt lại mật khẩu</strong> (tên hiển thị &amp; email không đổi).</p>
   <div class="callout warn"><span class="ic">⚠️</span>Hệ thống không cho xoá/khoá <strong>tài khoản Quản trị viên cuối cùng</strong> để tránh mất quyền truy cập. Luôn giữ ít nhất một Quản trị viên.</div>
 </section>
 
@@ -371,7 +374,8 @@
   <div class="callout note"><span class="ic">ℹ️</span>Tab SEO <strong>không</strong> có mục tải ảnh — ảnh chia sẻ &amp; logo được quản lý ở tab “Nhận diện trang”. Mỗi sản phẩm/bài viết cũng có thể đặt SEO riêng khi tạo (ghi đè mặc định này).</div>
 
   <h2 class="sec" id="s7-4">7.4 · Khu vực trang chủ</h2>
-  <p>Tab <strong>Khu vực trang chủ</strong> quản lý các khối hiển thị ngoài trang chủ: <strong>slide Hero</strong> (tối đa 3 slide: tiêu đề, mô tả, nút bấm, ảnh nền), <strong>Câu chuyện thương hiệu</strong>, <strong>Sản phẩm nổi bật</strong> (số lượng hiển thị) và <strong>Huy hiệu tin cậy</strong> (các con số ấn tượng). Mỗi khối có công tắc bật/tắt hiển thị.</p>
+  <p>Tab <strong>Khu vực trang chủ</strong> cho phép chỉnh sửa trực tiếp <strong>3 slide Hero</strong> (tiêu đề, mô tả, nút bấm, ảnh nền) và <strong>bật/tắt hiển thị</strong> các khối trang chủ khác: Câu chuyện thương hiệu, Sản phẩm nổi bật, Bài viết, Showroom, Yêu cầu báo giá, Huy hiệu tin cậy.</p>
+  <div class="callout note"><span class="ic">ℹ️</span>Nội dung <strong>chi tiết</strong> của các khối (câu chuyện thương hiệu, các con số huy hiệu…) được nạp khi <strong>khởi tạo dữ liệu</strong> (Quyển 3). Muốn thay đổi về sau, vui lòng liên hệ đội kỹ thuật.</div>
   <figure><img src="screenshots/14-settings-homepage.png" alt="Cài đặt trang chủ" class="tall"/><figcaption><span class="fig-num">Hình 7.4</span> — Tab “Khu vực trang chủ” (Hero, câu chuyện, sản phẩm nổi bật, huy hiệu…).</figcaption></figure>
   <div class="callout tip"><span class="ic">💡</span>Ảnh Hero nên nằm ngang, kích thước tối thiểu <strong>1920×1080px</strong> để hiển thị sắc nét trên màn hình lớn.</div>
 
@@ -387,7 +391,7 @@
   <figure><img src="screenshots/15-excel-modal.png" alt="Cửa sổ nhập xuất Excel"/><figcaption><span class="fig-num">Hình 8.1</span> — Cửa sổ Nhập &amp; Xuất Excel với quy trình 3 bước.</figcaption></figure>
   <ol class="steps">
     <li><strong>Tải file mẫu</strong> — bấm “Tải mẫu template trống (.xlsx)”. File có sẵn cột, hướng dẫn, danh sách chọn (dropdown) danh mục/thương hiệu/showroom.</li>
-    <li><strong>Điền dữ liệu</strong> — mỗi dòng một mục. Đọc sheet “Gợi ý sử dụng” và “Lỗi thường gặp” trong file.</li>
+    <li><strong>Điền dữ liệu</strong> — mỗi dòng một mục. Đọc kỹ dòng hướng dẫn/gợi ý và các sheet tham chiếu (Danh mục/Thương hiệu/Showroom/Tỉnh–Thành) trong file mẫu.</li>
     <li><strong>Tải file lên</strong> (kéo–thả) — hệ thống kiểm tra &amp; báo lỗi từng dòng ở bước “Xem trước &amp; Kiểm tra” trước khi lưu.</li>
   </ol>
   <p><strong>Xuất dữ liệu (Export):</strong> bấm “Tải file export (.xlsx)” để lấy toàn bộ dữ liệu hiện có ra Excel để sao lưu hoặc chỉnh sửa hàng loạt.</p>
@@ -403,7 +407,7 @@
   <h4>❓ Bấm Lưu / Xuất bản nhưng không có gì xảy ra?</h4>
   <p>Xem cột phải “<strong>Mức độ sẵn sàng xuất bản</strong>” hoặc “Vấn đề đang chặn xuất bản” — nó liệt kê trường bắt buộc còn thiếu (tô đỏ). Điền đủ rồi bấm lại và chờ thông báo xanh “Đã lưu”.</p>
   <h4>❓ Ảnh tải lên bị lỗi?</h4>
-  <p>Kiểm tra dung lượng (&lt; 5MB) và định dạng (JPG/PNG/WEBP). Thử lại hoặc dùng ảnh nhẹ hơn.</p>
+  <p>Kiểm tra dung lượng (tối đa <strong>50MB</strong>) và định dạng (JPG, PNG, WebP, AVIF, GIF, SVG). Thử lại hoặc dùng ảnh nhẹ hơn.</p>
   <h4>❓ Xoá nhầm một mục?</h4>
   <p>Dữ liệu xoá theo dạng “xoá mềm”. Liên hệ bên kỹ thuật để khôi phục.</p>
   <h4>❓ Muốn nhập nội dung tiếng Anh?</h4>

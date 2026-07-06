@@ -11,10 +11,11 @@
     </div>
   </div>
   <div class="cover-kicker">Tài liệu bàn giao · Quyển 3</div>
-  <div class="cover-title">Điền dữ liệu<br/><span>khởi tạo</span> website</div>
+  <div class="cover-title">Điền dữ liệu
+<span>khởi tạo</span> website</div>
   <div class="cover-desc">Hướng dẫn điền bộ file Excel (danh mục, thương hiệu, showroom, sản phẩm, thông tin cửa hàng) để đội kỹ thuật nạp dữ liệu ban đầu cho website production.</div>
   <div class="cover-meta">
-    <div><span>Phiên bản tài liệu</span><b>1.1</b></div>
+    <div><span>Phiên bản tài liệu</span><b>1.2</b></div>
     <div><span>Ngày phát hành</span><b>Tháng 07 / 2026</b></div>
     <div><span>Bộ file kèm theo</span><b>5 file Excel</b></div>
     <div><span>Ngôn ngữ</span><b>Tiếng Việt</b></div>
@@ -28,7 +29,7 @@
 <!-- TOC -->
 <div class="page-break toc-wrap">
   <div class="doc-h1">Mục lục</div>
-  <p class="opt" style="font-size:12px;margin-top:2px;">Điền bộ file Excel trong thư mục <code>file-dien-du-lieu/</code> kèm gửi các file ảnh; đội kỹ thuật sẽ nạp toàn bộ vào website khi khởi tạo.</p>
+  <p class="opt" style="font-size:12px;margin-top:2px;">Điền bộ file Excel trong thư mục <code>file-dien-du-lieu/ kèm gửi các file ảnh; đội kỹ thuật sẽ nạp toàn bộ vào website khi khởi tạo.</p>
   <div class="toc">
     <div class="toc-part"><span class="toc-num">Phần 1.</span> Bộ file &amp; nguyên tắc điền <span class="pg" data-pg="#p1"></span></div>
     <div class="toc-part"><span class="toc-num">Phần 2.</span> Thứ tự &amp; cách gửi ảnh <span class="pg" data-pg="#p2"></span></div>
@@ -50,7 +51,7 @@
       <tr><td>2</td><td><code>2_Thuong_hieu.xlsx</code></td><td>Các thương hiệu phân phối.</td><td>Nếu có</td></tr>
       <tr><td>3</td><td><code>3_Showroom.xlsx</code></td><td>Chi nhánh/showroom.</td><td>Nên có</td></tr>
       <tr><td>4</td><td><code>4_San_pham.xlsx</code></td><td>Danh sách sản phẩm.</td><td><span class="req">Bắt buộc</span></td></tr>
-      <tr><td>5</td><td><code>5_Thong_tin_cua_hang.xlsx</code></td><td>Logo, liên hệ, MXH, SEO, trang chủ.</td><td><span class="req">Bắt buộc</span></td></tr>
+      <tr><td>5</td><td><code>5_Thong_tin_cua_hang.xlsx</code></td><td>Logo/favicon, liên hệ, MXH, SEO, slide Hero, câu chuyện, huy hiệu.</td><td><span class="req">Bắt buộc</span></td></tr>
     </tbody>
   </table>
   <div class="callout note"><span class="ic">ℹ️</span>Mỗi file đều có sheet <strong>“📋 Hướng dẫn”</strong> ở đầu và <strong>dòng mẫu</strong> minh họa. Hãy đọc sheet Hướng dẫn trước khi điền.</div>
@@ -98,9 +99,10 @@
 
   <h3 class="sub">① 1_Danh_muc_san_pham.xlsx</h3>
   <ul>
-    <li>Điền <strong>danh mục cha trước</strong> (để trống cột “Danh mục cha”), rồi <strong>danh mục con</strong> (ghi tên cha vào cột “Danh mục cha”).</li>
-    <li>Chọn <strong>Nhóm hàng</strong> từ dropdown: Đồ gỗ nội thất / Thiết bị vệ sinh / Gạch ốp lát / Khác.</li>
-    <li>⚠️ Sản phẩm chỉ gắn được vào <strong>danh mục con</strong> — hãy tạo đủ danh mục con.</li>
+    <li>Chọn <strong>Nhóm hàng</strong> cho mỗi danh mục từ dropdown: Đồ gỗ nội thất / Thiết bị vệ sinh / Gạch ốp lát / <strong>Thiết bị khác</strong> (4 nhóm cố định).</li>
+    <li><strong>Danh mục thường:</strong> để <strong>trống</strong> cột “Danh mục cha” — danh mục sẽ nằm trực tiếp trong Nhóm hàng đã chọn.</li>
+    <li><strong>Danh mục con cấp sâu</strong> (tuỳ chọn): ghi tên danh mục cha — đã khai ở dòng trên, cùng Nhóm hàng — vào cột “Danh mục cha”.</li>
+    <li>⚠️ Sản phẩm gắn vào <strong>danh mục bạn tạo</strong> ở file này, không gắn trực tiếp vào 4 nhóm cố định.</li>
   </ul>
 
   <h3 class="sub">② 2_Thuong_hieu.xlsx</h3>
@@ -111,8 +113,10 @@
 
   <h3 class="sub">③ 3_Showroom.xlsx</h3>
   <ul>
-    <li>Bắt buộc: Tên showroom, Tỉnh/Thành, Địa chỉ, Hotline, <strong>URL bản đồ nhúng Google Maps</strong>.</li>
-    <li><strong>Lấy URL bản đồ nhúng:</strong> Google Maps → tìm địa chỉ → <strong>Share</strong> → <strong>Embed a map</strong> → copy đoạn link trong <code>src="…"</code>.</li>
+    <li>Bắt buộc: Tên showroom, Tỉnh/Thành, Địa chỉ, <strong>Hotline</strong>, <strong>URL bản đồ nhúng Google Maps</strong>.</li>
+    <li><strong>Lấy URL bản đồ nhúng:</strong> Google Maps → tìm địa chỉ → <strong>Share</strong> → <strong>Embed a map</strong> → copy đoạn link trong <code>src="…"</code> (phải bắt đầu bằng <code>https://</code>).</li>
+    <li><strong>Link bản đồ dự phòng</strong> nên có (link “Send a link” của Maps, cũng <code>https://</code>); để trống hệ thống sẽ tự dùng link nhúng.</li>
+    <li>Không có ô email riêng cho từng showroom — liên hệ chung dùng Hotline.</li>
   </ul>
 
   <h3 class="sub">④ 4_San_pham.xlsx <span class="badge e">quan trọng</span></h3>
@@ -149,5 +153,7 @@
     </tbody>
   </table>
   <div class="callout note"><span class="ic">📦</span>Sau khi nhận, đội kỹ thuật sẽ tạo <strong>dữ liệu khởi tạo (seed)</strong> cho website production và bàn giao cho bạn kiểm tra. Nếu có dòng nào thiếu/sai, chúng tôi sẽ báo lại để bạn bổ sung.</div>
-  <p style="text-align:center;color:#8895a5;margin-top:26px;font-size:11.5px;">— HẾT QUYỂN 3 —<br/>Cảm ơn bạn đã tin tưởng. Chúc cửa hàng kinh doanh phát đạt!</p>
+  <p style="text-align:center;color:#8895a5;margin-top:26px;font-size:11.5px;">— HẾT QUYỂN 3 —
+Cảm ơn bạn đã tin tưởng. Chúc cửa hàng kinh doanh phát đạt!</p>
 </section>
+ </code>
