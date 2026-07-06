@@ -1,0 +1,417 @@
+<!-- Tài liệu hướng dẫn sử dụng website (chính) — render PDF bằng scripts/build-handbook-pdf.mjs -->
+<link rel="stylesheet" href="_doc-style.css"/>
+
+<!-- ================= COVER ================= -->
+<div class="cover">
+  <div class="brandrow">
+    <div class="brandmark">🛋️</div>
+    <div>
+      <div class="brandname">Phương Đông</div>
+      <div class="brandsub">Nội thất &amp; Thiết bị vệ sinh</div>
+    </div>
+  </div>
+  <div class="cover-kicker">Tài liệu bàn giao · Quyển 1</div>
+  <div class="cover-title">Hướng dẫn sử dụng<br/>trang <span>Quản trị</span></div>
+  <div class="cover-desc">Cẩm nang vận hành website dành cho khách hàng: quản lý sản phẩm, danh mục, thương hiệu, khuyến mãi, bài viết, showroom, báo giá và cấu hình cửa hàng.</div>
+  <div class="cover-meta">
+    <div><span>Phiên bản tài liệu</span><b>1.1</b></div>
+    <div><span>Ngày phát hành</span><b>Tháng 07 / 2026</b></div>
+    <div><span>Loại</span><b>Hướng dẫn người dùng cuối</b></div>
+    <div><span>Ngôn ngữ</span><b>Tiếng Việt</b></div>
+  </div>
+  <div class="cover-foot">
+    <span>Tài liệu bảo mật — chỉ dùng nội bộ cho bên tiếp nhận bàn giao</span>
+    <span>© 2026 · Đội ngũ phát triển</span>
+  </div>
+</div>
+
+<!-- ================= MỤC LỤC ================= -->
+<div class="page-break toc-wrap">
+  <div class="doc-h1">Mục lục</div>
+  <p class="opt" style="font-size:12px;margin-top:2px;">Quyển 1 gồm 9 phần hướng dẫn vận hành trang Quản trị. Việc thuê tên miền/VPS và điền dữ liệu khởi tạo nằm ở 2 tài liệu riêng (Quyển 2 &amp; Quyển 3).</p>
+  <div class="toc">
+    <div class="toc-part"><span class="toc-num">Phần 1.</span> Giới thiệu chung <span class="pg" data-pg="#p1"></span></div>
+    <div class="toc-row"><span class="t">1.1 · Về bộ tài liệu này</span><span class="dots"></span><span class="pg" data-pg="#s1-1"></span></div>
+    <div class="toc-row"><span class="t">1.2 · Kiến trúc website: Trang khách &amp; Trang quản trị</span><span class="dots"></span><span class="pg" data-pg="#s1-2"></span></div>
+    <div class="toc-row"><span class="t">1.3 · Quy ước ký hiệu trong tài liệu</span><span class="dots"></span><span class="pg" data-pg="#s1-3"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 2.</span> Bắt đầu với trang Quản trị <span class="pg" data-pg="#p2"></span></div>
+    <div class="toc-row"><span class="t">2.1 · Đăng nhập</span><span class="dots"></span><span class="pg" data-pg="#s2-1"></span></div>
+    <div class="toc-row"><span class="t">2.2 · Màn hình Tổng quan (Dashboard)</span><span class="dots"></span><span class="pg" data-pg="#s2-2"></span></div>
+    <div class="toc-row"><span class="t">2.3 · Phân quyền &amp; quy ước Tạo / Sửa / Xoá</span><span class="dots"></span><span class="pg" data-pg="#s2-3"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 3.</span> Quản lý Sản phẩm <span class="pg" data-pg="#p3"></span></div>
+    <div class="toc-row"><span class="t">3.1 · Danh sách &amp; tìm kiếm sản phẩm</span><span class="dots"></span><span class="pg" data-pg="#s3-1"></span></div>
+    <div class="toc-row"><span class="t">3.2 · Thêm sản phẩm mới</span><span class="dots"></span><span class="pg" data-pg="#s3-2"></span></div>
+    <div class="toc-row"><span class="t">3.3 · Bảng hướng dẫn từng ô nhập &amp; ví dụ</span><span class="dots"></span><span class="pg" data-pg="#s3-3"></span></div>
+    <div class="toc-row"><span class="t">3.4 · Trợ lý AI, xuất bản &amp; chỉnh sửa</span><span class="dots"></span><span class="pg" data-pg="#s3-4"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 4.</span> Danh mục &amp; Thương hiệu <span class="pg" data-pg="#p4"></span></div>
+    <div class="toc-row"><span class="t">4.1 · Danh mục sản phẩm</span><span class="dots"></span><span class="pg" data-pg="#s4-1"></span></div>
+    <div class="toc-row"><span class="t">4.2 · Thương hiệu</span><span class="dots"></span><span class="pg" data-pg="#s4-2"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 5.</span> Khuyến mãi · Bài viết · Showroom <span class="pg" data-pg="#p5"></span></div>
+    <div class="toc-row"><span class="t">5.1 · Khuyến mãi</span><span class="dots"></span><span class="pg" data-pg="#s5-1"></span></div>
+    <div class="toc-row"><span class="t">5.2 · Bài viết (Blog)</span><span class="dots"></span><span class="pg" data-pg="#s5-2"></span></div>
+    <div class="toc-row"><span class="t">5.3 · Showroom</span><span class="dots"></span><span class="pg" data-pg="#s5-3"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 6.</span> Yêu cầu báo giá &amp; Người dùng <span class="pg" data-pg="#p6"></span></div>
+    <div class="toc-row"><span class="t">6.1 · Yêu cầu báo giá</span><span class="dots"></span><span class="pg" data-pg="#s6-1"></span></div>
+    <div class="toc-row"><span class="t">6.2 · Quản lý người dùng</span><span class="dots"></span><span class="pg" data-pg="#s6-2"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 7.</span> Cài đặt cửa hàng <span class="pg" data-pg="#p7"></span></div>
+    <div class="toc-row"><span class="t">7.1 · Nhận diện trang</span><span class="dots"></span><span class="pg" data-pg="#s7-1"></span></div>
+    <div class="toc-row"><span class="t">7.2 · Liên hệ &amp; mạng xã hội</span><span class="dots"></span><span class="pg" data-pg="#s7-2"></span></div>
+    <div class="toc-row"><span class="t">7.3 · SEO mặc định</span><span class="dots"></span><span class="pg" data-pg="#s7-3"></span></div>
+    <div class="toc-row"><span class="t">7.4 · Khu vực trang chủ</span><span class="dots"></span><span class="pg" data-pg="#s7-4"></span></div>
+    <div class="toc-row"><span class="t">7.5 · Tích hợp (kỹ thuật)</span><span class="dots"></span><span class="pg" data-pg="#s7-5"></span></div>
+
+    <div class="toc-part"><span class="toc-num">Phần 8.</span> Nhập dữ liệu hàng loạt bằng Excel <span class="pg" data-pg="#p8"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 9.</span> Câu hỏi thường gặp &amp; Hỗ trợ <span class="pg" data-pg="#p9"></span></div>
+  </div>
+</div>
+
+<!-- ================= PHẦN 1 ================= -->
+<section class="part content" id="p1">
+  <div class="part-head"><div class="pnum">01</div><div class="pk">Phần 1</div><h2>Giới thiệu chung</h2></div>
+
+  <h2 class="sec" id="s1-1">1.1 · Về bộ tài liệu này</h2>
+  <p class="lede">Đây là <strong>Quyển 1</strong> trong bộ tài liệu bàn giao, giúp bạn — chủ cửa hàng và nhân viên — <strong>tự vận hành website</strong>: thêm/sửa sản phẩm, danh mục, thương hiệu, khuyến mãi, bài viết, showroom và toàn bộ thông tin cửa hàng, không cần can thiệp kỹ thuật.</p>
+  <table>
+    <thead><tr><th style="width:24%">Tài liệu</th><th>Nội dung</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Quyển 1</strong> (tài liệu này)</td><td>Hướng dẫn sử dụng trang Quản trị.</td></tr>
+      <tr><td><strong>Quyển 2</strong></td><td>Hướng dẫn thuê tên miền &amp; máy chủ VPS.</td></tr>
+      <tr><td><strong>Quyển 3</strong></td><td>Hướng dẫn điền dữ liệu khởi tạo (bộ file Excel).</td></tr>
+    </tbody>
+  </table>
+  <p>Mọi thao tác trong tài liệu đều có <strong>ảnh minh họa thực tế</strong> và <strong>ví dụ nhập liệu cụ thể</strong>.</p>
+
+  <h2 class="sec" id="s1-2">1.2 · Kiến trúc website: Trang khách &amp; Trang quản trị</h2>
+  <p>Website gồm hai khu vực tách biệt:</p>
+  <table>
+    <thead><tr><th style="width:22%">Khu vực</th><th style="width:26%">Đường dẫn</th><th>Ai sử dụng &amp; để làm gì</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Trang khách</strong><br/>(Public website)</td><td><code>https://tên-miền.vn</code></td><td>Khách hàng ghé thăm: xem sản phẩm, showroom, tin tức, gửi <strong>yêu cầu báo giá</strong>.</td></tr>
+      <tr><td><strong>Trang quản trị</strong><br/>(Admin / CMS)</td><td><code>https://tên-miền.vn/admin</code></td><td>Bạn &amp; nhân viên đăng nhập để quản lý toàn bộ nội dung hiển thị trên Trang khách.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">🌐</span><span class="lead">Website song ngữ</span>Toàn bộ website hỗ trợ <strong>Tiếng Việt &amp; Tiếng Anh</strong>. Khi nhập nội dung, mỗi trang có công tắc <strong>“Dịch nội dung sang tiếng Anh”</strong> — bật lên để nhập thêm bản tiếng Anh. Nếu để tắt/để trống, website tự dùng bản tiếng Việt.</div>
+
+  <h2 class="sec" id="s1-3">1.3 · Quy ước ký hiệu trong tài liệu</h2>
+  <div class="callout note"><span class="ic">ℹ️</span><span class="lead">Thông tin</span>Giải thích thêm, làm rõ khái niệm.</div>
+  <div class="callout tip"><span class="ic">💡</span><span class="lead">Mẹo</span>Gợi ý giúp thao tác nhanh &amp; hiệu quả hơn.</div>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Lưu ý quan trọng</span>Điều cần cẩn trọng để tránh sai sót hoặc mất dữ liệu.</div>
+  <p style="margin-top:10px;">Dấu <span class="req">*</span> bên cạnh tên ô nghĩa là <strong>trường bắt buộc</strong>. Ký hiệu <span class="badge a">AI</span> đánh dấu tính năng có hỗ trợ Trí tuệ nhân tạo.</p>
+</section>
+
+<!-- ================= PHẦN 2 ================= -->
+<section class="part content" id="p2">
+  <div class="part-head"><div class="pnum">02</div><div class="pk">Phần 2</div><h2>Bắt đầu với trang Quản trị</h2></div>
+
+  <h2 class="sec" id="s2-1">2.1 · Đăng nhập</h2>
+  <ol class="steps">
+    <li>Mở trình duyệt (Chrome, Edge, Safari…) và truy cập <code>https://tên-miền.vn/admin</code>.</li>
+    <li>Nhập <strong>Email</strong> và <strong>Mật khẩu</strong> được bên kỹ thuật cấp.</li>
+    <li>Bấm nút <strong>Đăng nhập</strong>. Thành công sẽ vào thẳng màn hình Tổng quan.</li>
+  </ol>
+  <figure><img src="screenshots/00-login.png" alt="Màn hình đăng nhập"/><figcaption><span class="fig-num">Hình 2.1</span> — Màn hình đăng nhập trang quản trị.</figcaption></figure>
+  <div class="callout warn"><span class="ic">🔐</span><span class="lead">Bảo mật tài khoản</span>Tài khoản quản trị đầu tiên do bên kỹ thuật tạo &amp; bàn giao riêng. <strong>Hãy đổi mật khẩu ngay sau lần đăng nhập đầu tiên</strong> và không chia sẻ cho người không có trách nhiệm.</div>
+
+  <h2 class="sec" id="s2-2">2.2 · Màn hình Tổng quan (Dashboard)</h2>
+  <p>Sau khi đăng nhập, màn hình Tổng quan hiển thị số liệu nhanh: tổng số sản phẩm, danh mục, bài viết, showroom, <strong>yêu cầu báo giá đang chờ xử lý</strong>, người dùng, cùng biểu đồ hoạt động. Thanh menu bên trái là nơi điều hướng tới mọi chức năng.</p>
+  <figure><img src="screenshots/01-dashboard.png" alt="Màn hình tổng quan"/><figcaption><span class="fig-num">Hình 2.2</span> — Màn hình Tổng quan với thống kê nhanh và menu điều hướng bên trái.</figcaption></figure>
+
+  <h2 class="sec" id="s2-3">2.3 · Phân quyền &amp; quy ước Tạo / Sửa / Xoá</h2>
+  <p>Hệ thống có hai vai trò tài khoản:</p>
+  <table>
+    <thead><tr><th style="width:26%">Vai trò</th><th>Quyền hạn</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Quản trị viên</strong> <span class="badge e">admin</span></td><td>Toàn quyền: mọi mục, bao gồm <strong>Người dùng, Cài đặt, Yêu cầu báo giá</strong> và Trợ lý AI.</td></tr>
+      <tr><td><strong>Biên tập viên</strong> <span class="badge e">editor</span></td><td>Chỉ quản lý nội dung: Sản phẩm, Danh mục, Thương hiệu, Khuyến mãi, Bài viết, Showroom. <strong>Không</strong> thấy Người dùng, Cài đặt, Báo giá.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">🔁</span><span class="lead">Quy ước chung cho mọi mục (áp dụng toàn tài liệu)</span>
+  Ở mỗi trang danh sách, thao tác giống nhau:
+  <ul style="margin:.3em 0 0;">
+    <li><strong>Tạo mới:</strong> bấm nút <strong>“+ Thêm …”</strong> ở góc trên phải → cửa sổ nhập liệu mở ra → điền → <strong>Lưu / Xuất bản</strong>.</li>
+    <li><strong>Sửa:</strong> bấm biểu tượng bút chì <strong>✏️</strong> trên dòng cần sửa → mở <strong>đúng cửa sổ như khi tạo</strong>, đã điền sẵn dữ liệu → sửa xong bấm <strong>Lưu</strong>.</li>
+    <li><strong>Xoá:</strong> bấm biểu tượng thùng rác <strong>🗑️</strong> → xác nhận. Đây là “xoá mềm”, có thể nhờ kỹ thuật khôi phục.</li>
+    <li><strong>Đổi trạng thái / Nổi bật nhanh:</strong> dùng công tắc ngay trên bảng danh sách.</li>
+  </ul></div>
+</section>
+
+<!-- ================= PHẦN 3 ================= -->
+<section class="part content" id="p3">
+  <div class="part-head"><div class="pnum">03</div><div class="pk">Phần 3 · Quan trọng nhất</div><h2>Quản lý Sản phẩm</h2></div>
+
+  <h2 class="sec" id="s3-1">3.1 · Danh sách &amp; tìm kiếm sản phẩm</h2>
+  <p>Vào menu <strong>Sản phẩm</strong>. Màn hình hiển thị bảng sản phẩm kèm ảnh, tên, danh mục, giá và <strong>trạng thái</strong>. Thanh phía trên cho phép <strong>lọc</strong> theo danh mục/thương hiệu/trạng thái và <strong>tìm kiếm</strong> theo tên.</p>
+  <figure><img src="screenshots/02-products-list.png" alt="Danh sách sản phẩm"/><figcaption><span class="fig-num">Hình 3.1</span> — Danh sách sản phẩm với bộ lọc, tìm kiếm và nút “Thêm sản phẩm”.</figcaption></figure>
+  <p>Mỗi sản phẩm có một trong ba <strong>trạng thái</strong>:</p>
+  <table>
+    <thead><tr><th style="width:24%">Trạng thái</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td>🟡 <strong>Nháp</strong> (draft)</td><td>Đang soạn — khách <strong>chưa</strong> nhìn thấy trên website.</td></tr>
+      <tr><td>🟢 <strong>Đã xuất bản</strong> (published)</td><td>Hiển thị công khai trên website.</td></tr>
+      <tr><td>⚪ <strong>Lưu trữ</strong> (archived)</td><td>Ẩn khỏi website nhưng không xoá, có thể khôi phục.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec" id="s3-2">3.2 · Thêm sản phẩm mới</h2>
+  <p>Bấm nút <strong>+ Thêm sản phẩm</strong> ở góc trên phải. Cửa sổ soạn sản phẩm mở ra với 3 khu vực: <strong>(A)</strong> Trợ lý AI, <strong>(B)</strong> nội dung song ngữ Việt/Anh, <strong>(C)</strong> cột phải gồm ảnh bìa, mức độ sẵn sàng và trạng thái xuất bản.</p>
+  <figure><img src="screenshots/03b-product-new-top.png" alt="Form thêm sản phẩm"/><figcaption><span class="fig-num">Hình 3.2</span> — Cửa sổ “Thêm sản phẩm”: Trợ lý AI (trên), tab Tiếng Việt/Tiếng Anh (giữa), bảng xuất bản (phải).</figcaption></figure>
+  <div class="callout note"><span class="ic">ℹ️</span>Cột phải “<strong>Mức độ sẵn sàng xuất bản</strong>” tự kiểm tra và báo còn thiếu gì (ví dụ “Thiếu 2 trường bắt buộc”) trước khi bạn xuất bản — rất tiện để không bỏ sót.</div>
+
+  <h2 class="sec" id="s3-3">3.3 · Bảng hướng dẫn từng ô nhập &amp; ví dụ</h2>
+  <p class="lede">Dưới đây là ý nghĩa từng ô và <strong>ví dụ mẫu</strong> để bạn nhập cho đúng:</p>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:34%">Cần nhập gì</th><th style="width:27%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề sản phẩm (Tiếng Việt)</td><td><span class="req">Có</span></td><td>Tên đầy đủ hiển thị cho khách.</td><td class="ex">Sofa da Ý Premium 3 chỗ</td></tr>
+      <tr><td>Đường dẫn (slug)</td><td><span class="opt">Tự sinh</span></td><td>Tự tạo từ tên; có thể sửa. Viết thường, không dấu, nối gạch ngang.</td><td class="ex">sofa-da-y-premium</td></tr>
+      <tr><td>Mô tả ngắn (Tiếng Việt)</td><td><span class="req">Có</span></td><td>1–2 câu tóm tắt, hiển thị ở danh sách.</td><td class="ex">Sofa bọc da bò Ý cao cấp, khung gỗ sồi tự nhiên.</td></tr>
+      <tr><td>Danh mục</td><td><span class="req">Có</span></td><td>Chọn <strong>danh mục con</strong> (không chọn nhóm cha).</td><td class="ex">Sofa phòng khách</td></tr>
+      <tr><td>Thương hiệu</td><td><span class="opt">Không</span></td><td>Chọn nếu sản phẩm thuộc một hãng.</td><td class="ex">Häfele</td></tr>
+      <tr><td>Giá tối thiểu / tối đa (VND)</td><td><span class="opt">Không</span></td><td>Chỉ nhập <strong>số</strong>, không dấu chấm/phẩy. Dùng khoảng giá khi cần.</td><td class="ex">45000000 → 50000000</td></tr>
+      <tr><td>Đơn vị tính</td><td><span class="opt">Không</span></td><td>Đơn vị của giá.</td><td class="ex">bộ · cái · m²</td></tr>
+      <tr><td>Kích thước (Rộng × Sâu × Cao)</td><td><span class="opt">Không</span></td><td>Nhập theo mm.</td><td class="ex">2200 × 900 × 850 mm</td></tr>
+      <tr><td>Vật liệu / Hoàn thiện / Bảo quản</td><td><span class="opt">Không</span></td><td>Mô tả chi tiết chất liệu, bề mặt, cách giữ gìn.</td><td class="ex">Khung gỗ sồi sấy; bọc da bò nguyên tấm.</td></tr>
+      <tr><td>Ảnh bìa sản phẩm</td><td><span class="req">Có</span></td><td>Ảnh đại diện. Bấm “Tải ảnh sản phẩm lên”.</td><td class="ex">(tải file) sofa-y-01.jpg</td></tr>
+      <tr><td>Thư viện ảnh</td><td><span class="opt">Không</span></td><td>Nhiều ảnh chi tiết bổ sung.</td><td class="ex">sofa-y-02.jpg, 03.jpg</td></tr>
+      <tr><td>Showroom trưng bày</td><td><span class="opt">Không</span></td><td>Sản phẩm đang có ở showroom nào.</td><td class="ex">Showroom Hà Nội</td></tr>
+      <tr><td>Nổi bật</td><td><span class="opt">Không</span></td><td>Bật để ưu tiên hiển thị ở trang chủ / đầu danh sách.</td><td class="ex">Bật</td></tr>
+      <tr><td>Trạng thái xuất bản</td><td><span class="req">Có</span></td><td>Nháp / Xuất bản / Lưu trữ.</td><td class="ex">Xuất bản</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Về giá tiền</span>Chỉ nhập chữ số. Ví dụ <strong>đúng</strong>: <code>45000000</code>. <strong>Sai</strong>: <code>45.000.000đ</code> hay <code>45 triệu</code>.</div>
+
+  <h2 class="sec" id="s3-4">3.4 · Trợ lý AI, xuất bản &amp; chỉnh sửa <span class="badge a">AI</span></h2>
+  <p>Ở đầu cửa sổ có khối <strong>“Trợ lý biên tập AI”</strong>. Bạn nhập một chủ đề thô (ví dụ: <em>“Bàn ăn gỗ óc chó 6 ghế, phong cách Heritage tối giản”</em>) rồi bấm <strong>“Tạo bản nháp song ngữ”</strong> — hệ thống tự soạn nội dung tiếng Việt &amp; tiếng Anh, đường dẫn và cấu trúc chuẩn SEO.</p>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Luôn kiểm tra lại nội dung AI</span>AI chỉ tạo <strong>bản nháp</strong>. Hãy đọc &amp; chỉnh lại thông tin (đặc biệt giá, kích thước, chất liệu) cho chính xác trước khi bấm <strong>Xuất bản</strong>.</div>
+  <p><strong>Hoàn tất:</strong> chọn <strong>Lưu nháp</strong> nếu chưa muốn công khai, hoặc <strong>Xuất bản</strong> để đăng ngay lên website. Chờ thông báo “Đã lưu thành công” trước khi rời trang.</p>
+  <p><strong>Chỉnh sửa sản phẩm đã có:</strong> ở danh sách, bấm biểu tượng ✏️ trên dòng — cửa sổ mở ra giống hệt khi tạo, đã điền sẵn; sửa xong bấm <strong>Lưu</strong>. (Xem quy ước chung ở mục 2.3.)</p>
+</section>
+
+<!-- ================= PHẦN 4 ================= -->
+<section class="part content" id="p4">
+  <div class="part-head"><div class="pnum">04</div><div class="pk">Phần 4</div><h2>Danh mục &amp; Thương hiệu</h2></div>
+
+  <h2 class="sec" id="s4-1">4.1 · Danh mục sản phẩm</h2>
+  <p>Vào menu <strong>Danh mục</strong>. Danh mục giúp khách lọc &amp; duyệt sản phẩm. Hệ thống dùng cấu trúc <strong>2 cấp</strong>: 4 nhóm cha cố định → các danh mục con.</p>
+  <figure><img src="screenshots/04-categories-list.png" alt="Danh sách danh mục"/><figcaption><span class="fig-num">Hình 4.1</span> — Cây danh mục với 4 nhóm: Đồ gỗ nội thất, Thiết bị vệ sinh, Gạch ốp lát, Thiết bị khác.</figcaption></figure>
+  <div class="callout note"><span class="ic">ℹ️</span><span class="lead">Quy tắc quan trọng</span>4 nhóm cha là <strong>cố định</strong>. Bạn chỉ tạo <strong>danh mục con</strong> bên trong. Sản phẩm cũng chỉ gắn được vào danh mục con (ví dụ “Sofa phòng khách”), không gắn trực tiếp vào nhóm cha.</div>
+  <p><strong>Thêm danh mục:</strong> bấm <strong>+ Thêm danh mục</strong>. Cửa sổ mở ra như hình dưới:</p>
+  <figure><img src="screenshots/05b-category-new-top.png" alt="Form thêm danh mục"/><figcaption><span class="fig-num">Hình 4.2</span> — Cửa sổ “Thêm danh mục”: tên song ngữ, chọn nhóm cha, mô tả, ảnh bìa và SEO.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:34%">Cần nhập gì</th><th style="width:24%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tên danh mục (Tiếng Việt)</td><td><span class="req">Có</span></td><td>Tên hiển thị của danh mục.</td><td class="ex">Sofa phòng khách</td></tr>
+      <tr><td>Thuộc nhóm danh mục</td><td><span class="req">Có</span></td><td>Chọn 1 trong 4 nhóm cha cố định từ danh sách.</td><td class="ex">Đồ gỗ nội thất</td></tr>
+      <tr><td>Mô tả danh mục</td><td><span class="opt">Không</span></td><td>Giới thiệu ngắn (song ngữ nếu bật tiếng Anh).</td><td class="ex">Các mẫu sofa cao cấp cho phòng khách.</td></tr>
+      <tr><td>Ảnh bìa danh mục</td><td><span class="opt">Không</span></td><td>Ảnh đại diện danh mục.</td><td class="ex">(tải file) danhmuc-sofa.jpg</td></tr>
+      <tr><td>SEO &amp; đường dẫn</td><td><span class="opt">Tự sinh</span></td><td>Tiêu đề/mô tả SEO; có nút <strong>“Tạo SEO bằng AI”</strong>. Đường dẫn tự sinh từ tên.</td><td class="ex">sofa-phong-khach</td></tr>
+      <tr><td>Trạng thái</td><td><span class="req">Có</span></td><td>Nháp / Xuất bản / Lưu trữ.</td><td class="ex">Xuất bản</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec" id="s4-2">4.2 · Thương hiệu</h2>
+  <p>Vào menu <strong>Thương hiệu</strong> để khai báo các hãng/nhà cung cấp, dùng cho việc lọc sản phẩm theo thương hiệu. Bấm <strong>+ Thêm thương hiệu</strong> để mở cửa sổ tạo mới:</p>
+  <figure><img src="screenshots/17-brand-new.png" alt="Form thêm thương hiệu"/><figcaption><span class="fig-num">Hình 4.3</span> — Cửa sổ “Thêm thương hiệu”: tên song ngữ, mô tả, xuất xứ và logo.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:34%">Cần nhập gì</th><th style="width:22%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tên thương hiệu (VI)</td><td><span class="req">Có</span></td><td>Tên hãng.</td><td class="ex">Häfele</td></tr>
+      <tr><td>Tên thương hiệu (EN)</td><td><span class="opt">Không</span></td><td>Nếu có tên tiếng Anh riêng.</td><td class="ex">Häfele</td></tr>
+      <tr><td>Mô tả (VI / EN)</td><td><span class="opt">Không</span></td><td>Giới thiệu thương hiệu.</td><td class="ex">Thiết bị bếp &amp; phụ kiện cao cấp.</td></tr>
+      <tr><td>Xuất xứ</td><td><span class="opt">Không</span></td><td>Chọn quốc gia xuất xứ từ danh sách.</td><td class="ex">Đức</td></tr>
+      <tr><td>Logo thương hiệu</td><td><span class="opt">Không</span></td><td>Tải logo (ưu tiên PNG nền trong suốt).</td><td class="ex">(tải file) logo-hafele.png</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="ic">💡</span>Nếu cửa hàng không phân theo thương hiệu, có thể bỏ qua mục này — sản phẩm vẫn hoạt động bình thường.</div>
+</section>
+
+<!-- ================= PHẦN 5 ================= -->
+<section class="part content" id="p5">
+  <div class="part-head"><div class="pnum">05</div><div class="pk">Phần 5</div><h2>Khuyến mãi · Bài viết · Showroom</h2></div>
+
+  <h2 class="sec" id="s5-1">5.1 · Khuyến mãi</h2>
+  <p>Vào menu <strong>Khuyến mãi</strong> → bấm <strong>+ Thêm khuyến mãi</strong>. Cửa sổ tạo cho phép đặt tiêu đề song ngữ, mức <strong>chiết khấu %</strong>, <strong>chọn sản phẩm áp dụng</strong> và <strong>thời hạn</strong>.</p>
+  <figure><img src="screenshots/18-promotion-new.png" alt="Form thêm khuyến mãi"/><figcaption><span class="fig-num">Hình 5.1</span> — Cửa sổ “Thêm khuyến mãi mới”: nội dung song ngữ, ảnh bìa, chọn sản phẩm giảm giá.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:36%">Cần nhập gì</th><th style="width:22%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề khuyến mãi (VI)</td><td><span class="req">Có</span></td><td>Tên chương trình hiển thị cho khách.</td><td class="ex">Sale hè – Giảm 20% Sofa</td></tr>
+      <tr><td>Mô tả khuyến mãi (VI)</td><td><span class="opt">Không</span></td><td>Chi tiết chương trình.</td><td class="ex">Áp dụng cho bộ sưu tập sofa da…</td></tr>
+      <tr><td>Chiết khấu (%) / Mã code</td><td><span class="opt">Không</span></td><td>Phần trăm giảm và mã (nếu có).</td><td class="ex">20 · HE2026</td></tr>
+      <tr><td>Chọn sản phẩm giảm giá</td><td><span class="req">Có</span></td><td>Tìm &amp; chọn các sản phẩm trong phạm vi giảm giá.</td><td class="ex">Sofa da Ý Premium…</td></tr>
+      <tr><td>Thời hạn (bắt đầu – kết thúc)</td><td><span class="opt">Không</span></td><td>Khoảng thời gian chạy chương trình.</td><td class="ex">01/07 – 31/07/2026</td></tr>
+      <tr><td>Ảnh bìa · Trạng thái</td><td><span class="opt">Không</span></td><td>Ảnh combo &amp; Nháp/Xuất bản.</td><td class="ex">Xuất bản</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">⏰</span>Khuyến mãi tự động hiển thị/hết hạn theo thời gian đã đặt. Hệ thống ngăn hai khuyến mãi trùng thời gian trên cùng một sản phẩm để tránh xung đột giá.</div>
+
+  <h2 class="sec" id="s5-2">5.2 · Bài viết (Blog)</h2>
+  <p>Vào menu <strong>Bài viết</strong> → <strong>+ Thêm bài viết</strong> để đăng tin tức, tư vấn, xu hướng. Cửa sổ tạo có cấu trúc giống sản phẩm: <strong>Trợ lý AI</strong> <span class="badge a">AI</span>, tab song ngữ, ảnh bìa và bảng xuất bản.</p>
+  <figure><img src="screenshots/19-blog-new.png" alt="Form thêm bài viết"/><figcaption><span class="fig-num">Hình 5.2</span> — Cửa sổ “Thêm bài viết”: Trợ lý AI, tiêu đề, đường dẫn, trích đoạn, ảnh bìa.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:38%">Cần nhập gì</th><th style="width:20%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề bài viết (VI)</td><td><span class="req">Có</span></td><td>Tựa bài.</td><td class="ex">5 cách phối màu nội thất 2026</td></tr>
+      <tr><td>Đường dẫn (slug)</td><td><span class="req">Có</span></td><td>Tự sinh từ tiêu đề; có thể sửa.</td><td class="ex">phoi-mau-noi-that-2026</td></tr>
+      <tr><td>Trích đoạn (VI)</td><td><span class="req">Có</span></td><td>Tóm tắt ngắn hiển thị ở danh sách.</td><td class="ex">Gợi ý bảng màu ấm cho phòng khách…</td></tr>
+      <tr><td>Nội dung</td><td><span class="opt">Không</span></td><td>Trình soạn thảo có định dạng, chèn ảnh.</td><td class="ex">(soạn nội dung)</td></tr>
+      <tr><td>Ảnh bìa bài viết · Nổi bật</td><td><span class="opt">Không</span></td><td>Ảnh đại diện; bật Nổi bật để lên đầu.</td><td class="ex">(tải file) baiviet-01.jpg</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec" id="s5-3">5.3 · Showroom</h2>
+  <p>Vào menu <strong>Showroom</strong> → <strong>+ Thêm showroom</strong> để quản lý chi nhánh hiển thị trên trang “Hệ thống showroom”.</p>
+  <figure><img src="screenshots/20-showroom-new.png" alt="Form thêm showroom"/><figcaption><span class="fig-num">Hình 5.3</span> — Cửa sổ “Thêm showroom”: tên/địa chỉ song ngữ, hotline, bản đồ Google Maps; cột phải liệt kê các trường còn thiếu.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:33%">Cần nhập gì</th><th style="width:24%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tên showroom (VI)</td><td><span class="req">Có</span></td><td>Tên chi nhánh.</td><td class="ex">Showroom Hà Nội</td></tr>
+      <tr><td>Mã showroom (code)</td><td><span class="req">Có</span></td><td>Mã nội bộ ngắn, không dấu.</td><td class="ex">SR-HN</td></tr>
+      <tr><td>Địa chỉ (Tỉnh/TP → Phường/Xã)</td><td><span class="req">Có</span></td><td>Nhập số nhà/đường rồi chọn Tỉnh &amp; Phường từ danh sách.</td><td class="ex">123 Nguyễn Trãi · Hà Nội</td></tr>
+      <tr><td>Đường dây nóng (Hotline)</td><td><span class="opt">Không</span></td><td>Số điện thoại showroom.</td><td class="ex">0901 234 567</td></tr>
+      <tr><td>URL nhúng Google Maps</td><td><span class="req">Có</span></td><td>Google Maps → Share → Embed → copy link trong <code>src="…"</code>.</td><td class="ex">https://www.google.com/maps/embed?…</td></tr>
+      <tr><td>URL bản đồ dự phòng · Giờ mở cửa · Ảnh</td><td><span class="opt">Không</span></td><td>Link chia sẻ Maps thường, giờ mở cửa, ảnh showroom.</td><td class="ex">8:00–20:00 (T2–CN)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="ic">💡</span>Cột phải “Vấn đề đang chặn xuất bản” liệt kê rõ những trường bắt buộc còn thiếu — điền hết là có thể Xuất bản.</div>
+</section>
+
+<!-- ================= PHẦN 6 ================= -->
+<section class="part content" id="p6">
+  <div class="part-head"><div class="pnum">06</div><div class="pk">Phần 6</div><h2>Yêu cầu báo giá &amp; Người dùng</h2></div>
+
+  <h2 class="sec" id="s6-1">6.1 · Yêu cầu báo giá</h2>
+  <p>Vào menu <strong>Yêu cầu báo giá</strong> (chỉ Quản trị viên). Khi khách bấm <strong>“Yêu cầu báo giá”</strong> trên trang sản phẩm hoặc liên hệ, thông tin sẽ về đây.</p>
+  <figure><img src="screenshots/10-quotes-list.png" alt="Danh sách yêu cầu báo giá"/><figcaption><span class="fig-num">Hình 6.1</span> — Danh sách yêu cầu báo giá từ khách hàng.</figcaption></figure>
+  <ul>
+    <li>Mỗi yêu cầu gồm: tên khách, số điện thoại, email, sản phẩm quan tâm, lời nhắn.</li>
+    <li>Bạn có thể <strong>gán người phụ trách</strong>, <strong>ghi chú nội bộ</strong>, và theo dõi <strong>trạng thái xử lý</strong>.</li>
+    <li>Hệ thống đồng thời gửi <strong>email thông báo</strong> về hộp thư “Email nhận báo giá” (cấu hình ở Cài đặt → Liên hệ).</li>
+  </ul>
+  <div class="callout tip"><span class="ic">💡</span>Màn hình Tổng quan hiển thị số yêu cầu báo giá <strong>đang chờ xử lý</strong> để bạn không bỏ sót khách hàng.</div>
+
+  <h2 class="sec" id="s6-2">6.2 · Quản lý người dùng</h2>
+  <p>Vào menu <strong>Người dùng</strong> (chỉ Quản trị viên) → <strong>+ Thêm người dùng</strong> để tạo tài khoản cho nhân viên.</p>
+  <figure><img src="screenshots/21-user-new.png" alt="Form thêm người dùng"/><figcaption><span class="fig-num">Hình 6.2</span> — Cửa sổ “Thêm người dùng CMS”: tên, email, mật khẩu ban đầu, vai trò.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:38%">Cần nhập gì</th><th style="width:22%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tên hiển thị</td><td><span class="req">Có</span></td><td>Họ tên nhân viên.</td><td class="ex">Nguyễn Văn A</td></tr>
+      <tr><td>Email đăng nhập</td><td><span class="req">Có</span></td><td>Email dùng để đăng nhập.</td><td class="ex">nhanvien@cuahang.vn</td></tr>
+      <tr><td>Mật khẩu ban đầu</td><td><span class="req">Có</span></td><td>Tối thiểu 6 ký tự (nhân viên nên đổi sau).</td><td class="ex">••••••</td></tr>
+      <tr><td>Vai trò</td><td><span class="req">Có</span></td><td>Biên tập viên hoặc Quản trị viên.</td><td class="ex">Biên tập viên</td></tr>
+      <tr><td>Tài khoản đang hoạt động</td><td><span class="opt">Không</span></td><td>Bỏ tick để khoá tài khoản (không cho truy cập).</td><td class="ex">Đang bật</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><span class="ic">⚠️</span>Hệ thống không cho xoá/khoá <strong>tài khoản Quản trị viên cuối cùng</strong> để tránh mất quyền truy cập. Luôn giữ ít nhất một Quản trị viên.</div>
+</section>
+
+<!-- ================= PHẦN 7 ================= -->
+<section class="part content" id="p7">
+  <div class="part-head"><div class="pnum">07</div><div class="pk">Phần 7</div><h2>Cài đặt cửa hàng</h2></div>
+  <p>Vào menu <strong>Cài đặt</strong> (chỉ Quản trị viên). Trang chia thành <strong>5 tab</strong>: <strong>Nhận diện trang · Liên hệ · SEO mặc định · Tích hợp · Khu vực trang chủ</strong>. Sau khi chỉnh ở bất kỳ tab nào, bấm <strong>Lưu</strong> — thay đổi hiển thị ngay trên website.</p>
+
+  <h2 class="sec" id="s7-1">7.1 · Nhận diện trang</h2>
+  <p>Tab <strong>Nhận diện trang</strong> gồm: <strong>Tên thương hiệu (VI/EN)</strong>, <strong>Logo</strong> và <strong>Favicon</strong> (icon nhỏ trên tab trình duyệt).</p>
+  <figure><img src="screenshots/12-settings-identity.png" alt="Cài đặt nhận diện" class="tall"/><figcaption><span class="fig-num">Hình 7.1</span> — Tab “Nhận diện trang”.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:33%">Cần nhập gì</th><th style="width:26%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tên thương hiệu (VI/EN)</td><td><span class="req">Có</span></td><td>Tên cửa hàng hiển thị toàn site.</td><td class="ex">Nội Thất Phương Đông</td></tr>
+      <tr><td>Tải logo lên</td><td><span class="opt">Không</span></td><td>Logo chính trên header.</td><td class="ex">(tải file) logo.png</td></tr>
+      <tr><td>Tải favicon lên</td><td><span class="opt">Không</span></td><td>Icon tab trình duyệt (32×32 hoặc .ico).</td><td class="ex">(tải file) favicon.ico</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec" id="s7-2">7.2 · Liên hệ &amp; mạng xã hội</h2>
+  <p>Tab <strong>Liên hệ</strong> chứa thông tin liên hệ <strong>và</strong> các liên kết mạng xã hội (nằm chung một tab).</p>
+  <figure><img src="screenshots/16-settings-contact.png" alt="Cài đặt liên hệ" class="tall"/><figcaption><span class="fig-num">Hình 7.2</span> — Tab “Liên hệ”: hotline, email nhận báo giá, địa chỉ trụ sở (chọn Tỉnh → Phường), ngôn ngữ mặc định. Phần “Mạng xã hội &amp; liên kết website” nằm ngay bên dưới.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:34%">Cần nhập gì</th><th style="width:24%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Hotline tư vấn</td><td><span class="req">Có</span></td><td>Số điện thoại chính hiển thị toàn site.</td><td class="ex">1900 1234</td></tr>
+      <tr><td>Email nhận báo giá</td><td><span class="req">Có</span></td><td>Nơi nhận thông báo khi khách gửi yêu cầu.</td><td class="ex">baogia@cuahang.vn</td></tr>
+      <tr><td>Địa chỉ trụ sở chính</td><td><span class="opt">Không</span></td><td>Nhập số nhà/đường rồi chọn Tỉnh/TP → Phường/Xã.</td><td class="ex">123 Nguyễn Trãi · Hà Nội</td></tr>
+      <tr><td>Ngôn ngữ hiển thị mặc định</td><td><span class="opt">Không</span></td><td>Ngôn ngữ mặc định của trang khách.</td><td class="ex">Tiếng Việt</td></tr>
+    </tbody>
+  </table>
+  <h4>Mạng xã hội &amp; liên kết website</h4>
+  <p>Ngay dưới phần liên hệ là danh sách các nền tảng. Với mỗi nền tảng, dán <strong>URL</strong> và bật/tắt công tắc <strong>Hiển thị/Ẩn</strong> (để trống hoặc tắt để ẩn nền tảng đó khỏi footer):</p>
+  <table class="fieldtable">
+    <thead><tr><th style="width:24%">Nền tảng</th><th style="width:40%">Dán đường dẫn dạng</th><th>Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Facebook</td><td>Link trang Facebook</td><td class="ex">https://facebook.com/tentrang</td></tr>
+      <tr><td>Zalo</td><td>Link Zalo OA / zalo.me</td><td class="ex">https://zalo.me/0908xxxxxx</td></tr>
+      <tr><td>YouTube</td><td>Link kênh YouTube</td><td class="ex">https://youtube.com/@kenh</td></tr>
+      <tr><td>TikTok</td><td>Link kênh TikTok</td><td class="ex">https://tiktok.com/@tentrang</td></tr>
+      <tr><td>Instagram</td><td>Link Instagram</td><td class="ex">https://instagram.com/tentrang</td></tr>
+      <tr><td>Website / Liên kết khác</td><td>Website chính hoặc liên kết bổ sung</td><td class="ex">https://phuongdong.vn</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="ic">💡</span>Chỉ bật những nền tảng cửa hàng đang dùng. Công tắc <strong>Hiển thị/Ẩn</strong> giúp tạm ẩn một kênh mà không cần xoá đường dẫn.</div>
+
+  <h2 class="sec" id="s7-3">7.3 · SEO mặc định</h2>
+  <p>Tab <strong>SEO mặc định</strong> đặt thẻ hiển thị trên Google &amp; khi chia sẻ link cho các trang chưa có SEO riêng. Tab này <strong>chỉ gồm 4 ô</strong> — tiêu đề &amp; mô tả meta cho mỗi ngôn ngữ:</p>
+  <figure><img src="screenshots/13-settings-seo.png" alt="Cài đặt SEO" class="tall"/><figcaption><span class="fig-num">Hình 7.3</span> — Tab “SEO mặc định”: thẻ SEO Tiếng Việt và Tiếng Anh.</figcaption></figure>
+  <table class="fieldtable">
+    <thead><tr><th>Ô nhập liệu</th><th style="width:9%">Bắt buộc</th><th style="width:34%">Cần nhập gì</th><th style="width:30%">Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Tiêu đề SEO mặc định (VI)</td><td><span class="req">Có</span></td><td>~50–60 ký tự, có tên thương hiệu.</td><td class="ex">Nội Thất Phương Đông – Sofa, Bàn ăn cao cấp</td></tr>
+      <tr><td>Mô tả meta mặc định (VI)</td><td><span class="req">Có</span></td><td>~150–160 ký tự mô tả cửa hàng.</td><td class="ex">Chuyên nội thất gỗ tự nhiên &amp; thiết bị vệ sinh nhập khẩu…</td></tr>
+      <tr><td>Tiêu đề SEO mặc định (EN)</td><td><span class="req">Có</span></td><td>Bản tiếng Anh của tiêu đề.</td><td class="ex">Phuong Dong Furniture – Premium Sofas…</td></tr>
+      <tr><td>Mô tả meta mặc định (EN)</td><td><span class="req">Có</span></td><td>Bản tiếng Anh của mô tả.</td><td class="ex">Natural wood furniture &amp; imported sanitary ware…</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">ℹ️</span>Tab SEO <strong>không</strong> có mục tải ảnh — ảnh chia sẻ &amp; logo được quản lý ở tab “Nhận diện trang”. Mỗi sản phẩm/bài viết cũng có thể đặt SEO riêng khi tạo (ghi đè mặc định này).</div>
+
+  <h2 class="sec" id="s7-4">7.4 · Khu vực trang chủ</h2>
+  <p>Tab <strong>Khu vực trang chủ</strong> quản lý các khối hiển thị ngoài trang chủ: <strong>slide Hero</strong> (tối đa 3 slide: tiêu đề, mô tả, nút bấm, ảnh nền), <strong>Câu chuyện thương hiệu</strong>, <strong>Sản phẩm nổi bật</strong> (số lượng hiển thị) và <strong>Huy hiệu tin cậy</strong> (các con số ấn tượng). Mỗi khối có công tắc bật/tắt hiển thị.</p>
+  <figure><img src="screenshots/14-settings-homepage.png" alt="Cài đặt trang chủ" class="tall"/><figcaption><span class="fig-num">Hình 7.4</span> — Tab “Khu vực trang chủ” (Hero, câu chuyện, sản phẩm nổi bật, huy hiệu…).</figcaption></figure>
+  <div class="callout tip"><span class="ic">💡</span>Ảnh Hero nên nằm ngang, kích thước tối thiểu <strong>1920×1080px</strong> để hiển thị sắc nét trên màn hình lớn.</div>
+
+  <h2 class="sec" id="s7-5">7.5 · Tích hợp (kỹ thuật)</h2>
+  <p>Tab <strong>Tích hợp</strong> chứa các khoá kết nối dịch vụ: gửi email (Resend), lưu ảnh (Cloudinary), Trợ lý AI (Google Gemini) và giới hạn SLA phản hồi báo giá.</p>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Bên kỹ thuật đã cấu hình sẵn</span>Bạn <strong>không cần chỉnh</strong> tab này trừ khi được đội kỹ thuật hướng dẫn. Nhập sai khoá có thể làm gián đoạn gửi email hoặc tải ảnh.</div>
+</section>
+
+<!-- ================= PHẦN 8 ================= -->
+<section class="part content" id="p8">
+  <div class="part-head"><div class="pnum">08</div><div class="pk">Phần 8</div><h2>Nhập dữ liệu hàng loạt bằng Excel</h2></div>
+  <p class="lede">Với <strong>Sản phẩm, Danh mục, Thương hiệu, Showroom</strong>, bạn có thể thêm nhiều mục cùng lúc bằng Excel — rất tiện khi nhập số lượng lớn. Trong mỗi trang, bấm nút <strong>Nhập &amp; Xuất Excel</strong>.</p>
+  <figure><img src="screenshots/15-excel-modal.png" alt="Cửa sổ nhập xuất Excel"/><figcaption><span class="fig-num">Hình 8.1</span> — Cửa sổ Nhập &amp; Xuất Excel với quy trình 3 bước.</figcaption></figure>
+  <ol class="steps">
+    <li><strong>Tải file mẫu</strong> — bấm “Tải mẫu template trống (.xlsx)”. File có sẵn cột, hướng dẫn, danh sách chọn (dropdown) danh mục/thương hiệu/showroom.</li>
+    <li><strong>Điền dữ liệu</strong> — mỗi dòng một mục. Đọc sheet “Gợi ý sử dụng” và “Lỗi thường gặp” trong file.</li>
+    <li><strong>Tải file lên</strong> (kéo–thả) — hệ thống kiểm tra &amp; báo lỗi từng dòng ở bước “Xem trước &amp; Kiểm tra” trước khi lưu.</li>
+  </ol>
+  <p><strong>Xuất dữ liệu (Export):</strong> bấm “Tải file export (.xlsx)” để lấy toàn bộ dữ liệu hiện có ra Excel để sao lưu hoặc chỉnh sửa hàng loạt.</p>
+  <div class="callout note"><span class="ic">📁</span><span class="lead">Nạp dữ liệu lần đầu</span>Để khởi tạo website, hãy dùng bộ file Excel kèm theo <strong>Quyển 3 — Hướng dẫn điền dữ liệu khởi tạo</strong>.</div>
+</section>
+
+<!-- ================= PHẦN 9 (FAQ) ================= -->
+<section class="part content" id="p9">
+  <div class="part-head"><div class="pnum">09</div><div class="pk">Phần 9</div><h2>Câu hỏi thường gặp &amp; Hỗ trợ</h2></div>
+
+  <h4>❓ Sửa xong nhưng khách chưa thấy trên web?</h4>
+  <p>Kiểm tra <strong>Trạng thái</strong> phải là <strong>Đã xuất bản</strong> (không phải Nháp/Lưu trữ).</p>
+  <h4>❓ Bấm Lưu / Xuất bản nhưng không có gì xảy ra?</h4>
+  <p>Xem cột phải “<strong>Mức độ sẵn sàng xuất bản</strong>” hoặc “Vấn đề đang chặn xuất bản” — nó liệt kê trường bắt buộc còn thiếu (tô đỏ). Điền đủ rồi bấm lại và chờ thông báo xanh “Đã lưu”.</p>
+  <h4>❓ Ảnh tải lên bị lỗi?</h4>
+  <p>Kiểm tra dung lượng (&lt; 5MB) và định dạng (JPG/PNG/WEBP). Thử lại hoặc dùng ảnh nhẹ hơn.</p>
+  <h4>❓ Xoá nhầm một mục?</h4>
+  <p>Dữ liệu xoá theo dạng “xoá mềm”. Liên hệ bên kỹ thuật để khôi phục.</p>
+  <h4>❓ Muốn nhập nội dung tiếng Anh?</h4>
+  <p>Trong cửa sổ tạo/sửa, bật công tắc <strong>“Dịch nội dung sang tiếng Anh”</strong> rồi nhập ở tab <strong>Tiếng Anh</strong>. Bỏ trống thì website dùng bản tiếng Việt.</p>
+  <h4>❓ Muốn đổi giao diện lớn, thêm tính năng, đổi tên miền?</h4>
+  <p>Liên hệ đội ngũ phát triển — đây là phần chỉnh sửa mã nguồn/hạ tầng.</p>
+
+  <hr class="soft"/>
+  <div class="callout note"><span class="ic">📞</span><span class="lead">Hỗ trợ kỹ thuật</span>Khi cần hỗ trợ, hãy chụp màn hình chỗ đang vướng và gửi cho đội ngũ phát triển theo thông tin trong biên bản bàn giao. Chúng tôi luôn sẵn sàng đồng hành cùng bạn.</div>
+  <p style="text-align:center;color:#8895a5;margin-top:26px;font-size:11.5px;">— HẾT QUYỂN 1 —<br/>Xem tiếp Quyển 2 (Thuê tên miền &amp; VPS) và Quyển 3 (Điền dữ liệu khởi tạo).</p>
+</section>

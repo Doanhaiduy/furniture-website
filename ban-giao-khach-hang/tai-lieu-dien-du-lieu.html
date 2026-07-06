@@ -1,0 +1,153 @@
+<!-- Quyển 3 — Điền dữ liệu khởi tạo. Render bằng scripts/build-handbook-pdf.mjs -->
+<link rel="stylesheet" href="_doc-style.css"/>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="brandrow">
+    <div class="brandmark">📝</div>
+    <div>
+      <div class="brandname">Phương Đông</div>
+      <div class="brandsub">Nội thất &amp; Thiết bị vệ sinh</div>
+    </div>
+  </div>
+  <div class="cover-kicker">Tài liệu bàn giao · Quyển 3</div>
+  <div class="cover-title">Điền dữ liệu<br/><span>khởi tạo</span> website</div>
+  <div class="cover-desc">Hướng dẫn điền bộ file Excel (danh mục, thương hiệu, showroom, sản phẩm, thông tin cửa hàng) để đội kỹ thuật nạp dữ liệu ban đầu cho website production.</div>
+  <div class="cover-meta">
+    <div><span>Phiên bản tài liệu</span><b>1.1</b></div>
+    <div><span>Ngày phát hành</span><b>Tháng 07 / 2026</b></div>
+    <div><span>Bộ file kèm theo</span><b>5 file Excel</b></div>
+    <div><span>Ngôn ngữ</span><b>Tiếng Việt</b></div>
+  </div>
+  <div class="cover-foot">
+    <span>Tài liệu bảo mật — chỉ dùng nội bộ cho bên tiếp nhận bàn giao</span>
+    <span>© 2026 · Đội ngũ phát triển</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="page-break toc-wrap">
+  <div class="doc-h1">Mục lục</div>
+  <p class="opt" style="font-size:12px;margin-top:2px;">Điền bộ file Excel trong thư mục <code>file-dien-du-lieu/</code> kèm gửi các file ảnh; đội kỹ thuật sẽ nạp toàn bộ vào website khi khởi tạo.</p>
+  <div class="toc">
+    <div class="toc-part"><span class="toc-num">Phần 1.</span> Bộ file &amp; nguyên tắc điền <span class="pg" data-pg="#p1"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 2.</span> Thứ tự &amp; cách gửi ảnh <span class="pg" data-pg="#p2"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 3.</span> Chi tiết từng file <span class="pg" data-pg="#p3"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 4.</span> Checklist trước khi gửi <span class="pg" data-pg="#p4"></span></div>
+  </div>
+</div>
+
+<!-- PHẦN 1 -->
+<section class="part content" id="p1">
+  <div class="part-head"><div class="pnum">01</div><div class="pk">Phần 1</div><h2>Bộ file &amp; nguyên tắc điền</h2></div>
+  <p class="lede">Trước khi website “lên sóng”, đội kỹ thuật cần <strong>dữ liệu thật</strong> của cửa hàng. Bạn điền vào bộ file Excel có sẵn trong thư mục <code>file-dien-du-lieu/</code>, kèm gửi các file ảnh.</p>
+
+  <h2 class="sec">1.1 · Bộ 5 file cần điền</h2>
+  <table>
+    <thead><tr><th style="width:7%">TT</th><th style="width:36%">File</th><th style="width:37%">Nội dung</th><th>Bắt buộc?</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>1_Danh_muc_san_pham.xlsx</code></td><td>Cây danh mục sản phẩm.</td><td>Nên có</td></tr>
+      <tr><td>2</td><td><code>2_Thuong_hieu.xlsx</code></td><td>Các thương hiệu phân phối.</td><td>Nếu có</td></tr>
+      <tr><td>3</td><td><code>3_Showroom.xlsx</code></td><td>Chi nhánh/showroom.</td><td>Nên có</td></tr>
+      <tr><td>4</td><td><code>4_San_pham.xlsx</code></td><td>Danh sách sản phẩm.</td><td><span class="req">Bắt buộc</span></td></tr>
+      <tr><td>5</td><td><code>5_Thong_tin_cua_hang.xlsx</code></td><td>Logo, liên hệ, MXH, SEO, trang chủ.</td><td><span class="req">Bắt buộc</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">ℹ️</span>Mỗi file đều có sheet <strong>“📋 Hướng dẫn”</strong> ở đầu và <strong>dòng mẫu</strong> minh họa. Hãy đọc sheet Hướng dẫn trước khi điền.</div>
+
+  <h2 class="sec">1.2 · Nguyên tắc điền chung</h2>
+  <ul>
+    <li>Cột có dấu <span class="req">*</span> (nền xanh đậm) là <strong>bắt buộc</strong>.</li>
+    <li>Có <strong>dòng mẫu</strong> (chữ nghiêng, nền xanh nhạt) để tham khảo — xoá đi rồi nhập dữ liệu thật, hoặc nhập từ dòng trống bên dưới.</li>
+    <li><strong>Click vào ô</strong> sẽ hiện gợi ý; một số ô có <strong>dropdown</strong> để chọn.</li>
+    <li><strong>Không</strong> đổi tên cột, không xoá dòng tiêu đề.</li>
+    <li><strong>Giá tiền:</strong> chỉ nhập <strong>số</strong>, không dấu chấm/phẩy, không chữ “đ”. Đúng: <code>45000000</code>.</li>
+    <li><strong>Ảnh:</strong> KHÔNG dán ảnh vào Excel — ghi <strong>tên file</strong> vào ô, rồi gửi kèm tất cả ảnh.</li>
+  </ul>
+</section>
+
+<!-- PHẦN 2 -->
+<section class="part content" id="p2">
+  <div class="part-head"><div class="pnum">02</div><div class="pk">Phần 2</div><h2>Thứ tự &amp; cách gửi ảnh</h2></div>
+
+  <h2 class="sec">2.1 · Điền theo đúng thứ tự 1 → 5</h2>
+  <p>File sản phẩm tham chiếu tới danh mục/thương hiệu/showroom bằng <strong>TÊN</strong>. Vì lúc khởi tạo chưa có dữ liệu nào, ta liên kết bằng tên:</p>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Quan trọng</span>Hoàn thành file 1 (Danh mục), 2 (Thương hiệu), 3 (Showroom) <strong>trước</strong>, rồi mới điền file 4 (Sản phẩm) và ghi <strong>đúng y hệt cái tên</strong> đã khai. Ví dụ: file 1 có danh mục “Sofa phòng khách” → cột Danh mục trong file sản phẩm ghi đúng “Sofa phòng khách”.</div>
+
+  <h2 class="sec">2.2 · Cách gửi ảnh</h2>
+  <ol class="steps">
+    <li>Tạo một thư mục ảnh trên máy, ví dụ <code>ANH-WEBSITE</code>.</li>
+    <li>Đặt tên file ảnh <strong>không dấu, không khoảng trắng</strong> (ví dụ <code>sofa-y-01.jpg</code>, <code>logo.png</code>, <code>hero-1.jpg</code>).</li>
+    <li>Trong Excel, ô ảnh ghi đúng tên file đó.</li>
+    <li>Nén cả thư mục thành file <code>.zip</code> và gửi kèm các file Excel.</li>
+  </ol>
+  <table>
+    <thead><tr><th style="width:30%">Loại ảnh</th><th style="width:28%">Kích thước tối thiểu</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr><td>Ảnh sản phẩm</td><td>1000 × 1000 px</td><td>Nền sáng/trắng, rõ nét.</td></tr>
+      <tr><td>Ảnh Hero trang chủ</td><td>1920 × 1080 px</td><td>Ảnh ngang, chất lượng cao.</td></tr>
+      <tr><td>Logo</td><td>—</td><td>PNG nền trong suốt.</td></tr>
+      <tr><td>Ảnh showroom</td><td>1200 × 800 px</td><td>Mặt tiền/không gian.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PHẦN 3 -->
+<section class="part content" id="p3">
+  <div class="part-head"><div class="pnum">03</div><div class="pk">Phần 3</div><h2>Chi tiết từng file</h2></div>
+
+  <h3 class="sub">① 1_Danh_muc_san_pham.xlsx</h3>
+  <ul>
+    <li>Điền <strong>danh mục cha trước</strong> (để trống cột “Danh mục cha”), rồi <strong>danh mục con</strong> (ghi tên cha vào cột “Danh mục cha”).</li>
+    <li>Chọn <strong>Nhóm hàng</strong> từ dropdown: Đồ gỗ nội thất / Thiết bị vệ sinh / Gạch ốp lát / Khác.</li>
+    <li>⚠️ Sản phẩm chỉ gắn được vào <strong>danh mục con</strong> — hãy tạo đủ danh mục con.</li>
+  </ul>
+
+  <h3 class="sub">② 2_Thuong_hieu.xlsx</h3>
+  <ul>
+    <li>Mỗi dòng một thương hiệu. Tên tiếng Anh &amp; mô tả để trống nếu không có.</li>
+    <li>Có logo thì ghi tên file logo và gửi kèm.</li>
+  </ul>
+
+  <h3 class="sub">③ 3_Showroom.xlsx</h3>
+  <ul>
+    <li>Bắt buộc: Tên showroom, Tỉnh/Thành, Địa chỉ, Hotline, <strong>URL bản đồ nhúng Google Maps</strong>.</li>
+    <li><strong>Lấy URL bản đồ nhúng:</strong> Google Maps → tìm địa chỉ → <strong>Share</strong> → <strong>Embed a map</strong> → copy đoạn link trong <code>src="…"</code>.</li>
+  </ul>
+
+  <h3 class="sub">④ 4_San_pham.xlsx <span class="badge e">quan trọng</span></h3>
+  <ul>
+    <li>Điền <strong>sau</strong> khi xong file 1, 2, 3.</li>
+    <li>Bắt buộc: <strong>Tên sản phẩm, Danh mục, Mô tả ngắn, Ảnh chính</strong>.</li>
+    <li>Cột <strong>Danh mục / Thương hiệu / Showroom</strong>: ghi đúng tên như file 1/2/3.</li>
+    <li>Cột <strong>Nổi bật</strong>: chọn “Có” để ưu tiên hiển thị. Chưa có mô tả chi tiết thì để trống (bổ sung sau trong Admin, hoặc AI hỗ trợ soạn).</li>
+  </ul>
+
+  <h3 class="sub">⑤ 5_Thong_tin_cua_hang.xlsx</h3>
+  <ul>
+    <li>File dạng <strong>biểu mẫu</strong>: điền nội dung vào <strong>cột màu vàng “Nội dung cần điền”</strong>.</li>
+    <li>Gồm 7 phần: Nhận diện thương hiệu, Liên hệ, Mạng xã hội, SEO, Slide Hero trang chủ, Câu chuyện thương hiệu, Huy hiệu tin cậy.</li>
+    <li>Ảnh (logo, favicon, hero, story) — ghi tên file và gửi kèm.</li>
+  </ul>
+  <div class="callout tip"><span class="ic">💡</span>Về sau muốn thêm sản phẩm mới, bạn có thể tự làm trực tiếp trong Admin (Quyển 1), hoặc tiếp tục dùng chức năng <strong>Nhập Excel</strong> ngay trong Admin.</div>
+</section>
+
+<!-- PHẦN 4 -->
+<section class="part content" id="p4">
+  <div class="part-head"><div class="pnum">04</div><div class="pk">Phần 4</div><h2>Checklist trước khi gửi</h2></div>
+  <p class="lede">Kiểm tra các mục sau trước khi gửi lại cho đội kỹ thuật:</p>
+  <table>
+    <thead><tr><th style="width:6%">✔</th><th>Hạng mục kiểm tra</th></tr></thead>
+    <tbody>
+      <tr><td>☐</td><td>Đã điền <strong>4_San_pham.xlsx</strong> (bắt buộc) và <strong>5_Thong_tin_cua_hang.xlsx</strong> (bắt buộc).</td></tr>
+      <tr><td>☐</td><td>Đã điền <code>1_Danh_muc</code>, <code>3_Showroom</code> (và <code>2_Thuong_hieu</code> nếu dùng).</td></tr>
+      <tr><td>☐</td><td>Tên Danh mục/Thương hiệu/Showroom trong file sản phẩm <strong>khớp</strong> với file 1/2/3.</td></tr>
+      <tr><td>☐</td><td>Giá tiền chỉ gồm <strong>số</strong>, không dấu phân cách.</td></tr>
+      <tr><td>☐</td><td>Mỗi ô ảnh đã ghi <strong>đúng tên file</strong>.</td></tr>
+      <tr><td>☐</td><td>Đã gom <strong>tất cả ảnh</strong> vào 1 thư mục (<code>.zip</code>), tên file khớp với trong Excel.</td></tr>
+      <tr><td>☐</td><td>Gửi tất cả (Excel + ảnh) cho đội kỹ thuật qua kênh đã thống nhất.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">📦</span>Sau khi nhận, đội kỹ thuật sẽ tạo <strong>dữ liệu khởi tạo (seed)</strong> cho website production và bàn giao cho bạn kiểm tra. Nếu có dòng nào thiếu/sai, chúng tôi sẽ báo lại để bạn bổ sung.</div>
+  <p style="text-align:center;color:#8895a5;margin-top:26px;font-size:11.5px;">— HẾT QUYỂN 3 —<br/>Cảm ơn bạn đã tin tưởng. Chúc cửa hàng kinh doanh phát đạt!</p>
+</section>

@@ -1,0 +1,154 @@
+<!-- Quyển 2 — Thuê tên miền & VPS. Render bằng scripts/build-handbook-pdf.mjs -->
+<link rel="stylesheet" href="_doc-style.css"/>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="brandrow">
+    <div class="brandmark">🌐</div>
+    <div>
+      <div class="brandname">Phương Đông</div>
+      <div class="brandsub">Nội thất &amp; Thiết bị vệ sinh</div>
+    </div>
+  </div>
+  <div class="cover-kicker">Tài liệu bàn giao · Quyển 2</div>
+  <div class="cover-title">Thuê tên miền<br/>&amp; máy chủ <span>VPS</span></div>
+  <div class="cover-desc">Hướng dẫn khách hàng thuê tên miền tại Nhân Hòa và máy chủ VPS tại Cloud-Cheap để đưa website lên vận hành. Việc cài đặt hạ tầng do đội kỹ thuật thực hiện.</div>
+  <div class="cover-meta">
+    <div><span>Phiên bản tài liệu</span><b>1.1</b></div>
+    <div><span>Ngày phát hành</span><b>Tháng 07 / 2026</b></div>
+    <div><span>Cấu hình VPS</span><b>4GB RAM · 2 CPU · 40GB</b></div>
+    <div><span>Ngôn ngữ</span><b>Tiếng Việt</b></div>
+  </div>
+  <div class="cover-foot">
+    <span>Tài liệu bảo mật — chỉ dùng nội bộ cho bên tiếp nhận bàn giao</span>
+    <span>© 2026 · Đội ngũ phát triển</span>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="page-break toc-wrap">
+  <div class="doc-h1">Mục lục</div>
+  <p class="opt" style="font-size:12px;margin-top:2px;">Bạn chỉ cần thuê và cung cấp thông tin đăng nhập cho đội kỹ thuật — toàn bộ cài đặt, kết nối tên miền và bảo mật do chúng tôi thực hiện.</p>
+  <div class="toc">
+    <div class="toc-part"><span class="toc-num">Phần 1.</span> Tổng quan &amp; chi phí <span class="pg" data-pg="#p1"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 2.</span> Thuê tên miền tại Nhân Hòa <span class="pg" data-pg="#p2"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 3.</span> Thuê VPS tại Cloud-Cheap <span class="pg" data-pg="#p3"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 4.</span> Bàn giao thông tin cho kỹ thuật <span class="pg" data-pg="#p4"></span></div>
+    <div class="toc-part"><span class="toc-num">Phần 5.</span> Câu hỏi thường gặp <span class="pg" data-pg="#p5"></span></div>
+  </div>
+</div>
+
+<!-- PHẦN 1 -->
+<section class="part content" id="p1">
+  <div class="part-head"><div class="pnum">01</div><div class="pk">Phần 1</div><h2>Tổng quan &amp; chi phí</h2></div>
+  <p class="lede">Để website chạy công khai trên Internet cần <strong>2 thứ</strong>: <strong>tên miền</strong> (địa chỉ website, ví dụ <code>noithatphuongdong.vn</code>) và <strong>VPS</strong> (máy chủ ảo chạy website).</p>
+  <div class="callout note"><span class="ic">🔧</span><span class="lead">Bạn làm gì — kỹ thuật làm gì?</span>Bạn chỉ cần <strong>thuê</strong> và gửi thông tin đăng nhập. Đội kỹ thuật lo toàn bộ: cài đặt máy chủ, cơ sở dữ liệu, kết nối tên miền, bật HTTPS (ổ khóa bảo mật), nạp dữ liệu và bàn giao tài khoản Quản trị.</div>
+  <table>
+    <thead><tr><th style="width:20%">Hạng mục</th><th style="width:26%">Nhà cung cấp gợi ý</th><th style="width:28%">Chi phí tham khảo</th><th>Chu kỳ</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tên miền</strong> .vn / .com</td><td>nhanhoa.com</td><td>~750.000đ/năm (.vn)<br/>~250.000đ/năm (.com)</td><td>Theo năm</td></tr>
+      <tr><td><strong>VPS</strong> 4GB/2CPU/40GB</td><td>cloud-cheap.com</td><td>~150.000–250.000đ/tháng</td><td>Theo tháng/năm</td></tr>
+    </tbody>
+  </table>
+  <div class="callout tip"><span class="ic">💡</span>Đăng ký <strong>theo năm</strong> thường rẻ hơn và tránh quên gia hạn. Với VPS nên chọn kỳ 6–12 tháng.</div>
+  <div class="callout warn"><span class="ic">⚠️</span><span class="lead">Gia hạn đúng hạn</span>Cả tên miền &amp; VPS đều cần gia hạn đúng hạn. Để hết hạn có thể khiến website <strong>ngừng hoạt động</strong> và thậm chí <strong>mất tên miền</strong>. Nên bật nhắc gia hạn qua email.</div>
+</section>
+
+<!-- PHẦN 2 -->
+<section class="part content" id="p2">
+  <div class="part-head"><div class="pnum">02</div><div class="pk">Phần 2</div><h2>Thuê tên miền tại Nhân Hòa</h2></div>
+
+  <h2 class="sec">2.1 · Tìm &amp; chọn tên miền</h2>
+  <ol class="steps">
+    <li>Truy cập <strong>nhanhoa.com</strong>. Ở ô “Tên miền” trên trang chủ, gõ tên muốn mua (ví dụ <code>noithatphuongdong</code>) rồi bấm <strong>Kiểm tra</strong>.</li>
+    <li>Trang kết quả hiển thị các đuôi còn trống kèm giá. Chọn đuôi phù hợp:
+      <ul>
+        <li><strong>.vn / .com.vn</strong> — khuyên dùng cho doanh nghiệp Việt Nam (uy tín, đúng thị trường).</li>
+        <li><strong>.com</strong> — phổ biến quốc tế, giá rẻ hơn.</li>
+      </ul>
+    </li>
+    <li>Bấm <strong>Đăng ký / Thêm vào giỏ</strong>, chọn thời hạn (nên 1–2 năm).</li>
+  </ol>
+  <div class="callout tip"><span class="ic">💡</span><span class="lead">Chọn tên miền tốt</span>Ngắn gọn, dễ đọc, gắn với tên thương hiệu; tránh dấu gạch nối và số. Có thể mua vài đuôi cùng lúc (cả .vn và .com) để bảo vệ thương hiệu.</div>
+
+  <h2 class="sec">2.2 · Thanh toán &amp; hoàn tất</h2>
+  <ol class="steps">
+    <li>Ở bước giỏ hàng, nếu Nhân Hòa gợi ý mua kèm <strong>hosting/email</strong> — <strong>BỎ QUA</strong> (không cần, vì ta dùng VPS riêng). Chỉ giữ lại tên miền.</li>
+    <li>Bấm Thanh toán → <strong>Đăng ký tài khoản</strong> Nhân Hòa (email + số điện thoại).</li>
+    <li>Với tên miền <strong>.vn</strong> cần khai <strong>thông tin chủ thể</strong> (tên cá nhân/công ty, CCCD/MST) theo quy định.</li>
+    <li>Thanh toán (chuyển khoản/ví/thẻ). Xong, tên miền về tài khoản Nhân Hòa của bạn.</li>
+  </ol>
+  <div class="callout note"><span class="ic">🔧</span>Việc <strong>trỏ tên miền, cấu hình DNS</strong> (bản ghi A/CNAME…) do đội kỹ thuật thực hiện sau khi bạn cấp quyền truy cập tài khoản Nhân Hòa (hoặc làm theo hướng dẫn cụ thể chúng tôi gửi). Mục quản lý DNS nằm ở “Quản lý tên miền → DNS”.</div>
+</section>
+
+<!-- PHẦN 3 -->
+<section class="part content" id="p3">
+  <div class="part-head"><div class="pnum">03</div><div class="pk">Phần 3</div><h2>Thuê VPS tại Cloud-Cheap</h2></div>
+
+  <h2 class="sec">3.1 · Cấu hình cần thuê (khuyến nghị)</h2>
+  <table class="kv">
+    <tbody>
+      <tr><td>RAM</td><td><strong>4 GB</strong> — đủ chạy website + cơ sở dữ liệu.</td></tr>
+      <tr><td>CPU</td><td><strong>2 nhân (2 vCPU)</strong></td></tr>
+      <tr><td>Ổ cứng</td><td><strong>40 GB SSD</strong></td></tr>
+      <tr><td>Hệ điều hành</td><td><strong>Ubuntu 22.04 (hoặc 24.04) LTS</strong> — ⭐ KHÔNG chọn Windows.</td></tr>
+      <tr><td>Vị trí máy chủ</td><td>Ưu tiên <strong>Việt Nam</strong> (tốc độ trong nước nhanh hơn).</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">3.2 · Các bước đặt VPS</h2>
+  <ol class="steps">
+    <li>Truy cập trang đặt VPS: <code>app.cloud-cheap.com/portal/order/order-vps-now</code>.</li>
+    <li>Chọn gói <strong>4GB RAM / 2 CPU / 40GB SSD</strong> (hoặc dùng thanh tuỳ chỉnh kéo đúng các mức trên).</li>
+    <li><strong>Hệ điều hành (OS/Template):</strong> chọn <strong>Ubuntu 22.04 LTS</strong> (hoặc 24.04). <strong>Vị trí:</strong> ưu tiên Việt Nam.</li>
+    <li>Chọn chu kỳ thanh toán (theo tháng/năm). Nếu có ô mật khẩu root, đặt mật khẩu mạnh và <strong>ghi lại cẩn thận</strong>.</li>
+    <li>Bấm <strong>Order Now / Đặt mua</strong> → tạo tài khoản Cloud-Cheap → thanh toán.</li>
+  </ol>
+  <p>Sau khi kích hoạt (vài phút đến vài giờ), bạn nhận <strong>email</strong> chứa:</p>
+  <table class="kv">
+    <tbody>
+      <tr><td>Địa chỉ IP</td><td>ví dụ <code>123.45.67.89</code></td></tr>
+      <tr><td>Tài khoản đăng nhập</td><td>thường là <code>root</code></td></tr>
+      <tr><td>Mật khẩu</td><td>mật khẩu máy chủ (VPS)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">🔧</span>Việc SSH vào VPS, cài Docker, cài website, cơ sở dữ liệu, chứng chỉ SSL (https)… <strong>tất cả do đội kỹ thuật thực hiện</strong>.</div>
+</section>
+
+<!-- PHẦN 4 -->
+<section class="part content" id="p4">
+  <div class="part-head"><div class="pnum">04</div><div class="pk">Phần 4</div><h2>Bàn giao thông tin cho kỹ thuật</h2></div>
+  <p class="lede">Sau khi thuê xong, gửi cho đội kỹ thuật các thông tin sau <strong>qua kênh bảo mật</strong> (không gửi công khai qua chat thường):</p>
+
+  <h3 class="sub">✅ Checklist thông tin cần gửi</h3>
+  <table>
+    <thead><tr><th style="width:34%">Hạng mục</th><th>Nội dung</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Tên miền (Nhân Hòa)</strong></td><td>Tên miền đã mua + tài khoản/mật khẩu Nhân Hòa (hoặc hẹn lịch để chúng tôi hướng dẫn bạn tự trỏ DNS).</td></tr>
+      <tr><td><strong>2. Máy chủ VPS (Cloud-Cheap)</strong></td><td>Địa chỉ IP · User (thường <code>root</code>) · Mật khẩu VPS.</td></tr>
+      <tr><td><strong>3. Nội dung website</strong></td><td>Bộ file Excel đã điền (Quyển 3) + toàn bộ file ảnh (logo, sản phẩm, hero, showroom…).</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note"><span class="ic">📦</span>Sau khi nhận đủ, chúng tôi sẽ: cài đặt website lên VPS, kết nối tên miền, bật <strong>HTTPS</strong>, nạp dữ liệu bạn cung cấp, và bàn giao <strong>tài khoản Quản trị</strong> để bạn bắt đầu sử dụng.</div>
+  <div class="callout warn"><span class="ic">🔐</span><span class="lead">Bảo mật</span>Sau khi website chạy ổn định, bạn nên <strong>đổi mật khẩu</strong> VPS và các tài khoản, chỉ giữ lại cho người có trách nhiệm.</div>
+</section>
+
+<!-- PHẦN 5 -->
+<section class="part content" id="p5">
+  <div class="part-head"><div class="pnum">05</div><div class="pk">Phần 5</div><h2>Câu hỏi thường gặp</h2></div>
+
+  <h4>❓ Có bắt buộc dùng đúng Nhân Hòa &amp; Cloud-Cheap không?</h4>
+  <p>Không — đây là gợi ý phổ biến, giá tốt, hỗ trợ tiếng Việt. Bạn có thể dùng đơn vị khác (Mắt Bão, PA Vietnam, Viettel IDC, DigitalOcean, Vultr…) miễn là VPS đạt <strong>4GB RAM / 2 CPU / 40GB SSD, hệ điều hành Ubuntu</strong>.</p>
+  <h4>❓ Tại sao dùng VPS riêng mà không mua “hosting” cho rẻ?</h4>
+  <p>Website cần chạy ứng dụng &amp; cơ sở dữ liệu riêng — hosting chia sẻ thông thường không đáp ứng. VPS cho toàn quyền kiểm soát và hiệu năng ổn định.</p>
+  <h4>❓ Mỗi năm tốn bao nhiêu để duy trì?</h4>
+  <p>Khoảng: tên miền (~250k–750k/năm) + VPS (~1,8–3 triệu/năm). Cộng thêm chi phí không bắt buộc (email tên miền, quảng cáo…) nếu bạn dùng.</p>
+  <h4>❓ Khi nào cần nâng cấp VPS?</h4>
+  <p>Khi lượng truy cập tăng mạnh hoặc website chậm. Cloud-Cheap cho phép nâng RAM/CPU trong trang quản lý; báo chúng tôi để hỗ trợ.</p>
+  <h4>❓ Nếu quên gia hạn thì sao?</h4>
+  <p>Tên miền hết hạn có thời gian “ân hạn” ngắn để chuộc lại, quá hạn sẽ bị mua mất. VPS hết hạn có thể bị <strong>xoá dữ liệu</strong>. Hãy bật nhắc gia hạn và gia hạn sớm. Chúng tôi luôn giữ bản sao lưu định kỳ, nhưng phòng ngừa vẫn tốt hơn.</p>
+
+  <hr class="soft"/>
+  <div class="callout note"><span class="ic">📞</span><span class="lead">Cần hỗ trợ trong lúc thuê?</span>Chụp màn hình bước đang vướng và gửi cho đội kỹ thuật, chúng tôi sẽ hướng dẫn trực tiếp.</div>
+  <p style="text-align:center;color:#8895a5;margin-top:26px;font-size:11.5px;">— HẾT QUYỂN 2 —</p>
+</section>
