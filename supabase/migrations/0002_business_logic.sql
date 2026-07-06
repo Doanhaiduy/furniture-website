@@ -476,20 +476,6 @@ CREATE UNIQUE INDEX "uq_promotions_code_active"
   WHERE ("deleted_at" IS NULL);
 
 -- ════════════════════════════════════════════════════════════════════════════
--- 5. PROMO PRICE SANITY AT THE DB LAYER (self-discovered S5, LOW)
--- ════════════════════════════════════════════════════════════════════════════
--- The CMS Zod schema already requires promo_price_min < price_min, but nothing
--- enforced it in the DB, so a direct API call could store a "sale" price above
--- (or a negative discount vs) the real price. Add the invariant as a CHECK.
-ALTER TABLE "public"."products" DROP CONSTRAINT IF EXISTS "chk_products_promo_price";
-ALTER TABLE "public"."products" ADD CONSTRAINT "chk_products_promo_price" CHECK (
-  (promo_price_min IS NULL OR promo_price_min >= 0)
-  AND (promo_price_max IS NULL OR promo_price_max >= 0)
-  AND (promo_price_min IS NULL OR promo_price_max IS NULL OR promo_price_max >= promo_price_min)
-  AND (promo_price_min IS NULL OR price_min IS NULL OR promo_price_min <= price_min)
-);
-
--- ════════════════════════════════════════════════════════════════════════════
 -- 6. NO STATUS CHANGES ON A SOFT-DELETED QUOTE (self-discovered S4-guard, MEDIUM)
 -- ════════════════════════════════════════════════════════════════════════════
 -- Independent of the (still-open) reopen-policy question: a lead that has been

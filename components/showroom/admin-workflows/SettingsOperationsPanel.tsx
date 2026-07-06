@@ -739,8 +739,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
             </div>
             
             <div className="mt-4 grid gap-4 bg-white p-4 rounded-xl border">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-1">
+              <div className="grid gap-4 md:grid-cols-2 items-start">
+                <div className="flex flex-col gap-1">
                   <AdminField
                     label="Hotline tư vấn *"
                     name="contact-phone"
@@ -749,7 +749,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                     error={phoneError}
                   />
                 </div>
-                <div className="grid gap-1">
+                <div className="flex flex-col gap-1">
                   <AdminField
                     label="Email nhận báo giá *"
                     name="contact-email"
