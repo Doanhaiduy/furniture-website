@@ -1,4 +1,4 @@
-​-- 0002_business_logic.sql
+-- 0002_business_logic.sql
 -- Consolidated migration so a fresh DB builds from just 0001 + 0002.
 -- Merged in order from: 0002_structured_address, 0003_business_logic_fixes,
 -- 0004_business_logic_v2, 0005_audit_fixes (audit hardening).
