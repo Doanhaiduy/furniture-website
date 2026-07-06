@@ -111,7 +111,7 @@ export async function GET() {
     faviconUrl: (Array.isArray(settingsAny?.favicon_media) ? settingsAny.favicon_media[0]?.public_url : settingsAny?.favicon_media?.public_url) || "/favicon.ico",
     contactPhone: settingsAny?.contact_phone || "08172 357 587",
     contactEmail: settingsAny?.contact_email || "contact@phuongdong.vn",
-    quoteSenderEmail: settingsAny?.quote_sender_email || "quotes@example.test",
+    quoteSenderEmail: settingsAny?.quote_sender_email || "",
     addressVi: viTrans.contact_address || "124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh",
     addressEn: enTrans.contact_address || "124 Nguyen Thi Thap, District 7, Ho Chi Minh City",
     contactProvinceCode: settingsAny?.contact_province_code || "",
@@ -209,40 +209,37 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Server encryption key misconfigured" }, { status: 500 });
   }
 
-  // 1. Get/Create default site_settings
+  // 1. Get/Create default site_settings (kèm media id hiện tại để giữ nguyên khi ảnh không đổi)
   const { data: settings } = await supabase
     .from("site_settings")
-    .select("id")
+    .select("id, logo_media_id, favicon_media_id")
     .eq("singleton_key", "default")
     .maybeSingle();
+  const currentSettings = settings as any;
 
-  let logoMediaId: string | null = null;
-  if (body.logoUrl) {
-    logoMediaId = await resolveMediaId(supabase, body.logoUrl);
-    if (!logoMediaId) {
-      return NextResponse.json(
-        { error: "Logo URL must refer to an existing uploaded media asset. Please upload the file first." },
-        { status: 400 }
-      );
-    }
-  }
-
-  let faviconMediaId: string | null = null;
-  if (body.faviconUrl) {
-    faviconMediaId = await resolveMediaId(supabase, body.faviconUrl);
-    if (!faviconMediaId) {
-      return NextResponse.json(
-        { error: "Favicon URL must refer to an existing uploaded media asset. Please upload the file first." },
-        { status: 400 }
-      );
-    }
-  }
+  // Resolve logo/favicon về media id:
+  //  - rỗng                                    -> null (gỡ ảnh)
+  //  - khớp một media_assets đã upload           -> dùng id đó
+  //  - không khớp (ảnh local/fallback vd "/logo-final.svg", hoặc URL không đổi) -> GIỮ NGUYÊN id hiện tại
+  // (Trước đây trả 400 "must refer to an existing uploaded media asset" nên KHÔNG lưu được cài đặt
+  //  dù người dùng không đụng logo — vì URL fallback/local không phải một media_assets row.)
+  const resolveImageId = async (
+    url: string | null | undefined,
+    currentId: string | null
+  ): Promise<string | null> => {
+    const value = (url || "").trim();
+    if (!value) return null;
+    const resolved = await resolveMediaId(supabase, value);
+    return resolved ?? currentId ?? null;
+  };
+  const logoMediaId = await resolveImageId(body.logoUrl, currentSettings?.logo_media_id ?? null);
+  const faviconMediaId = await resolveImageId(body.faviconUrl, currentSettings?.favicon_media_id ?? null);
 
   const settingsPayload = {
     singleton_key: "default",
     contact_phone: body.contactPhone,
     contact_email: body.contactEmail,
-    quote_sender_email: body.quoteSenderEmail || "quotes@example.test",
+    quote_sender_email: body.quoteSenderEmail?.trim() || null,
     contact_province_code: body.contactProvinceCode || null,
     contact_province_name: body.contactProvinceName || null,
     contact_ward_code: body.contactWardCode || null,
@@ -492,6 +489,33 @@ export async function PUT(request: Request) {
       if (insertSocialError) {
         return NextResponse.json({ error: insertSocialError.message }, { status: 500 });
       }
+    }
+  }
+
+  // 6. Đồng bộ NGƯỜI NHẬN thông báo báo giá = ô "Email nhận báo giá" (contact_email).
+  //    Ô này giờ vừa hiển thị trên trang Liên hệ, vừa là địa chỉ THỰC SỰ nhận email
+  //    thông báo khi khách gửi yêu cầu (bảng quote_recipients — nguồn mà getQuoteRecipients đọc).
+  //    Thay toàn bộ set để đúng nguyên tắc "điền email nào → email đó nhận".
+  const notifyEmail = (body.contactEmail || "").trim();
+  if (notifyEmail) {
+    const { error: deleteRecipError } = await supabase
+      .from("quote_recipients")
+      .delete()
+      .eq("site_settings_id", settingsId);
+    if (deleteRecipError) {
+      return NextResponse.json({ error: deleteRecipError.message }, { status: 500 });
+    }
+    const { error: insertRecipError } = await supabase
+      .from("quote_recipients")
+      .insert({
+        site_settings_id: settingsId,
+        email: notifyEmail,
+        label: "Hộp thư nhận báo giá",
+        is_active: true,
+        created_by: user.id,
+      });
+    if (insertRecipError) {
+      return NextResponse.json({ error: insertRecipError.message }, { status: 500 });
     }
   }
 

@@ -83,6 +83,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   
   const [contactPhone, setContactPhone] = useState("0908 247 688");
   const [contactEmail, setContactEmail] = useState("contact@phuongdong.vn");
+  const [quoteSenderEmail, setQuoteSenderEmail] = useState("");
   const [addressVi, setAddressVi] = useState("124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
   const [addressEn, setAddressEn] = useState("124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
   const [contactProvinceCode, setContactProvinceCode] = useState("");
@@ -246,6 +247,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         if (data.faviconUrl !== undefined) setFaviconUrl(data.faviconUrl);
         if (data.contactPhone !== undefined) setContactPhone(data.contactPhone);
         if (data.contactEmail !== undefined) setContactEmail(data.contactEmail);
+        if (data.quoteSenderEmail !== undefined) setQuoteSenderEmail(data.quoteSenderEmail);
         if (data.addressVi !== undefined) setAddressVi(data.addressVi);
         if (data.addressEn !== undefined) setAddressEn(data.addressEn);
         setContactProvinceCode(data.contactProvinceCode || "");
@@ -352,6 +354,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         faviconUrl,
         contactPhone,
         contactEmail,
+        quoteSenderEmail,
         addressVi,
         addressEn,
         contactProvinceCode,
@@ -468,6 +471,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
       setFaviconUrl(data.faviconUrl || "https://phuongdong.vn/favicon.ico");
       setContactPhone(data.contactPhone || "0908 247 688");
       setContactEmail(data.contactEmail || "contact@phuongdong.vn");
+      setQuoteSenderEmail(data.quoteSenderEmail || "");
       setAddressVi(data.addressVi || "124 Nguyễn Thị Thập, Quận 7, TP. Hồ Chí Minh");
       setAddressEn(data.addressEn || "124 Nguyen Thi Thap, District 7, Ho Chi Minh City");
       setContactProvinceCode(data.contactProvinceCode || "");
@@ -753,7 +757,19 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                     onChange={(val) => { setContactEmail(val); setEmailError(""); markDirty(); }}
                     error={emailError}
                   />
+                  <p className="text-xs text-slate-500">Vừa hiển thị trên trang Liên hệ, vừa là nơi <strong>nhận email thông báo</strong> mỗi khi khách gửi yêu cầu báo giá. Lưu cài đặt sẽ cập nhật luôn địa chỉ nhận này.</p>
                 </div>
+              </div>
+              <div className="grid gap-1">
+                <AdminField
+                  label="Email người gửi thông báo (tuỳ chọn)"
+                  name="quote-sender-email"
+                  value={quoteSenderEmail}
+                  onChange={(val) => { setQuoteSenderEmail(val); markDirty(); }}
+                  placeholder="Để trống = dùng mặc định, hoặc điền giống email nhận ở trên"
+                  inputType="email"
+                />
+                <p className="text-xs text-slate-500">Là địa chỉ <strong>người gửi</strong> đứng tên trên email hệ thống tự gửi (ô trên là địa chỉ <strong>người nhận</strong>). Có thể điền <strong>giống ô trên</strong> hoặc để trống. Lưu ý: domain của email người gửi phải được <strong>xác minh trong Resend</strong>, nếu không email sẽ không gửi được.</p>
               </div>
               <div className="grid gap-4">
                 <VietnamAddressPicker
@@ -1583,4 +1599,3 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
     </div>
   );
 }
-
