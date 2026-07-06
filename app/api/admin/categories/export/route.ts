@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
       .from("product_categories")
       .select(`
         *,
-        product_category_translations (*)
+        product_category_translations (*),
+        image_media:media_assets!fk_product_categories_image_media (public_url)
       `)
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
@@ -107,7 +108,7 @@ export async function GET(req: NextRequest) {
         enTrans?.description || "",
         groupKeyMapped,
         parentSlug,
-        c.cover_image || "",
+        (c.image_media as any)?.public_url || "",
         c.sort_order !== null ? Number(c.sort_order) : 0,
         c.status || "draft",
         c.id
@@ -152,3 +153,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+ 

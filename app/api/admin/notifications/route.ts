@@ -24,7 +24,7 @@ export async function GET() {
         .from("quote_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "new");
-      
+
       if (!quoteError && count !== null) {
         unreadQuotesCount = count;
       }
@@ -33,15 +33,28 @@ export async function GET() {
     }
   }
 
-  // Both editor and admin can check products for translations
+  // Both editor and admin can check products for translations.
+  // Localized text lives in product_translations (one row per locale), not on the
+  // products table, so "missing translations" = active products without an `en` row.
   try {
-    const { count: prodCount, error: prodError } = await supabase
+    const { count: totalProducts, error: totalError } = await supabase
       .from("products")
       .select("*", { count: "exact", head: true })
-      .or("name_en.is.null,description_en.is.null");
-    
-    if (!prodError && prodCount !== null) {
-      missingTranslationsCount = prodCount;
+      .is("deleted_at", null);
+
+    const { count: translatedProducts, error: translatedError } = await supabase
+      .from("products")
+      .select("product_translations!inner(product_id)", { count: "exact", head: true })
+      .is("deleted_at", null)
+      .eq("product_translations.locale", "en");
+
+    if (
+      !totalError &&
+      !translatedError &&
+      totalProducts !== null &&
+      translatedProducts !== null
+    ) {
+      missingTranslationsCount = Math.max(0, totalProducts - translatedProducts);
     }
   } catch (e) {
     console.error("Failed to fetch missing translations count:", e);
@@ -52,3 +65,4 @@ export async function GET() {
     missingTranslationsCount,
   });
 }
+ 

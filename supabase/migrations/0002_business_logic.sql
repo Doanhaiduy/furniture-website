@@ -1,4 +1,4 @@
--- 0002_business_logic.sql
+​-- 0002_business_logic.sql
 -- Consolidated migration so a fresh DB builds from just 0001 + 0002.
 -- Merged in order from: 0002_structured_address, 0003_business_logic_fixes,
 -- 0004_business_logic_v2, 0005_audit_fixes (audit hardening).
@@ -810,7 +810,7 @@ COMMENT ON FUNCTION "public"."get_active_discount_percentage"("uuid") IS 'Best (
 -- ── public_products ─────────────────────────────────────────────────────────
 -- Same signature as 0003; only the promo_price_min/max computation changes from
 -- reading the (now-removed) stored column to deriving it from the active promotion.
-CREATE OR REPLACE FUNCTION "public"."public_products"("p_locale" "text" DEFAULT 'vi'::"text", "p_category_slug" "text" DEFAULT NULL::"text", "p_group_key" "text" DEFAULT NULL::"text", "p_q" "text" DEFAULT NULL::"text", "p_price_min" numeric DEFAULT NULL::numeric, "p_price_max" numeric DEFAULT NULL::numeric, "p_attribute_filters" "jsonb" DEFAULT '{}'::"jsonb", "p_featured" boolean DEFAULT NULL::boolean, "p_limit" integer DEFAULT 24, "p_offset" integer DEFAULT 0, "p_brand_slug" "text" DEFAULT NULL::"text", "p_has_discount" boolean DEFAULT NULL::boolean) RETURNS TABLE("id" "uuid", "reference_code" "text", "slug" "text", "name" "text", "summary" "text", "description_json" "jsonb", "material" "text", "price_display_text" "text", "dimension_display_text" "text", "category_id" "uuid", "category_slug" "text", "category_name" "text", "group_key" "text", "price_min" numeric, "price_max" numeric, "currency" "text", "brand_id" "uuid", "brand_name" "text", "brand_series" "text", "featured" boolean, "published_at" timestamp with time zone, "primary_media" "jsonb", "media" "jsonb", "specs" "jsonb", "attributes" "jsonb", "promo_price_min" numeric, "promo_price_max" numeric, "specifications" "jsonb", "custom_attributes" "jsonb", "showroom_code" "text", "price_unit" "text")
+CREATE OR REPLACE FUNCTION "public"."public_products"("p_locale" "text" DEFAULT 'vi'::"text", "p_category_slug" "text" DEFAULT NULL::"text", "p_group_key" "text" DEFAULT NULL::"text", "p_q" "text" DEFAULT NULL::"text", "p_price_min" numeric DEFAULT NULL::numeric, "p_price_max" numeric DEFAULT NULL::numeric, "p_attribute_filters" "jsonb" DEFAULT '{}'::"jsonb", "p_featured" boolean DEFAULT NULL::boolean, "p_limit" integer DEFAULT 24, "p_offset" integer DEFAULT 0, "p_brand_slug" "text" DEFAULT NULL::"text", "p_has_discount" boolean DEFAULT NULL::boolean) RETURNS TABLE("id" "uuid", "reference_code" "text", "slug" "text", "name" "text", "summary" "text", "description_json" "jsonb", "material" "text", "price_display_text" "text", "dimension_display_text" "text", "category_id" "uuid", "category_slug" "text", "category_name" "text", "group_key" "text", "price_min" numeric, "price_max" numeric, "currency" "text", "brand_id" "uuid", "brand_name" "text", "brand_series" "text", "featured" boolean, "published_at" timestamp with time zone, "primary_media" "jsonb", "media" "jsonb", "specs" "jsonb", "attributes" "jsonb", "promo_price_min" numeric, "promo_price_max" numeric, "specifications" "jsonb", "custom_attributes" "jsonb", "showroom_code" "text", "price_unit" "text", "brand_slug" "text")
     LANGUAGE "plpgsql" STABLE SECURITY DEFINER
     AS $$
 DECLARE
@@ -897,7 +897,8 @@ BEGIN
     COALESCE(p.specifications, '{}'::jsonb)  AS specifications,
     COALESCE(p.custom_attributes, '[]'::jsonb) AS custom_attributes,
     p.showroom_code::text,
-    p.price_unit::text
+    p.price_unit::text,
+    b.slug AS brand_slug
   FROM products p
   JOIN LATERAL (
     SELECT t.*

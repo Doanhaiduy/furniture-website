@@ -3,7 +3,9 @@ import { rateLimitCheck } from "@/lib/quotes/rate-limit";
 import { getQuoteRequestSchema } from "@/lib/validations/quote";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getQuoteRecipients } from "@/lib/quotes/recipients";
-import { resend } from "@/lib/resend/client";
+import { getResendClient } from "@/lib/resend/client";
+import { decryptSecret } from "@/lib/security/encryption";
+import { env } from "@/lib/env/schema";
 import { renderManagerQuoteEmail } from "@/lib/email/templates/manager-quote";
 
 const RATE_LIMIT_KEY_PREFIX = "quote:ip:";
@@ -141,44 +143,94 @@ export async function POST(request: Request) {
     }
   }
 
-  let emailError: string | null = null;
-  if (recipients.length > 0 && process.env.RESEND_API_KEY) {
+  // Resolve the Resend API key — the admin-configured secret (integration_secrets,
+  // AES-GCM encrypted) takes precedence over the RESEND_API_KEY env var — and the
+  // sender address from site_settings.quote_sender_email (env RESEND_FROM as fallback),
+  // so the values configured through the admin panel are actually used when sending.
+  let resendApiKey: string | null = env.RESEND_API_KEY || process.env.RESEND_API_KEY || null;
+  const encryptionKey = env.AI_SECRET_ENCRYPTION_KEY || process.env.AI_SECRET_ENCRYPTION_KEY;
+  const { data: keySecret } = await supabase
+    .from("integration_secrets")
+    .select("encrypted_value")
+    .eq("key_name", "resend_api_key")
+    .maybeSingle();
+  if (keySecret?.encrypted_value && encryptionKey) {
     try {
-      const { error: sendError } = await resend.emails.send({
-        from: process.env.RESEND_FROM || "noreply@phuongdong.com",
+      resendApiKey = decryptSecret(keySecret.encrypted_value, encryptionKey);
+    } catch (err) {
+      console.error("Failed to decrypt resend_api_key, falling back to env:", err);
+    }
+  }
+
+  const { data: senderSettings } = await supabase
+    .from("site_settings")
+    .select("quote_sender_email")
+    .limit(1)
+    .maybeSingle();
+  const fromAddress =
+    senderSettings?.quote_sender_email?.trim() ||
+    process.env.RESEND_FROM ||
+    "noreply@phuongdong.com";
+
+  // Send the internal sales notification inline, tracking the real outcome so the
+  // queued rows reflect it (sent / failed / skipped) instead of always "sent".
+  let emailError: string | null = null;
+  let providerMessageId: string | null = null;
+  let sendAttempted = false;
+  if (recipients.length > 0 && resendApiKey) {
+    sendAttempted = true;
+    try {
+      const client = getResendClient(resendApiKey);
+      const { data: sendResult, error: sendError } = await client.emails.send({
+        from: fromAddress,
         to: recipients.map((r) => r.email),
-        subject: `New quote request from ${data.fullName}`,
+        subject: `Yêu cầu báo giá mới từ ${data.fullName}`,
         html: renderManagerQuoteEmail({
-        fullName: data.fullName,
-        phone: data.phone,
-        email: data.email || "",
-        company: data.company || undefined,
-        service: data.service || undefined,
-        message: data.message,
-        sourcePath: data.sourcePath,
-        locale: data.locale,
-      }),
+          fullName: data.fullName,
+          phone: data.phone,
+          email: data.email || "",
+          company: data.company || undefined,
+          service: data.service || undefined,
+          message: data.message,
+          sourcePath: data.sourcePath,
+          locale: data.locale,
+        }),
       });
       if (sendError) {
         emailError = sendError.message;
+      } else {
+        providerMessageId = sendResult?.id ?? null;
       }
     } catch (err) {
       emailError = err instanceof Error ? err.message : "Unknown email error";
     }
   }
 
-  const notificationStatus = emailError ? "failed" : "sent";
+  // Reflect the true outcome on the queued notification rows. When no send was
+  // attempted (no recipients or no API key configured) the rows are 'skipped',
+  // never 'sent'.
   if (notificationRows.length > 0) {
-    const notificationIds = notificationRows.map((_r, idx) => {
-      const rows = notificationRows;
-      return { idx };
-    });
-    await supabase
+    const notificationStatus = !sendAttempted
+      ? "skipped"
+      : emailError
+        ? "failed"
+        : "sent";
+    const { error: updateError } = await supabase
       .from("quote_notifications")
-      .update({ status: notificationStatus, last_error: emailError })
+      .update({
+        status: notificationStatus,
+        last_error: emailError,
+        provider_message_id: providerMessageId,
+        sent_at: notificationStatus === "sent" ? new Date().toISOString() : null,
+        attempt_count: sendAttempted ? 1 : 0,
+      })
       .eq("quote_request_id", quote.id);
+    if (updateError) {
+      console.error("Failed to update quote notification status:", updateError);
+    }
   }
 
   return NextResponse.json({ ok: true, submitted: true });
 }
 
+ 

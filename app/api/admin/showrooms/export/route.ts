@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
       .from("showrooms")
       .select(`
         *,
-        showroom_translations (*)
+        showroom_translations (*),
+        showroom_media (is_primary, sort_order, media:media_assets (public_url))
       `)
       .is("deleted_at", null)
       .order("sort_order", { ascending: true });
@@ -110,6 +111,13 @@ export async function GET(req: NextRequest) {
       }
       if (!detectedProvince) detectedProvince = "Hồ Chí Minh"; // Fallback default
 
+      // Cover image lives in showroom_media (join) → media_assets.public_url, not on showrooms.
+      const showroomMedia = Array.isArray(s.showroom_media) ? s.showroom_media : [];
+      const coverImage =
+        showroomMedia.find((m: any) => m.is_primary)?.media?.public_url ||
+        showroomMedia[0]?.media?.public_url ||
+        "";
+
       const rowValues = [
         viTrans?.name || "",
         enTrans?.name || "",
@@ -122,7 +130,7 @@ export async function GET(req: NextRequest) {
         s.email || "",
         s.google_maps_embed_url || "",
         s.google_maps_fallback_url || "",
-        s.cover_image || "",
+        coverImage,
         s.latitude !== null ? Number(s.latitude) : "",
         s.longitude !== null ? Number(s.longitude) : "",
         s.sort_order !== null ? Number(s.sort_order) : 0,
@@ -169,3 +177,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+ 

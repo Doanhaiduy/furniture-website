@@ -45,7 +45,7 @@ function checkCircularCategory(
 
 export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
-   
+
   data?: any;
   error?: string;
 }> {
@@ -76,9 +76,9 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
     const { data: cat, error } = await query.maybeSingle();
     if (error || !cat) return { success: false, error: error?.message || "Category not found" };
 
-     
+
     const viTrans = cat.product_category_translations.find((t: any) => t.locale === "vi");
-     
+
     const enTrans = cat.product_category_translations.find((t: any) => t.locale === "en");
 
     const imageMediaRecord = cat.image_media as Record<string, any> | null | undefined;
@@ -87,7 +87,7 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<{
       success: true,
       data: {
         id: cat.id,
-        slug: viTrans?.slug || cat.slug,
+        slug: viTrans?.slug || enTrans?.slug || "",
         parent_id: cat.parent_id,
         group_key: cat.group_key,
         status: cat.status,

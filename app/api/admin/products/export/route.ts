@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
 
       // Media parsing
       const mediaList = Array.isArray(p.product_media) ? p.product_media : [];
-      const primaryMedia = mediaList.find((m: any) => m.is_primary)?.media?.public_url || p.cover_image || "";
+      const primaryMedia = mediaList.find((m: any) => m.is_primary)?.media?.public_url || mediaList[0]?.media?.public_url || "";
       const otherMedia = mediaList
         .filter((m: any) => !m.is_primary && m.media?.public_url)
         .map((m: any) => m.media.public_url)
@@ -185,3 +185,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+ 

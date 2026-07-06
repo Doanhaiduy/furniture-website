@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data: categories } = await supabase
       .from("product_category_translations")
-      .select("name, product_categories!inner(id, slug, status)")
+      .select("slug, name, product_categories!inner(id, status)")
       .ilike("name", pattern)
       .limit(5);
 
@@ -92,10 +92,10 @@ export async function GET(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ...categories.map((c: any) => ({
           type: "category" as const,
-          id: c.product_categories.slug,
+          id: c.slug,
           title: c.name,
           subtitle: "Danh mục",
-          href: `/admin/categories?edit=${c.product_categories.slug}`,
+          href: `/admin/categories?edit=${c.slug}`,
         }))
       );
     }
@@ -154,3 +154,4 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ results: results.slice(0, 20) });
 }
+ 
