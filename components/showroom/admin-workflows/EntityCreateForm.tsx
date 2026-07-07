@@ -415,7 +415,11 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         setSaveSuccess(true);
         showAlert(
           "Thành công",
-          isEdit ? "Cập nhật showroom thành công!" : "Tạo showroom mới thành công!",
+          statusToSave === "published"
+            ? (isEdit ? "Cập nhật showroom thành công!" : "Tạo showroom mới thành công!")
+            : statusToSave === "archived"
+              ? "Đã lưu trữ showroom thành công!"
+              : "Đã lưu bản nháp showroom thành công!",
           "success",
           () => {
             router.push("/admin/showrooms");
@@ -903,7 +907,11 @@ function CategoryEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         setSaveSuccess(true);
         showAlert(
           "Thành công",
-          isEdit ? "Cập nhật danh mục thành công!" : "Tạo danh mục mới thành công!",
+          statusToSave === "published"
+            ? (isEdit ? "Cập nhật danh mục thành công!" : "Tạo danh mục mới thành công!")
+            : statusToSave === "archived"
+              ? "Đã lưu trữ danh mục thành công!"
+              : "Đã lưu bản nháp danh mục thành công!",
           "success",
           () => {
             router.push("/admin/categories");
@@ -1315,7 +1323,11 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       if (res.success) {
         showAlert(
           "Thành công",
-          isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!",
+          targetStatus === "published"
+            ? (isEdit ? "Cập nhật thương hiệu thành công!" : "Tạo thương hiệu thành công!")
+            : targetStatus === "archived"
+              ? "Đã lưu trữ thương hiệu thành công!"
+              : "Đã lưu bản nháp thương hiệu thành công!",
           "success",
           () => {
             window.location.href = "/admin/brands";
@@ -1351,62 +1363,77 @@ function BrandEntityForm({ idOrSlug }: { idOrSlug?: string }) {
           description="Thiết lập logo, xuất xứ và mô tả song ngữ cho thương hiệu đối tác."
         />
         {formError && <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{formError}</div>}
-        <div className="mt-5 grid gap-4">
-          <AdminField
-            label="Tên thương hiệu (VI) *"
-            name="name_vi"
-            value={nameVi}
-            onChange={setNameVi}
-            error={fieldErrors.name_vi}
-          />
-          <AdminField
-            label="Đường dẫn"
-            name="brand-slug"
-            value={slug}
-            onChange={setSlug}
-            disabled={true}
-          />
-          <AdminField
-            label="Tên thương hiệu (EN)"
-            name="name_en"
-            value={nameEn}
-            onChange={setNameEn}
-            error={fieldErrors.name_en}
-          />
-          <AdminField
-            label="Mô tả tiếng Việt"
-            name="description_vi"
-            value={descriptionVi}
-            onChange={setDescriptionVi}
-            multiline
-            error={fieldErrors.description_vi}
-          />
-          <AdminField
-            label="Mô tả tiếng Anh"
-            name="description_en"
-            value={descriptionEn}
-            onChange={setDescriptionEn}
-            multiline
-            error={fieldErrors.description_en}
-          />
-          <div className="grid gap-2">
-            <span className="label-pd">Xuất xứ</span>
-            <PremiumSelect
-              tone="admin"
-              name="origin"
-              value={origin}
-              options={originOptions}
-              placeholder="Chọn quốc gia xuất xứ"
-              ariaLabel="Xuất xứ"
-              onValueChange={setOrigin}
+        <div className="mt-5 space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField
+              label="Tên thương hiệu (VI) *"
+              name="name_vi"
+              value={nameVi}
+              onChange={setNameVi}
+              error={fieldErrors.name_vi}
             />
-            {fieldErrors.origin && <span className="text-red-600 text-xs font-medium">{fieldErrors.origin}</span>}
+            <AdminField
+              label="Tên thương hiệu (EN)"
+              name="name_en"
+              value={nameEn}
+              onChange={setNameEn}
+              error={fieldErrors.name_en}
+            />
           </div>
-          {/* SEO — lưu trong brand_translations */}
-          <AdminField label="Tiêu đề SEO (VI)" name="seo_title_vi" value={seoTitleVi} onChange={setSeoTitleVi} />
-          <AdminField label="Tiêu đề SEO (EN)" name="seo_title_en" value={seoTitleEn} onChange={setSeoTitleEn} />
-          <AdminField label="Mô tả SEO (VI)" name="seo_desc_vi" value={seoDescVi} onChange={setSeoDescVi} multiline />
-          <AdminField label="Mô tả SEO (EN)" name="seo_desc_en" value={seoDescEn} onChange={setSeoDescEn} multiline />
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField
+              label="Đường dẫn"
+              name="brand-slug"
+              value={slug}
+              onChange={setSlug}
+              disabled={true}
+            />
+            <div className="grid gap-2">
+              <span className="label-pd">Xuất xứ</span>
+              <PremiumSelect
+                tone="admin"
+                name="origin"
+                value={origin}
+                options={originOptions}
+                placeholder="Chọn quốc gia xuất xứ"
+                ariaLabel="Xuất xứ"
+                onValueChange={setOrigin}
+              />
+              {fieldErrors.origin && <span className="text-red-600 text-xs font-medium">{fieldErrors.origin}</span>}
+            </div>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <AdminField
+              label="Mô tả tiếng Việt"
+              name="description_vi"
+              value={descriptionVi}
+              onChange={setDescriptionVi}
+              multiline
+              error={fieldErrors.description_vi}
+            />
+            <AdminField
+              label="Mô tả tiếng Anh"
+              name="description_en"
+              value={descriptionEn}
+              onChange={setDescriptionEn}
+              multiline
+              error={fieldErrors.description_en}
+            />
+          </div>
+          
+          {/* SEO Block — lưu trong brand_translations */}
+          <div className="mt-6 p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-4">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-550">Cấu hình SEO Search Engine</h4>
+            <div className="grid gap-4 md:grid-cols-2">
+              <AdminField label="Tiêu đề SEO (VI)" name="seo_title_vi" value={seoTitleVi} onChange={setSeoTitleVi} />
+              <AdminField label="Tiêu đề SEO (EN)" name="seo_title_en" value={seoTitleEn} onChange={setSeoTitleEn} />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <AdminField label="Mô tả SEO (VI)" name="seo_desc_vi" value={seoDescVi} onChange={setSeoDescVi} multiline />
+              <AdminField label="Mô tả SEO (EN)" name="seo_desc_en" value={seoDescEn} onChange={setSeoDescEn} multiline />
+            </div>
+          </div>
         </div>
       </section>
       <aside className="space-y-5">
@@ -1643,7 +1670,11 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       if (res.success) {
         showAlert(
           "Thành công",
-          isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!",
+          targetStatus === "published"
+            ? (isEdit ? "Cập nhật khuyến mãi thành công!" : "Tạo khuyến mãi thành công!")
+            : targetStatus === "archived"
+              ? "Đã lưu trữ khuyến mãi thành công!"
+              : "Đã lưu bản nháp khuyến mãi thành công!",
           "success",
           () => {
             window.location.href = "/admin/promotions";
@@ -1969,23 +2000,34 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
         </section>
 
         {/* --- COMMON FIELDS (LOCKED OUTSIDE TABS) --- */}
-        <section className="surface-soft p-4 space-y-4">
-          <WorkflowIntro
-            icon={CalendarClock}
-            title="Thời gian & Chiết khấu"
-            description="Lưu cấu hình mức chiết khấu %, thời gian áp dụng và mã khuyến mãi tự động."
-          />
-          <div className="grid gap-4 md:grid-cols-3">
+        <section className="surface-soft p-5 space-y-5 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+              <CalendarClock className="size-5" />
+            </div>
+            <div>
+              <h3 className="font-heading text-sm font-extrabold text-slate-800 uppercase tracking-wider">Thời gian & Chiết khấu</h3>
+              <p className="text-[11px] text-slate-400 font-medium mt-0.5">Cấu hình mức giảm giá, thời gian hiệu lực và mã áp dụng tự động.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="relative">
+              <AdminField
+                label="Mã khuyến mãi (Tự động tạo) *"
+                name="code"
+                value={code}
+                onChange={setCode}
+                error={fieldErrors.code}
+                disabled={true}
+              />
+              <div className="absolute right-3.5 bottom-2.5 text-slate-400">
+                <Lock className="size-4" />
+              </div>
+            </div>
+            
             <AdminField
-              label="Mã khuyến mãi (Đường dẫn) *"
-              name="code"
-              value={code}
-              onChange={setCode}
-              error={fieldErrors.code}
-              disabled={true}
-            />
-            <AdminField
-              label="Phần trăm chiết khấu (%) *"
+              label="Mức chiết khấu (%) *"
               name="discount_percentage"
               inputType="number"
               value={String(discountPercentage)}
@@ -1994,7 +2036,7 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 pt-2 border-t border-slate-50">
             <label className="grid gap-2">
               <span className="label-pd">Thời gian bắt đầu *</span>
               <DateTimePickerField

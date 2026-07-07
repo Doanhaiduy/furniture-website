@@ -1405,6 +1405,14 @@
     box-shadow: 0 30px 90px rgb(9 10 35 / 0.22), inset 0 1px 0 rgb(255 255 255 / 0.9);
   }
 
+  @media (max-width: 639px) {
+    .admin-dialog-content {
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+
   .admin-kpi-card {
     border: 1px solid var(--admin-border);
     border-radius: var(--radius-panel);

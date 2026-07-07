@@ -181,24 +181,26 @@ export function DataView({
         <>
           {/* List view */}
           {(viewMode === "list" || disableGrid) && (
-            <div data-testid="admin-list" className="overflow-hidden rounded-xl border bg-white shadow-sm">
-              {/* Column headers */}
-              {columns.length > 0 && (
-                <div
-                  className="grid items-center gap-4 bg-slate-50 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"
-                  style={{
-                    gridTemplateColumns: columns
-                      .map((c) => c.width ?? "1fr")
-                      .join(" "),
-                  }}
-                >
-                  {columns.map((col) => (
-                    <span key={col.key}>{col.label}</span>
-                  ))}
+            <div className="w-full overflow-x-auto">
+              <div data-testid="admin-list" className="min-w-[960px] overflow-hidden rounded-xl border bg-white shadow-sm">
+                {/* Column headers */}
+                {columns.length > 0 && (
+                  <div
+                    className="grid items-center gap-4 bg-slate-50 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"
+                    style={{
+                      gridTemplateColumns: columns
+                        .map((c) => c.width ?? "1fr")
+                        .join(" "),
+                    }}
+                  >
+                    {columns.map((col) => (
+                      <span key={col.key}>{col.label}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="divide-y divide-slate-100">
+                  {data.map((item, i) => renderListRow(item, i))}
                 </div>
-              )}
-              <div className="divide-y divide-slate-100">
-                {data.map((item, i) => renderListRow(item, i))}
               </div>
             </div>
           )}

@@ -112,7 +112,7 @@ export function ContentEditorForm({
   // (the partial unique index ignores NULLs), so it's optional and safe.
   const [refCode, setRefCode] = useState(mode === "edit" ? "PD-SF-184" : "");
   const [showroom, setShowroom] = useState("");
-  const [featured, setFeatured] = useState(true);
+  const [featured, setFeatured] = useState(false);
   const [initialFeatured, setInitialFeatured] = useState(false);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   // Blog publish datetime (datetime-local format "YYYY-MM-DDTHH:mm"), controlled by the picker.

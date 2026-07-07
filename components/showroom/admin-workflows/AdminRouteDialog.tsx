@@ -46,19 +46,19 @@ export function AdminRouteDialog({
   const [isDirty, setIsDirty] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  const width =
+  const widthClass =
     size === "full"
-      ? "w-[98vw] max-w-[1780px]"
+      ? "w-full sm:w-[98vw] sm:max-w-[1780px] rounded-none sm:rounded-2xl"
       : size === "wide"
-        ? "w-[96vw] max-w-[1440px]"
-        : "w-[92vw] max-w-[960px]";
+        ? "w-full sm:w-[96vw] sm:max-w-[1440px] rounded-none sm:rounded-2xl"
+        : "w-full sm:w-[92vw] sm:max-w-[960px] rounded-none sm:rounded-2xl";
 
-  const height =
+  const heightClass =
     size === "full"
-      ? "h-[96vh] max-h-[96vh]"
+      ? "h-full sm:h-[96vh] sm:max-h-[96vh]"
       : size === "wide"
-        ? "h-[92vh] max-h-[92vh]"
-        : "max-h-[85vh]";
+        ? "h-full sm:h-[92vh] sm:max-h-[92vh]"
+        : "h-full sm:h-auto sm:max-h-[85vh]";
 
   const closeDialog = useCallback(() => {
     if (isDirty) {
@@ -167,7 +167,7 @@ export function AdminRouteDialog({
         onInput={() => setIsDirty(true)}
         onChange={() => setIsDirty(true)}
         onClick={handleDialogClick}
-        className={`admin-dialog-content fixed left-1/2 top-1/2 flex flex-col -translate-x-1/2 -translate-y-1/2 overflow-hidden p-0 outline-none ${width} ${height}`}
+        className={`admin-dialog-content fixed left-1/2 top-1/2 flex flex-col -translate-x-1/2 -translate-y-1/2 overflow-hidden p-0 outline-none border-0 sm:border ${widthClass} ${heightClass}`}
       >
         <div className="border-b border-[var(--admin-border)] bg-[var(--admin-bg-soft)] px-5 py-4 pr-14 relative shrink-0">
           <h2 id={titleId} className="admin-section-title-pd text-lg">{title}</h2>
