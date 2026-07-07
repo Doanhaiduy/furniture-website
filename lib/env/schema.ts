@@ -6,7 +6,15 @@ export const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url({ message: "Required" }),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, { message: "Required" }),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, { message: "Required" }),
-  AI_SECRET_ENCRYPTION_KEY: z.string().length(32, { message: "Must be exactly 32 characters long" }).optional(),
+  // AES-256 key = 32 bytes. encryption.ts accepts EITHER a 32-character utf-8 string OR a
+  // 64-character hex string (e.g. `openssl rand -hex 32`). The env validation must accept
+  // both, otherwise a valid 64-hex key crashes the app at startup.
+  AI_SECRET_ENCRYPTION_KEY: z
+    .string()
+    .refine((v) => v.length === 32 || v.length === 64, {
+      message: "Must be 32 characters (utf-8) or 64 hex characters",
+    })
+    .optional(),
   
   DATABASE_URL: z.string().optional(),
   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: z.string().optional(),

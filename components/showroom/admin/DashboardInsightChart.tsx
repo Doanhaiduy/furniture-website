@@ -233,15 +233,18 @@ export function DashboardInsightChart({ role, quotes = [] }: { role?: AdminRole;
                qDate.getDate() === d.getDate();
       }).length;
       
-      const daySeed = d.getDate();
       result.push({
         day: dayName,
         date: dateStr,
         iso: isoStr,
         dayNumber: d.getDate(),
         quotes: countOnDay,
-        seo: 80 + (daySeed % 11),
-        drafts: daySeed % 5,
+        // TODO(handover): 'seo' and 'drafts' are NOT backed by real per-day data yet.
+        // They previously rendered fabricated random values (80 + daySeed%11, daySeed%5)
+        // that looked live on the dashboard. Zeroed out until wired to real metrics via
+        // getAdminDashboardStats rather than shipping fake analytics.
+        seo: 0,
+        drafts: 0,
         href: "/admin/quotes"
       });
     }

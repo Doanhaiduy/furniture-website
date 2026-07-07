@@ -2,6 +2,7 @@
 "use server";
 
 import { createClient, createAdminClient } from "../server";
+import { requireEditorOrAdmin } from "../auth";
 import { resolveTranslationMatchIds, buildTranslationSearchOr } from "../search-helpers";
 
 export type AdminProduct = {
@@ -51,6 +52,9 @@ export async function getAdminProducts(params: {
   dateTo?: string;
   withTotal?: boolean;
 }): Promise<AdminProduct[] | { data: AdminProduct[]; total: number }> {
+    // SECURITY: "use server" action reading all products (incl. unpublished drafts)
+    // via the service-role client. Restrict to editor/admin.
+    await requireEditorOrAdmin();
     try {
       const supabase = createAdminClient();
       let selectStr = `
@@ -325,6 +329,7 @@ export async function getProductsByIds(ids: string[]): Promise<any[]> {
 }
 
 export async function getBrandProductCount(brandId: string): Promise<number> {
+  await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
     const { count, error } = await supabase

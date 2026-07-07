@@ -56,6 +56,10 @@ ${JSON.stringify({
 }, null, 2)}
 `;
 
+  // Bound each Gemini call so a slow/stalled API can't hang the whole import loop
+  // (one blocking call per row) past the serverless execution limit.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const apiRes = await fetch(url, {
@@ -63,7 +67,8 @@ ${JSON.stringify({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }]
-      })
+      }),
+      signal: controller.signal
     });
 
     if (apiRes.ok) {
@@ -88,6 +93,8 @@ ${JSON.stringify({
     }
   } catch (err) {
     console.error("Gemini translation error for product:", err);
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   // Fallback
@@ -116,8 +123,18 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    if (!file) {
+    if (!file || typeof file.arrayBuffer !== "function") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    // Bound the upload size BEFORE buffering/parsing the whole workbook into memory
+    // (DoS/OOM guard — the row cap only applies after the file is fully loaded).
+    const MAX_IMPORT_BYTES = 5 * 1024 * 1024; // 5 MB
+    if (typeof file.size === "number" && file.size > MAX_IMPORT_BYTES) {
+      return NextResponse.json(
+        { error: "Tệp quá lớn (giới hạn 5MB). Vui lòng chia nhỏ dữ liệu import." },
+        { status: 413 },
+      );
     }
 
     const buffer = await file.arrayBuffer();
@@ -445,18 +462,49 @@ export async function POST(req: NextRequest) {
               });
             }
 
-            // Excel has no rich-text column, so description_json is always AI-generated.
-            // "published" requires meaningful description content (productSchema refine) —
-            // if Gemini isn't configured or generation failed, downgrade to draft instead of
-            // hard-failing the whole row, and surface a warning so the admin can finish it manually.
+            // Excel has no rich-text column, so a fresh description is only produced by
+            // AI. On UPDATE we must NOT wipe an existing human-authored description when
+            // AI is unavailable — reuse the current stored description instead of
+            // overwriting it with null, and only downgrade published→draft when NO
+            // description exists at all (neither newly generated nor already stored).
+            const isMeaningfulDesc = (v: unknown): boolean => {
+              if (v === null || v === undefined) return false;
+              if (typeof v === "string") return v.trim().length > 0;
+              if (Array.isArray(v)) return v.length > 0;
+              if (typeof v === "object") {
+                const o = v as Record<string, unknown>;
+                if (o.type === "doc" && Array.isArray(o.content)) return (o.content as unknown[]).length > 0;
+                return Object.keys(o).length > 0;
+              }
+              return false;
+            };
+
+            let existingDescVi: unknown = null;
+            let existingDescEn: unknown = null;
+            if (isUpdate) {
+              const { data: existingTranslations } = await supabase
+                .from("product_translations")
+                .select("locale, description_json")
+                .eq("product_id", idVal);
+              existingDescVi = existingTranslations?.find((t: any) => t.locale === "vi")?.description_json ?? null;
+              existingDescEn = existingTranslations?.find((t: any) => t.locale === "en")?.description_json ?? null;
+            }
+
+            // Prefer freshly generated content; otherwise keep whatever is already stored.
+            const descriptionViForSave = translated.description_html_vi || existingDescVi || null;
+            const descriptionEnForSave = translated.description_html_en || existingDescEn || null;
+
             let finalStatus = status.toLowerCase();
-            if (finalStatus === "published" && (!translated.description_html_vi || !translated.description_html_en)) {
+            if (
+              finalStatus === "published" &&
+              (!isMeaningfulDesc(descriptionViForSave) || !isMeaningfulDesc(descriptionEnForSave))
+            ) {
               finalStatus = "draft";
               warnings.push({
                 row: rowNum,
                 field: "status",
                 value: nameVi,
-                message: "Đã tự động lưu ở trạng thái draft vì chưa tạo được nội dung mô tả chi tiết bằng AI (thiếu cấu hình Gemini API hoặc yêu cầu AI thất bại). Vui lòng bổ sung mô tả và xuất bản thủ công."
+                message: "Đã tự động lưu ở trạng thái draft vì chưa có nội dung mô tả chi tiết (thiếu cấu hình Gemini API hoặc yêu cầu AI thất bại) và sản phẩm chưa có mô tả sẵn. Vui lòng bổ sung mô tả và xuất bản thủ công."
               });
             }
 
@@ -467,8 +515,8 @@ export async function POST(req: NextRequest) {
               name_en: translated.name_en || nameVi,
               summary_vi: summaryVi,
               summary_en: translated.summary_en || summaryVi,
-              description_json_vi: translated.description_html_vi || null,
-              description_json_en: translated.description_html_en || null,
+              description_json_vi: descriptionViForSave,
+              description_json_en: descriptionEnForSave,
               material_vi: rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
               material_en: translated.material_en || rowData["Vật liệu hiển thị (Tiếng Việt)"] || null,
               price_display_text_vi: priceMinNum !== null

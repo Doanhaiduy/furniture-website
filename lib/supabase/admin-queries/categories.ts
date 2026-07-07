@@ -2,6 +2,7 @@
 "use server";
 
 import { createAdminClient } from "../server";
+import { requireEditorOrAdmin } from "../auth";
 import { resolveTranslationMatchIds } from "../search-helpers";
 
 export type AdminCategory = {
@@ -33,6 +34,9 @@ export async function getAdminCategories(params: {
   withTotal?: boolean;
   level?: string;
 } = {}): Promise<AdminCategory[] | { data: AdminCategory[]; total: number }> {
+    // SECURITY: "use server" action reading all categories (incl. drafts) via the
+    // service-role client. Restrict to editor/admin.
+    await requireEditorOrAdmin();
     try {
       const supabase = createAdminClient();
       let selectStr = `

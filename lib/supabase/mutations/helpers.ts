@@ -7,6 +7,49 @@ export function isUuid(value: string) {
   return uuidRegex.test(value);
 }
 
+/**
+ * Derives the provider-identity columns required by chk_media_assets_provider_identity
+ * (migration 0001) from a media URL. A media_assets row is only valid when it has EITHER
+ * (storage_provider='cloudinary' AND cloudinary_public_id) OR
+ * (storage_provider='supabase_storage' AND bucket AND object_path).
+ *
+ * Previously getOrCreateMediaAssetId inserted a cloudinary/supabase row WITHOUT these
+ * identity columns, so the insert always failed the CHECK and the image was silently
+ * dropped (the entity still saved "successfully" with a missing image). Returns null when
+ * the URL is neither a recognisable Cloudinary nor Supabase Storage URL — in that case we
+ * cannot represent it as a valid media asset and skip creation rather than crash.
+ */
+export function deriveMediaProviderIdentity(url: string):
+  | { storage_provider: "cloudinary"; cloudinary_public_id: string }
+  | { storage_provider: "supabase_storage"; bucket: string; object_path: string }
+  | null {
+  // Supabase Storage public/sign URL: /storage/v1/object/public/<bucket>/<object_path>
+  const sb = url.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/(.+?)(?:\?.*)?$/);
+  if (sb) {
+    return {
+      storage_provider: "supabase_storage",
+      bucket: decodeURIComponent(sb[1]),
+      object_path: decodeURIComponent(sb[2]),
+    };
+  }
+  // Cloudinary delivery URL: .../upload/[transformations/][v123/]<public_id>.<ext>
+  const uploadIdx = url.indexOf("/upload/");
+  if (url.includes("res.cloudinary.com") && uploadIdx !== -1) {
+    const rest = url.slice(uploadIdx + "/upload/".length).split("?")[0].split("#")[0];
+    const publicId = rest
+      .split("/")
+      .filter((seg, i) => {
+        if (/^v\d+$/.test(seg)) return false; // version segment
+        if (i === 0 && /[,=]/.test(seg)) return false; // transformation segment (e.g. w_500,h_500)
+        return true;
+      })
+      .join("/")
+      .replace(/\.[^/.]+$/, ""); // strip file extension
+    if (publicId) return { storage_provider: "cloudinary", cloudinary_public_id: publicId };
+  }
+  return null;
+}
+
 export function triggerRevalidation() {
   try {
     revalidatePath("/", "layout");
@@ -48,17 +91,28 @@ export async function getOrCreateMediaAssetId(
 
   if (existing?.id) return existing.id;
 
-  // Otherwise create a new media asset
+  // Otherwise create a new media asset. Populate the provider-identity columns the
+  // chk_media_assets_provider_identity CHECK requires, otherwise the insert fails and the
+  // image is silently lost.
+  const identity = deriveMediaProviderIdentity(value);
+  if (!identity) {
+    console.warn(
+      "Cannot derive a Cloudinary/Supabase storage identity for URL; skipping media asset creation:",
+      value,
+    );
+    return null;
+  }
+
   const { data: inserted, error } = await supabase
     .from("media_assets")
     .insert({
       public_url: value,
-      storage_provider: value.includes("cloudinary") ? "cloudinary" : "supabase_storage",
       resource_type: "image",
       mime_type: "image/jpeg",
       format: "jpg",
       size_bytes: 1,
       uploaded_by: userId,
+      ...identity,
     })
     .select("id")
     .single();

@@ -37,15 +37,17 @@ const generateDynamicWeekData = () => {
     const isoStr = d.toISOString().split("T")[0];
     const dayName = days[d.getDay()];
     
-    const daySeed = d.getDate();
     result.push({
       day: dayName,
       date: dateStr,
       iso: isoStr,
       dayNumber: d.getDate(),
-      quotes: (daySeed % 7) + 2,
-      seo: 80 + (daySeed % 11),
-      drafts: daySeed % 5,
+      // TODO(handover): these per-day counts were fabricated from the day-of-month and
+      // shown in the dashboard calendar popover as if live. Zeroed out until backed by
+      // real data rather than displaying invented figures.
+      quotes: 0,
+      seo: 0,
+      drafts: 0,
       href: "/admin/quotes" as string,
     });
   }

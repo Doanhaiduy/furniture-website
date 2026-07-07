@@ -9,6 +9,26 @@ const digitCount = (v: string) => v.replace(/\D/g, "").length;
 // Common text validation helper
 const requiredText = (msg: string) => z.string().trim().min(1, msg);
 const optionalText = z.string().trim().nullish().transform(val => val || null);
+// Optional UUID coming from a form <select>. An unselected dropdown often submits "" (or
+// "none") instead of null/undefined, and Zod's .uuid() rejects "" with a confusing
+// "Invalid uuid" — exactly the error users hit when adding a product without choosing an
+// optional Thương hiệu/Khuyến mãi. Coerce blank/"none" → null before validating.
+// Also coerce any non-blank string that is NOT a valid UUID to null (defence-in-depth)
+// so a stale label or slug accidentally stored in state never causes a hard rejection.
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const optionalUuid = z
+  .preprocess(
+    (v) => {
+      if (typeof v !== "string") return v;
+      const t = v.trim();
+      if (t === "" || t.toLowerCase() === "none") return null;
+      // Silently coerce invalid UUID strings to null instead of hard-rejecting them.
+      if (!UUID_REGEX.test(t)) return null;
+      return t;
+    },
+    z.string().uuid("ID tham chiếu không hợp lệ").nullable(),
+  )
+  .optional();
 // Mirrors the client-side isBodyEmpty() check (ContentEditorForm.tsx) so a rich-text
 // body/description that is null, {}, [], or an empty TipTap doc is rejected the same
 // way server-side as it already visually blocks the Publish button client-side.
@@ -57,13 +77,13 @@ export const productSchema = z.object({
   depth: z.number().nullable().optional(),
   height: z.number().nullable().optional(),
   dimension_unit: z.string().default("mm"),
-  brand_id: z.string().uuid().nullable().optional(),
+  brand_id: optionalUuid,
   brand_series: optionalText,
   showroom_code: optionalText,
   price_unit: optionalText,
   featured: z.boolean().default(false),
   status: z.enum(["draft", "published", "archived"]).default("draft"),
-  promotion_id: z.string().uuid().nullable().optional(),
+  promotion_id: optionalUuid,
   cover_image: optionalText,
   gallery_images: z.array(z.string()).optional().default([]),
   specifications: z.object({
@@ -121,7 +141,7 @@ export const categorySchema = z.object({
   name_en: optionalText,
   description_vi: optionalText,
   description_en: optionalText,
-  parent_id: z.string().uuid().nullable().optional(),
+  parent_id: optionalUuid,
   // Accept both the DB group_key enum values (what the category form actually submits,
   // read from the selected parent) and the legacy short aliases that mapGroupKeyToDb()
   // still normalises. Previously only the short aliases were allowed, so creating a

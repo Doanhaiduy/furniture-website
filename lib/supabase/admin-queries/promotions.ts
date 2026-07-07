@@ -139,6 +139,9 @@ export async function getAdminPromotions(params: {
   isActive?: string;
   discountType?: string;
 } = {}): Promise<AdminPromotion[] | { data: AdminPromotion[]; total: number }> {
+    // SECURITY: "use server" action reading all promotions (incl. drafts) via the
+    // service-role client. Restrict to editor/admin.
+    await requireEditorOrAdmin();
     try {
       const supabase = createAdminClient();
       let selectStr = `

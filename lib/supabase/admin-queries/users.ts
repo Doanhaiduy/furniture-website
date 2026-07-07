@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "../server";
+import { requireAdmin } from "../auth";
 
 export type AdminUser = {
   id: string;
@@ -24,6 +25,10 @@ export async function getAdminUsers(params: {
   dateTo?: string;
   withTotal?: boolean;
 } = {}): Promise<AdminUser[] | { data: AdminUser[]; total: number }> {
+  // SECURITY: this is a "use server" action reachable as a public endpoint and it
+  // reads all user PII via the service-role client (bypasses RLS). It MUST enforce
+  // admin access itself — the page-level gate is not sufficient on its own.
+  await requireAdmin();
   try {
     const supabase = await createAdminClient();
     let query = supabase

@@ -1,4 +1,3 @@
-console.log("=== ADMIN DYNAMIC PAGE MODULE LOADED ===");
 import { notFound, redirect } from "next/navigation";
 import {
   AdminSectionPage,
@@ -57,16 +56,12 @@ export default async function AdminDynamicPage({
   const { section: rawSection } = await params;
   const query = await searchParams;
   const section = rawSection.trim();
-  console.log("ADMIN DYNAMIC PAGE COMPILING: section =", section, "isAdmin =", isAdminSection(section));
   if (!isAdminSection(section)) {
-    console.log("ADMIN DYNAMIC PAGE 404: Not a valid admin section:", section);
     notFound();
   }
 
   const user = await getCurrentUser();
-  console.log("ADMIN DYNAMIC PAGE USER:", user?.email, "role =", user?.role);
   if (!user) {
-    console.log("ADMIN DYNAMIC PAGE REDIRECT to login: User is null");
     redirect("/admin/login");
   }
 

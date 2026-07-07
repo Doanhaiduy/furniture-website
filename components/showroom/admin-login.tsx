@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase/client";
+import { recordLoginTimestamp } from "@/lib/supabase/mutations/users";
 import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";
 
@@ -37,12 +38,15 @@ export function AdminLoginPage() {
         return;
       }
 
-      // Cập nhật last_login_at vào public.profiles cho ADM-USR-23
+      // Ghi nhận thời điểm đăng nhập (ADM-USR-23) qua server action dùng service-role.
+      // RLS profiles_update_admin chỉ cho admin tự ghi profile, nên cập nhật phía client
+      // trước đây âm thầm thất bại với biên tập viên (editor).
       if (authData?.user) {
-        await supabase
-          .from("profiles")
-          .update({ last_login_at: new Date().toISOString() })
-          .eq("id", authData.user.id);
+        try {
+          await recordLoginTimestamp();
+        } catch {
+          // Không chặn đăng nhập nếu việc ghi mốc thời gian thất bại.
+        }
       }
 
       setLoading(false);

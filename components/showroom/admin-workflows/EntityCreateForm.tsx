@@ -1502,32 +1502,44 @@ function PromotionEntityForm({ idOrSlug }: { idOrSlug?: string }) {
     setAiTranslating(true);
     setAiTranslateSuccess(false);
     try {
-      const translateField = async (text: string) => {
+      // Returns "" for empty input, null on failure, translated text on success.
+      const translateField = async (text: string): Promise<string | null> => {
         if (!text.trim()) return "";
-        const res = await fetch("/api/admin/ai/generate-draft", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            task: "translate",
-            inputText: text,
-            targetLocale: "en"
-          })
-        });
-        if (res.ok) {
+        try {
+          const res = await fetch("/api/admin/ai/generate-draft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              task: "translate",
+              inputText: text,
+              targetLocale: "en"
+            })
+          });
+          if (!res.ok) return null;
           const json = await res.json();
-          return json.text || "";
+          if (!json.success || typeof json.text !== "string") return null;
+          return json.text;
+        } catch {
+          return null;
         }
-        return "";
       };
 
       const translatedTitle = await translateField(titleVi);
-      setTitleEn(translatedTitle);
       const translatedDesc = await translateField(descriptionVi);
-      setDescriptionEn(translatedDesc);
 
+      // Do NOT clear the English fields or claim success when translation failed.
+      if (translatedTitle === null || translatedDesc === null) {
+        showAlert(
+          "Dịch tự động thất bại",
+          "Không thể dịch bằng AI. Vui lòng kiểm tra cấu hình Gemini API trong Cài đặt rồi thử lại.",
+          "error",
+        );
+        return;
+      }
+
+      if (translatedTitle) setTitleEn(translatedTitle);
+      if (translatedDesc) setDescriptionEn(translatedDesc);
       setAiTranslateSuccess(true);
-    } catch (e) {
-      console.error(e);
     } finally {
       setAiTranslating(false);
     }

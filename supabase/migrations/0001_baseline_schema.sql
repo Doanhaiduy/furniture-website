@@ -398,8 +398,13 @@ ALTER FUNCTION "public"."get_active_promotions_for_product"("p_product_id" "uuid
 
 
 CREATE OR REPLACE FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid") RETURNS TABLE("id" "uuid", "quote_id" "uuid", "from_status" "text", "to_status" "text", "changed_by_name" "text", "note" "text", "created_at" timestamp with time zone)
-    LANGUAGE "sql" SECURITY DEFINER
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public', 'pg_temp'
     AS $$
+  -- SECURITY: this SECURITY DEFINER function bypasses RLS on quote_request_events and
+  -- profiles and exposes lead status history + staff PII (changed_by_name). It is admin-
+  -- only; the guard below returns zero rows for any non-admin caller. EXECUTE is also
+  -- revoked from anon (see GRANTs). Mirrors the gating on admin_quote_search.
   SELECT
     qre.id,
     qre.quote_request_id AS quote_id,
@@ -411,6 +416,7 @@ CREATE OR REPLACE FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid")
   FROM public.quote_request_events qre
   LEFT JOIN public.profiles p ON p.id = qre.actor_id
   WHERE qre.quote_request_id = p_quote_id
+    AND public.can_manage_private_admin_data()
   ORDER BY qre.created_at ASC;
 $$;
 
@@ -4694,7 +4700,8 @@ GRANT ALL ON FUNCTION "public"."get_active_promotions_for_product"("p_product_id
 
 
 
-GRANT ALL ON FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid") TO "anon";
+-- SECURITY: anon must NOT be able to call this admin-only lead-history function.
+REVOKE ALL ON FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid") FROM "anon";
 GRANT ALL ON FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_quote_status_logs"("p_quote_id" "uuid") TO "service_role";
 
@@ -4870,13 +4877,13 @@ GRANT SELECT ON TABLE "public"."blog_posts" TO "anon";
 
 
 
-GRANT ALL ON TABLE "public"."brand_translations" TO "anon";
+GRANT SELECT ON TABLE "public"."brand_translations" TO "anon";
 GRANT ALL ON TABLE "public"."brand_translations" TO "authenticated";
 GRANT ALL ON TABLE "public"."brand_translations" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."brands" TO "anon";
+GRANT SELECT ON TABLE "public"."brands" TO "anon";
 GRANT ALL ON TABLE "public"."brands" TO "authenticated";
 GRANT ALL ON TABLE "public"."brands" TO "service_role";
 
@@ -4999,7 +5006,7 @@ GRANT SELECT,INSERT,UPDATE ON TABLE "public"."profiles" TO "authenticated";
 
 
 
-GRANT ALL ON TABLE "public"."promotion_targets" TO "anon";
+GRANT SELECT ON TABLE "public"."promotion_targets" TO "anon";
 GRANT ALL ON TABLE "public"."promotion_targets" TO "authenticated";
 GRANT ALL ON TABLE "public"."promotion_targets" TO "service_role";
 

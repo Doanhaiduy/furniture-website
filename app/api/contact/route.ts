@@ -167,10 +167,17 @@ export async function POST(request: Request) {
     .select("quote_sender_email")
     .limit(1)
     .maybeSingle();
-  const fromAddress =
-    senderSettings?.quote_sender_email?.trim() ||
-    process.env.RESEND_FROM ||
-    "noreply@phuongdong.com";
+  const configuredFrom = senderSettings?.quote_sender_email?.trim() || process.env.RESEND_FROM || null;
+  // The default domain MUST match the site's real domain (phuongdong.vn) — the previous
+  // fallback used .com, an almost-certainly-unverified domain, so Resend rejected the send
+  // (403) and the sales team silently never received the lead notification.
+  const fromAddress = configuredFrom || "noreply@phuongdong.vn";
+  if (!configuredFrom) {
+    console.warn(
+      "[quote] No verified sender configured (site_settings.quote_sender_email / RESEND_FROM). " +
+        "Falling back to noreply@phuongdong.vn — the domain must be verified in Resend or the send will fail with 403.",
+    );
+  }
 
   // Send the internal sales notification inline, tracking the real outcome so the
   // queued rows reflect it (sent / failed / skipped) instead of always "sent".

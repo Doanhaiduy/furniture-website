@@ -123,7 +123,8 @@ export function UsersPage({
 
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingUser) return;
+    if (!editingUser || isUpdating) return;
+    setIsUpdating(true);
     showLoading("Đang cập nhật quyền thành viên...");
     try {
       const res = await fetch("/api/admin/users", {

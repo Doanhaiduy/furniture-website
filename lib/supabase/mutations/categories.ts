@@ -250,13 +250,17 @@ export async function updateAdminCategory(id: string, data: CategoryInput): Prom
     const supabase = createAdminClient();
 
     if (data.parent_id) {
+      // Capture into a local const before the await: TypeScript drops the
+      // `if (data.parent_id)` narrowing on an object property after an
+      // intervening function call, but a local const stays narrowed to string.
+      const parentId = data.parent_id;
       const { data: allCategories, error: fetchError } = await supabase
         .from("product_categories")
         .select("id, parent_id")
         .is("deleted_at", null);
 
       if (!fetchError && allCategories) {
-        if (checkCircularCategory(id, data.parent_id, allCategories)) {
+        if (checkCircularCategory(id, parentId as unknown as string, allCategories)) {
           return { success: false, error: "Circular parent-child relationship detected" };
         }
       }

@@ -89,8 +89,17 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    if (!file) {
+    if (!file || typeof file.arrayBuffer !== "function") {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    // DoS/OOM guard: bound upload size before loading the whole workbook into memory.
+    const MAX_IMPORT_BYTES = 5 * 1024 * 1024; // 5 MB
+    if (typeof file.size === "number" && file.size > MAX_IMPORT_BYTES) {
+      return NextResponse.json(
+        { error: "Tệp quá lớn (giới hạn 5MB). Vui lòng chia nhỏ dữ liệu import." },
+        { status: 413 },
+      );
     }
 
     const buffer = await file.arrayBuffer();

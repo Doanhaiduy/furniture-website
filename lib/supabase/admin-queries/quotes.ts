@@ -2,7 +2,7 @@
 "use server";
 
 import { createClient, createAdminClient } from "../server";
-import { requireEditorOrAdmin } from "../auth";
+import { requireEditorOrAdmin, requireAdmin } from "../auth";
 
 export type AdminQuote = {
   id: string;
@@ -49,6 +49,10 @@ export async function getAdminQuotesList(params: {
   sort?: string;
   dir?: "asc" | "desc";
 }): Promise<AdminQuote[] | { data: AdminQuote[]; total: number }> {
+    // SECURITY: public "use server" endpoint reading customer lead PII via the
+    // service-role client (bypasses RLS). Quotes are admin-only — enforce it here,
+    // not only at the page level.
+    await requireAdmin();
     try {
       const supabase = await createAdminClient();
       let query = supabase
@@ -175,6 +179,9 @@ export async function updateQuoteStatus(
 }
 
 export async function getQuoteStatusLogs(quoteId: string): Promise<QuoteStatusLog[]> {
+  // SECURITY: exposes lead status history + staff PII via a SECURITY DEFINER RPC.
+  // Admin-only, enforced here (the RPC itself is also hardened in migration 0001).
+  await requireAdmin();
   try {
     const supabase = await createAdminClient();
     const { data, error } = await supabase.rpc("get_quote_status_logs", {

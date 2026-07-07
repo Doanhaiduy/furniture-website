@@ -521,40 +521,94 @@ export function ContentEditorForm({
   };
 
   // --- AI Translate Action Logic ---
-  const handleAiTranslate = () => {
+  // Calls the real Gemini-backed translate endpoint for each populated Vietnamese
+  // field. Previously this fabricated English by string-concatenating the Vietnamese
+  // text ("... - English draft"), which passed the non-empty publish validation and
+  // could ship garbage English to the public bilingual site. Now, if translation
+  // fails (e.g. Gemini not configured), we surface an error and DO NOT fill any
+  // English field with fake content.
+  const translateToEnglish = async (text: string): Promise<string | null> => {
+    const value = (text || "").trim();
+    if (!value) return ""; // nothing to translate for this field
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "translate",
+          inputText: value,
+          targetLocale: "en",
+          targetType: kind,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || typeof data.text !== "string") return null;
+      return data.text.trim();
+    } catch {
+      return null;
+    }
+  };
+
+  const handleAiTranslate = async () => {
     if (!viTitle.trim()) return;
     setAiTranslating(true);
     setAiTranslateSuccess(false);
 
-    setTimeout(() => {
+    try {
+      const [
+        enTitleT,
+        enSummaryT,
+        enBodyT,
+        seoTitleT,
+        seoDescT,
+        materialsT,
+        dimensionsT,
+        specMaterialT,
+        specFinishT,
+        specCareT,
+      ] = await Promise.all([
+        translateToEnglish(viTitle),
+        translateToEnglish(viSummary),
+        translateToEnglish(viBody),
+        translateToEnglish(seoTitleVi),
+        translateToEnglish(seoDescVi),
+        translateToEnglish(materialsVi),
+        translateToEnglish(dimensionsVi),
+        translateToEnglish(specMaterialVi),
+        translateToEnglish(specFinishVi),
+        translateToEnglish(specCareVi),
+      ]);
+
+      // If the core content fields could not be translated, abort without writing
+      // any fabricated English. (When the API is down, all calls fail together.)
+      if (enTitleT === null || enSummaryT === null || enBodyT === null) {
+        setAiTranslating(false);
+        toast.error(
+          "Dịch tự động thất bại. Vui lòng kiểm tra cấu hình Gemini API trong phần Cài đặt rồi thử lại.",
+        );
+        return;
+      }
+
+      if (enTitleT) setEnTitle(enTitleT);
+      if (enSummaryT) setEnSummary(enSummaryT);
+      if (enBodyT) setEnBody(enBodyT);
+      if (seoTitleT) setSeoTitleEn(seoTitleT);
+      if (seoDescT) setSeoDescEn(seoDescT);
+      if (materialsT) setMaterialsEn(materialsT);
+      if (dimensionsT) setDimensionsEn(dimensionsT);
+      if (specMaterialT) setSpecMaterialEn(specMaterialT);
+      if (specFinishT) setSpecFinishEn(specFinishT);
+      if (specCareT) setSpecCareEn(specCareT);
+      // An English slug is derived from the (already validated) Vietnamese slug — this
+      // is a URL identifier, not translated prose — only when one isn't set yet.
+      if (viSlug && !enSlug) setEnSlug(`${viSlug}-en`);
+
       setAiTranslating(false);
       setAiTranslateSuccess(true);
-      
-      setEnTitle(`${viTitle} - English draft`);
-      setEnSlug(`${viSlug}-en`);
-      setEnSummary(`English translated preview of the Vietnamese text: ${viSummary}`);
-      setEnBody(`<p>English translated body context:</p>${viBody}`);
-      
-      // SEO & Localized slug readiness
-      setSeoTitleEn(seoTitleVi ? `Premium ${seoTitleVi}` : `${viTitle} - Premium Furniture | Phuong Dong`);
-      setSeoDescEn(seoDescVi ? `English metadata: ${seoDescVi}` : `Discover ${viTitle} at Phuong Dong Showroom. Premium quality, modern design.`);
-      
-      // Price, dimensions and specifications
-      if (materialsVi) setMaterialsEn(`${materialsVi} (English translation)`);
-      else setMaterialsEn("Premium materials (English draft)");
-      
-      if (dimensionsVi) setDimensionsEn(dimensionsVi);
-      else setDimensionsEn("Standard size");
-      
-      if (specMaterialVi) setSpecMaterialEn(`${specMaterialVi} (English translation)`);
-      else setSpecMaterialEn("Premium solid wood");
-      
-      if (specFinishVi) setSpecFinishEn(`${specFinishVi} (English translation)`);
-      else setSpecFinishEn("Refined matte coat");
-      
-      if (specCareVi) setSpecCareEn(`${specCareVi} (English translation)`);
-      else setSpecCareEn("Wipe with dry soft cloth");
-    }, 1200);
+    } catch {
+      setAiTranslating(false);
+      toast.error("Lỗi kết nối khi gọi API dịch AI.");
+    }
   };
 
   const handleSave = async (targetStatus?: "draft" | "published" | "archived") => {
@@ -568,7 +622,6 @@ export function ContentEditorForm({
       if (isProduct) {
         const { createAdminProduct, updateAdminProduct } = await import("@/lib/supabase/mutations");
         const { getAdminCategories } = await import("@/lib/supabase/admin-queries");
-        const { getAdminBrands } = await import("@/lib/supabase/brands-mutations");
 
         const cats = await getAdminCategories();
         const catList = Array.isArray(cats) ? cats : cats?.data || [];
@@ -581,12 +634,11 @@ export function ContentEditorForm({
           catList[0];
         const categoryId = catObj ? catObj.id : null;
 
-        const brands = await getAdminBrands();
-        const brandsList = Array.isArray(brands) ? brands : (brands as any)?.data || [];
-        const brandObj = (brand === "none" || !brand)
-          ? null
-          : (brandsList.find((b: any) => b.id === brand || b.name?.vi === brand || b.name === brand) || null);
-        const brandId = brandObj ? brandObj.id : null;
+        // `brand` state is already the UUID chosen from the PremiumSelect dropdown
+        // (or "none"/"" when not selected). Resolve directly without re-fetching the
+        // brands list — avoids a redundant API round-trip and any mismatch risk.
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const brandId = (brand && brand !== "none" && UUID_RE.test(brand)) ? brand : null;
 
         if (!categoryId) {
           hideLoading();
@@ -939,6 +991,8 @@ export function ContentEditorForm({
           englishEnabled={englishEnabled}
           viTitle={viTitle}
           enTitle={enTitle}
+          viSummary={viSummary}
+          enSummary={enSummary}
         />
       </div>
 
@@ -2225,6 +2279,8 @@ export function SeoFieldset({
   englishEnabled,
   viTitle,
   enTitle,
+  viSummary,
+  enSummary,
 }: {
   kind: ContentKind;
   seoTitleVi: string;
@@ -2238,6 +2294,8 @@ export function SeoFieldset({
   englishEnabled: boolean;
   viTitle?: string;
   enTitle?: string;
+  viSummary?: string;
+  enSummary?: string;
 }) {
   const [seoGenerating, setSeoGenerating] = useState(false);
   const [seoGenSuccess, setSeoGenSuccess] = useState(false);
@@ -2245,7 +2303,30 @@ export function SeoFieldset({
 
   const hasExistingSeo = seoTitleVi.trim() || seoDescVi.trim() || seoTitleEn.trim() || seoDescEn.trim();
 
-  const handleGenerateSeo = () => {
+  // Calls the real Gemini-backed SEO endpoint (task: "seo"). If the AI is unavailable
+  // it falls back to a deterministic, brand-consistent template so the button always
+  // produces valid metadata — but it is no longer a fake "AI" timer.
+  const runSeoGeneration = async (
+    inputText: string,
+    locale: "vi" | "en",
+  ): Promise<{ title: string; description: string } | null> => {
+    try {
+      const res = await fetch("/api/admin/ai/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task: "seo", inputText, targetLocale: locale, targetType: kind }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.data && data.data.title) {
+        return { title: String(data.data.title), description: String(data.data.description || "") };
+      }
+    } catch {
+      /* fall through to template */
+    }
+    return null;
+  };
+
+  const handleGenerateSeo = async () => {
     if (!viTitle?.trim()) {
       setShowSeoWarning(true);
       setTimeout(() => setShowSeoWarning(false), 4000);
@@ -2255,20 +2336,32 @@ export function SeoFieldset({
     setSeoGenerating(true);
     setSeoGenSuccess(false);
 
-    setTimeout(() => {
-      setSeoGenerating(false);
-      setSeoGenSuccess(true);
-
-      const titleBase = viTitle;
-      setSeoTitleVi(`${titleBase} - Showroom Phương Đông | Đồ gỗ nội thất cao cấp`);
-      setSeoDescVi(`Khám phá ${titleBase.toLowerCase()} cao cấp tại Phương Đông. Chất liệu gỗ tự nhiên, thiết kế hiện đại. Nhận tư vấn và báo giá ngay.`);
+    const titleBase = viTitle;
+    try {
+      const viSeo = await runSeoGeneration(`${titleBase}\n${viSummary || ""}`, "vi");
+      if (viSeo) {
+        setSeoTitleVi(viSeo.title);
+        setSeoDescVi(viSeo.description);
+      } else {
+        setSeoTitleVi(`${titleBase} - Showroom Phương Đông | Đồ gỗ nội thất cao cấp`);
+        setSeoDescVi(`Khám phá ${titleBase.toLowerCase()} cao cấp tại Phương Đông. Chất liệu gỗ tự nhiên, thiết kế hiện đại. Nhận tư vấn và báo giá ngay.`);
+      }
 
       if (englishEnabled) {
         const enBase = enTitle || titleBase;
-        setSeoTitleEn(`${enBase} - Phuong Dong Showroom | Premium Furniture`);
-        setSeoDescEn(`Discover premium ${enBase.toLowerCase()} at Phuong Dong. Natural wood craftsmanship, modern design. Request a consultation today.`);
+        const enSeo = await runSeoGeneration(`${enBase}\n${enSummary || ""}`, "en");
+        if (enSeo) {
+          setSeoTitleEn(enSeo.title);
+          setSeoDescEn(enSeo.description);
+        } else {
+          setSeoTitleEn(`${enBase} - Phuong Dong Showroom | Premium Furniture`);
+          setSeoDescEn(`Discover premium ${enBase.toLowerCase()} at Phuong Dong. Natural wood craftsmanship, modern design. Request a consultation today.`);
+        }
       }
-    }, 800);
+    } finally {
+      setSeoGenerating(false);
+      setSeoGenSuccess(true);
+    }
   };
 
   return (
@@ -2654,4 +2747,3 @@ export interface PreviewData {
   category?: string;
   [key: string]: unknown;
 }
-

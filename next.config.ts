@@ -36,6 +36,27 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Baseline security headers applied to every response. NOTE: a Content-Security-Policy
+  // is intentionally NOT set here — it must be authored and tested against the app's real
+  // dependencies (Next inline scripts, Cloudinary, Supabase, Google Maps embed) before
+  // enabling, or it will break rendering. Add it as a follow-up once verified.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");

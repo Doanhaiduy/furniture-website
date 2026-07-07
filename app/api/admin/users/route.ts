@@ -132,7 +132,8 @@ export async function PUT(request: Request) {
     // Last-admin guard (self-discovered CRITICAL). If this change strips admin rights
     // (role change or deactivation) from a user who is currently an active admin,
     // ensure at least one OTHER active admin remains. The DB trigger enforces this
-    // hard; this pre-check returns a clean, localized message. See migration 0003.
+    // hard; this pre-check returns a clean, localized message. See the
+    // prevent_last_admin_lockout trigger in migration 0002_business_logic.sql.
     const losesAdminRights = role !== "admin" || isActive === false;
     if (losesAdminRights) {
       const { data: target } = await supabase

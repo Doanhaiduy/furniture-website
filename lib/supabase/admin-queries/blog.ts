@@ -2,6 +2,7 @@
 "use server";
 
 import { createAdminClient } from "../server";
+import { requireEditorOrAdmin } from "../auth";
 import { resolveTranslationMatchIds } from "../search-helpers";
 
 interface RawBlogCategory {
@@ -44,6 +45,9 @@ export async function getAdminBlogPosts(params: {
   dateTo?: string;
   withTotal?: boolean;
 } = {}): Promise<AdminBlogPost[] | { data: AdminBlogPost[]; total: number }> {
+    // SECURITY: "use server" action reading all blog posts (incl. drafts) via the
+    // service-role client. Restrict to editor/admin.
+    await requireEditorOrAdmin();
     try {
       const supabase = createAdminClient();
       let selectStr = `

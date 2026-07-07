@@ -6,8 +6,12 @@ import { createAdminClient, createClient } from "./server";
 import { writeAuditLog } from "./audit";
 import { brandSchema } from "../validations/admin";
 import { revalidatePath } from "next/cache";
-import { type SupabaseClient } from "@supabase/supabase-js";
 import { resolveTranslationMatchIds, buildTranslationSearchOr } from "./search-helpers";
+// Use the single shared media helper. The previous inline copy (a) returned a UUID
+// blindly without checking deleted_at — relinking soft-deleted assets (BL-MEDIA-02
+// regression) — and (b) inserted rows that violated chk_media_assets_provider_identity,
+// silently dropping the logo. The shared version fixes both.
+import { getOrCreateMediaAssetId } from "./mutations/helpers";
 
 // Types
 export interface BrandInput {
@@ -34,53 +38,6 @@ function triggerRevalidation() {
     console.warn("[REVALIDATION WARNING] Failed to revalidate public routes:", e);
   }
 }
-
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isUuid(value: string) {
-  return uuidRegex.test(value);
-}
-
-async function getOrCreateMediaAssetId(
-  supabase: SupabaseClient,
-  urlOrUuid: string | null | undefined,
-  userId: string
-): Promise<string | null> {
-  if (!urlOrUuid) return null;
-  const value = urlOrUuid.trim();
-  if (!value) return null;
-  if (isUuid(value)) return value;
-
-  const { data: existing } = await supabase
-    .from("media_assets")
-    .select("id")
-    .eq("public_url", value)
-    .limit(1)
-    .maybeSingle();
-
-  if (existing?.id) return existing.id;
-
-  const { data: inserted, error } = await supabase
-    .from("media_assets")
-    .insert({
-      public_url: value,
-      storage_provider: value.includes("cloudinary") ? "cloudinary" : "supabase_storage",
-      resource_type: "image",
-      mime_type: "image/png",
-      format: "png",
-      size_bytes: 1,
-      uploaded_by: userId,
-    })
-    .select("id")
-    .single();
-
-  if (error || !inserted) {
-    console.error("Failed to auto-create media asset for URL:", urlOrUuid, error);
-    return null;
-  }
-  return inserted.id;
-}
-
 
 
 // ============================================================================
