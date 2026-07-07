@@ -9,6 +9,23 @@ const digitCount = (v: string) => v.replace(/\D/g, "").length;
 // Common text validation helper
 const requiredText = (msg: string) => z.string().trim().min(1, msg);
 const optionalText = z.string().trim().nullish().transform(val => val || null);
+const optionalUrl = z
+  .string()
+  .trim()
+  .nullish()
+  .transform((val) => val || null)
+  .refine(
+    (val) => {
+      if (!val) return true;
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Đường dẫn không hợp lệ. Phải bắt đầu bằng http:// hoặc https://" }
+  );
 // Optional UUID coming from a form <select>. An unselected dropdown often submits "" (or
 // "none") instead of null/undefined. Also: Zod v4's z.string().uuid() enforces strict
 // RFC 9562 (version digit 1-8, variant 89ab). The DB seed data uses custom UUIDs like
@@ -385,7 +402,7 @@ export const settingsSchema = z.object({
       z.object({
         platform: z.enum(["facebook", "zalo", "youtube", "tiktok", "instagram", "other"]),
         label: optionalText,
-        url: optionalText,
+        url: optionalUrl,
         isEnabled: z.boolean().optional().default(true),
       })
     )

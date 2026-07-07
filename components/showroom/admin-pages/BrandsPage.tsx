@@ -55,6 +55,28 @@ import {
   AdminPageHeader
 } from "./SharedComponents";
 
+function BrandLogo({ url, alt, className }: { url?: string | null; alt: string; className?: string }) {
+  const [error, setError] = useState(false);
+  if (url && !error) {
+    const src = url.startsWith("http://local-assets") ? url.replace("http://local-assets", "") : url;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        onError={() => setError(true)}
+        className={className}
+      />
+    );
+  }
+  const isSize12 = className?.includes("size-12") || className?.includes("h-12");
+  const sizeClass = isSize12 ? "size-12" : "size-10";
+  return (
+    <div className={`${sizeClass} rounded border bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-semibold shrink-0`}>
+      Logo
+    </div>
+  );
+}
+
 export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?: boolean; brands?: Brand[]; total?: number }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
@@ -119,11 +141,7 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
           const brand = item as Brand;
           return (
             <div key={brand.id} className="grid items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50" style={{ gridTemplateColumns: "80px 1fr 160px 120px 100px" }}>
-              {brand.logo_url ? (
-                <img src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-10 rounded border object-contain bg-slate-50 shrink-0" />
-              ) : (
-                <div className="size-10 rounded border bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-semibold shrink-0">Logo</div>
-              )}
+              <BrandLogo url={brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-10 rounded border object-contain bg-slate-50 shrink-0" />
               <div className="min-w-0">
                 <p className="font-semibold text-slate-800 text-sm truncate">{brand.name?.vi || "—"}</p>
                 {brand.name?.en && brand.name?.en !== brand.name?.vi && <p className="text-xs text-slate-400 truncate">{brand.name.en}</p>}
@@ -172,11 +190,7 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
                   <StatusBadge status={brand.status} />
                 </div>
                 <div className="flex gap-3 items-start mt-3">
-                  {brand.logo_url ? (
-                    <img src={brand.logo_url.startsWith("http://local-assets") ? brand.logo_url.replace("http://local-assets", "") : brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-12 rounded border object-contain bg-slate-50" />
-                  ) : (
-                    <div className="size-12 rounded border bg-slate-100 flex items-center justify-center text-xs text-slate-400 font-semibold">No Logo</div>
-                  )}
+                   <BrandLogo url={brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-12 rounded border object-contain bg-slate-50" />
                   <div>
                     <span className="font-heading font-semibold text-primary block leading-tight">{brand.name?.vi || "—"}</span>
                     {brand.name?.en && brand.name?.en !== brand.name?.vi && <p className="text-xs text-secondary mt-0.5">{brand.name.en}</p>}

@@ -280,9 +280,17 @@ const fmtCatDate = (iso?: string | null) => {
 };
 
 function CategoryThumb({ url, size = "size-9", grp }: { url?: string | null; size?: string; grp?: boolean }) {
-  if (url) {
+  const [error, setError] = useState(false);
+  if (url && !error) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className={cn(size, "shrink-0 rounded-lg border border-slate-200 object-cover")} />;
+    return (
+      <img
+        src={url}
+        alt=""
+        onError={() => setError(true)}
+        className={cn(size, "shrink-0 rounded-lg border border-slate-200 object-cover")}
+      />
+    );
   }
   return (
     <span className={cn(size, "grid shrink-0 place-items-center rounded-lg border", grp ? "border-indigo-100 bg-indigo-50 text-indigo-400" : "border-slate-200 bg-slate-100 text-slate-300")}>
