@@ -19,6 +19,10 @@ import { imageAssets, withLocale } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getContentPage } from "@/lib/supabase/queries";
+import { generatePageMetadata } from "@/lib/seo";
+
+// ISR: 5-min revalidation. No searchParams — safe to cache.
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -28,10 +32,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "about" });
-  return {
+  return generatePageMetadata({
     title: t("title"),
     description: t("lead"),
-  };
+    path: `/${locale}/about`,
+  });
 }
 
 export default async function AboutPage({

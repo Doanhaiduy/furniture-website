@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AdminShell } from "@/components/showroom/admin-shell";
 import { getCurrentUser } from "@/lib/supabase/auth";
 
 export const dynamic = "force-dynamic";
+
+// The admin area must never be indexed, even if a URL leaks past robots.txt.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Persistent admin layout. Rendering the AdminShell (sidebar + header) here — instead of

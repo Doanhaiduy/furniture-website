@@ -26,6 +26,7 @@ import { ProductSortSelect } from "@/components/showroom/product-sort-select";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getProducts, getCategories, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
+import { generatePageMetadata } from "@/lib/seo";
 
 type ProductSearchParams = {
   category?: string;
@@ -52,10 +53,14 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "meta" });
-  return {
+  return generatePageMetadata({
     title: t("productsTitle"),
-    description: t("homeDescription"),
-  };
+    description:
+      locale === "vi"
+        ? "Danh mục nội thất gỗ tự nhiên, thiết bị vệ sinh và gạch cao cấp — nhập khẩu chính hãng, bảo hành dài hạn, tư vấn thiết kế tại Showroom Nội Thất Phương Đông."
+        : "Browse premium solid-wood furniture, genuine imported sanitary ware and tiles at Phuong Dong Interior Showroom — long-term warranty and in-showroom design consultation.",
+    path: `/${locale}/products`,
+  });
 }
 
 export default async function ProductsPage({

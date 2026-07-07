@@ -21,6 +21,11 @@ import { ArticleToc } from "@/components/showroom/article-toc";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getBlogBySlug as getDBBlogBySlug, getBlogPosts } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { blogPostingSchema, breadcrumbSchema } from "@/lib/structured-data";
+
+// ISR: 5-min revalidation. No searchParams — safe to cache.
+export const revalidate = 300;
 
 function formatBlogDate(date: string, locale: Locale) {
   try {
@@ -170,6 +175,25 @@ export default async function BlogDetailPage({
 
   return (
     <main>
+      <JsonLd
+        data={[
+          blogPostingSchema({
+            headline: localized(post.title, locale),
+            description: localized(post.excerpt, locale),
+            image: post.image,
+            datePublished: post.date,
+            url: `/${locale}/blog/${post.slug}`,
+          }),
+          breadcrumbSchema([
+            { name: locale === "vi" ? "Trang chủ" : "Home", url: `/${locale}` },
+            { name: locale === "vi" ? "Bài viết" : "Blog", url: `/${locale}/blog` },
+            {
+              name: localized(post.title, locale),
+              url: `/${locale}/blog/${post.slug}`,
+            },
+          ]),
+        ]}
+      />
       <article>
         <header className="container-pd public-page-header reveal-soft">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,760px)_minmax(280px,420px)] lg:items-end lg:justify-between">

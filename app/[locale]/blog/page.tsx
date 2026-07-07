@@ -8,6 +8,7 @@ import { localized, withLocale, imageAssets, paginateItems } from "@/lib/showroo
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getBlogPosts } from "@/lib/supabase/queries";
+import { generatePageMetadata } from "@/lib/seo";
 
 const blogPageSize = 9;
 
@@ -37,10 +38,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "blog" });
-  return {
+  return generatePageMetadata({
     title: t("title"),
     description: t("lead"),
-  };
+    path: `/${locale}/blog`,
+  });
 }
 
 interface DisplayPost {

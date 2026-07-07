@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata } from "next";
+
+export const revalidate = 300; // 5-minute ISR — no searchParams used on this page
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowRight, BadgeCheck, BookOpen, MapPin, Phone } from "lucide-react";
@@ -20,6 +22,7 @@ import { ProductCard } from "@/components/showroom/product-card";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getProducts, getBlogPosts, getShowrooms, mapDBProductToMock, getCategories, getContentPage } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
+import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -29,10 +32,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "meta" });
-  return {
+  return generatePageMetadata({
     title: t("homeTitle"),
     description: t("homeDescription"),
-  };
+    path: `/${locale}`,
+  });
 }
 
 export default async function HomePage({

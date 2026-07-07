@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { type Locale, isLocale } from "@/i18n/routing";
 
-export const dynamic = "force-dynamic";
+// ISR: 5-min revalidation. No searchParams — safe to cache. Mutations should call
+// revalidatePath(`/${locale}/products/${slug}`) to invalidate immediately.
+export const revalidate = 300;
 
 import { getProductBySlug as getMockProductBySlug, products } from "@/lib/showroom-mock-fallback";
 import { localized } from "@/lib/showroom-constants";
@@ -20,6 +22,8 @@ import {
 import { createPublicClient } from "@/lib/supabase/server";
 import { getProductBySlug as getDBProductBySlug, getProducts, mapDBProductToPublicProduct, getPublicSiteSettings, getShowrooms } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 export async function generateMetadata({
   params,
@@ -98,6 +102,28 @@ export default async function ProductDetailPage({
 
   return (
     <main className="bg-white min-h-screen">
+      <JsonLd
+        data={[
+          productSchema({
+            name: localized(product.name, locale),
+            description: localized(product.summary, locale),
+            images: [product.image, ...(product.gallery || [])],
+            sku: product.referenceCode,
+            brand: product.brand_name,
+            category: localized(product.category, locale),
+            price: product.priceValue,
+            url: `/${locale}/products/${product.slug}`,
+          }),
+          breadcrumbSchema([
+            { name: locale === "vi" ? "Trang chủ" : "Home", url: `/${locale}` },
+            { name: locale === "vi" ? "Sản phẩm" : "Products", url: `/${locale}/products` },
+            {
+              name: localized(product.name, locale),
+              url: `/${locale}/products/${product.slug}`,
+            },
+          ]),
+        ]}
+      />
       {/* 1. HERO SECTION (GALLERY & BRIEF SUMMARY) */}
       <section className="container-pd py-10 grid gap-10 lg:grid-cols-[1.35fr_0.65fr] items-start">
         <ProductGallery

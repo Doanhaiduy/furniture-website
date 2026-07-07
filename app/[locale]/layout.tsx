@@ -4,12 +4,19 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { isLocale, routing, type Locale } from "@/i18n/routing";
 
+// force-dynamic is intentional: the PublicShell client component tree calls
+// useSearchParams() without a Suspense boundary. Removing this causes a build
+// failure ("useSearchParams() should be wrapped in a suspense boundary").
+// Child pages declare their own revalidate but it is overridden by this layout;
+// see docs/seo-notes.md for the ISR upgrade path (requires adding Suspense boundaries).
 export const dynamic = "force-dynamic";
 
 import { PublicShell } from "@/components/showroom/public-shell";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getPublicSiteSettings, getPublicSocialLinks } from "@/lib/supabase/queries";
 import { getPublicBrands } from "@/lib/supabase/brands-mutations";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationSchema, webSiteSchema } from "@/lib/structured-data";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -27,16 +34,13 @@ export async function generateMetadata({
   const supabase = createPublicClient();
   const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
 
+  // NOTE: canonical/alternates are intentionally NOT set here. Metadata from a
+  // layout cascades to every child page; a canonical of `/${locale}` would make
+  // every listing page (products, blog, ...) canonicalize to the homepage. Each
+  // page sets its own canonical via generatePageMetadata instead.
   return {
     title: siteSettings.seoDefaultTitle || t("homeTitle"),
     description: siteSettings.seoDefaultDescription || t("homeDescription"),
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        vi: "/vi",
-        en: "/en",
-      },
-    },
   };
 }
 
@@ -55,20 +59,46 @@ export default async function LocaleLayout({
   const common = await getTranslations("common");
 
   const supabase = createPublicClient();
-  const siteSettings = await getPublicSiteSettings(supabase, locale as "vi" | "en");
-  const socialLinks = await getPublicSocialLinks(supabase);
-  const brandsRes = await getPublicBrands();
+  const { getCategories, getProducts } = await import("@/lib/supabase/queries");
+
+  // Fetch all layout data in parallel — these are independent queries and
+  // running them sequentially added a request waterfall to every public page (TTFB).
+  const [siteSettings, socialLinks, brandsRes, publicCategories, publicProducts] =
+    await Promise.all([
+      getPublicSiteSettings(supabase, locale as "vi" | "en"),
+      getPublicSocialLinks(supabase),
+      getPublicBrands(),
+      getCategories(supabase, locale as "vi" | "en"),
+      getProducts(supabase, { locale: locale as "vi" | "en", limit: 100 }),
+    ]);
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 
-  const { getCategories, getProducts } = await import("@/lib/supabase/queries");
-  const publicCategories = await getCategories(supabase, locale as "vi" | "en");
-  const publicProducts = await getProducts(supabase, {
-    locale: locale as "vi" | "en",
-    limit: 100,
-  });
+  // Social profile URLs feed Organization.sameAs for entity disambiguation.
+  const sameAs = (socialLinks || [])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((s: any) => s?.url && s?.isEnabled !== false)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((s: any) => s.url as string);
 
   return (
     <NextIntlClientProvider messages={messages}>
+      {/* The root <html lang> is fixed to "vi" (it lives above the [locale]
+          segment). Correct it for non-default locales so assistive tech and
+          crawlers see the right language. hreflang alternates remain the
+          primary signal and are emitted per page. */}
+      {locale !== routing.defaultLocale && (
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.lang=${JSON.stringify(locale)}`,
+          }}
+        />
+      )}
+      <JsonLd
+        data={[
+          organizationSchema({ telephone: siteSettings.contactPhone, sameAs }),
+          webSiteSchema(locale),
+        ]}
+      />
       <PublicShell
         locale={locale as Locale}
         siteSettings={siteSettings}

@@ -7,6 +7,12 @@ import { imageAssets } from "@/lib/showroom-constants";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getShowrooms } from "@/lib/supabase/queries";
+import { generatePageMetadata, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema, localBusinessSchema } from "@/lib/structured-data";
+
+// ISR: 5-min revalidation. No searchParams — safe to cache.
+export const revalidate = 300;
 
 type PublicShowroomRecord = {
   code?: string | null;
@@ -30,10 +36,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "showrooms" });
-  return {
+  return generatePageMetadata({
     title: t("title"),
     description: t("lead"),
-  };
+    path: `/${locale}/showrooms`,
+  });
 }
 
 export default async function ShowroomsPage({
@@ -63,6 +70,25 @@ export default async function ShowroomsPage({
 
   return (
     <main>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: locale === "vi" ? "Trang chủ" : "Home", url: `/${locale}` },
+            { name: t("title"), url: `/${locale}/showrooms` },
+          ]),
+          ...displayShowrooms.map((showroom) =>
+            localBusinessSchema({
+              name: showroom.name,
+              image: showroom.image,
+              address: showroom.address,
+              telephone: showroom.hotline,
+              openingHours: showroom.hours,
+              url: `${SITE_URL}/${locale}/showrooms`,
+              mapUrl: showroom.mapUrl,
+            })
+          ),
+        ]}
+      />
       <section className="container-pd public-page-header text-center">
         <p className="label-pd">Phương Đông</p>
         <h1 className="type-page-title mt-4 text-primary">{t("title")}</h1>

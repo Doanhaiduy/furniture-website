@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/showroom/product-card";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getPromotions, getProducts, getCategories, mapDBProductToPublicProduct } from "@/lib/supabase/queries";
 import { PromotionCouponButton, PromotionQuickJump } from "@/components/showroom/promotion-client";
+import { generatePageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +23,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "meta" });
-  return {
+  return generatePageMetadata({
     title: t("promotionsTitle"),
     description: t("promotionsDescription"),
-  };
+    path: `/${locale}/promotions`,
+  });
 }
 
 const getCampaignColors = (code: string) => {

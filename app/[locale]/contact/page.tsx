@@ -10,6 +10,7 @@ import { RemoteImage } from "@/components/showroom/remote-image";
 import { SocialIcon } from "@/components/showroom/social-icons";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getShowrooms, getProducts, getCategories, getPublicSiteSettings, getPublicSocialLinks } from "@/lib/supabase/queries";
+import { generatePageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -19,10 +20,11 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = await getTranslations({ locale, namespace: "contact" });
-  return {
+  return generatePageMetadata({
     title: t("title"),
     description: t("lead"),
-  };
+    path: `/${locale}/contact`,
+  });
 }
 
 interface DisplayShowroom {
