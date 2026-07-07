@@ -311,7 +311,7 @@ export function PromotionsPage({
         returnHref="/admin/promotions"
         title="Thêm khuyến mãi mới"
         description="Thiết lập mã code, chiết khấu phần trăm, tiêu đề song ngữ và thời hạn khuyến mãi."
-        size="standard"
+        size="full"
       >
         <EntityCreateForm kind="promotion" />
       </AdminRouteDialog>
@@ -322,7 +322,7 @@ export function PromotionsPage({
         returnHref="/admin/promotions"
         title="Hiệu chỉnh khuyến mãi"
         description="Cập nhật thông tin chi tiết chương trình khuyến mãi và thời hạn hiệu lực."
-        size="standard"
+        size="full"
       >
         <EntityCreateForm kind="promotion" idOrSlug={editId || undefined} />
       </AdminRouteDialog>

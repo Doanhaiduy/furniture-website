@@ -276,7 +276,7 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
         returnHref="/admin/brands"
         title="Thêm thương hiệu"
         description="Tạo thương hiệu đối tác mới kèm logo, nguồn gốc xuất xứ và thông tin mô tả."
-        size="standard"
+        size="full"
       >
         <EntityCreateForm kind="brand" />
       </AdminRouteDialog>
@@ -287,7 +287,7 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
         returnHref="/admin/brands"
         title="Hiệu chỉnh thương hiệu"
         description="Chỉnh sửa chi tiết thương hiệu đối tác, thay đổi logo và cấu hình hiển thị."
-        size="standard"
+        size="full"
       >
         <EntityCreateForm kind="brand" idOrSlug={editSlug || undefined} />
       </AdminRouteDialog>
