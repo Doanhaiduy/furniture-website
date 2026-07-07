@@ -7,6 +7,9 @@ import {
   Pencil,
   Trash2,
   Check,
+  Calendar,
+  Ticket,
+  ExternalLink,
 } from "lucide-react";
 
 
@@ -241,29 +244,60 @@ export function PromotionsPage({
           const start = promo.start_at ? new Date(promo.start_at).toLocaleDateString("vi-VN") : "—";
           const end = promo.end_at ? new Date(promo.end_at).toLocaleDateString("vi-VN") : "—";
           return (
-            <article key={promo.id} className="card-pd interactive-card p-4 flex flex-col justify-between h-[180px]">
-              <div>
-                <div className="flex items-center justify-between">
-                  <code className="text-xs font-mono font-bold bg-slate-100 px-2 py-0.5 rounded text-indigo-700">{promo.code}</code>
+            <article key={promo.id} className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between h-full">
+              {/* Card Body */}
+              <div className="p-4 flex-1 space-y-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 bg-indigo-50 px-2 py-0.5 rounded-md text-indigo-700 font-semibold text-xs">
+                    <Ticket className="size-3.5" />
+                    <code className="font-mono">{promo.code}</code>
+                  </div>
                   <StatusBadge status={promo.status} />
                 </div>
-                <div className="mt-3 space-y-1">
-                  <h4 className="font-semibold text-sm text-slate-800 line-clamp-1">{promo.title_vi}</h4>
-                  <p className="text-xs text-slate-500 font-bold text-red-600">
+                
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                    {promo.title_vi}
+                  </h4>
+                  <p className="text-xs font-bold text-rose-600">
                     {promo.discount_percentage ? `Giảm ${promo.discount_percentage}%` : promo.combo_price ? `${promo.combo_price.toLocaleString("vi-VN")} ₫` : "Combo độc quyền"}
                   </p>
-                  <p className="text-[11px] text-slate-400" suppressHydrationWarning>{start} – {end}</p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-50 flex items-center gap-1.5 text-[11px] text-slate-400 font-semibold" suppressHydrationWarning>
+                  <Calendar className="size-3.5 text-slate-400" />
+                  <span>{start} – {end}</span>
                 </div>
               </div>
-              <div className="mt-4 pt-2 border-t border-slate-100 flex justify-between items-center">
-                <Link href={`/admin/promotions?edit=${promo.code || promo.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
-                  <Pencil className="size-3" />Chỉnh sửa
-                </Link>
-                <button
-                  onClick={() => setPromoToDelete(promo)}
-                  className="text-slate-400 hover:text-red-600 transition-colors text-xs inline-flex items-center gap-0.5"
+
+              {/* Card Actions Footer */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5">
+                <Link
+                  href={`/admin/promotions?edit=${promo.code || promo.id}`}
+                  title="Chỉnh sửa chương trình"
+                  className="flex-1 min-h-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1 transition"
                 >
-                  <Trash2 className="size-3.5" />Xóa
+                  <Pencil className="size-3.5" />
+                  Sửa
+                </Link>
+                {promo.status === "published" && (
+                  <a
+                    href={`/promotions`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="size-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPromoToDelete(promo)}
+                  title="Xóa chương trình"
+                  className="size-8 rounded-lg bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition shrink-0"
+                >
+                  <Trash2 className="size-3.5" />
                 </button>
               </div>
             </article>

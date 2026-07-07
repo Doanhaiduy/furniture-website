@@ -9,6 +9,8 @@ import {
   Trash2,
   ExternalLink,
   Check,
+  Calendar,
+  Star,
 } from "lucide-react";
 
 
@@ -262,24 +264,78 @@ export function BlogPage({ createMode, posts = [], total = 0 }: { createMode?: b
         renderGridCard={(item) => {
           const post = item as AdminBlogPost;
           return (
-            <article key={post.id} className="group relative overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition flex flex-col">
-              {(post.cover_media as any)?.url ? (
-                <RemoteImage src={(post.cover_media as any).url} alt={post.title} className="w-full aspect-video bg-slate-100 relative" />
-              ) : (
-                <div className="w-full aspect-video bg-slate-100 flex items-center justify-center"><NewspaperIcon className="size-10 text-slate-200" /></div>
-              )}
-              <div className="p-3 flex-1 flex flex-col">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded uppercase truncate">{post.category_name}</span>
+            <article key={post.id} className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full">
+              {/* Card Cover Image */}
+              <div className="relative aspect-video w-full bg-slate-50 overflow-hidden border-b border-slate-100">
+                {(post.cover_media as any)?.url ? (
+                  <RemoteImage src={(post.cover_media as any).url} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                    <NewspaperIcon className="size-10 text-slate-300" />
+                  </div>
+                )}
+
+                {/* Status Badge */}
+                <div className="absolute top-2.5 left-2.5 z-10">
                   <StatusBadge status={post.status} />
                 </div>
-                <p className="font-semibold text-sm text-slate-800 line-clamp-2 flex-1">{post.title}</p>
-                <p className="text-xs text-slate-400 mt-1" suppressHydrationWarning>{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</p>
+
+                {/* Featured Badge */}
+                {post.featured && (
+                  <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-sm">
+                    <Star className="size-3 fill-white" />
+                    <span>Nổi bật</span>
+                  </div>
+                )}
               </div>
-              <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition flex border-t bg-white p-2">
-                <Link href={`/admin/blog?edit=${post.slug}`} className="admin-edit-action flex-1 justify-center">
-                  <Pencil className="size-3" />Chỉnh sửa
+
+              {/* Card Body */}
+              <div className="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-wider w-fit block">
+                    {post.category_name}
+                  </span>
+                  <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    {post.title}
+                  </h4>
+                </div>
+
+                {/* Meta description / date */}
+                <div className="pt-2 border-t border-slate-50 flex items-center gap-1 text-[11px] text-slate-400 font-semibold" suppressHydrationWarning>
+                  <Calendar className="size-3.5 text-slate-400" />
+                  <span>{post.published_at ? new Date(post.published_at).toLocaleDateString("vi-VN") : "Chưa xuất bản"}</span>
+                </div>
+              </div>
+
+              {/* Card Actions Footer */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5">
+                <Link
+                  href={`/admin/blog?edit=${post.slug}`}
+                  title="Chỉnh sửa bài viết"
+                  className="flex-1 min-h-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1 transition"
+                >
+                  <Pencil className="size-3.5" />
+                  Sửa
                 </Link>
+                {post.status === "published" && (
+                  <a
+                    href={`/blog/${post.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="size-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setBlogToDelete(post)}
+                  title="Xóa bài viết"
+                  className="size-8 rounded-lg bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition shrink-0"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </div>
             </article>
           );

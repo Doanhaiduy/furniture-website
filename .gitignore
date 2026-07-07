@@ -95,3 +95,4 @@ deploy.prod.sh
 /ban-giao-khach-hang
 /delivery_customer
 /scripts
+/supabase/seed.production.sql

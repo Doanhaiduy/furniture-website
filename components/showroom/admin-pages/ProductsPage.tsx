@@ -396,24 +396,89 @@ export function ProductsPage({
         renderGridCard={(item) => {
           const product = item as AdminProduct;
           return (
-            <div key={product.id} className="group relative overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-md transition">
-              {(product.primary_media as any)?.url ? (
-                <RemoteImage src={(product.primary_media as any).url} alt={product.name} className="w-full aspect-[4/3] bg-slate-100 relative" />
-              ) : (
-                <div className="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center"><Package className="size-10 text-slate-200" /></div>
-              )}
-              <div className="p-3">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="font-semibold text-slate-800 text-sm line-clamp-2 flex-1">{product.name}</p>
-                  <StatusBadge status={product.status} className="shrink-0" />
+            <div key={product.id} className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col h-full">
+              {/* Card Image Header */}
+              <div className="relative aspect-[4/3] w-full bg-slate-50 shrink-0 overflow-hidden border-b border-slate-100">
+                {(product.primary_media as any)?.url ? (
+                  <RemoteImage src={(product.primary_media as any).url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                    <Package className="size-10 text-slate-300" />
+                  </div>
+                )}
+                
+                {/* Status Badge Overlay */}
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  <StatusBadge status={product.status} />
                 </div>
-                <p className="text-xs text-slate-400 mb-2">{product.category_name}</p>
-                {product.featured && <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600"><Star className="size-3" />Nổi bật</span>}
+
+                {/* Featured Badge Overlay */}
+                {product.featured && (
+                  <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-sm">
+                    <Star className="size-3 fill-white" />
+                    <span>Nổi bật</span>
+                  </div>
+                )}
+
+                {/* Price Display Overlay */}
+                <div className="absolute bottom-2.5 right-2.5 z-10 bg-slate-900/85 text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/10 shadow-sm">
+                  {formatPrice(product)}
+                </div>
               </div>
-              <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition flex border-t bg-white p-2 gap-2">
-                <Link href={`/admin/products?edit=${product.slug || product.id}`} className="admin-edit-action flex-1 justify-center">
-                  <Pencil className="size-3" />Chỉnh sửa
+
+              {/* Card Body */}
+              <div className="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-wider w-fit block">
+                    {product.category_name}
+                  </span>
+                  <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h4>
+                </div>
+
+                {/* Meta details */}
+                <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-50 text-[11px] text-slate-500 font-medium">
+                  <div className="truncate">
+                    <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-bold">Thương hiệu</span>
+                    <span className="text-slate-700 font-semibold">{product.brand_name ?? "—"}</span>
+                  </div>
+                  <div className="truncate">
+                    <span className="text-[9px] uppercase tracking-wider text-slate-400 block font-bold">Mã sản phẩm</span>
+                    <span className="font-mono text-slate-700 font-semibold">{product.reference_code ?? "—"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Actions Footer */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5">
+                <Link
+                  href={`/admin/products?edit=${product.slug || product.id}`}
+                  title="Chỉnh sửa sản phẩm"
+                  className="flex-1 min-h-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1 transition"
+                >
+                  <Pencil className="size-3.5" />
+                  Sửa
                 </Link>
+                {product.status === "published" && (
+                  <a
+                    href={`/products/${product.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="size-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setProductToDelete(product)}
+                  title="Xóa sản phẩm"
+                  className="size-8 rounded-lg bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition shrink-0"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </div>
             </div>
           );

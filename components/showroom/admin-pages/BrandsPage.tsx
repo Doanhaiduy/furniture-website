@@ -9,6 +9,7 @@ import {
   Globe,
   Trash2,
   FileSpreadsheet,
+  ExternalLink,
 } from "lucide-react";
 
 
@@ -183,25 +184,77 @@ export function BrandsPage({ createMode, brands = [], total = 0 }: { createMode?
         renderGridCard={(item) => {
           const brand = item as Brand;
           return (
-            <div key={brand.id} className="card-pd interactive-card p-4 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between">
-                  <p className="label-pd">#{brand.sort_order ?? "—"}</p>
+            <div key={brand.id} className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between h-full">
+              {/* Card Header & Logo */}
+              <div className="p-4 flex-1">
+                <div className="flex items-center justify-between gap-2 mb-3.5">
+                  <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                    Thứ tự: {brand.sort_order ?? "—"}
+                  </span>
                   <StatusBadge status={brand.status} />
                 </div>
-                <div className="flex gap-3 items-start mt-3">
-                   <BrandLogo url={brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-12 rounded border object-contain bg-slate-50" />
-                  <div>
-                    <span className="font-heading font-semibold text-primary block leading-tight">{brand.name?.vi || "—"}</span>
-                    {brand.name?.en && brand.name?.en !== brand.name?.vi && <p className="text-xs text-secondary mt-0.5">{brand.name.en}</p>}
-                    {brand.origin && <p className="text-[10px] text-slate-500 mt-1 font-semibold uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded inline-block">{brand.origin}</p>}
+                
+                <div className="flex gap-3.5 items-start">
+                  <div className="size-14 rounded-xl border border-slate-200/60 bg-slate-50 flex items-center justify-center p-1.5 shrink-0 shadow-inner">
+                    <BrandLogo url={brand.logo_url} alt={brand.name?.vi || "Logo"} className="size-full object-contain bg-slate-50 rounded-lg" />
+                  </div>
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <h4 className="font-bold text-slate-800 text-sm leading-snug truncate group-hover:text-primary transition-colors">
+                      {brand.name?.vi || "—"}
+                    </h4>
+                    {brand.name?.en && brand.name?.en !== brand.name?.vi && (
+                      <p className="text-xs text-slate-400 truncate">{brand.name.en}</p>
+                    )}
+                    {brand.origin && (
+                      <span className="inline-block text-[9px] uppercase tracking-wider text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md">
+                        {brand.origin}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-                <Link href={`/admin/brands?edit=${brand.slug || brand.id}`} className="admin-edit-action inline-flex items-center gap-1 text-xs">
-                  <Pencil className="size-3" />Chỉnh sửa
+
+              {/* Card Actions Footer */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5">
+                <Link
+                  href={`/admin/brands?edit=${brand.slug || brand.id}`}
+                  title="Chỉnh sửa thương hiệu"
+                  className="flex-1 min-h-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1 transition"
+                >
+                  <Pencil className="size-3.5" />
+                  Sửa
                 </Link>
+                {brand.status === "published" && (
+                  <a
+                    href={`/products?brand=${brand.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem sản phẩm trên website"
+                    className="size-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const count = await getBrandProductCount(brand.id);
+                      setBrandProductCount(count);
+                      setBrandStep(1);
+                      setBrandToDelete(brand);
+                    } catch (err) {
+                      console.error("Error fetching product count:", err);
+                      setBrandProductCount(0);
+                      setBrandStep(1);
+                      setBrandToDelete(brand);
+                    }
+                  }}
+                  title="Xóa thương hiệu"
+                  className="size-8 rounded-lg bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition shrink-0"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </div>
             </div>
           );

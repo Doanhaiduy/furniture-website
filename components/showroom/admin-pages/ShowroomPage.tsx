@@ -9,6 +9,9 @@ import {
   MapPin,
   Trash2,
   FileSpreadsheet,
+  Phone,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
 
 
@@ -154,28 +157,75 @@ export function ShowroomPage({ createMode, showrooms = [], total = 0 }: { create
         renderGridCard={(item) => {
           const showroom = item as AdminShowroom;
           return (
-            <article key={showroom.id} className="card-pd interactive-card group overflow-hidden flex flex-col justify-between">
-              {showroom.primary_media ? (
-                <RemoteImage src={showroom.primary_media as string} alt={showroom.name} className="h-44 w-full rounded bg-slate-100 relative" />
-              ) : (
-                <div className="h-44 w-full rounded bg-slate-100 flex items-center justify-center"><MapPin className="size-10 text-slate-200" /></div>
-              )}
-              <div className="p-4 space-y-3.5">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 mr-1.5">Tên:</span>
-                  <span className="font-heading font-semibold text-primary">{showroom.name}</span>
-                  <p className="text-xs text-secondary pl-5 mt-0.5">{showroom.address}</p>
+            <article key={showroom.id} className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between h-full">
+              {/* Card Image Header */}
+              <div className="relative aspect-[16/10] w-full bg-slate-50 overflow-hidden border-b border-slate-100">
+                {showroom.primary_media ? (
+                  <RemoteImage src={showroom.primary_media as string} alt={showroom.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                    <MapPin className="size-10 text-slate-300" />
+                  </div>
+                )}
+                
+                {/* Status Badge */}
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  <StatusBadge status={showroom.status} />
                 </div>
-                <div className="text-xs space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                  <p><span className="font-bold text-slate-500">Hotline:</span> {showroom.hotline}</p>
-                  <p><span className="font-bold text-slate-500">Giờ mở cửa:</span> {showroom.opening_hours ?? "—"}</p>
-                </div>
-                <StatusBadge status={showroom.status} />
               </div>
-              <div className="px-4 pb-4 flex justify-end">
-                <Link href={`/admin/showrooms?edit=${showroom.code ?? showroom.id}`} className="admin-edit-action">
-                  <Pencil className="size-3" />Chỉnh sửa
+
+              {/* Card Body */}
+              <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5">
+                <div className="space-y-2">
+                  <h4 className="font-bold text-slate-800 text-sm leading-snug group-hover:text-primary transition-colors flex items-start gap-1.5">
+                    <MapPin className="size-4 text-indigo-500 shrink-0 mt-0.5" />
+                    <span>{showroom.name}</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 leading-relaxed pl-5.5">{showroom.address}</p>
+                </div>
+
+                {/* Showroom Details Block */}
+                <div className="text-[11px] space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100 font-medium text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <Phone className="size-3.5 text-slate-400" />
+                    <p><span className="text-slate-450 font-semibold">Hotline:</span> {showroom.hotline}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-3.5 text-slate-400" />
+                    <p><span className="text-slate-450 font-semibold">Giờ mở cửa:</span> {showroom.opening_hours ?? "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Actions Footer */}
+              <div className="p-2 border-t border-slate-100 bg-slate-50/50 flex items-center gap-1.5">
+                <Link
+                  href={`/admin/showrooms?edit=${showroom.code ?? showroom.id}`}
+                  title="Chỉnh sửa showroom"
+                  className="flex-1 min-h-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1 transition"
+                >
+                  <Pencil className="size-3.5" />
+                  Sửa
                 </Link>
+                {showroom.status === "published" && (
+                  <a
+                    href={`/showrooms`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Xem trên website"
+                    className="size-8 rounded-lg bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shrink-0"
+                  >
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowroomToDelete(showroom)}
+                  title="Xóa showroom"
+                  className="size-8 rounded-lg bg-white border border-slate-200 hover:border-red-200 hover:bg-red-50 text-slate-500 hover:text-red-600 flex items-center justify-center transition shrink-0"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
               </div>
             </article>
           );
