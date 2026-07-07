@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Mail,
@@ -96,6 +96,13 @@ export function PublicShell({
   const [open, setOpen] = useState(false);
   // Expanded by default so contact options are visible without a tap; still collapsible.
   const [fabOpen, setFabOpen] = useState(true);
+  // Query string read client-side to preserve filters on locale switch. Using
+  // useSearchParams() here would force dynamic rendering (blocking ISR); reading
+  // window.location only after mount keeps SSR/prerender static with no mismatch.
+  const [queryString, setQueryString] = useState("");
+  useEffect(() => {
+    setQueryString(window.location.search.replace(/^\?/, ""));
+  }, [pathname]);
 
   useEffect(() => {
     const hideDevBadge = () => {
@@ -145,7 +152,7 @@ export function PublicShell({
     } else {
       path = `/${targetLocale}`;
     }
-    const params = searchParams.toString();
+    const params = queryString;
     return params ? `${path}?${params}` : path;
   };
 

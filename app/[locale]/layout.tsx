@@ -9,7 +9,7 @@ import { isLocale, routing, type Locale } from "@/i18n/routing";
 // failure ("useSearchParams() should be wrapped in a suspense boundary").
 // Child pages declare their own revalidate but it is overridden by this layout;
 // see docs/seo-notes.md for the ISR upgrade path (requires adding Suspense boundaries).
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 import { PublicShell } from "@/components/showroom/public-shell";
 import { createPublicClient } from "@/lib/supabase/server";
@@ -68,8 +68,8 @@ export default async function LocaleLayout({
       getPublicSiteSettings(supabase, locale as "vi" | "en"),
       getPublicSocialLinks(supabase),
       getPublicBrands(),
-      getCategories(supabase, locale as "vi" | "en"),
-      getProducts(supabase, { locale: locale as "vi" | "en", limit: 100 }),
+      getCategories(supabase, locale as "vi" | "en").catch(() => []),
+      getProducts(supabase, { locale: locale as "vi" | "en", limit: 100 }).catch(() => []),
     ]);
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 

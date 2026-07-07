@@ -67,12 +67,12 @@ export default async function HomePage({
   const quoteVisible = bodyJson.quoteVisible !== undefined ? bodyJson.quoteVisible : true;
   const heroVisible = bodyJson.heroVisible !== undefined ? bodyJson.heroVisible : true;
 
-  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: featuredLimit });
+  const dbProducts = await getProducts(supabase, { locale, featured: true, limit: featuredLimit }).catch(() => []);
   const featured = (dbProducts.length > 0 
     ? dbProducts.map((p: any) => mapDBProductToMock(p, locale))
     : mockProducts.filter((p) => p.featured)).slice(0, featuredLimit);
 
-  const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: blogLimit });
+  const dbBlogPosts = await getBlogPosts(supabase, { locale, limit: blogLimit }).catch(() => []);
   const editorialPosts = dbBlogPosts.length > 0
     ? dbBlogPosts.map((post: any) => ({
         slug: post.slug,
@@ -85,7 +85,7 @@ export default async function HomePage({
       }))
     : [];
 
-  const dbShowrooms = await getShowrooms(supabase, locale);
+  const dbShowrooms = await getShowrooms(supabase, locale).catch(() => []);
   const displayShowrooms = dbShowrooms.length > 0
     ? dbShowrooms.slice(0, 2).map((s: any) => ({
         code: s.code,
@@ -112,7 +112,7 @@ export default async function HomePage({
   const { data: dbBrands } = await getPublicBrands().catch(() => ({ data: [] }));
 
   // Fetch dynamic categories for Lĩnh vực chủ chốt (Key sectors)
-  const dbCategories = await getCategories(supabase, locale);
+  const dbCategories = await getCategories(supabase, locale).catch(() => []);
   const rootCategories = dbCategories.filter((cat: any) => !cat.parentId);
   const displayCategories = rootCategories.slice(0, 4);
   const categoryCount = displayCategories.length;
