@@ -75,6 +75,8 @@ export function AdminSectionPage({
   brandTotal = 0,
   profiles,
   profileTotal = 0,
+  featuredCount = 0,
+  featuredMax = 4,
   searchParams = {},
 }: {
   section: AdminSection;
@@ -97,6 +99,8 @@ export function AdminSectionPage({
   brandTotal?: number;
   profiles?: AdminUser[];
   profileTotal?: number;
+  featuredCount?: number;
+  featuredMax?: number;
   searchParams?: Record<string, string | undefined>;
 }) {
   if (section === "quotes") return <QuotesPage quotes={quotes ?? []} role={role} total={quoteTotal} />;
@@ -113,8 +117,11 @@ export function AdminSectionPage({
       createMode={createMode}
       products={products ?? []}
       total={productTotal}
+      featuredCount={featuredCount}
+      featuredMax={featuredMax}
       categories={categories ?? []}
       brands={brands ?? []}
+      role={role}
     />
   );
 }

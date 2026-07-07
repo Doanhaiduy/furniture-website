@@ -91,6 +91,8 @@ export default async function AdminDynamicPage({
 
   let products: AdminProduct[]  = [];
   let productTotal = 0;
+  let featuredCount = 0;
+  let featuredMax = 4;
   let categories: AdminCategory[] = [];
   let categoryTotal = 0;
   let blogPosts: AdminBlogPost[] = [];
@@ -202,6 +204,10 @@ export default async function AdminDynamicPage({
     categories = "data" in catsRes ? catsRes.data : catsRes;
     const brandsRes = await getAdminBrands().catch(() => ({ data: [] }));
     brands = Array.isArray(brandsRes) ? brandsRes : brandsRes?.data || [];
+
+    const { getFeaturedProductsCount, getFeaturedMaxLimit } = await import("@/lib/supabase/admin-queries");
+    featuredCount = await getFeaturedProductsCount().catch(() => 0);
+    featuredMax = await getFeaturedMaxLimit().catch(() => 4);
   } else if (section === "promotions") {
     const res = await getAdminPromotions({ q, status, sort, dir, limit, offset, dateFrom, dateTo, withTotal: true });
     if ("data" in res) {
@@ -260,6 +266,8 @@ export default async function AdminDynamicPage({
         uploadMode={query.upload === "1"}
         products={products}
         productTotal={productTotal}
+        featuredCount={featuredCount}
+        featuredMax={featuredMax}
         categories={categories}
         categoryTotal={categoryTotal}
         blogPosts={blogPosts}

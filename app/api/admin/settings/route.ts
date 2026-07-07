@@ -155,7 +155,7 @@ export async function GET() {
     aboutLeadEn: enHomeBody.aboutLeadEn || "Over 20 years of crafting Vietnamese homes.",
     aboutImage: viHomeBody.aboutImage || "/images/about.jpg",
     featuredVisible: viHomeBody.featuredVisible !== undefined ? viHomeBody.featuredVisible : true,
-    featuredMaxItems: viHomeBody.featuredMaxItems || "12",
+    featuredMaxItems: viHomeBody.featuredMaxItems || "4",
     blogSectionVisible: viHomeBody.blogSectionVisible !== undefined ? viHomeBody.blogSectionVisible : true,
     blogMaxPosts: viHomeBody.blogMaxPosts || "3",
     blogHeadingVi: viHomeBody.blogHeadingVi || "Góc cảm hứng & Tin tức",

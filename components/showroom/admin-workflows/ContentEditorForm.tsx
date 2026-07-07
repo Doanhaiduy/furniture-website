@@ -65,10 +65,14 @@ export function ContentEditorForm({
   kind,
   mode = "edit",
   idOrSlug,
+  featuredCount = 0,
+  featuredMax = 4,
 }: {
   kind: ContentKind;
   mode?: "create" | "edit";
   idOrSlug?: string;
+  featuredCount?: number;
+  featuredMax?: number;
 }) {
   const { toast, showLoading, hideLoading, showAlert } = useToast();
   const router = useRouter();
@@ -109,6 +113,7 @@ export function ContentEditorForm({
   const [refCode, setRefCode] = useState(mode === "edit" ? "PD-SF-184" : "");
   const [showroom, setShowroom] = useState("");
   const [featured, setFeatured] = useState(true);
+  const [initialFeatured, setInitialFeatured] = useState(false);
   const [status, setStatus] = useState<"draft" | "published" | "archived">("draft");
   // Blog publish datetime (datetime-local format "YYYY-MM-DDTHH:mm"), controlled by the picker.
   const [publishedAt, setPublishedAt] = useState("");
@@ -250,6 +255,7 @@ export function ContentEditorForm({
               setRefCode(p.reference_code || "");
               setShowroom(p.showroom_code || "");
               setFeatured(p.featured || false);
+              setInitialFeatured(p.featured || false);
               setStatus(p.status || "draft");
               
               setMaterialsVi(p.material_vi || "");
@@ -940,6 +946,9 @@ export function ContentEditorForm({
             setShowroom={setShowroom}
             featured={featured}
             setFeatured={setFeatured}
+            featuredCount={featuredCount}
+            featuredMax={featuredMax}
+            initialFeatured={initialFeatured}
             materialsVi={materialsVi}
             setMaterialsVi={setMaterialsVi}
             materialsEn={materialsEn}
@@ -1486,6 +1495,9 @@ function ProductBusinessFields({
   setShowroom,
   featured,
   setFeatured,
+  featuredCount = 0,
+  featuredMax = 4,
+  initialFeatured = false,
   materialsVi,
   setMaterialsVi,
   materialsEn,
@@ -1532,6 +1544,9 @@ function ProductBusinessFields({
   setShowroom: (val: string) => void;
   featured: boolean;
   setFeatured: (val: boolean) => void;
+  featuredCount?: number;
+  featuredMax?: number;
+  initialFeatured?: boolean;
   materialsVi: string;
   setMaterialsVi: (val: string) => void;
   materialsEn: string;
@@ -1691,15 +1706,25 @@ function ProductBusinessFields({
               options={showroomOptions}
             />
           </label>
-          <label className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] bg-white p-3 text-sm">
+          <label className={`flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--admin-border)] p-3 text-sm ${
+            (featuredCount >= featuredMax && !initialFeatured) ? "opacity-60 bg-slate-50" : "bg-white"
+          }`}>
             <input 
               className="mt-1" 
               type="checkbox" 
               checked={featured}
+              disabled={featuredCount >= featuredMax && !initialFeatured}
               onChange={(e) => setFeatured(e.target.checked)} 
             />
             <span>
-              <strong className="block text-[var(--admin-text)]">Sản phẩm nổi bật</strong>
+              <strong className="block text-[var(--admin-text)]">
+                Sản phẩm nổi bật
+                {featuredCount >= featuredMax && !initialFeatured && (
+                  <span className="ml-1.5 text-xs text-amber-600 font-semibold">
+                    (Đã đạt giới hạn {featuredCount}/{featuredMax})
+                  </span>
+                )}
+              </strong>
               <span className="text-[var(--admin-text-muted)]">Có thể hiển thị ở trang chủ và khu vực nổi bật trong danh mục.</span>
             </span>
           </label>

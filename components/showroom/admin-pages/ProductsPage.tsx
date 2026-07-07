@@ -75,13 +75,19 @@ export function ProductsPage({
   products = [], 
   total = 0,
   categories = [],
-  brands = []
+  brands = [],
+  featuredCount = 0,
+  featuredMax = 4,
+  role = "editor"
 }: { 
   createMode?: boolean; 
   products?: AdminProduct[]; 
   total?: number;
   categories?: AdminCategory[];
   brands?: any[];
+  featuredCount?: number;
+  featuredMax?: number;
+  role?: string;
 }) {
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
@@ -94,6 +100,19 @@ export function ProductsPage({
   const [brandOptions, setBrandOptions] = useState<{ value: string; label: string }[]>([]);
   const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const [curFeaturedCount, setCurFeaturedCount] = useState(featuredCount);
+  const [curFeaturedMax, setCurFeaturedMax] = useState(featuredMax);
+  const [isUpdatingLimit, setIsUpdatingLimit] = useState(false);
+
+  useEffect(() => {
+    setCurFeaturedCount(featuredCount);
+  }, [featuredCount]);
+
+  useEffect(() => {
+    setCurFeaturedMax(featuredMax);
+  }, [featuredMax]);
+
 
   useEffect(() => {
     fetch("/api/admin/filter-options?type=categories")
@@ -207,16 +226,71 @@ export function ProductsPage({
         actionLabel="Thêm sản phẩm"
       />
 
-      {/* Excel Actions Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={() => setExcelModalOpen(true)}
-          className="button-pd-outline flex items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-semibold transition hover:bg-indigo-50 hover:text-indigo-750"
-        >
-          <FileSpreadsheet className="size-3.5 text-indigo-500" />
-          Nhập & Xuất Excel
-        </button>
+      {/* Excel Actions & Settings Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setExcelModalOpen(true)}
+            className="button-pd-outline flex items-center gap-1.5 rounded-2xl px-3 py-2 text-xs font-semibold transition hover:bg-indigo-50 hover:text-indigo-750"
+          >
+            <FileSpreadsheet className="size-3.5 text-indigo-500" />
+            Nhập & Xuất Excel
+          </button>
+        </div>
+
+        {/* Featured Products Limit Setting */}
+        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2 rounded-2xl">
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
+            <Star className="size-3.5 text-amber-500 fill-amber-500" />
+            <span>Sản phẩm nổi bật: <strong>{curFeaturedCount}</strong> / <strong>{curFeaturedMax}</strong></span>
+          </div>
+          {role === "admin" && (
+            <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+              <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">Cấu hình max:</label>
+              <input
+                type="number"
+                min="0"
+                max="20"
+                value={curFeaturedMax}
+                disabled={isUpdatingLimit}
+                onChange={async (e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (isNaN(val) || val < 0) return;
+                  setCurFeaturedMax(val);
+                  setIsUpdatingLimit(true);
+                  try {
+                    const getRes = await fetch("/api/admin/settings");
+                    if (!getRes.ok) throw new Error("Failed to get settings");
+                    const currentSettings = await getRes.json();
+                    
+                    const updateRes = await fetch("/api/admin/settings", {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        ...currentSettings,
+                        featuredMaxItems: String(val)
+                      })
+                    });
+                    if (updateRes.ok) {
+                      toast.success(`Cập nhật giới hạn ${val} nổi bật thành công!`);
+                      router.refresh();
+                    } else {
+                      const errData = await updateRes.json().catch(() => ({}));
+                      toast.error("Cập nhật giới hạn thất bại: " + (errData.error || "Không rõ"));
+                    }
+                  } catch (err) {
+                    console.error("Failed to update limit:", err);
+                    toast.error("Lỗi kết nối khi cập nhật cài đặt.");
+                  } finally {
+                    setIsUpdatingLimit(false);
+                  }
+                }}
+                className="w-14 h-7 text-xs font-semibold text-center border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-slate-450"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <DataView
@@ -270,10 +344,12 @@ export function ProductsPage({
               <div className="flex items-center">
                 <Switch
                   checked={product.featured}
+                  disabled={curFeaturedCount >= curFeaturedMax && !product.featured}
                   onCheckedChange={async (checked) => {
                     const res = await updateProductFeatured(product.id, checked);
                     if (res.success) {
                       toast.success("Cập nhật nổi bật thành công!");
+                      setCurFeaturedCount(prev => checked ? prev + 1 : Math.max(0, prev - 1));
                       router.refresh();
                     } else {
                       toast.error("Cập nhật thất bại: " + (res.error ?? "Không rõ"));
@@ -353,7 +429,7 @@ export function ProductsPage({
         description="Tạo sản phẩm ưu tiên báo giá với nội dung gốc tiếng Việt, bản dịch tiếng Anh tùy chọn, thư viện ảnh, thông số, giá và SEO."
         size="full"
       >
-        <ContentEditorForm kind="product" mode="create" />
+         <ContentEditorForm kind="product" mode="create" featuredCount={curFeaturedCount} featuredMax={curFeaturedMax} />
       </AdminRouteDialog>
 
       {/* Edit Dialog */}
@@ -364,7 +440,7 @@ export function ProductsPage({
         description="Chỉnh sửa thông tin chi tiết sản phẩm, cấu hình song ngữ, giá và SEO."
         size="full"
       >
-        <ContentEditorForm kind="product" mode="edit" idOrSlug={editSlug || undefined} />
+         <ContentEditorForm kind="product" mode="edit" idOrSlug={editSlug || undefined} featuredCount={curFeaturedCount} featuredMax={curFeaturedMax} />
       </AdminRouteDialog>
 
       <AlertDialog open={productToDelete !== null} onOpenChange={(open) => { if (!open) setProductToDelete(null); }}>

@@ -10,25 +10,26 @@ const digitCount = (v: string) => v.replace(/\D/g, "").length;
 const requiredText = (msg: string) => z.string().trim().min(1, msg);
 const optionalText = z.string().trim().nullish().transform(val => val || null);
 // Optional UUID coming from a form <select>. An unselected dropdown often submits "" (or
-// "none") instead of null/undefined, and Zod's .uuid() rejects "" with a confusing
-// "Invalid uuid" — exactly the error users hit when adding a product without choosing an
-// optional Thương hiệu/Khuyến mãi. Coerce blank/"none" → null before validating.
-// Also coerce any non-blank string that is NOT a valid UUID to null (defence-in-depth)
-// so a stale label or slug accidentally stored in state never causes a hard rejection.
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// "none") instead of null/undefined. Also: Zod v4's z.string().uuid() enforces strict
+// RFC 9562 (version digit 1-8, variant 89ab). The DB seed data uses custom UUIDs like
+// b0000000-0000-0000-0000-000000000001 (version 0, variant 0) which are valid 8-4-4-4-12
+// hex strings but fail the strict RFC check. Use the permissive GUID regex (any hex UUID
+// format) so all real DB IDs are accepted regardless of version/variant byte.
+const GUID_REGEX = /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
 const optionalUuid = z
   .preprocess(
     (v) => {
       if (typeof v !== "string") return v;
       const t = v.trim();
-      if (t === "" || t.toLowerCase() === "none") return null;
-      // Silently coerce invalid UUID strings to null instead of hard-rejecting them.
-      if (!UUID_REGEX.test(t)) return null;
+      if (!t || t.toLowerCase() === "none") return null;
+      // Coerce non-UUID-like strings to null (defence-in-depth).
+      if (!GUID_REGEX.test(t)) return null;
       return t;
     },
-    z.string().uuid("ID tham chiếu không hợp lệ").nullable(),
+    z.string().regex(GUID_REGEX, "ID tham chiếu không hợp lệ").nullable(),
   )
   .optional();
+
 // Mirrors the client-side isBodyEmpty() check (ContentEditorForm.tsx) so a rich-text
 // body/description that is null, {}, [], or an empty TipTap doc is rejected the same
 // way server-side as it already visually blocks the Publish button client-side.

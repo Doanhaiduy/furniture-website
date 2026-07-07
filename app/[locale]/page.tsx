@@ -52,7 +52,7 @@ export default async function HomePage({
   const homePageContent = await getContentPage(supabase, "home", locale).catch(() => null);
   const bodyJson = homePageContent?.bodyJson || {};
 
-  const featuredLimit = parseInt(bodyJson.featuredMaxItems || "12", 10) || 12;
+  const featuredLimit = parseInt(bodyJson.featuredMaxItems || "4", 10) || 4;
   const blogLimit = parseInt(bodyJson.blogMaxPosts || "3", 10) || 3;
 
   const featuredVisible = bodyJson.featuredVisible !== undefined ? bodyJson.featuredVisible : true;

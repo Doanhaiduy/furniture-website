@@ -26,6 +26,38 @@ function jsonToEditorText(value: unknown): string {
   return ""; // unknown/empty object → empty editor, not "{}"
 }
 
+async function checkFeaturedLimit(supabase: any, productId: string | null = null): Promise<{ success: boolean; error?: string }> {
+  let query = supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("featured", true)
+    .is("deleted_at", null);
+  
+  if (productId) {
+    query = query.neq("id", productId);
+  }
+
+  const { count } = await query;
+  
+  const { data: homePage } = await supabase
+    .from("content_pages")
+    .select("content_page_translations ( locale, body_json )")
+    .eq("key", "home")
+    .maybeSingle();
+
+  const viHomeBody = homePage?.content_page_translations?.find((t: any) => t.locale === "vi")?.body_json || {};
+  const limit = parseInt(viHomeBody.featuredMaxItems || "4", 10) || 4;
+
+  if ((count ?? 0) >= limit) {
+    return {
+      success: false,
+      error: `Đã đạt giới hạn tối đa ${limit} sản phẩm nổi bật. Vui lòng tắt nổi bật sản phẩm khác trước.`,
+    };
+  }
+  return { success: true };
+}
+
+
 export async function getAdminProductByIdOrSlug(idOrSlug: string): Promise<{
   success: boolean;
    
@@ -137,6 +169,13 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
     // Service-role client: an editor's RLS role has no DELETE grant on `products`,
     // so the rollback deletes below would silently no-op and leave zombie rows.
     const supabase = createAdminClient();
+
+    if (data.featured) {
+      const limitCheck = await checkFeaturedLimit(supabase);
+      if (!limitCheck.success) {
+        return { success: false, error: limitCheck.error };
+      }
+    }
 
     const requestedStatus = data.status;
     const isPublishing = requestedStatus === "published";
@@ -321,6 +360,13 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
 
   try {
     const supabase = createAdminClient();
+
+    if (data.featured) {
+      const limitCheck = await checkFeaturedLimit(supabase, id);
+      if (!limitCheck.success) {
+        return { success: false, error: limitCheck.error };
+      }
+    }
 
     // Update products row
     const { data: product, error: productError } = await supabase
@@ -540,6 +586,12 @@ export async function updateProductFeatured(id: string, featured: boolean): Prom
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+    if (featured) {
+      const limitCheck = await checkFeaturedLimit(supabase, id);
+      if (!limitCheck.success) {
+        return { success: false, error: limitCheck.error };
+      }
+    }
     const { error } = await supabase
       .from("products")
       .update({

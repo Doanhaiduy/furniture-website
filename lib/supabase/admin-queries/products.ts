@@ -347,3 +347,48 @@ export async function getBrandProductCount(brandId: string): Promise<number> {
     return 0;
   }
 }
+
+export async function getFeaturedProductsCount(): Promise<number> {
+  await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { count, error } = await supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("featured", true)
+      .is("deleted_at", null);
+    if (error) {
+      console.error("Failed to count featured products:", error);
+      return 0;
+    }
+    return count ?? 0;
+  } catch (err) {
+    console.error("Exception counting featured products:", err);
+    return 0;
+  }
+}
+
+export async function getFeaturedMaxLimit(): Promise<number> {
+  await requireEditorOrAdmin();
+  try {
+    const supabase = createAdminClient();
+    const { data: homePage } = await supabase
+      .from("content_pages")
+      .select(`
+        content_page_translations (
+          locale,
+          body_json
+        )
+      `)
+      .eq("key", "home")
+      .maybeSingle();
+
+    const viHomeBody = homePage?.content_page_translations?.find((t: any) => t.locale === "vi")?.body_json || {};
+    const limit = parseInt(viHomeBody.featuredMaxItems || "4", 10);
+    return isNaN(limit) ? 4 : limit;
+  } catch (err) {
+    console.error("Exception fetching featured limit:", err);
+    return 4;
+  }
+}
+

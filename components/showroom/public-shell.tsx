@@ -207,11 +207,29 @@ export function PublicShell({
     };
   });
 
-  const sortedRoots = [...rootCatsWithProducts].sort((a, b) => b.count - a.count);
-  const top3Roots = sortedRoots.slice(0, 3);
-  const otherRoots = sortedRoots.slice(3);
+  // Fixed display order for the 4 main groups; "Thiết bị khác" (project_solutions)
+  // always appears last regardless of product count. Groups not in the priority list
+  // fall back to product-count ordering but are inserted before project_solutions.
+  const GROUP_ORDER: Record<string, number> = {
+    wooden_furniture: 0,
+    sanitary_equipment: 1,
+    tiles: 2,
+    project_solutions: 99, // always last
+  };
+  const sortedRoots = [...rootCatsWithProducts].sort((a, b) => {
+    const aOrder = GROUP_ORDER[a.root.groupKey ?? ""] ?? 50;
+    const bOrder = GROUP_ORDER[b.root.groupKey ?? ""] ?? 50;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return b.count - a.count; // tie-break by product count
+  });
+  // Show all 4 main root category groups directly in the header nav (Đồ gỗ nội thất,
+  // Thiết bị vệ sinh, Gạch ốp lát, Thiết bị khác). Using slice(0, 3) previously caused
+  // the 4th group to be collapsed into a generic "Thiết kế khác" bucket.
+  const top4Roots = sortedRoots.slice(0, 4);
+  const otherRoots = sortedRoots.slice(4);
 
-  const dynamicTypeSections = top3Roots.map((item) => {
+
+  const dynamicTypeSections = top4Roots.map((item) => {
     const root = item.root;
     const children = item.children;
 
