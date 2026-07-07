@@ -56,11 +56,13 @@ export function AdminShell({
   active,
   children,
   role,
+  user,
 }: {
   /** Optional — when omitted (persistent layout), derived from the current pathname. */
   active?: string;
   children: ReactNode;
   role?: "admin" | "editor";
+  user?: { id: string; email: string; role: "admin" | "editor"; fullName?: string | null };
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -84,7 +86,9 @@ export function AdminShell({
     }
   }
 
-  const visibleNav = role === "editor"
+  const resolvedRole = user?.role ?? role;
+
+  const visibleNav = resolvedRole === "editor"
     ? adminNav.filter((item) => !["quotes", "users", "settings", "ai-assistant"].includes(item.key))
     : adminNav;
 
@@ -105,7 +109,7 @@ export function AdminShell({
         <div className="flex min-h-screen w-full items-stretch bg-transparent">
           <AdminSidebar
             active={resolvedActive}
-            role={role}
+            role={resolvedRole}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
             handleLogout={handleLogout}
@@ -115,7 +119,8 @@ export function AdminShell({
             <div className="sticky top-0 z-40">
               <AdminHeader
                 active={resolvedActive}
-                role={role}
+                role={resolvedRole}
+                user={user}
                 headerCollapsed={headerCollapsed}
                 setHeaderCollapsed={setHeaderCollapsed}
                 setIsSearchOpen={setIsSearchOpen}

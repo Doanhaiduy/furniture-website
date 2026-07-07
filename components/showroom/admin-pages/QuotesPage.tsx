@@ -62,7 +62,7 @@ export interface Brand {
   slug?: string;
 }
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AdminPageHeader
 } from "./SharedComponents";
@@ -78,6 +78,7 @@ export function QuotesPage({
 }) {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const filters = useAdminFilters();
 
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>("");
@@ -88,12 +89,16 @@ export function QuotesPage({
   const [localQuotes, setLocalQuotes] = useState<AdminQuote[]>(quotes);
   const [staffOptions, setStaffOptions] = useState<{ value: string; label: string }[]>([]);
 
+  const urlQuoteId = searchParams.get("id");
+
   useEffect(() => {
     setLocalQuotes(quotes);
-    if (quotes.length > 0 && !selectedQuoteId) {
+    if (urlQuoteId) {
+      setSelectedQuoteId(urlQuoteId);
+    } else if (quotes.length > 0 && !selectedQuoteId) {
       setSelectedQuoteId(quotes[0].id);
     }
-  }, [quotes]);
+  }, [quotes, urlQuoteId]);
 
   useEffect(() => {
     fetch("/api/admin/filter-options?type=admin-users")

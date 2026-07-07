@@ -13,5 +13,5 @@ export const dynamic = "force-dynamic";
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
   if (!user) return <>{children}</>;
-  return <AdminShell role={user.role}>{children}</AdminShell>;
+  return <AdminShell user={user}>{children}</AdminShell>;
 }

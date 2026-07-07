@@ -107,7 +107,12 @@ export function useAdminDateSelection() {
 export function NotificationButton({ role }: { role?: AdminRole }) {
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState(false);
-  const [stats, setStats] = useState({ unreadQuotesCount: 0, missingTranslationsCount: 0 });
+  const [stats, setStats] = useState<{
+    unreadQuotesCount: number;
+    missingTranslationsCount: number;
+    recentQuotes?: Array<{ id: string; full_name: string; created_at: string; status: string }>;
+    recentMissingTranslations?: Array<{ id: string; name: string; created_at: string }>;
+  }>({ unreadQuotesCount: 0, missingTranslationsCount: 0, recentQuotes: [], recentMissingTranslations: [] });
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -118,6 +123,8 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
           setStats({
             unreadQuotesCount: data.unreadQuotesCount ?? 0,
             missingTranslationsCount: data.missingTranslationsCount ?? 0,
+            recentQuotes: data.recentQuotes ?? [],
+            recentMissingTranslations: data.recentMissingTranslations ?? [],
           });
         }
       } catch {
@@ -131,7 +138,7 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
   const showUnreadDot = totalNotifications > 0 && !read;
 
   return (
-    <div className="relative hidden md:block">
+    <div className="relative">
       <PopoverPrimitive.Root
         open={open}
         onOpenChange={(value) => {
@@ -145,7 +152,7 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
             aria-label="Thông báo"
             aria-haspopup="menu"
             aria-expanded={open}
-            className={`admin-icon-button-pd relative ${open ? "text-[var(--admin-accent)]" : ""}`}
+            className={`admin-icon-button-pd relative cursor-pointer select-none transition ${open ? "text-[var(--admin-accent)] bg-slate-50" : ""}`}
           >
             <Bell className="size-[17px]" />
             {showUnreadDot ? <span className="absolute right-2 top-2 size-2 rounded-full bg-[var(--state-warning)]" /> : null}
@@ -156,24 +163,108 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
             align="end"
             sideOffset={10}
             collisionPadding={16}
-            className="surface-elevated z-[90] w-72 p-3 text-[var(--admin-text)] outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:transition-none"
+            className="surface-elevated z-[90] w-80 sm:w-96 max-h-[480px] overflow-y-auto p-4 rounded-xl border border-[var(--admin-border-strong)] bg-white shadow-xl outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:transition-none"
           >
-            <p className="type-label text-[var(--admin-text-subtle)]">Thông báo</p>
-            <div className="mt-3 grid gap-2 text-sm">
-              {stats.unreadQuotesCount > 0 && (
-                <Link href={safeAdminHref("/admin/quotes", role)} className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]" onClick={() => setOpen(false)}>
-                  {stats.unreadQuotesCount} yêu cầu báo giá cần kiểm duyệt
-                </Link>
-              )}
-              {stats.missingTranslationsCount > 0 && (
-                <Link href="/admin/products" className="admin-nav-link-pd min-h-11 bg-[var(--admin-bg-soft)] p-3 text-[var(--admin-text)]" onClick={() => setOpen(false)}>
-                  {stats.missingTranslationsCount} sản phẩm thiếu thông tin tiếng Anh
-                </Link>
-              )}
-              {totalNotifications === 0 && (
-                <p className="p-3 text-center text-xs text-slate-400">Không có thông báo mới.</p>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+              <p className="font-semibold text-sm text-slate-800 flex items-center gap-1.5">
+                <Bell className="size-4 text-[var(--admin-accent)]" />
+                Thông báo hệ thống
+              </p>
+              {totalNotifications > 0 && (
+                <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-[#8b5cf6]">
+                  {totalNotifications} mới
+                </span>
               )}
             </div>
+
+            <div className="mt-2 grid gap-1 text-sm max-h-[320px] overflow-y-auto pr-1">
+              {/* Recent Quotes */}
+              {role === "admin" && stats.recentQuotes && stats.recentQuotes.length > 0 && (
+                <div className="space-y-1 py-1">
+                  <p className="px-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Yêu cầu báo giá mới</p>
+                  {stats.recentQuotes.map((quote) => (
+                    <Link
+                      key={quote.id}
+                      href={safeAdminHref(`/admin/quotes?id=${quote.id}`, role)}
+                      className="group flex items-start gap-2.5 rounded-lg p-2 hover:bg-slate-50 transition text-left"
+                      onClick={() => setOpen(false)}
+                    >
+                      <div className="mt-0.5 rounded-full bg-rose-50 p-1.5 text-rose-500">
+                        <AlertCircle className="size-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-slate-700 leading-normal group-hover:text-slate-900 transition truncate">
+                          Báo giá từ <strong>{quote.full_name}</strong>
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {new Date(quote.created_at).toLocaleDateString("vi-VN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* Translation gaps */}
+              {stats.recentMissingTranslations && stats.recentMissingTranslations.length > 0 && (
+                <div className="space-y-1 py-1 border-t border-slate-50 mt-1 first:border-0 first:mt-0">
+                  <p className="px-2 text-[9px] font-bold uppercase tracking-wider text-slate-400">Thiếu bản dịch sản phẩm</p>
+                  {stats.recentMissingTranslations.map((prod) => (
+                    <Link
+                      key={prod.id}
+                      href={`/admin/products?edit=${prod.id}`}
+                      className="group flex items-start gap-2.5 rounded-lg p-2 hover:bg-slate-50 transition text-left"
+                      onClick={() => setOpen(false)}
+                    >
+                      <div className="mt-0.5 rounded-full bg-amber-50 p-1.5 text-amber-500">
+                        <AlertTriangle className="size-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-slate-700 leading-normal group-hover:text-slate-900 transition truncate">
+                          Thiếu tiếng Anh: <strong>{prod.name}</strong>
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {new Date(prod.created_at).toLocaleDateString("vi-VN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {totalNotifications === 0 && (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <CheckCircle2 className="size-8 text-emerald-500 mb-2" />
+                  <p className="text-xs font-semibold text-slate-800">Hệ thống hoạt động ổn định!</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Không có thông báo hoặc cảnh báo cần xử lý.</p>
+                </div>
+              )}
+            </div>
+
+            {totalNotifications > 0 && (
+              <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center text-[10px]">
+                {role === "admin" && stats.unreadQuotesCount > 0 && (
+                  <Link href={safeAdminHref("/admin/quotes", role)} className="font-bold text-[#8b5cf6] hover:underline" onClick={() => setOpen(false)}>
+                    Xem tất cả báo giá &rarr;
+                  </Link>
+                )}
+                {stats.missingTranslationsCount > 0 && (
+                  <Link href="/admin/products" className="font-bold text-[#8b5cf6] hover:underline ml-auto" onClick={() => setOpen(false)}>
+                    Xem tất cả sản phẩm &rarr;
+                  </Link>
+                )}
+              </div>
+            )}
             <PopoverPrimitive.Arrow className="fill-white" />
           </PopoverPrimitive.Content>
         </PopoverPrimitive.Portal>
