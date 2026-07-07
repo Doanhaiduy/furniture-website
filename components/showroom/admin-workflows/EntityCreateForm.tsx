@@ -626,6 +626,16 @@ function ShowroomEntityForm({ idOrSlug }: { idOrSlug?: string }) {
       </div>
       <aside className="space-y-5">
         <section className="surface-soft p-4 space-y-4">
+          <h3 className="admin-section-title-pd">Thứ tự hiển thị</h3>
+          <AdminField
+            label="Thứ tự hiển thị (Số nhỏ xếp trước)"
+            name="showroom-sort-order"
+            inputType="number"
+            value={String(sortOrder)}
+            onChange={(v) => setSortOrder(Number(v) || 0)}
+          />
+        </section>
+        <section className="surface-soft p-4 space-y-4">
           <h3 className="admin-section-title-pd">Ảnh bìa showroom</h3>
           <ImageUploadDropzone value={coverImage} onChange={setCoverImage} label="Tải ảnh showroom lên" />
         </section>
