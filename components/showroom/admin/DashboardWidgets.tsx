@@ -58,7 +58,6 @@ export const weekData = generateDynamicWeekData();
 
 export const metricOptions = [
   { key: "quotes", label: "Yêu cầu báo giá" },
-  { key: "seo", label: "SEO" },
   { key: "drafts", label: "Bản nháp" },
 ] as const;
 

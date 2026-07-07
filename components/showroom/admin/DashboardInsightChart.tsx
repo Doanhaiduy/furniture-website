@@ -167,12 +167,10 @@ function AdminDatePicker({
 
           <div className="mt-4 grid gap-2 rounded-xl bg-[#f4f6fb] p-3">
             <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="font-semibold text-[#686d82]">Yêu cầu báo giá</span>
+              <span className="font-semibold text-[#686d82]">
+                {summaryMetric === "quotes" ? "Yêu cầu báo giá" : "Bản nháp"}
+              </span>
               <strong>{selected[summaryMetric]}</strong>
-            </div>
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="font-semibold text-[#686d82]">Mức độ sẵn sàng SEO</span>
-              <strong>{selected.seo}%</strong>
             </div>
           </div>
 
@@ -207,7 +205,7 @@ function AdminDatePicker({
 
 
 export function DashboardInsightChart({ role, quotes = [] }: { role?: AdminRole; quotes?: AdminQuote[] }) {
-  const [metric, setMetric] = useState<Metric>(role === "editor" ? "seo" : "quotes");
+  const [metric, setMetric] = useState<Metric>(role === "editor" ? "drafts" : "quotes");
   const { selectedIndex: activeIndex, setSelectedIndex: setActiveIndex } = useAdminDateSelection();
   const visibleMetricOptions = useMemo(
     () => (role === "editor" ? metricOptions.filter((option) => option.key !== "quotes") : metricOptions),
@@ -329,8 +327,7 @@ export function DashboardInsightChart({ role, quotes = [] }: { role?: AdminRole;
       <div className="grid gap-3">
         {[
           ["Ngày đang chọn", active.date],
-          ["Yêu cầu báo giá", String(active.quotes)],
-          ["SEO sẵn sàng", `${active.seo}%`],
+          role === "editor" ? ["Bản nháp", String(active.drafts)] : ["Yêu cầu báo giá", String(active.quotes)],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-[#e0e6ef] bg-white p-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a8ea3]">{label}</p>
