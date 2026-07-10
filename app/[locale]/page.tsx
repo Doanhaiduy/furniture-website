@@ -94,7 +94,13 @@ export default async function HomePage({
         hotline: s.hotline,
         mapUrl: s.map_url,
       }))
-    : showrooms.slice(0, 2);
+    : showrooms.slice(0, 2).map((s) => ({
+        code: s.code,
+        name: localized(s.name, locale),
+        address: localized(s.address, locale),
+        hotline: s.hotline,
+        mapUrl: s.mapUrl,
+      }));
 
   const staticBrands = [
     { name: "KOHLER", desc: locale === "vi" ? "Hoa Kỳ" : "USA" },

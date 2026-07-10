@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   Mail,
@@ -92,7 +92,6 @@ export function PublicShell({
   socialLinks?: any[];
 }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   // Expanded by default so contact options are visible without a tap; still collapsible.
   const [fabOpen, setFabOpen] = useState(true);

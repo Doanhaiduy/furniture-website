@@ -117,6 +117,11 @@ export function RichTextEditorMock({
         blockquote: {},
         code: false,
         codeBlock: false,
+        // StarterKit v3 bundles Link + Underline; disable them here so our
+        // separately-configured extensions below are the only registrations
+        // (otherwise tiptap warns about duplicate 'link'/'underline' names).
+        link: false,
+        underline: false,
       }),
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
