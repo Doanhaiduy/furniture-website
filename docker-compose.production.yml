@@ -7,6 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        # Same key baked at build time and supplied at runtime (env_file below).
+        NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: ${NEXT_SERVER_ACTIONS_ENCRYPTION_KEY:-}
       secrets:
         - NEXT_PUBLIC_SUPABASE_URL
         - NEXT_PUBLIC_SUPABASE_ANON_KEY

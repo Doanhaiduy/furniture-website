@@ -3,6 +3,14 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // App chạy sau reverse proxy trên IP thuần (http://103.228.74.240). Next kiểm tra
+  // origin của Server Action so với host; sau proxy dễ lệch → trả 400. Khai báo origin
+  // hợp lệ để cho phép. Thêm domain thật vào đây khi chuyển sang domain + HTTPS.
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["103.228.74.240"],
+    },
+  },
   devIndicators: {
     // @ts-expect-error - appIsrStatus is supported in Next.js 15 runtime but types definition is outdated
     appIsrStatus: false,
@@ -49,10 +57,6 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },

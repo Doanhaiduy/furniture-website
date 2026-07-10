@@ -31,6 +31,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+# Pin the Server Actions encryption key so action IDs stay STABLE across rebuilds.
+# Without a fixed key Next generates a new one every build → browsers holding an
+# older bundle get HTTP 400 "Failed to find Server Action ... from an older or
+# newer deployment" on every server-action call. Must match the runtime value
+# in .env.production.
+ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+
 ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_service_role_key
 ENV RESEND_API_KEY=re_placeholder_key
 
