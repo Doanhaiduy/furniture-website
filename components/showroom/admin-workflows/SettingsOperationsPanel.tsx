@@ -1005,7 +1005,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                 </div>
                 <div>
                   <h3 className="font-heading font-bold text-slate-800">Quy trình và khóa hệ thống</h3>
-                  <p className="text-xs text-secondary">Cấu hình SMTP Brevo (gửi email báo giá), Cloudinary, Gemini và các chỉ số quản lý vận hành.</p>
+                  <p className="text-xs text-secondary">Cấu hình khóa API Google Gemini dùng cho trợ lý AI soạn nội dung.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded border border-red-200">
@@ -1014,73 +1014,33 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
             </div>
             
             <div className="mt-4 grid gap-4 bg-white p-4 rounded-xl border">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid content-start gap-1">
-                  <AdminField
-                    label="Brevo SMTP Login"
-                    name="brevo-smtp-login"
-                    value={brevoSmtpLogin}
-                    onChange={(val) => { setBrevoSmtpLogin(val); markDirty(); }}
-                    placeholder="ban@vidu.com (email đăng nhập tài khoản Brevo)"
-                  />
-                  <p className="text-xs text-slate-500">Xem trong Brevo tại SMTP &amp; API → SMTP.</p>
-                </div>
+              <div className="max-w-md grid content-start gap-2">
                 <AdminField
-                  label="Brevo SMTP Key"
-                  name="brevo-smtp-key"
-                  value={brevoSmtpKey}
-                  onChange={(val) => { setBrevoSmtpKey(val); markDirty(); }}
+                  label="Khóa API Google Gemini"
+                  name="gemini-key"
+                  value={geminiKey}
+                  onChange={(val) => { setGeminiKey(val); markDirty(); setGeminiStatus(null); }}
+                  placeholder="AIzaSy..."
                   inputType="password"
                 />
-                <AdminField
-                  label="Preset tải lên Cloudinary"
-                  name="cloudinary-preset"
-                  value={cloudinaryPreset}
-                  onChange={(val) => { setCloudinaryPreset(val); markDirty(); }}
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid content-start gap-2">
-                  <AdminField
-                    label="Khóa API Google Gemini"
-                    name="gemini-key"
-                    value={geminiKey}
-                    onChange={(val) => { setGeminiKey(val); markDirty(); setGeminiStatus(null); }}
-                    placeholder="AIzaSy..."
-                    inputType="password"
-                  />
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleVerifyGemini}
-                      disabled={verifyingGemini}
-                      className="button-pd-outline py-1.5 px-3 text-xs disabled:opacity-60"
-                    >
-                      {verifyingGemini ? "Đang kiểm tra..." : "Kiểm tra khóa"}
-                    </button>
-                    {geminiStatus && (
-                      <span className={`text-xs font-semibold ${geminiStatus.ok ? "text-emerald-600" : "text-red-600"}`}>
-                        {geminiStatus.ok ? "✓ " : "✕ "}{geminiStatus.message}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="grid content-start gap-2">
-                  <AdminField
-                    label="Giới hạn SLA phản hồi (giờ)"
-                    name="sla-hours"
-                    inputType="number"
-                    value={slaHours}
-                    onChange={(val) => { setSlaHours(val); markDirty(); }}
-                    placeholder="Ví dụ: 2"
-                  />
-                  <p className="text-[11px] leading-relaxed text-slate-400">
-                    Thời gian tối đa đội ngũ phản hồi một yêu cầu báo giá (đơn vị: giờ).
-                  </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleVerifyGemini}
+                    disabled={verifyingGemini}
+                    className="button-pd-outline py-1.5 px-3 text-xs disabled:opacity-60"
+                  >
+                    {verifyingGemini ? "Đang kiểm tra..." : "Kiểm tra khóa"}
+                  </button>
+                  {geminiStatus && (
+                    <span className={`text-xs font-semibold ${geminiStatus.ok ? "text-emerald-600" : "text-red-600"}`}>
+                      {geminiStatus.ok ? "✓ " : "✕ "}{geminiStatus.message}
+                    </span>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-slate-400 font-semibold italic">
-                * Toàn bộ thông số API trên chỉ được lưu trữ và truy cập an toàn trong cơ sở dữ liệu phía máy chủ.
+                * Khóa API được lưu trữ và truy cập an toàn trong cơ sở dữ liệu phía máy chủ.
               </p>
             </div>
           </section>
