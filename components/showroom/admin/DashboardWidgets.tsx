@@ -114,24 +114,29 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
     recentMissingTranslations?: Array<{ id: string; name: string; created_at: string }>;
   }>({ unreadQuotesCount: 0, missingTranslationsCount: 0, recentQuotes: [], recentMissingTranslations: [] });
 
-  useEffect(() => {
-    async function fetchNotifications() {
-      try {
-        const res = await fetch("/api/admin/notifications");
-        if (res.ok) {
-          const data = await res.json();
-          setStats({
-            unreadQuotesCount: data.unreadQuotesCount ?? 0,
-            missingTranslationsCount: data.missingTranslationsCount ?? 0,
-            recentQuotes: data.recentQuotes ?? [],
-            recentMissingTranslations: data.recentMissingTranslations ?? [],
-          });
-        }
-      } catch {
-        // noop
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/admin/notifications", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setStats({
+          unreadQuotesCount: data.unreadQuotesCount ?? 0,
+          missingTranslationsCount: data.missingTranslationsCount ?? 0,
+          recentQuotes: data.recentQuotes ?? [],
+          recentMissingTranslations: data.recentMissingTranslations ?? [],
+        });
       }
+    } catch {
+      // noop
     }
+  };
+
+  useEffect(() => {
     fetchNotifications();
+    // Poll every 60s to keep the bell badge fresh
+    const timer = setInterval(fetchNotifications, 60_000);
+    return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totalNotifications = stats.unreadQuotesCount + stats.missingTranslationsCount;
@@ -143,7 +148,11 @@ export function NotificationButton({ role }: { role?: AdminRole }) {
         open={open}
         onOpenChange={(value) => {
           setOpen(value);
-          if (value) setRead(true);
+          if (value) {
+            setRead(true);
+            // Re-fetch fresh notifications every time the panel opens
+            fetchNotifications();
+          }
         }}
       >
         <PopoverPrimitive.Trigger asChild>

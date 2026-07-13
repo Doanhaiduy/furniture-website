@@ -66,12 +66,12 @@ export function AdminDashboard({
 }) {
   const isAdmin = role === "admin";
   const kpis = [
-    { label: "Sản phẩm", value: stats.productCount, delta: "Tổng danh mục", visible: true, Icon: Package },
-    { label: "Danh mục", value: stats.categoryCount, delta: "Nhóm sản phẩm", visible: true, Icon: Tag },
-    { label: "Bài viết", value: stats.blogCount, delta: "Đã xuất bản", visible: true, Icon: Newspaper },
-    { label: "Showroom", value: stats.showroomCount, delta: "Đang hoạt động", visible: true, Icon: MapPin },
-    { label: "Yêu cầu báo giá", value: stats.quoteCount, delta: "Chờ xử lý", visible: isAdmin, Icon: MessageSquare },
-    { label: "Người dùng", value: stats.userCount, delta: "Tài khoản", visible: isAdmin, Icon: Users },
+    { label: "Sản phẩm", value: stats.productCount, delta: "Tổng danh mục", visible: true, Icon: Package, href: "/admin/products" },
+    { label: "Danh mục", value: stats.categoryCount, delta: "Nhóm sản phẩm", visible: true, Icon: Tag, href: "/admin/categories" },
+    { label: "Bài viết", value: stats.blogCount, delta: "Đã xuất bản", visible: true, Icon: Newspaper, href: "/admin/blog" },
+    { label: "Showroom", value: stats.showroomCount, delta: "Đang hoạt động", visible: true, Icon: MapPin, href: "/admin/showrooms" },
+    { label: "Yêu cầu báo giá", value: stats.quoteCount, delta: "Chờ xử lý", visible: isAdmin, Icon: MessageSquare, href: "/admin/quotes" },
+    { label: "Người dùng", value: stats.userCount, delta: "Tài khoản", visible: isAdmin, Icon: Users, href: "/admin/users" },
   ].filter((item) => item.visible);
 
   return (
@@ -86,18 +86,19 @@ export function AdminDashboard({
       {/* KPI Cards */}
       <div className="motion-stagger grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {kpis.map((stat) => (
-          <div key={stat.label} className="group relative bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between">
+          <Link key={stat.label} href={stat.href} className="group relative bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-indigo-200 transition-all duration-300 flex flex-col justify-between cursor-pointer">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">{stat.label}</span>
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider group-hover:text-indigo-500 transition-colors">{stat.label}</span>
               <div className="p-2 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-500/10 group-hover:text-indigo-600 transition-colors">
                 <stat.Icon className="size-4" />
               </div>
             </div>
             <div className="mt-4 flex items-baseline justify-between">
-              <strong className="text-2xl font-extrabold text-slate-800 tracking-tight">{stat.value}</strong>
-              <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">{stat.delta}</span>
+              <strong className="text-2xl font-extrabold text-slate-800 tracking-tight group-hover:text-indigo-700 transition-colors">{stat.value}</strong>
+              <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">{stat.delta}</span>
             </div>
-          </div>
+            <ArrowRight className="absolute bottom-3 right-3 size-3 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-indigo-400 transition-all duration-200" />
+          </Link>
         ))}
       </div>
 

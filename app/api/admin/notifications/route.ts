@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireEditorOrAdmin } from "@/lib/supabase/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  // SECURITY: Authentication is enforced above via requireEditorOrAdmin().
+  // We use the service-role client here (bypasses RLS) because the regular
+  // anon+session client relies on auth.uid() resolving inside the RLS policy
+  // (is_admin()), which can silently return 0 rows — not an error — when the
+  // session cookie is not forwarded correctly in the API route context.
+  // This is consistent with how getAdminQuotesList() works in admin-queries/quotes.ts.
+  const supabase = createAdminClient();
 
   let unreadQuotesCount = 0;
   let missingTranslationsCount = 0;
@@ -22,27 +28,33 @@ export async function GET() {
   // Only admin can access quotes
   if (user.role === "admin") {
     try {
-      const { count, error: quoteError } = await supabase
+      const { count, error: quoteCountError } = await supabase
         .from("quote_requests")
         .select("*", { count: "exact", head: true })
-        .eq("status", "new");
+        .eq("status", "new")
+        .is("deleted_at", null);
 
-      if (!quoteError && count !== null) {
+      if (quoteCountError) {
+        console.error("[notifications] quote count error:", quoteCountError.message);
+      } else if (count !== null) {
         unreadQuotesCount = count;
       }
 
-      const { data: quotesData } = await supabase
+      const { data: quotesData, error: quotesError } = await supabase
         .from("quote_requests")
         .select("id, full_name, created_at, status")
         .eq("status", "new")
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(5);
 
-      if (quotesData) {
+      if (quotesError) {
+        console.error("[notifications] recent quotes error:", quotesError.message);
+      } else if (quotesData) {
         recentQuotes = quotesData;
       }
     } catch (e) {
-      console.error("Failed to fetch unread quotes count:", e);
+      console.error("[notifications] Failed to fetch quotes:", e);
     }
   }
 
@@ -61,16 +73,15 @@ export async function GET() {
       .is("deleted_at", null)
       .eq("product_translations.locale", "en");
 
-    if (
-      !totalError &&
-      !translatedError &&
-      totalProducts !== null &&
-      translatedProducts !== null
-    ) {
+    if (totalError) {
+      console.error("[notifications] total products error:", totalError.message);
+    } else if (translatedError) {
+      console.error("[notifications] translated products error:", translatedError.message);
+    } else if (totalProducts !== null && translatedProducts !== null) {
       missingTranslationsCount = Math.max(0, totalProducts - translatedProducts);
     }
 
-    const { data: missingProductsData } = await supabase
+    const { data: missingProductsData, error: missingError } = await supabase
       .from("products")
       .select(`
         id,
@@ -83,7 +94,9 @@ export async function GET() {
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
-    if (missingProductsData) {
+    if (missingError) {
+      console.error("[notifications] missing translations query error:", missingError.message);
+    } else if (missingProductsData) {
       recentMissingTranslations = missingProductsData
         .filter((p: any) => {
           const locales = Array.isArray(p.product_translations)
@@ -104,7 +117,7 @@ export async function GET() {
         });
     }
   } catch (e) {
-    console.error("Failed to fetch missing translations count:", e);
+    console.error("[notifications] Failed to fetch missing translations:", e);
   }
 
   return NextResponse.json({
@@ -114,4 +127,3 @@ export async function GET() {
     recentMissingTranslations,
   });
 }
- 
