@@ -3,7 +3,7 @@ import { rateLimitCheck } from "@/lib/quotes/rate-limit";
 import { getQuoteRequestSchema } from "@/lib/validations/quote";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getQuoteRecipients } from "@/lib/quotes/recipients";
-import { getResendClient } from "@/lib/resend/client";
+import { getBrevoTransporter } from "@/lib/brevo/client";
 import { decryptSecret } from "@/lib/security/encryption";
 import { env } from "@/lib/env/schema";
 import { renderManagerQuoteEmail } from "@/lib/email/templates/manager-quote";
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
   const notificationRows = recipients.map((r) => ({
     quote_request_id: quote.id,
     recipient_email: r.email,
-    provider: "resend",
+    provider: "brevo",
     status: "pending" as const,
   }));
 
@@ -143,22 +143,26 @@ export async function POST(request: Request) {
     }
   }
 
-  // Resolve the Resend API key — the admin-configured secret (integration_secrets,
-  // AES-GCM encrypted) takes precedence over the RESEND_API_KEY env var — and the
-  // sender address from site_settings.quote_sender_email (env RESEND_FROM as fallback),
-  // so the values configured through the admin panel are actually used when sending.
-  let resendApiKey: string | null = env.RESEND_API_KEY || process.env.RESEND_API_KEY || null;
+  // Resolve Brevo SMTP credentials — the admin-configured secrets (integration_secrets,
+  // AES-GCM encrypted) take precedence over the BREVO_SMTP_LOGIN/BREVO_SMTP_KEY env vars —
+  // and the sender address from site_settings.quote_sender_email (env BREVO_SENDER_EMAIL as
+  // fallback), so the values configured through the admin panel are actually used when sending.
+  let smtpLogin: string | null = env.BREVO_SMTP_LOGIN || process.env.BREVO_SMTP_LOGIN || null;
+  let smtpKey: string | null = env.BREVO_SMTP_KEY || process.env.BREVO_SMTP_KEY || null;
   const encryptionKey = env.AI_SECRET_ENCRYPTION_KEY || process.env.AI_SECRET_ENCRYPTION_KEY;
-  const { data: keySecret } = await supabase
+  const { data: smtpSecrets } = await supabase
     .from("integration_secrets")
-    .select("encrypted_value")
-    .eq("key_name", "resend_api_key")
-    .maybeSingle();
-  if (keySecret?.encrypted_value && encryptionKey) {
-    try {
-      resendApiKey = decryptSecret(keySecret.encrypted_value, encryptionKey);
-    } catch (err) {
-      console.error("Failed to decrypt resend_api_key, falling back to env:", err);
+    .select("key_name, encrypted_value")
+    .in("key_name", ["brevo_smtp_login", "brevo_smtp_key"]);
+  if (smtpSecrets && encryptionKey) {
+    for (const secret of smtpSecrets) {
+      try {
+        const decrypted = decryptSecret(secret.encrypted_value, encryptionKey);
+        if (secret.key_name === "brevo_smtp_login") smtpLogin = decrypted;
+        if (secret.key_name === "brevo_smtp_key") smtpKey = decrypted;
+      } catch (err) {
+        console.error(`Failed to decrypt ${secret.key_name}, falling back to env:`, err);
+      }
     }
   }
 
@@ -167,15 +171,14 @@ export async function POST(request: Request) {
     .select("quote_sender_email")
     .limit(1)
     .maybeSingle();
-  const configuredFrom = senderSettings?.quote_sender_email?.trim() || process.env.RESEND_FROM || null;
-  // The default domain MUST match the site's real domain (phuongdong.vn) — the previous
-  // fallback used .com, an almost-certainly-unverified domain, so Resend rejected the send
-  // (403) and the sales team silently never received the lead notification.
-  const fromAddress = configuredFrom || "noreply@phuongdong.vn";
-  if (!configuredFrom) {
+  // No hardcoded domain fallback: the sender address must be a mailbox verified in Brevo
+  // (Single Sender Verification, since there's no company domain yet) — a made-up fallback
+  // address would just fail the send the same way an unverified one would.
+  const fromAddress = senderSettings?.quote_sender_email?.trim() || env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || null;
+  if (!fromAddress) {
     console.warn(
-      "[quote] No verified sender configured (site_settings.quote_sender_email / RESEND_FROM). " +
-        "Falling back to noreply@phuongdong.vn — the domain must be verified in Resend or the send will fail with 403.",
+      "[quote] No verified sender configured (site_settings.quote_sender_email / BREVO_SENDER_EMAIL). " +
+        "Set one to a mailbox verified in Brevo (Single Sender Verification) or the send will be skipped.",
     );
   }
 
@@ -184,11 +187,11 @@ export async function POST(request: Request) {
   let emailError: string | null = null;
   let providerMessageId: string | null = null;
   let sendAttempted = false;
-  if (recipients.length > 0 && resendApiKey) {
+  if (recipients.length > 0 && smtpLogin && smtpKey && fromAddress) {
     sendAttempted = true;
     try {
-      const client = getResendClient(resendApiKey);
-      const { data: sendResult, error: sendError } = await client.emails.send({
+      const transporter = getBrevoTransporter(smtpLogin, smtpKey);
+      const sendResult = await transporter.sendMail({
         from: fromAddress,
         to: recipients.map((r) => r.email),
         subject: `Yêu cầu báo giá mới từ ${data.fullName}`,
@@ -203,11 +206,7 @@ export async function POST(request: Request) {
           locale: data.locale,
         }),
       });
-      if (sendError) {
-        emailError = sendError.message;
-      } else {
-        providerMessageId = sendResult?.id ?? null;
-      }
+      providerMessageId = sendResult.messageId ?? null;
     } catch (err) {
       emailError = err instanceof Error ? err.message : "Unknown email error";
     }

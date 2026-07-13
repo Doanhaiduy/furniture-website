@@ -133,7 +133,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const [seoDescVi, setSeoDescVi] = useState("Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.");
   const [seoDescEn, setSeoDescEn] = useState("Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
 
-  const [resendKey, setResendKey] = useState("re_123456789abcdef");
+  const [brevoSmtpLogin, setBrevoSmtpLogin] = useState("");
+  const [brevoSmtpKey, setBrevoSmtpKey] = useState("");
   const [cloudinaryPreset, setCloudinaryPreset] = useState("phuongdong_unsigned_preset");
   const [geminiKey, setGeminiKey] = useState("AIzaSy••••••••••••••••");
   const [slaHours, setSlaHours] = useState("24");
@@ -280,7 +281,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         if (data.seoTitleEn !== undefined) setSeoTitleEn(data.seoTitleEn);
         if (data.seoDescVi !== undefined) setSeoDescVi(data.seoDescVi);
         if (data.seoDescEn !== undefined) setSeoDescEn(data.seoDescEn);
-        if (data.resendKey !== undefined) setResendKey(data.resendKey);
+        if (data.brevoSmtpLogin !== undefined) setBrevoSmtpLogin(data.brevoSmtpLogin);
+        if (data.brevoSmtpKey !== undefined) setBrevoSmtpKey(data.brevoSmtpKey);
         if (data.cloudinaryPreset !== undefined) setCloudinaryPreset(data.cloudinaryPreset);
         if (data.geminiKey !== undefined) setGeminiKey(data.geminiKey);
         if (data.slaHours !== undefined) setSlaHours(data.slaHours);
@@ -394,7 +396,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         seoTitleEn,
         seoDescVi,
         seoDescEn,
-        resendKey,
+        brevoSmtpLogin,
+        brevoSmtpKey,
         cloudinaryPreset,
         geminiKey,
         slaHours,
@@ -479,7 +482,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         const getRes = await fetch("/api/admin/settings");
         if (getRes.ok) {
           const freshData = await getRes.json();
-          if (freshData.resendKey !== undefined) setResendKey(freshData.resendKey);
+          if (freshData.brevoSmtpLogin !== undefined) setBrevoSmtpLogin(freshData.brevoSmtpLogin);
+          if (freshData.brevoSmtpKey !== undefined) setBrevoSmtpKey(freshData.brevoSmtpKey);
           if (freshData.geminiKey !== undefined) setGeminiKey(freshData.geminiKey);
         }
       } else {
@@ -519,7 +523,8 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
       setSeoTitleEn(data.seoTitleEn || "Phuong Dong - Premium Furniture & Sanitary Ware");
       setSeoDescVi(data.seoDescVi || "Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.");
       setSeoDescEn(data.seoDescEn || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.");
-      setResendKey(data.resendKey || "re_123456789abcdef");
+      setBrevoSmtpLogin(data.brevoSmtpLogin || "");
+      setBrevoSmtpKey(data.brevoSmtpKey || "");
       setCloudinaryPreset(data.cloudinaryPreset || "phuongdong_unsigned_preset");
       setGeminiKey(data.geminiKey || "AIzaSy••••••••••••••••");
       setSlaHours(data.slaHours || "24");
@@ -855,10 +860,10 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                   name="quote-sender-email"
                   value={quoteSenderEmail}
                   onChange={(val) => { setQuoteSenderEmail(val); markDirty(); }}
-                  placeholder="Để trống = dùng mặc định, hoặc điền giống email nhận ở trên"
+                  placeholder="Email đã xác minh trong Brevo (Single Sender), vd: ban@vidu.com"
                   inputType="email"
                 />
-                <p className="text-xs text-slate-500">Là địa chỉ <strong>người gửi</strong> đứng tên trên email hệ thống tự gửi (ô trên là địa chỉ <strong>người nhận</strong>). Có thể điền <strong>giống ô trên</strong> hoặc để trống. Lưu ý: domain của email người gửi phải được <strong>xác minh trong Resend</strong>, nếu không email sẽ không gửi được.</p>
+                <p className="text-xs text-slate-500">Là địa chỉ <strong>người gửi</strong> đứng tên trên email hệ thống tự gửi (ô trên là địa chỉ <strong>người nhận</strong>). Lưu ý: hộp thư này phải được <strong>xác minh trong Brevo</strong> (mục Senders → Add a Sender) trước, nếu không email sẽ không gửi được. Chưa có domain riêng thì xác minh trực tiếp một địa chỉ email (Single Sender) — không cần DNS; sau này có domain có thể xác thực cả domain (SPF/DKIM) để gửi chuyên nghiệp hơn.</p>
               </div>
               <div className="grid gap-4">
                 <VietnamAddressPicker
@@ -1000,7 +1005,7 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                 </div>
                 <div>
                   <h3 className="font-heading font-bold text-slate-800">Quy trình và khóa hệ thống</h3>
-                  <p className="text-xs text-secondary">Cấu hình khóa API cho Resend, Cloudinary, OpenAI và các chỉ số quản lý vận hành.</p>
+                  <p className="text-xs text-secondary">Cấu hình SMTP Brevo (gửi email báo giá), Cloudinary, Gemini và các chỉ số quản lý vận hành.</p>
                 </div>
               </div>
               <span className="text-[10px] bg-red-100 text-red-800 font-bold px-2 py-0.5 rounded border border-red-200">
@@ -1010,18 +1015,28 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
             
             <div className="mt-4 grid gap-4 bg-white p-4 rounded-xl border">
               <div className="grid gap-4 md:grid-cols-2">
-                <AdminField 
-                  label="Khóa API Resend" 
-                  name="resend-key" 
-                  value={resendKey} 
-                  onChange={(val) => { setResendKey(val); markDirty(); }} 
+                <div className="grid content-start gap-1">
+                  <AdminField
+                    label="Brevo SMTP Login"
+                    name="brevo-smtp-login"
+                    value={brevoSmtpLogin}
+                    onChange={(val) => { setBrevoSmtpLogin(val); markDirty(); }}
+                    placeholder="ban@vidu.com (email đăng nhập tài khoản Brevo)"
+                  />
+                  <p className="text-xs text-slate-500">Xem trong Brevo tại SMTP &amp; API → SMTP.</p>
+                </div>
+                <AdminField
+                  label="Brevo SMTP Key"
+                  name="brevo-smtp-key"
+                  value={brevoSmtpKey}
+                  onChange={(val) => { setBrevoSmtpKey(val); markDirty(); }}
                   inputType="password"
                 />
-                <AdminField 
-                  label="Preset tải lên Cloudinary" 
-                  name="cloudinary-preset" 
-                  value={cloudinaryPreset} 
-                  onChange={(val) => { setCloudinaryPreset(val); markDirty(); }} 
+                <AdminField
+                  label="Preset tải lên Cloudinary"
+                  name="cloudinary-preset"
+                  value={cloudinaryPreset}
+                  onChange={(val) => { setCloudinaryPreset(val); markDirty(); }}
                 />
               </div>
               <div className="grid gap-4 md:grid-cols-2">

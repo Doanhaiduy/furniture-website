@@ -138,7 +138,8 @@ export async function GET() {
     seoTitleEn: enTrans.seo_default_title || "Phuong Dong - Premium Furniture & Sanitary Ware",
     seoDescVi: viTrans.seo_default_description || "Showroom Phương Đông chuyên cung cấp đồ gỗ nội thất tự nhiên cao cấp và thiết bị vệ sinh nhập khẩu chính hãng.",
     seoDescEn: enTrans.seo_default_description || "Phuong Dong Showroom specializes in premium solid natural wood furniture and genuine imported sanitary ware.",
-    resendKey: secretsMap.get("resend_api_key") || "",
+    brevoSmtpLogin: secretsMap.get("brevo_smtp_login") || "",
+    brevoSmtpKey: secretsMap.get("brevo_smtp_key") || "",
     geminiKey: secretsMap.get("gemini_api_key") || "",
     cloudinaryPreset: secretsMap.get("cloudinary_preset") || "phuongdong_unsigned_preset",
     slaHours: "24",
@@ -330,7 +331,8 @@ export async function PUT(request: Request) {
 
   // 3. Upsert integration secrets
   const secretsToSave = [
-    { key: "resend_api_key", value: body.resendKey },
+    { key: "brevo_smtp_login", value: body.brevoSmtpLogin },
+    { key: "brevo_smtp_key", value: body.brevoSmtpKey },
     { key: "gemini_api_key", value: body.geminiKey },
     { key: "cloudinary_preset", value: body.cloudinaryPreset },
   ];

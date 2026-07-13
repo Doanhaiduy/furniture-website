@@ -41,13 +41,11 @@ vi.mock("@/lib/quotes/rate-limit", () => ({
   rateLimitCheck: () => ({ allowed: true, retryAfterMs: 0 }),
 }));
 
-// Mock Resend client so we don't make real email requests
-vi.mock("@/lib/resend/client", () => ({
-  resend: {
-    emails: {
-      send: vi.fn().mockResolvedValue({ data: { id: "test-email-id" }, error: null }),
-    },
-  },
+// Mock the Brevo SMTP transporter so we don't make real email requests
+vi.mock("@/lib/brevo/client", () => ({
+  getBrevoTransporter: vi.fn().mockReturnValue({
+    sendMail: vi.fn().mockResolvedValue({ messageId: "test-email-id" }),
+  }),
 }));
 
 describe("API /api/contact Integration Tests", () => {

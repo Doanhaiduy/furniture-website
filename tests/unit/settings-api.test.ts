@@ -62,7 +62,7 @@ describe("Settings Admin API Route", () => {
           return {
             select: vi.fn().mockResolvedValue({
               data: [
-                { key_name: "resend_api_key", masked_hint: "****5678" },
+                { key_name: "brevo_smtp_login", masked_hint: "****5678" },
                 { key_name: "gemini_api_key", masked_hint: "****1234" }
               ]
             })
@@ -90,6 +90,6 @@ describe("Settings Admin API Route", () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.brandNameVi).toBe("Thương hiệu Việt");
-    expect(data.resendKey).toBe("****5678");
+    expect(data.brevoSmtpLogin).toBe("****5678");
   });
 });

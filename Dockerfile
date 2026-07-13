@@ -40,7 +40,8 @@ ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 
 ENV SUPABASE_SERVICE_ROLE_KEY=placeholder_service_role_key
-ENV RESEND_API_KEY=re_placeholder_key
+ENV BREVO_SMTP_LOGIN=placeholder@example.com
+ENV BREVO_SMTP_KEY=placeholder_smtp_key
 
 # Build using secrets if available, falling back to build arguments
 RUN --mount=type=secret,id=NEXT_PUBLIC_SUPABASE_URL,required=false \
