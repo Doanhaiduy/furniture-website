@@ -6,6 +6,20 @@ import { encryptSecret, generateMaskedHint } from "@/lib/security/encryption";
 import { env } from "@/lib/env/schema";
 import { settingsSchema } from "@/lib/validations/admin";
 
+// Fallbacks for the About page timeline & stats when the CMS has no saved data yet.
+const DEFAULT_ABOUT_MILESTONES = [
+  { yearVi: "2004", yearEn: "2004", titleVi: "Khởi nguồn", titleEn: "Founded", textVi: "Bắt đầu từ xưởng đồ gỗ gia đình với nghề mộc truyền thống.", textEn: "Started as a family woodworking workshop rooted in traditional craft." },
+  { yearVi: "2010", yearEn: "2010", titleVi: "Showroom đầu tiên", titleEn: "First showroom", textVi: "Mở showroom tư vấn, đưa sản phẩm đến gần hơn với khách hàng.", textEn: "Opened a consulting showroom to bring products closer to clients." },
+  { yearVi: "2016", yearEn: "2016", titleVi: "Mở rộng danh mục", titleEn: "Category expansion", textVi: "Bổ sung thiết bị vệ sinh và gạch ốp lát nhập khẩu chính hãng.", textEn: "Added genuine imported sanitary ware and tiles." },
+  { yearVi: "2020", yearEn: "2020", titleVi: "Nhà máy 2.000m²", titleEn: "2,000m² factory", textVi: "Đầu tư nhà máy và kho, chủ động sản xuất và kiểm soát chất lượng.", textEn: "Invested in factory and warehouse for in-house production and QC." },
+  { yearVi: "Hôm nay", yearEn: "Today", titleVi: "Giải pháp trọn gói", titleEn: "Complete solutions", textVi: "Tư vấn đồng bộ nội thất, thiết bị và vật liệu hoàn thiện cho mọi công trình.", textEn: "End-to-end furniture, fixtures and finishing solutions for every project." },
+];
+const DEFAULT_ABOUT_STATS = [
+  { valueVi: "20+", valueEn: "20+", labelVi: "năm kinh nghiệm", labelEn: "years of experience" },
+  { valueVi: "5.000+", valueEn: "5,000+", labelVi: "khách hàng hài lòng", labelEn: "happy clients" },
+  { valueVi: "2.000m²", valueEn: "2,000m²", labelVi: "nhà máy & kho", labelEn: "factory & warehouse" },
+];
+
 // Helper to resolve media URLs to DB IDs
 async function resolveMediaId(supabase: any, url: string | null): Promise<string | null> {
   if (!url) return null;
@@ -154,6 +168,18 @@ export async function GET() {
     aboutLeadVi: viHomeBody.aboutLeadVi || "Hơn 20 năm đồng hành cùng tổ ấm Việt.",
     aboutLeadEn: enHomeBody.aboutLeadEn || "Over 20 years of crafting Vietnamese homes.",
     aboutImage: viHomeBody.aboutImage || "/images/about.jpg",
+    aboutEyebrowVi: viHomeBody.aboutEyebrowVi || "Về Phương Đông",
+    aboutEyebrowEn: enHomeBody.aboutEyebrowEn || "About Phuong Dong",
+    aboutJourneyEyebrowVi: viHomeBody.aboutJourneyEyebrowVi || "Hành trình phát triển",
+    aboutJourneyEyebrowEn: enHomeBody.aboutJourneyEyebrowEn || "Our journey",
+    aboutJourneyHeadingVi: viHomeBody.aboutJourneyHeadingVi || "Chặng đường hơn 20 năm",
+    aboutJourneyHeadingEn: enHomeBody.aboutJourneyHeadingEn || "Over two decades of growth",
+    aboutMilestones: (Array.isArray(viHomeBody.aboutMilestones) && viHomeBody.aboutMilestones.length > 0)
+      ? viHomeBody.aboutMilestones
+      : DEFAULT_ABOUT_MILESTONES,
+    aboutStats: (Array.isArray(viHomeBody.aboutStats) && viHomeBody.aboutStats.length > 0)
+      ? viHomeBody.aboutStats
+      : DEFAULT_ABOUT_STATS,
     featuredVisible: viHomeBody.featuredVisible !== undefined ? viHomeBody.featuredVisible : true,
     featuredMaxItems: viHomeBody.featuredMaxItems || "4",
     blogSectionVisible: viHomeBody.blogSectionVisible !== undefined ? viHomeBody.blogSectionVisible : true,
@@ -364,6 +390,12 @@ export async function PUT(request: Request) {
     aboutHeadingVi: body.aboutHeadingVi,
     aboutLeadVi: body.aboutLeadVi,
     aboutImage: body.aboutImage,
+    aboutEyebrowVi: body.aboutEyebrowVi,
+    aboutJourneyEyebrowVi: body.aboutJourneyEyebrowVi,
+    aboutJourneyHeadingVi: body.aboutJourneyHeadingVi,
+    // Bilingual arrays stored in both locale rows so either page can render them.
+    aboutMilestones: body.aboutMilestones,
+    aboutStats: body.aboutStats,
     aboutVisible: body.aboutVisible,
     featuredVisible: body.featuredVisible,
     featuredMaxItems: body.featuredMaxItems,
@@ -399,6 +431,11 @@ export async function PUT(request: Request) {
     aboutHeadingEn: body.aboutHeadingEn,
     aboutLeadEn: body.aboutLeadEn,
     aboutImage: body.aboutImage,
+    aboutEyebrowEn: body.aboutEyebrowEn,
+    aboutJourneyEyebrowEn: body.aboutJourneyEyebrowEn,
+    aboutJourneyHeadingEn: body.aboutJourneyHeadingEn,
+    aboutMilestones: body.aboutMilestones,
+    aboutStats: body.aboutStats,
     aboutVisible: body.aboutVisible,
     featuredVisible: body.featuredVisible,
     featuredMaxItems: body.featuredMaxItems,

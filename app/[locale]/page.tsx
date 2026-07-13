@@ -123,6 +123,15 @@ export default async function HomePage({
   const displayCategories = rootCategories.slice(0, 4);
   const categoryCount = displayCategories.length;
 
+  // Stats shown in the homepage About section — editable via admin (bodyJson.aboutStats),
+  // falling back to the static trust badges when nothing has been saved yet.
+  const homeAboutStats: { value: string; label: string }[] = Array.isArray(bodyJson.aboutStats) && bodyJson.aboutStats.length > 0
+    ? bodyJson.aboutStats.map((s: any) => ({
+        value: locale === "vi" ? (s.valueVi || s.valueEn || "") : (s.valueEn || s.valueVi || ""),
+        label: locale === "vi" ? (s.labelVi || s.labelEn || "") : (s.labelEn || s.labelVi || ""),
+      }))
+    : trustBadges.map((b) => ({ value: b.value, label: localized(b.label, locale) }));
+
   let gridClass = "motion-stagger grid gap-5";
   if (categoryCount === 1) {
     gridClass += " grid-cols-1 md:grid-cols-2";
@@ -448,7 +457,7 @@ export default async function HomePage({
           </div>
           {/* Story + key stats */}
           <div>
-            <p className="label-pd">{locale === "vi" ? "Về Phương Đông" : "About Phuong Dong"}</p>
+            <p className="label-pd">{locale === "vi" ? (bodyJson.aboutEyebrowVi || "Về Phương Đông") : (bodyJson.aboutEyebrowEn || "About Phuong Dong")}</p>
             <h2 className="type-section-title mt-4 text-primary">
               {locale === "vi" ? (bodyJson.aboutHeadingVi || home("storyTitle")) : (bodyJson.aboutHeadingEn || home("storyTitle"))}
             </h2>
@@ -456,10 +465,10 @@ export default async function HomePage({
               {locale === "vi" ? (bodyJson.aboutLeadVi || home("storyLead")) : (bodyJson.aboutLeadEn || home("storyLead"))}
             </p>
             <dl className="mt-8 grid grid-cols-3 gap-3 sm:gap-4">
-              {trustBadges.map((badge) => (
-                <div key={badge.value} className="surface-card rounded-[var(--radius-control)] p-4 text-center">
-                  <dt className="font-heading text-2xl font-extrabold text-primary md:text-3xl">{badge.value}</dt>
-                  <dd className="mt-1 text-xs font-medium leading-4 text-secondary">{localized(badge.label, locale)}</dd>
+              {homeAboutStats.map((stat, i) => (
+                <div key={i} className="surface-card rounded-[var(--radius-control)] p-4 text-center">
+                  <dt className="font-heading text-2xl font-extrabold text-primary md:text-3xl">{stat.value}</dt>
+                  <dd className="mt-1 text-xs font-medium leading-4 text-secondary">{stat.label}</dd>
                 </div>
               ))}
             </dl>

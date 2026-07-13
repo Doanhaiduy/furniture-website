@@ -58,11 +58,18 @@ export default async function AboutPage({
   const pageTitle = pageData?.title || t("title");
   const pageLead = pageData?.lead || t("lead");
 
-  const heroStats = [
-    { value: isVi ? (homeBodyJson.badge1ValueVi || "20+") : (homeBodyJson.badge1ValueEn || "20+"), label: isVi ? "năm kinh nghiệm" : "years of experience" },
-    { value: isVi ? (homeBodyJson.badge2ValueVi || "5.000+") : (homeBodyJson.badge2ValueEn || "5,000+"), label: isVi ? "khách hàng hài lòng" : "happy clients" },
-    { value: "2.000m²", label: isVi ? "nhà máy & kho" : "factory & warehouse" },
+  const DEFAULT_STATS = [
+    { valueVi: "20+", valueEn: "20+", labelVi: "năm kinh nghiệm", labelEn: "years of experience" },
+    { valueVi: "5.000+", valueEn: "5,000+", labelVi: "khách hàng hài lòng", labelEn: "happy clients" },
+    { valueVi: "2.000m²", valueEn: "2,000m²", labelVi: "nhà máy & kho", labelEn: "factory & warehouse" },
   ];
+  const rawStats = Array.isArray(homeBodyJson.aboutStats) && homeBodyJson.aboutStats.length > 0
+    ? homeBodyJson.aboutStats
+    : DEFAULT_STATS;
+  const heroStats: { value: string; label: string }[] = rawStats.map((s: any) => ({
+    value: isVi ? (s.valueVi || s.valueEn || "") : (s.valueEn || s.valueVi || ""),
+    label: isVi ? (s.labelVi || s.labelEn || "") : (s.labelEn || s.labelVi || ""),
+  }));
 
   const values = [
     { icon: HeartHandshake, label: isVi ? "Uy tín" : "Integrity", text: isVi ? "Cam kết đúng chất lượng, đúng tiến độ và minh bạch trong từng báo giá." : "Committed to real quality, on-time delivery and transparent quotes." },
@@ -71,13 +78,21 @@ export default async function AboutPage({
     { icon: Leaf, label: isVi ? "Bền vững" : "Sustainability", text: isVi ? "Ưu tiên vật liệu bền, quy trình chuẩn và giá trị sử dụng lâu dài." : "Durable materials, standard processes and long-term value." },
   ];
 
-  const milestones = [
-    { year: "2004", title: isVi ? "Khởi nguồn" : "Founded", text: isVi ? "Bắt đầu từ xưởng đồ gỗ gia đình với nghề mộc truyền thống." : "Started as a family woodworking workshop rooted in traditional craft." },
-    { year: "2010", title: isVi ? "Showroom đầu tiên" : "First showroom", text: isVi ? "Mở showroom tư vấn, đưa sản phẩm đến gần hơn với khách hàng." : "Opened a consulting showroom to bring products closer to clients." },
-    { year: "2016", title: isVi ? "Mở rộng danh mục" : "Category expansion", text: isVi ? "Bổ sung thiết bị vệ sinh và gạch ốp lát nhập khẩu chính hãng." : "Added genuine imported sanitary ware and tiles." },
-    { year: "2020", title: isVi ? "Nhà máy 2.000m²" : "2,000m² factory", text: isVi ? "Đầu tư nhà máy và kho, chủ động sản xuất và kiểm soát chất lượng." : "Invested in factory and warehouse for in-house production and QC." },
-    { year: isVi ? "Hôm nay" : "Today", title: isVi ? "Giải pháp trọn gói" : "Complete solutions", text: isVi ? "Tư vấn đồng bộ nội thất, thiết bị và vật liệu hoàn thiện cho mọi công trình." : "End-to-end furniture, fixtures and finishing solutions for every project." },
+  const DEFAULT_MILESTONES = [
+    { yearVi: "2004", yearEn: "2004", titleVi: "Khởi nguồn", titleEn: "Founded", textVi: "Bắt đầu từ xưởng đồ gỗ gia đình với nghề mộc truyền thống.", textEn: "Started as a family woodworking workshop rooted in traditional craft." },
+    { yearVi: "2010", yearEn: "2010", titleVi: "Showroom đầu tiên", titleEn: "First showroom", textVi: "Mở showroom tư vấn, đưa sản phẩm đến gần hơn với khách hàng.", textEn: "Opened a consulting showroom to bring products closer to clients." },
+    { yearVi: "2016", yearEn: "2016", titleVi: "Mở rộng danh mục", titleEn: "Category expansion", textVi: "Bổ sung thiết bị vệ sinh và gạch ốp lát nhập khẩu chính hãng.", textEn: "Added genuine imported sanitary ware and tiles." },
+    { yearVi: "2020", yearEn: "2020", titleVi: "Nhà máy 2.000m²", titleEn: "2,000m² factory", textVi: "Đầu tư nhà máy và kho, chủ động sản xuất và kiểm soát chất lượng.", textEn: "Invested in factory and warehouse for in-house production and QC." },
+    { yearVi: "Hôm nay", yearEn: "Today", titleVi: "Giải pháp trọn gói", titleEn: "Complete solutions", textVi: "Tư vấn đồng bộ nội thất, thiết bị và vật liệu hoàn thiện cho mọi công trình.", textEn: "End-to-end furniture, fixtures and finishing solutions for every project." },
   ];
+  const rawMilestones = Array.isArray(homeBodyJson.aboutMilestones) && homeBodyJson.aboutMilestones.length > 0
+    ? homeBodyJson.aboutMilestones
+    : DEFAULT_MILESTONES;
+  const milestones: { year: string; title: string; text: string }[] = rawMilestones.map((m: any) => ({
+    year: isVi ? (m.yearVi || m.yearEn || "") : (m.yearEn || m.yearVi || ""),
+    title: isVi ? (m.titleVi || m.titleEn || "") : (m.titleEn || m.titleVi || ""),
+    text: isVi ? (m.textVi || m.textEn || "") : (m.textEn || m.textVi || ""),
+  }));
 
   const team = [
     { icon: Compass, role: isVi ? "Ban lãnh đạo" : "Leadership", text: isVi ? "Định hướng chiến lược và cam kết chất lượng dài hạn." : "Strategic direction and long-term quality commitment." },
@@ -98,8 +113,8 @@ export default async function AboutPage({
             <h1 className="type-page-title mt-5 text-white">{pageTitle}</h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/85">{pageLead}</p>
             <div className="mt-10 grid max-w-2xl grid-cols-3 gap-4">
-              {heroStats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              {heroStats.map((stat, i) => (
+                <div key={i} className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
                   <strong className="font-heading text-2xl font-extrabold text-white md:text-3xl">{stat.value}</strong>
                   <p className="mt-1 text-xs leading-4 text-white/75">{stat.label}</p>
                 </div>
@@ -188,15 +203,15 @@ export default async function AboutPage({
       {/* Timeline */}
       <section className="container-pd py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="label-pd">{isVi ? "Hành trình phát triển" : "Our journey"}</p>
+          <p className="label-pd">{isVi ? (homeBodyJson.aboutJourneyEyebrowVi || "Hành trình phát triển") : (homeBodyJson.aboutJourneyEyebrowEn || "Our journey")}</p>
           <h2 className="type-section-title mt-3 text-primary">
-            {isVi ? "Chặng đường hơn 20 năm" : "Over two decades of growth"}
+            {isVi ? (homeBodyJson.aboutJourneyHeadingVi || "Chặng đường hơn 20 năm") : (homeBodyJson.aboutJourneyHeadingEn || "Over two decades of growth")}
           </h2>
         </div>
         <ol className="relative mt-14 grid gap-10 md:grid-cols-5">
           <span className="absolute left-0 right-0 top-5 hidden h-px bg-outline-variant/40 md:block" aria-hidden />
-          {milestones.map((m) => (
-            <li key={m.year} className="relative">
+          {milestones.map((m, i) => (
+            <li key={i} className="relative">
               <span className="relative z-10 inline-flex size-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white shadow-md">
                 <span className="absolute inset-0 -z-10 rounded-full bg-primary/20 blur-[6px]" />
                 ●
@@ -245,8 +260,8 @@ export default async function AboutPage({
       {/* Capacity band */}
       <section className="bg-surface-inverse py-16 text-white">
         <div className="container-pd grid gap-8 sm:grid-cols-3">
-          {heroStats.map((stat) => (
-            <div key={stat.label} className="text-center">
+          {heroStats.map((stat, i) => (
+            <div key={i} className="text-center">
               <strong className="font-heading text-4xl font-extrabold text-white">{stat.value}</strong>
               <p className="mt-2 text-sm text-white/70">{stat.label}</p>
             </div>

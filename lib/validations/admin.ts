@@ -367,6 +367,38 @@ export const settingsSchema = z.object({
   aboutLeadVi: optionalText,
   aboutLeadEn: optionalText,
   aboutImage: optionalText,
+  aboutEyebrowVi: optionalText,
+  aboutEyebrowEn: optionalText,
+  aboutJourneyEyebrowVi: optionalText,
+  aboutJourneyEyebrowEn: optionalText,
+  aboutJourneyHeadingVi: optionalText,
+  aboutJourneyHeadingEn: optionalText,
+  // About page timeline milestones (dynamic list, bilingual per item)
+  aboutMilestones: z
+    .array(
+      z.object({
+        yearVi: optionalText,
+        yearEn: optionalText,
+        titleVi: optionalText,
+        titleEn: optionalText,
+        textVi: optionalText,
+        textEn: optionalText,
+      })
+    )
+    .max(30)
+    .optional(),
+  // About/home stats (value + label, bilingual per item)
+  aboutStats: z
+    .array(
+      z.object({
+        valueVi: optionalText,
+        valueEn: optionalText,
+        labelVi: optionalText,
+        labelEn: optionalText,
+      })
+    )
+    .max(12)
+    .optional(),
   featuredVisible: z.boolean().optional().default(true),
   featuredMaxItems: z.union([z.string(), z.number()]).optional(),
   blogSectionVisible: z.boolean().optional().default(true),

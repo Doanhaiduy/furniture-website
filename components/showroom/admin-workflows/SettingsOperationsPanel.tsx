@@ -43,6 +43,17 @@ import {
 type SocialPlatform = "facebook" | "zalo" | "youtube" | "tiktok" | "instagram" | "other";
 type SocialLinkState = { platform: SocialPlatform; label: string; url: string; isEnabled: boolean };
 
+// About page timeline & stats (bilingual, editable as dynamic lists)
+type AboutMilestone = { yearVi: string; yearEn: string; titleVi: string; titleEn: string; textVi: string; textEn: string };
+type AboutStat = { valueVi: string; valueEn: string; labelVi: string; labelEn: string };
+const EMPTY_MILESTONE: AboutMilestone = { yearVi: "", yearEn: "", titleVi: "", titleEn: "", textVi: "", textEn: "" };
+const EMPTY_STAT: AboutStat = { valueVi: "", valueEn: "", labelVi: "", labelEn: "" };
+// Loaded arrays may contain null fields (empty values are stored as null); coerce to "" for controlled inputs.
+const normalizeMilestones = (arr: unknown): AboutMilestone[] =>
+  Array.isArray(arr) ? arr.map((m: any) => ({ ...EMPTY_MILESTONE, yearVi: m?.yearVi ?? "", yearEn: m?.yearEn ?? "", titleVi: m?.titleVi ?? "", titleEn: m?.titleEn ?? "", textVi: m?.textVi ?? "", textEn: m?.textEn ?? "" })) : [];
+const normalizeStats = (arr: unknown): AboutStat[] =>
+  Array.isArray(arr) ? arr.map((s: any) => ({ ...EMPTY_STAT, valueVi: s?.valueVi ?? "", valueEn: s?.valueEn ?? "", labelVi: s?.labelVi ?? "", labelEn: s?.labelEn ?? "" })) : [];
+
 // Fixed set of configurable public links. "other" is used for the general website URL.
 const SOCIAL_PLATFORMS: { platform: SocialPlatform; label: string; placeholder: string }[] = [
   { platform: "facebook", label: "Facebook", placeholder: "https://facebook.com/tentrang" },
@@ -190,6 +201,14 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   const [aboutLeadVi, setAboutLeadVi] = useState(settingsHomepageDefaults.aboutLeadVi);
   const [aboutLeadEn, setAboutLeadEn] = useState(settingsHomepageDefaults.aboutLeadEn);
   const [aboutImage, setAboutImage] = useState(settingsHomepageDefaults.aboutImage);
+  const [aboutEyebrowVi, setAboutEyebrowVi] = useState(settingsHomepageDefaults.aboutEyebrowVi);
+  const [aboutEyebrowEn, setAboutEyebrowEn] = useState(settingsHomepageDefaults.aboutEyebrowEn);
+  const [aboutJourneyEyebrowVi, setAboutJourneyEyebrowVi] = useState(settingsHomepageDefaults.aboutJourneyEyebrowVi);
+  const [aboutJourneyEyebrowEn, setAboutJourneyEyebrowEn] = useState(settingsHomepageDefaults.aboutJourneyEyebrowEn);
+  const [aboutJourneyHeadingVi, setAboutJourneyHeadingVi] = useState(settingsHomepageDefaults.aboutJourneyHeadingVi);
+  const [aboutJourneyHeadingEn, setAboutJourneyHeadingEn] = useState(settingsHomepageDefaults.aboutJourneyHeadingEn);
+  const [aboutMilestones, setAboutMilestones] = useState<AboutMilestone[]>(settingsHomepageDefaults.aboutMilestones);
+  const [aboutStats, setAboutStats] = useState<AboutStat[]>(settingsHomepageDefaults.aboutStats);
 
   const [badge1ValueVi, setBadge1ValueVi] = useState<string>(settingsHomepageDefaults.badge1ValueVi);
   const [badge1ValueEn, setBadge1ValueEn] = useState<string>(settingsHomepageDefaults.badge1ValueEn);
@@ -289,6 +308,14 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         if (data.aboutLeadVi !== undefined) setAboutLeadVi(data.aboutLeadVi);
         if (data.aboutLeadEn !== undefined) setAboutLeadEn(data.aboutLeadEn);
         if (data.aboutImage !== undefined) setAboutImage(data.aboutImage);
+        if (data.aboutEyebrowVi !== undefined) setAboutEyebrowVi(data.aboutEyebrowVi);
+        if (data.aboutEyebrowEn !== undefined) setAboutEyebrowEn(data.aboutEyebrowEn);
+        if (data.aboutJourneyEyebrowVi !== undefined) setAboutJourneyEyebrowVi(data.aboutJourneyEyebrowVi);
+        if (data.aboutJourneyEyebrowEn !== undefined) setAboutJourneyEyebrowEn(data.aboutJourneyEyebrowEn);
+        if (data.aboutJourneyHeadingVi !== undefined) setAboutJourneyHeadingVi(data.aboutJourneyHeadingVi);
+        if (data.aboutJourneyHeadingEn !== undefined) setAboutJourneyHeadingEn(data.aboutJourneyHeadingEn);
+        if (Array.isArray(data.aboutMilestones) && data.aboutMilestones.length > 0) setAboutMilestones(normalizeMilestones(data.aboutMilestones));
+        if (Array.isArray(data.aboutStats) && data.aboutStats.length > 0) setAboutStats(normalizeStats(data.aboutStats));
         if (data.featuredVisible !== undefined) setFeaturedVisible(data.featuredVisible);
         if (data.featuredMaxItems !== undefined) setFeaturedMaxItems(data.featuredMaxItems);
         if (data.blogSectionVisible !== undefined) setBlogSectionVisible(data.blogSectionVisible);
@@ -395,6 +422,14 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
         aboutLeadVi,
         aboutLeadEn,
         aboutImage,
+        aboutEyebrowVi,
+        aboutEyebrowEn,
+        aboutJourneyEyebrowVi,
+        aboutJourneyEyebrowEn,
+        aboutJourneyHeadingVi,
+        aboutJourneyHeadingEn,
+        aboutMilestones,
+        aboutStats,
         featuredVisible,
         featuredMaxItems,
         blogSectionVisible,
@@ -516,7 +551,15 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
       setAboutLeadVi(data.aboutLeadVi || settingsHomepageDefaults.aboutLeadVi);
       setAboutLeadEn(data.aboutLeadEn || settingsHomepageDefaults.aboutLeadEn);
       setAboutImage(data.aboutImage || settingsHomepageDefaults.aboutImage);
-      
+      setAboutEyebrowVi(data.aboutEyebrowVi || settingsHomepageDefaults.aboutEyebrowVi);
+      setAboutEyebrowEn(data.aboutEyebrowEn || settingsHomepageDefaults.aboutEyebrowEn);
+      setAboutJourneyEyebrowVi(data.aboutJourneyEyebrowVi || settingsHomepageDefaults.aboutJourneyEyebrowVi);
+      setAboutJourneyEyebrowEn(data.aboutJourneyEyebrowEn || settingsHomepageDefaults.aboutJourneyEyebrowEn);
+      setAboutJourneyHeadingVi(data.aboutJourneyHeadingVi || settingsHomepageDefaults.aboutJourneyHeadingVi);
+      setAboutJourneyHeadingEn(data.aboutJourneyHeadingEn || settingsHomepageDefaults.aboutJourneyHeadingEn);
+      setAboutMilestones(Array.isArray(data.aboutMilestones) && data.aboutMilestones.length > 0 ? normalizeMilestones(data.aboutMilestones) : settingsHomepageDefaults.aboutMilestones);
+      setAboutStats(Array.isArray(data.aboutStats) && data.aboutStats.length > 0 ? normalizeStats(data.aboutStats) : settingsHomepageDefaults.aboutStats);
+
       setFeaturedVisible(data.featuredVisible !== undefined ? data.featuredVisible : true);
       setFeaturedMaxItems(data.featuredMaxItems || settingsHomepageDefaults.featuredMaxItems);
       setBlogSectionVisible(data.blogSectionVisible !== undefined ? data.blogSectionVisible : true);
@@ -574,8 +617,18 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
     slide3LeadVi,
     slide3Image,
     aboutHeadingVi,
+    aboutHeadingEn,
     aboutLeadVi,
+    aboutLeadEn,
     aboutImage,
+    aboutEyebrowVi,
+    aboutEyebrowEn,
+    aboutJourneyEyebrowVi,
+    aboutJourneyEyebrowEn,
+    aboutJourneyHeadingVi,
+    aboutJourneyHeadingEn,
+    aboutMilestones,
+    aboutStats,
     featuredVisible,
     featuredMaxItems,
     showroomVisible,
@@ -599,6 +652,42 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
   };
   const renderLegacySectionDetails = false;
   const renderHomepagePreview = false;
+
+  // --- About page timeline (milestones) list handlers ---
+  const updateMilestone = (idx: number, key: keyof AboutMilestone, val: string) => {
+    setAboutMilestones((prev) => prev.map((m, i) => (i === idx ? { ...m, [key]: val } : m)));
+    markDirty();
+  };
+  const addMilestone = () => { setAboutMilestones((prev) => [...prev, { ...EMPTY_MILESTONE }]); markDirty(); };
+  const removeMilestone = (idx: number) => { setAboutMilestones((prev) => prev.filter((_, i) => i !== idx)); markDirty(); };
+  const moveMilestone = (idx: number, dir: -1 | 1) => {
+    setAboutMilestones((prev) => {
+      const target = idx + dir;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    markDirty();
+  };
+
+  // --- About/home stats list handlers ---
+  const updateStat = (idx: number, key: keyof AboutStat, val: string) => {
+    setAboutStats((prev) => prev.map((s, i) => (i === idx ? { ...s, [key]: val } : s)));
+    markDirty();
+  };
+  const addStat = () => { setAboutStats((prev) => [...prev, { ...EMPTY_STAT }]); markDirty(); };
+  const removeStat = (idx: number) => { setAboutStats((prev) => prev.filter((_, i) => i !== idx)); markDirty(); };
+  const moveStat = (idx: number, dir: -1 | 1) => {
+    setAboutStats((prev) => {
+      const target = idx + dir;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    markDirty();
+  };
 
   return (
     <div className="space-y-5">
@@ -1193,6 +1282,166 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
               </div>
             </div>
 
+            {/* About / Brand Story — content (VISIBLE editor) */}
+            <div className="bg-white p-4 rounded-xl border space-y-4">
+              <p className="text-xs font-bold text-slate-700 border-b pb-2">📖 Khu Giới thiệu (trang chủ)</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label='Nhãn nhỏ "Về Phương Đông" (VI)'
+                  name="about-eyebrow-vi-v"
+                  value={aboutEyebrowVi}
+                  onChange={(val) => { setAboutEyebrowVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="About eyebrow (EN)"
+                  name="about-eyebrow-en-v"
+                  value={aboutEyebrowEn}
+                  onChange={(val) => { setAboutEyebrowEn(val); markDirty(); }}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label='Tiêu đề "Về chúng tôi" (VI)'
+                  name="about-heading-vi-v"
+                  value={aboutHeadingVi}
+                  onChange={(val) => { setAboutHeadingVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="Story heading (EN)"
+                  name="about-heading-en-v"
+                  value={aboutHeadingEn}
+                  onChange={(val) => { setAboutHeadingEn(val); markDirty(); }}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label="Mô tả ngắn (VI)"
+                  name="about-lead-vi-v"
+                  value={aboutLeadVi}
+                  onChange={(val) => { setAboutLeadVi(val); markDirty(); }}
+                  multiline
+                />
+                <AdminField
+                  label="Story lead (EN)"
+                  name="about-lead-en-v"
+                  value={aboutLeadEn}
+                  onChange={(val) => { setAboutLeadEn(val); markDirty(); }}
+                  multiline
+                />
+              </div>
+            </div>
+
+            {/* About page timeline eyebrow + heading (VISIBLE editor) */}
+            <div className="bg-white p-4 rounded-xl border space-y-4">
+              <p className="text-xs font-bold text-slate-700 border-b pb-2">🗺️ Trang Giới thiệu — Hành trình phát triển</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label='Nhãn nhỏ "Hành trình phát triển" (VI)'
+                  name="about-journey-eyebrow-vi-v"
+                  value={aboutJourneyEyebrowVi}
+                  onChange={(val) => { setAboutJourneyEyebrowVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="Journey eyebrow (EN)"
+                  name="about-journey-eyebrow-en-v"
+                  value={aboutJourneyEyebrowEn}
+                  onChange={(val) => { setAboutJourneyEyebrowEn(val); markDirty(); }}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label='Tiêu đề "Chặng đường hơn 20 năm" (VI)'
+                  name="about-journey-heading-vi-v"
+                  value={aboutJourneyHeadingVi}
+                  onChange={(val) => { setAboutJourneyHeadingVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="Journey heading (EN)"
+                  name="about-journey-heading-en-v"
+                  value={aboutJourneyHeadingEn}
+                  onChange={(val) => { setAboutJourneyHeadingEn(val); markDirty(); }}
+                />
+              </div>
+
+              {/* Milestones — dynamic list */}
+              <div className="flex items-center justify-between border-t pt-3">
+                <p className="text-xs font-bold text-slate-700">🕰️ Các mốc thời gian</p>
+                <button
+                  type="button"
+                  onClick={addMilestone}
+                  className="rounded-md bg-emerald-500 px-2.5 py-1 text-xs font-bold text-white hover:bg-emerald-600"
+                >
+                  + Thêm mốc
+                </button>
+              </div>
+              {aboutMilestones.length === 0 && (
+                <p className="text-xs text-slate-400">Chưa có mốc nào. Bấm “+ Thêm mốc” để thêm.</p>
+              )}
+              <div className="space-y-3">
+                {aboutMilestones.map((m, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500">Mốc #{idx + 1}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" disabled={idx === 0} onClick={() => moveMilestone(idx, -1)} className="rounded border border-slate-300 px-1.5 text-xs disabled:opacity-30" aria-label="Lên">↑</button>
+                        <button type="button" disabled={idx === aboutMilestones.length - 1} onClick={() => moveMilestone(idx, 1)} className="rounded border border-slate-300 px-1.5 text-xs disabled:opacity-30" aria-label="Xuống">↓</button>
+                        <button type="button" onClick={() => removeMilestone(idx)} className="rounded border border-red-200 px-1.5 text-xs font-bold text-red-500 hover:bg-red-50">Xóa</button>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <AdminField label="Năm / nhãn mốc (VI)" name={`ms-${idx}-year-vi`} value={m.yearVi} onChange={(val) => updateMilestone(idx, "yearVi", val)} />
+                      <AdminField label="Year / label (EN)" name={`ms-${idx}-year-en`} value={m.yearEn} onChange={(val) => updateMilestone(idx, "yearEn", val)} />
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <AdminField label="Tiêu đề (VI)" name={`ms-${idx}-title-vi`} value={m.titleVi} onChange={(val) => updateMilestone(idx, "titleVi", val)} />
+                      <AdminField label="Title (EN)" name={`ms-${idx}-title-en`} value={m.titleEn} onChange={(val) => updateMilestone(idx, "titleEn", val)} />
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <AdminField label="Mô tả (VI)" name={`ms-${idx}-text-vi`} value={m.textVi} onChange={(val) => updateMilestone(idx, "textVi", val)} multiline />
+                      <AdminField label="Description (EN)" name={`ms-${idx}-text-en`} value={m.textEn} onChange={(val) => updateMilestone(idx, "textEn", val)} multiline />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Stats — dynamic list */}
+              <div className="flex items-center justify-between border-t pt-3">
+                <p className="text-xs font-bold text-slate-700">🔢 Con số nổi bật (số liệu)</p>
+                <button
+                  type="button"
+                  onClick={addStat}
+                  className="rounded-md bg-emerald-500 px-2.5 py-1 text-xs font-bold text-white hover:bg-emerald-600"
+                >
+                  + Thêm số liệu
+                </button>
+              </div>
+              {aboutStats.length === 0 && (
+                <p className="text-xs text-slate-400">Chưa có số liệu nào. Bấm “+ Thêm số liệu” để thêm.</p>
+              )}
+              <div className="space-y-3">
+                {aboutStats.map((s, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50/60 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-500">Số liệu #{idx + 1}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" disabled={idx === 0} onClick={() => moveStat(idx, -1)} className="rounded border border-slate-300 px-1.5 text-xs disabled:opacity-30" aria-label="Lên">↑</button>
+                        <button type="button" disabled={idx === aboutStats.length - 1} onClick={() => moveStat(idx, 1)} className="rounded border border-slate-300 px-1.5 text-xs disabled:opacity-30" aria-label="Xuống">↓</button>
+                        <button type="button" onClick={() => removeStat(idx)} className="rounded border border-red-200 px-1.5 text-xs font-bold text-red-500 hover:bg-red-50">Xóa</button>
+                      </div>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <AdminField label="Con số (VI) — vd 20+, 2.000m²" name={`st-${idx}-value-vi`} value={s.valueVi} onChange={(val) => updateStat(idx, "valueVi", val)} />
+                      <AdminField label="Value (EN)" name={`st-${idx}-value-en`} value={s.valueEn} onChange={(val) => updateStat(idx, "valueEn", val)} />
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <AdminField label="Nhãn (VI) — vd năm kinh nghiệm" name={`st-${idx}-label-vi`} value={s.labelVi} onChange={(val) => updateStat(idx, "labelVi", val)} />
+                      <AdminField label="Label (EN)" name={`st-${idx}-label-en`} value={s.labelEn} onChange={(val) => updateStat(idx, "labelEn", val)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {renderLegacySectionDetails && (
               <>
             {/* Homepage About/Story Section */}
@@ -1228,11 +1477,58 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                   multiline
                 />
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label="Nhãn nhỏ khu About trang chủ (VI)"
+                  name="about-eyebrow-vi"
+                  value={aboutEyebrowVi}
+                  onChange={(val) => { setAboutEyebrowVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="About section eyebrow (EN)"
+                  name="about-eyebrow-en"
+                  value={aboutEyebrowEn}
+                  onChange={(val) => { setAboutEyebrowEn(val); markDirty(); }}
+                />
+              </div>
               <ImageUploadDropzone
                 label="Story side image upload"
                 value={aboutImage}
                 onChange={(url) => { setAboutImage(url); markDirty(); }}
               />
+            </div>
+
+            {/* About Page — Timeline / Journey Section */}
+            <div className="bg-white p-4 rounded-xl border space-y-4">
+              <p className="text-xs font-bold text-slate-700 border-b pb-2">🗺️ Trang Giới thiệu — Hành trình phát triển</p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label="Nhãn nhỏ hành trình (VI)"
+                  name="about-journey-eyebrow-vi"
+                  value={aboutJourneyEyebrowVi}
+                  onChange={(val) => { setAboutJourneyEyebrowVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="Journey eyebrow (EN)"
+                  name="about-journey-eyebrow-en"
+                  value={aboutJourneyEyebrowEn}
+                  onChange={(val) => { setAboutJourneyEyebrowEn(val); markDirty(); }}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminField
+                  label="Tiêu đề hành trình (VI)"
+                  name="about-journey-heading-vi"
+                  value={aboutJourneyHeadingVi}
+                  onChange={(val) => { setAboutJourneyHeadingVi(val); markDirty(); }}
+                />
+                <AdminField
+                  label="Journey heading (EN)"
+                  name="about-journey-heading-en"
+                  value={aboutJourneyHeadingEn}
+                  onChange={(val) => { setAboutJourneyHeadingEn(val); markDirty(); }}
+                />
+              </div>
             </div>
 
             {/* Featured Products */}
