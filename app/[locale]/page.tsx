@@ -254,7 +254,7 @@ export default async function HomePage({
                 <RemoteImage src={cat.image} alt={cat.name} className="image-lift h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute bottom-0 p-5 text-white">
-                  <h3 className="type-card-title text-2xl text-white">{cat.name}</h3>
+                  <h3 className="type-card-title text-2xl uppercase text-white">{cat.name}</h3>
                   <p className="mt-2 text-sm text-white/80">{cat.description}</p>
                   <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold">
                     {common("explore")}

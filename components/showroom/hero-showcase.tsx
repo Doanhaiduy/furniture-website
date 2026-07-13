@@ -128,12 +128,17 @@ export function HeroShowcase({
 
         <div className="pointer-events-none absolute inset-0 z-40">
           <div className="container-pd flex h-full items-center justify-center pb-16 pt-20 md:pb-20">
-            <div className="mx-auto max-w-5xl text-center px-6 md:px-8">
-              <p className="label-pd text-white/74">{activeSlide.eyebrow}</p>
-              <h1 className="type-hero-title mx-auto mt-4 max-w-4xl drop-shadow-[0_18px_34px_rgba(0,0,0,0.28)]">
+            <div className="relative mx-auto max-w-5xl px-6 text-center md:px-8">
+              {/* Localized dark scrim keeps white text legible on any uploaded image (bright or dark) */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[150%] w-[135%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.58)_0%,rgba(0,0,0,0.34)_45%,transparent_72%)] blur-2xl"
+              />
+              <p className="label-pd text-white [text-shadow:_0_1px_10px_rgba(0,0,0,0.55)]">{activeSlide.eyebrow}</p>
+              <h1 className="type-hero-title mx-auto mt-4 max-w-4xl text-white [text-shadow:_0_2px_24px_rgba(0,0,0,0.6)] drop-shadow-[0_18px_34px_rgba(0,0,0,0.35)]">
                 {activeSlide.title}
               </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/82 md:text-lg md:leading-8">
+              <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/90 [text-shadow:_0_1px_12px_rgba(0,0,0,0.55)] md:text-lg md:leading-8">
                 {activeSlide.lead}
               </p>
               {groups.length > 0 ? (

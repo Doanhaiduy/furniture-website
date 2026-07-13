@@ -1084,8 +1084,7 @@
     position: relative;
     isolation: isolate;
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--surface-page-top), transparent 4%) 0%, color-mix(in srgb, var(--surface-page-middle), transparent 2%) 34%, color-mix(in srgb, var(--surface-page-bottom), transparent 2%) 100%),
-      repeating-linear-gradient(90deg, var(--surface-noise-line) 0 1px, transparent 1px 88px);
+      linear-gradient(180deg, color-mix(in srgb, var(--surface-page-top), transparent 4%) 0%, color-mix(in srgb, var(--surface-page-middle), transparent 2%) 34%, color-mix(in srgb, var(--surface-page-bottom), transparent 2%) 100%);
   }
 
   .public-app::before {
@@ -1095,8 +1094,7 @@
     pointer-events: none;
     content: "";
     background:
-      linear-gradient(115deg, rgb(255 255 255 / 0.72) 0 16%, transparent 16% 54%, rgb(255 255 255 / 0.38) 54% 55%, transparent 55% 100%),
-      repeating-linear-gradient(0deg, color-mix(in srgb, var(--brand-ink), transparent 98.2%) 0 1px, transparent 1px 24px);
+      linear-gradient(115deg, rgb(255 255 255 / 0.72) 0 16%, transparent 16% 54%, rgb(255 255 255 / 0.38) 54% 55%, transparent 55% 100%);
     opacity: 0.8;
   }
 
