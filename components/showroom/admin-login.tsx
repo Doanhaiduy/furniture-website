@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase/client";
@@ -10,7 +9,6 @@ import { RemoteImage } from "./remote-image";
 import { imageAssets } from "@/tests/fixtures/showroom-data-fixture";
 
 export function AdminLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -40,18 +38,20 @@ export function AdminLoginPage() {
 
       // Ghi nhận thời điểm đăng nhập (ADM-USR-23) qua server action dùng service-role.
       // RLS profiles_update_admin chỉ cho admin tự ghi profile, nên cập nhật phía client
-      // trước đây âm thầm thất bại với biên tập viên (editor).
+      // trước đây âm thầm thất bại với biên tập viên (editor). Không await: một lệnh gọi
+      // mạng phụ bị treo/timeout ở đây trước đây sẽ chặn luôn redirect vào trang quản trị.
       if (authData?.user) {
-        try {
-          await recordLoginTimestamp();
-        } catch {
-          // Không chặn đăng nhập nếu việc ghi mốc thời gian thất bại.
-        }
+        recordLoginTimestamp().catch(() => {});
       }
 
-      setLoading(false);
-      router.push("/admin");
-      router.refresh();
+      const redirectParam = new URLSearchParams(window.location.search).get("redirectTo");
+      const target = redirectParam && redirectParam.startsWith("/admin") ? redirectParam : "/admin";
+
+      // Điều hướng cứng (thay vì router.push) để đảm bảo request tiếp theo tới server
+      // luôn mang theo cookie phiên vừa được ghi — router.push có thể dùng cache điều
+      // hướng phía client và ra request trước khi cookie kịp đồng bộ, khiến middleware
+      // vẫn thấy chưa đăng nhập và bật lại /admin/login mà không có lỗi hay hành động gì.
+      window.location.assign(target);
     } catch (err: any) {
       console.error("Login error:", err);
       setLoading(false);

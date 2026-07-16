@@ -395,7 +395,7 @@ export default async function ProductsPage({
             >
               <RemoteImage src={card.image} alt={card.title} className="public-media-thumb h-24 w-full object-cover" sizes="92px" />
               <span className="self-center">
-                <span className="type-card-title text-xl text-primary">{card.title}</span>
+                <span className="type-card-title text-xl uppercase text-primary">{card.title}</span>
                 {card.summary ? (
                   <span className="mt-1 block text-sm leading-6 text-secondary line-clamp-2">{card.summary}</span>
                 ) : null}
@@ -550,7 +550,7 @@ export default async function ProductsPage({
                   <span className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 </span>
                 <span className="grid gap-2 p-4">
-                  <span className="type-card-title text-xl text-primary">{group.title}</span>
+                  <span className="type-card-title text-xl uppercase text-primary">{group.title}</span>
                   <span className="text-sm leading-6 text-secondary line-clamp-2">{group.summary}</span>
                   <span className="mt-1 inline-flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.12em] text-outline">
                     {t("productsCount", { count: group.count })}
