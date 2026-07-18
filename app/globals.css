@@ -759,18 +759,6 @@
       linear-gradient(180deg, rgb(0 0 0 / 0.16) 0%, transparent 32%, transparent 62%, rgb(0 0 0 / 0.34) 100%);
   }
 
-  .public-hero-toggle {
-    @apply inline-flex size-7 items-center justify-center rounded-full text-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55;
-    transition:
-      color var(--motion-fast) var(--ease-standard),
-      background-color var(--motion-fast) var(--ease-standard);
-  }
-
-  .public-hero-toggle:hover {
-    background: rgb(255 255 255 / 0.14);
-    color: white;
-  }
-
   .public-page-header {
     padding-block: clamp(2.5rem, 7vw, 4.5rem) clamp(2.75rem, 7vw, 5rem);
   }
@@ -841,9 +829,6 @@
 
   .public-hero-dot {
     height: 0.375rem;
-    padding: 0;
-    border: 0;
-    appearance: none;
     border-radius: var(--radius-pill);
     background: rgb(255 255 255 / 0.42);
     transition:
@@ -865,24 +850,22 @@
   }
 
   .public-hero-group-link {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold uppercase tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30;
-    color: var(--primary-foreground);
-    border: 1px solid rgb(255 255 255 / 0.22);
+    @apply inline-flex min-h-10 items-center justify-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/55;
+    border: 1px solid rgb(255 255 255 / 0.32);
     border-radius: var(--radius-pill);
-    background: var(--primary);
-    box-shadow: 0 16px 38px rgb(0 0 0 / 0.32), inset 0 1px 0 rgb(255 255 255 / 0.16);
+    background: rgb(0 0 0 / 0.22);
+    box-shadow: 0 14px 34px rgb(0 0 0 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.12);
+    backdrop-filter: blur(16px);
     transition:
       border-color var(--motion-fast) var(--ease-standard),
       background-color var(--motion-fast) var(--ease-standard),
-      transform var(--motion-fast) var(--ease-standard),
       box-shadow var(--motion-normal) var(--ease-premium);
   }
 
   .public-hero-group-link:hover {
-    border-color: rgb(255 255 255 / 0.4);
-    background: var(--brand-wood-strong);
-    box-shadow: 0 22px 50px rgb(0 0 0 / 0.38), inset 0 1px 0 rgb(255 255 255 / 0.2);
-    transform: translateY(-1px);
+    border-color: rgb(255 255 255 / 0.66);
+    background: rgb(255 255 255 / 0.14);
+    box-shadow: 0 18px 44px rgb(0 0 0 / 0.2), inset 0 1px 0 rgb(255 255 255 / 0.16);
   }
 
   .public-image-panel {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { RemoteImage } from "./remote-image";
 
 export type HeroSlide = {
@@ -152,34 +152,6 @@ export function HeroShowcase({
             </div>
           </div>
         </div>
-
-        {slideCount > 1 ? (
-          <div className="absolute inset-x-0 bottom-6 z-50 flex justify-center md:bottom-8">
-            <div className="public-hero-dots flex items-center gap-3 px-3.5 py-2">
-              <button
-                type="button"
-                aria-label={paused ? playLabel : pauseLabel}
-                aria-pressed={paused}
-                className="public-hero-toggle cursor-pointer"
-                onClick={() => setPaused((value) => !value)}
-              >
-                {paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
-              </button>
-              <div className="flex items-center gap-1.5">
-                {slides.map((slide, index) => (
-                  <button
-                    key={slide.title}
-                    type="button"
-                    aria-label={`${slide.eyebrow} (${index + 1}/${slideCount})`}
-                    aria-current={index === active}
-                    className="public-hero-dot cursor-pointer"
-                    onClick={() => setActive(index)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </section>
   );
