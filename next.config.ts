@@ -3,12 +3,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  // App chạy sau reverse proxy trên IP thuần (http://103.228.74.240). Next kiểm tra
-  // origin của Server Action so với host; sau proxy dễ lệch → trả 400. Khai báo origin
-  // hợp lệ để cho phép. Thêm domain thật vào đây khi chuyển sang domain + HTTPS.
+  // App chạy sau reverse proxy trên IP thuần. Next kiểm tra origin của Server Action
+  // so với host; sau proxy dễ lệch → trả 400. Khai báo origin hợp lệ để cho phép.
+  // Thêm domain thật vào đây khi chuyển sang domain + HTTPS.
   experimental: {
     serverActions: {
-      allowedOrigins: ["103.228.74.240"],
+      allowedOrigins: ["103.228.74.240", "103.211.206.66"],
     },
   },
   devIndicators: {
