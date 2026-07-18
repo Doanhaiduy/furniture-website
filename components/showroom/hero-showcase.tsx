@@ -104,6 +104,7 @@ export function HeroShowcase({
               priority={index === 0}
               sizes={index === active ? "(min-width: 1024px) 70vw, 100vw" : "30vw"}
             />
+            {index === active ? <div aria-hidden className="public-hero-scrim absolute inset-0" /> : null}
           </div>
         ))}
 
@@ -127,11 +128,11 @@ export function HeroShowcase({
         <div className="pointer-events-none absolute inset-0 z-40">
           <div className="container-pd flex h-full items-center justify-center pb-16 pt-20 md:pb-20">
             <div className="relative mx-auto max-w-5xl px-6 text-center md:px-8">
-              <p className="public-hero-text label-pd text-[#808080]">{activeSlide.eyebrow}</p>
-              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-[#808080]">
+              <p className="public-hero-text label-pd text-[#f5efe6]">{activeSlide.eyebrow}</p>
+              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-[#f5efe6]">
                 {activeSlide.title}
               </h1>
-              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-[#808080] md:text-lg md:leading-8">
+              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-[#f5efe6] md:text-lg md:leading-8">
                 {activeSlide.lead}
               </p>
               {groups.length > 0 ? (
