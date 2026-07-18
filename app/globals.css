@@ -724,12 +724,27 @@
   */
   .public-hero-text {
     text-shadow:
-      -1px -1px 0 rgb(0 0 0 / 0.65),
-      1px -1px 0 rgb(0 0 0 / 0.65),
-      -1px 1px 0 rgb(0 0 0 / 0.65),
-      1px 1px 0 rgb(0 0 0 / 0.65),
-      0 2px 6px rgb(0 0 0 / 0.55),
-      0 10px 28px rgb(0 0 0 / 0.45);
+      -1px -1px 0 rgb(0 0 0 / 0.7),
+      1px -1px 0 rgb(0 0 0 / 0.7),
+      -1px 1px 0 rgb(0 0 0 / 0.7),
+      1px 1px 0 rgb(0 0 0 / 0.7),
+      0 2px 6px rgb(0 0 0 / 0.6),
+      0 10px 28px rgb(0 0 0 / 0.5);
+  }
+
+  /*
+    Frosted-glass panel behind the hero text only (not the whole photo): it
+    blurs + lightly tints just the small zone the text sits on, so bright
+    photos (white walls, windows) can't wash the white text out, while the
+    rest of the image stays fully sharp/undimmed. Edges fade via mask so it
+    blends into the photo instead of reading as a hard box.
+  */
+  .public-hero-text-panel {
+    background: rgb(0 0 0 / 0.4);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 52%, transparent 88%);
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 52%, transparent 88%);
   }
 
   .public-page-header {
