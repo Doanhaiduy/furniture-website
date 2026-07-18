@@ -131,11 +131,11 @@ export function HeroShowcase({
                 aria-hidden
                 className="public-hero-text-panel pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[145%] w-[130%] -translate-x-1/2 -translate-y-1/2"
               />
-              <p className="public-hero-text label-pd text-white">{activeSlide.eyebrow}</p>
-              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-white">
+              <p className="public-hero-text label-pd text-[#f5efe6]">{activeSlide.eyebrow}</p>
+              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-[#f5efe6]">
                 {activeSlide.title}
               </h1>
-              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/95 md:text-lg md:leading-8">
+              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-[#f5efe6]/95 md:text-lg md:leading-8">
                 {activeSlide.lead}
               </p>
               {groups.length > 0 ? (
