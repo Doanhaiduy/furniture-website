@@ -729,18 +729,6 @@
       1px 1px 0 rgb(0 0 0 / 0.35);
   }
 
-  /*
-    Guaranteed-contrast scrim over the ACTIVE slide image only: darkens the
-    centre where the headline/eyebrow/lead sit (so bright, near-white photos
-    can't wash out the cream text), plus a soft top/bottom falloff for depth.
-    Peek slides stay bright and undimmed.
-  */
-  .public-hero-scrim {
-    background:
-      radial-gradient(ellipse 82% 72% at 50% 50%, rgb(0 0 0 / 0.52) 0%, rgb(0 0 0 / 0.26) 46%, transparent 78%),
-      linear-gradient(180deg, rgb(0 0 0 / 0.16) 0%, transparent 32%, transparent 62%, rgb(0 0 0 / 0.34) 100%);
-  }
-
   .public-page-header {
     padding-block: clamp(2.5rem, 7vw, 4.5rem) clamp(2.75rem, 7vw, 5rem);
   }
