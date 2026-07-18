@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { encryptSecret, generateMaskedHint } from "@/lib/security/encryption";
 import { env } from "@/lib/env/schema";
 import { settingsSchema } from "@/lib/validations/admin";
+import { triggerRevalidation } from "@/lib/supabase/mutations/helpers";
 
 // Fallbacks for the About page timeline & stats when the CMS has no saved data yet.
 const DEFAULT_ABOUT_MILESTONES = [
@@ -558,5 +559,6 @@ export async function PUT(request: Request) {
     }
   }
 
+  triggerRevalidation();
   return NextResponse.json({ success: true });
 }
