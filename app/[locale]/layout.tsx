@@ -59,7 +59,7 @@ export default async function LocaleLayout({
   const common = await getTranslations("common");
 
   const supabase = createPublicClient();
-  const { getCategories, getProducts } = await import("@/lib/supabase/queries");
+  const { getCategories, getProducts, maxPublicProductLookupRows } = await import("@/lib/supabase/queries");
 
   // Fetch all layout data in parallel — these are independent queries and
   // running them sequentially added a request waterfall to every public page (TTFB).
@@ -69,7 +69,12 @@ export default async function LocaleLayout({
       getPublicSocialLinks(supabase),
       getPublicBrands(),
       getCategories(supabase, locale as "vi" | "en").catch(() => []),
-      getProducts(supabase, { locale: locale as "vi" | "en", limit: 100 }).catch(() => []),
+      // The header's brand mega-menu derives each brand's product list by
+      // client-filtering this single shared product list (see public-shell.tsx).
+      // A small limit (was 100) meant any brand whose products fell outside the
+      // global featured/newest top-100 showed "no products" even though it had
+      // some. Load the full catalog window so every brand is represented.
+      getProducts(supabase, { locale: locale as "vi" | "en", limit: maxPublicProductLookupRows }).catch(() => []),
     ]);
   const publicBrands = brandsRes.success ? brandsRes.data : [];
 
