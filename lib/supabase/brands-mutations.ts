@@ -2,7 +2,7 @@
 "use server";
 
 import { requireEditorOrAdmin } from "./auth";
-import { createAdminClient, createClient } from "./server";
+import { createAdminClient, createClient, createPublicClient } from "./server";
 import { writeAuditLog } from "./audit";
 import { brandSchema } from "../validations/admin";
 import { revalidatePath } from "next/cache";
@@ -386,11 +386,21 @@ export async function getPublicBrands(): Promise<{
 
 
   try {
-    const supabase = createAdminClient();
+    // Public brand listing must use the ANON client, not the service-role admin
+    // client. The root layout that builds the header mega-menu is prerendered/
+    // ISR-cached (revalidate=300, generateStaticParams), and at build/prerender
+    // time the service-role key is not reliably available — so createAdminClient()
+    // failed there and this returned [], baking an empty brand menu into the
+    // cached layout (every brand showed "no products"). The anon key IS present
+    // at build (getProducts already relies on it), and RLS "Public read published
+    // brands" allows anon to read exactly this data, so the anon client works
+    // identically in build, ISR, and per-request contexts.
+    const supabase = createPublicClient();
     const { data: brands, error } = await supabase
       .from("brands")
       .select(`
         id,
+        slug,
         origin,
         sort_order,
         logo_media:media_assets!fk_brands_logo_media(public_url),
@@ -411,6 +421,7 @@ export async function getPublicBrands(): Promise<{
 
       return {
         id: b.id,
+        slug: b.slug || "",
         name: {
           vi: viTrans?.name || "",
           en: enTrans?.name || viTrans?.name || "",

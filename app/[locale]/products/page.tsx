@@ -104,23 +104,23 @@ export default async function ProductsPage({
 
   let brandId = typeof query.brand === "string" && query.brand !== "all" ? query.brand : undefined;
 
-  // Resolve brand slug or name to database UUID if it is not already a UUID
-  if (brandId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(brandId)) {
+  // Resolve the brand param (slug, name, or raw UUID) to the database record.
+  // brandId is kept as the UUID to drive the products query, while query.brand is
+  // normalized to the human-readable slug for the URL + active-option matching
+  // (prefer slug, fall back to UUID only when the brand has no slug).
+  if (brandId) {
     const searchStr = brandId.toLowerCase();
     const matchedBrand = publicBrands.find(
       (b: any) =>
         b.id === brandId ||
+        b.slug?.toLowerCase() === searchStr ||
         b.name?.en?.toLowerCase() === searchStr ||
         b.name?.vi?.toLowerCase() === searchStr
     );
     if (matchedBrand) {
       brandId = matchedBrand.id;
+      query.brand = matchedBrand.slug || matchedBrand.id;
     }
-  }
-
-  // Normalize query.brand to the resolved UUID so that option selection works
-  if (brandId) {
-    query.brand = brandId;
   }
 
   const categorySlug = typeof query.category === "string" && query.category !== "all" ? query.category : undefined;
@@ -246,7 +246,7 @@ export default async function ProductsPage({
   const brandOptions = [
     { value: "all", label: locale === "vi" ? "Tất cả thương hiệu" : "All brands" },
     ...publicBrands.map((b: any) => ({
-      value: b.id,
+      value: b.slug || b.id,
       label: getLocalizedValue(b.name, locale),
     })),
   ];

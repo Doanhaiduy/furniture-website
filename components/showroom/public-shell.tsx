@@ -162,7 +162,9 @@ export function PublicShell({
         const staticMatch = brandCatalog.find(
           (item) => item.key.toLowerCase() === b.name.en?.toLowerCase() || item.key.toLowerCase() === b.id
         );
-        const brandSlug = b.name.en?.toLowerCase().replace(/\s+/g, "-") || b.id;
+        // Prefer the brand's real slug for the query param; only fall back to a
+        // name-derived slug, then the raw UUID, when no slug exists.
+        const brandSlug = b.slug || b.name.en?.toLowerCase().replace(/\s+/g, "-") || b.id;
         return {
           key: b.id,
           href: `/products?brand=${brandSlug}`,

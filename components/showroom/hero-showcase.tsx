@@ -128,15 +128,11 @@ export function HeroShowcase({
         <div className="pointer-events-none absolute inset-0 z-40">
           <div className="container-pd flex h-full items-center justify-center pb-16 pt-20 md:pb-20">
             <div className="relative mx-auto max-w-5xl px-6 text-center md:px-8">
-              <div
-                aria-hidden
-                className="public-hero-text-panel pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[145%] w-[130%] -translate-x-1/2 -translate-y-1/2"
-              />
-              <p className="public-hero-text label-pd text-[#f5efe6]">{activeSlide.eyebrow}</p>
-              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-[#f5efe6]">
+              <p className="public-hero-text label-pd text-[#8c8c8c]">{activeSlide.eyebrow}</p>
+              <h1 className="public-hero-text type-hero-title mx-auto mt-4 max-w-4xl text-[#8c8c8c]">
                 {activeSlide.title}
               </h1>
-              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-[#f5efe6]/95 md:text-lg md:leading-8">
+              <p className="public-hero-text mx-auto mt-5 max-w-2xl text-sm leading-6 text-[#8c8c8c] md:text-lg md:leading-8">
                 {activeSlide.lead}
               </p>
               {groups.length > 0 ? (
