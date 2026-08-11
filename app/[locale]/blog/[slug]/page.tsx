@@ -171,11 +171,15 @@ export default async function BlogDetailPage({
 
   const tocItems = article.sections
     .filter((section: any) => section.id !== "noi-dung" || section.tag === "h2" || section.tag === "h3")
-    .map((section: any) => ({
-      id: section.id,
-      title: localized(section.title, locale),
-      level: section.tag === "h3" ? 3 : 2,
-    }));
+    .map((section: any) => {
+      const rawTitle = localized(section.title, locale);
+      const cleanTitle = rawTitle.replace(/^\s*\d+(\.\d+)*\.?\s*/, "");
+      return {
+        id: section.id,
+        title: cleanTitle,
+        level: section.tag === "h3" ? 3 : 2,
+      };
+    });
 
   return (
     <main>
@@ -293,7 +297,7 @@ export default async function BlogDetailPage({
                               id={section.id}
                               className="font-heading text-xl font-bold text-primary mt-8 mb-3 md:text-2xl"
                             >
-                              {localized(section.title, locale)}
+                              {localized(section.title, locale).replace(/^\s*\d+(\.\d+)*\.?\s*/, "")}
                             </h3>
                           ) : (
                             <>
@@ -307,7 +311,7 @@ export default async function BlogDetailPage({
                                 id={section.id}
                                 className="type-section-title mt-5 text-primary md:text-3xl"
                               >
-                                {localized(section.title, locale)}
+                                {localized(section.title, locale).replace(/^\s*\d+(\.\d+)*\.?\s*/, "")}
                               </h2>
                             </>
                           )}
