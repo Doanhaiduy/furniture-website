@@ -22,7 +22,7 @@ services:
       - PORT=3000
       - HOSTNAME=0.0.0.0
       # Internal connection to Supabase (via Kong gateway in the shared Docker network)
-      - SUPABASE_URL_INTERNAL=http://supabase-kong:8000
+      - SUPABASE_URL_INTERNAL=http://supabase-envoy:8000
     networks:
       - app-network
       - supabase-network
