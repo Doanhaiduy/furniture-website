@@ -46,8 +46,10 @@ ENV BREVO_SMTP_KEY=placeholder_smtp_key
 # Build using secrets if available, falling back to build arguments
 RUN --mount=type=secret,id=NEXT_PUBLIC_SUPABASE_URL,required=false \
     --mount=type=secret,id=NEXT_PUBLIC_SUPABASE_ANON_KEY,required=false \
+    --mount=type=secret,id=NEXT_PUBLIC_SITE_URL,required=false \
     export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-$(cat /run/secrets/NEXT_PUBLIC_SUPABASE_URL 2>/dev/null || echo "")}" && \
     export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-$(cat /run/secrets/NEXT_PUBLIC_SUPABASE_ANON_KEY 2>/dev/null || echo "")}" && \
+    export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-$(cat /run/secrets/NEXT_PUBLIC_SITE_URL 2>/dev/null || echo "")}" && \
     pnpm build
 
 # Production runner stage
