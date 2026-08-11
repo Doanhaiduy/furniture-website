@@ -143,9 +143,20 @@ JSON Schema:
     let outputJson: Record<string, unknown> = { text: outputText };
     if (task === "seo" || task === "generate-content") {
       try {
-        const cleanedText = outputText.replace(/```json/g, "").replace(/```/g, "").trim();
+        let jsonStr = outputText.replace(/```json/g, "").replace(/```/g, "").trim();
+        
+        // Strip any conversational text around the JSON block by finding the first '{' and last '}'
+        const firstBrace = jsonStr.indexOf("{");
+        const lastBrace = jsonStr.lastIndexOf("}");
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+        }
+        
+        // Remove trailing commas (illegal in standard JSON) before parsing
+        const cleanedText = jsonStr.replace(/,\s*([\]}])/g, "$1");
         outputJson = JSON.parse(cleanedText);
-      } catch {
+      } catch (err) {
+        console.error("JSON parse failure in generate-draft:", err);
         if (task === "seo") {
           outputJson = { title: "", description: "", raw: outputText };
         } else {
