@@ -95,7 +95,7 @@ function bodyJsonToEditorText(value: unknown) {
         if (!section || typeof section !== "object") return "";
         const sectionRecord = section as Record<string, unknown>;
         const body = sectionRecord.body;
-        const tag = sectionRecord.tag;
+        const tag = sectionRecord.tag || (sectionRecord.id !== "noi-dung" ? "h2" : null);
         const title = sectionRecord.title;
 
         let bodyHtml = "";

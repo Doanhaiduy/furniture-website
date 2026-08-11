@@ -125,7 +125,7 @@ export default async function BlogDetailPage({
           en: typeof section.body === "object" ? (section.body.en || section.body.vi || "") : (section.body || ""),
         },
         image: section.image,
-        tag: section.tag || null,
+        tag: section.tag || (section.id !== "noi-dung" ? "h2" : null),
       })),
     };
   } else {
