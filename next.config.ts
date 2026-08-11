@@ -8,7 +8,12 @@ const nextConfig: NextConfig = {
   // Thêm domain thật vào đây khi chuyển sang domain + HTTPS.
   experimental: {
     serverActions: {
-      allowedOrigins: ["103.228.74.240", "103.211.206.66"],
+      allowedOrigins: [
+        "103.228.74.240",
+        "103.211.206.66",
+        "showroomnoithatphuongdong.com",
+        "www.showroomnoithatphuongdong.com",
+      ],
     },
   },
   devIndicators: {
