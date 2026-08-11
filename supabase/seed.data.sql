@@ -1,5 +1,5 @@
 -- ============================================================================
--- seed.data.sql — DỮ LIỆU KHỞI TẠO CHO PRODUCTION
+-- seed.data.sql — DỮ LIỆU KHỞI TẠO CHO PRODUCTION (Bản sửa lỗi UUID hợp lệ)
 -- ============================================================================
 -- Nội dung:
 --   1) Danh mục sản phẩm (product_categories + product_category_translations)
@@ -193,57 +193,57 @@ ON CONFLICT (category_id, locale) DO NOTHING;
 
 
 -- ============================================================================
--- 2. THƯƠNG HIỆU (BRANDS)
+-- 2. THƯƠNG HIỆU (BRANDS) - SỬA LẠI UUID HỢP LỆ
 -- ============================================================================
 
 -- Kohler
 INSERT INTO public.brands (id, slug, origin, status, sort_order, published_at, created_by, updated_by, created_at, updated_at)
-VALUES ('br000001-0000-4000-8000-000000000001', 'kohler', 'Mỹ', 'published', 0, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
+VALUES ('b0000001-0000-4000-8000-000000000001', 'kohler', 'Mỹ', 'published', 0, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.brand_translations (id, brand_id, locale, name, description, created_at, updated_at) VALUES
-('br000001-0000-4000-8000-000000000101', 'br000001-0000-4000-8000-000000000001', 'vi', 'Kohler', 'Thương hiệu thiết bị vệ sinh hàng đầu thế giới từ Mỹ, thành lập năm 1873. Nổi tiếng với thiết kế tinh tế và công nghệ tiên tiến.', now(), now()),
-('br000001-0000-4000-8000-000000000102', 'br000001-0000-4000-8000-000000000001', 'en', 'Kohler', 'The world''s leading sanitary ware brand from the USA, founded in 1873. Renowned for exquisite design and advanced technology.', now(), now())
+('b0000001-0000-4000-8000-000000000101', 'b0000001-0000-4000-8000-000000000001', 'vi', 'Kohler', 'Thương hiệu thiết bị vệ sinh hàng đầu thế giới từ Mỹ, thành lập năm 1873. Nổi tiếng với thiết kế tinh tế và công nghệ tiên tiến.', now(), now()),
+('b0000001-0000-4000-8000-000000000102', 'b0000001-0000-4000-8000-000000000001', 'en', 'Kohler', 'The world''s leading sanitary ware brand from the USA, founded in 1873. Renowned for exquisite design and advanced technology.', now(), now())
 ON CONFLICT (brand_id, locale) DO NOTHING;
 
 -- TOTO
 INSERT INTO public.brands (id, slug, origin, status, sort_order, published_at, created_by, updated_by, created_at, updated_at)
-VALUES ('br000002-0000-4000-8000-000000000001', 'toto', 'Nhật Bản', 'published', 1, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
+VALUES ('b0000002-0000-4000-8000-000000000001', 'toto', 'Nhật Bản', 'published', 1, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.brand_translations (id, brand_id, locale, name, description, created_at, updated_at) VALUES
-('br000002-0000-4000-8000-000000000101', 'br000002-0000-4000-8000-000000000001', 'vi', 'TOTO', 'Tập đoàn thiết bị vệ sinh Nhật Bản thành lập năm 1917. Tiên phong công nghệ Washlet và tiết kiệm nước.', now(), now()),
-('br000002-0000-4000-8000-000000000102', 'br000002-0000-4000-8000-000000000001', 'en', 'TOTO', 'Japanese sanitary ware corporation founded in 1917. Pioneer of Washlet technology and water conservation.', now(), now())
+('b0000002-0000-4000-8000-000000000101', 'b0000002-0000-4000-8000-000000000001', 'vi', 'TOTO', 'Tập đoàn thiết bị vệ sinh Nhật Bản thành lập năm 1917. Tiên phong công nghệ Washlet và tiết kiệm nước.', now(), now()),
+('b0000002-0000-4000-8000-000000000102', 'b0000002-0000-4000-8000-000000000001', 'en', 'TOTO', 'Japanese sanitary ware corporation founded in 1917. Pioneer of Washlet technology and water conservation.', now(), now())
 ON CONFLICT (brand_id, locale) DO NOTHING;
 
 -- American Standard
 INSERT INTO public.brands (id, slug, origin, status, sort_order, published_at, created_by, updated_by, created_at, updated_at)
-VALUES ('br000003-0000-4000-8000-000000000001', 'american-standard', 'Mỹ', 'published', 2, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
+VALUES ('b0000003-0000-4000-8000-000000000001', 'american-standard', 'Mỹ', 'published', 2, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.brand_translations (id, brand_id, locale, name, description, created_at, updated_at) VALUES
-('br000003-0000-4000-8000-000000000101', 'br000003-0000-4000-8000-000000000001', 'vi', 'American Standard', 'Thương hiệu thiết bị vệ sinh Mỹ với hơn 150 năm lịch sử. Bền bỉ, đáng tin cậy, giá trị tốt.', now(), now()),
-('br000003-0000-4000-8000-000000000102', 'br000003-0000-4000-8000-000000000001', 'en', 'American Standard', 'American sanitary ware brand with over 150 years of history. Durable, reliable and great value.', now(), now())
+('b0000003-0000-4000-8000-000000000101', 'b0000003-0000-4000-8000-000000000001', 'vi', 'American Standard', 'Thương hiệu thiết bị vệ sinh Mỹ với hơn 150 năm lịch sử. Bền bỉ, đáng tin cậy, giá trị tốt.', now(), now()),
+('b0000003-0000-4000-8000-000000000102', 'b0000003-0000-4000-8000-000000000001', 'en', 'American Standard', 'American sanitary ware brand with over 150 years of history. Durable, reliable and great value.', now(), now())
 ON CONFLICT (brand_id, locale) DO NOTHING;
 
 -- Inax
 INSERT INTO public.brands (id, slug, origin, status, sort_order, published_at, created_by, updated_by, created_at, updated_at)
-VALUES ('br000004-0000-4000-8000-000000000001', 'inax', 'Nhật Bản', 'published', 3, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
+VALUES ('b0000004-0000-4000-8000-000000000001', 'inax', 'Nhật Bản', 'published', 3, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.brand_translations (id, brand_id, locale, name, description, created_at, updated_at) VALUES
-('br000004-0000-4000-8000-000000000101', 'br000004-0000-4000-8000-000000000001', 'vi', 'INAX', 'Thương hiệu sứ vệ sinh và gạch lát Nhật Bản. Chất lượng Nhật, phù hợp thị trường Đông Nam Á.', now(), now()),
-('br000004-0000-4000-8000-000000000102', 'br000004-0000-4000-8000-000000000001', 'en', 'INAX', 'Japanese ceramic sanitaryware and tile brand. Japanese quality suited to the Southeast Asian market.', now(), now())
+('b0000004-0000-4000-8000-000000000101', 'b0000004-0000-4000-8000-000000000001', 'vi', 'INAX', 'Thương hiệu sứ vệ sinh và gạch lát Nhật Bản. Chất lượng Nhật, phù hợp thị trường Đông Nam Á.', now(), now()),
+('b0000004-0000-4000-8000-000000000102', 'b0000004-0000-4000-8000-000000000001', 'en', 'INAX', 'Japanese ceramic sanitaryware and tile brand. Japanese quality suited to the Southeast Asian market.', now(), now())
 ON CONFLICT (brand_id, locale) DO NOTHING;
 
 -- Hafele
 INSERT INTO public.brands (id, slug, origin, status, sort_order, published_at, created_by, updated_by, created_at, updated_at)
-VALUES ('br000005-0000-4000-8000-000000000001', 'hafele', 'Đức', 'published', 4, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
+VALUES ('b0000005-0000-4000-8000-000000000001', 'hafele', 'Đức', 'published', 4, now(), 'a0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.brand_translations (id, brand_id, locale, name, description, created_at, updated_at) VALUES
-('br000005-0000-4000-8000-000000000101', 'br000005-0000-4000-8000-000000000001', 'vi', 'Häfele', 'Thương hiệu phụ kiện nội thất Đức. Bản lề, ray trượt, tay nắm, khóa tủ chất lượng cao cho đồ gỗ.', now(), now()),
-('br000005-0000-4000-8000-000000000102', 'br000005-0000-4000-8000-000000000001', 'en', 'Häfele', 'German furniture hardware brand. Premium hinges, drawer runners, handles and locks for wood furniture.', now(), now())
+('b0000005-0000-4000-8000-000000000101', 'b0000005-0000-4000-8000-000000000001', 'vi', 'Häfele', 'Thương hiệu phụ kiện nội thất Đức. Bản lề, ray trượt, tay nắm, khóa tủ chất lượng cao cho đồ gỗ.', now(), now()),
+('b0000005-0000-4000-8000-000000000102', 'b0000005-0000-4000-8000-000000000001', 'en', 'Häfele', 'German furniture hardware brand. Premium hinges, drawer runners, handles and locks for wood furniture.', now(), now())
 ON CONFLICT (brand_id, locale) DO NOTHING;
 
 -- ============================================================================
@@ -287,17 +287,17 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.blog_category_translations (id, category_id, locale, slug, name, description, created_at, updated_at) VALUES
 ('bc000004-0000-4000-8000-000000000101', 'bc000004-0000-4000-8000-000000000001', 'vi', 'du-an-thi-cong', 'Dự án & Thi công', 'Các dự án nội thất đã hoàn thiện: nhà ở, căn hộ, khách sạn, văn phòng.', now(), now()),
-('bc000004-0000-4000-8000-000000000001', 'bc000004-0000-4000-8000-000000000001', 'en', 'projects', 'Projects', 'Completed interior projects: houses, apartments, hotels, offices.', now(), now())
+('bc000004-0000-4000-8000-000000000102', 'bc000004-0000-4000-8000-000000000001', 'en', 'projects', 'Projects', 'Completed interior projects: houses, apartments, hotels, offices.', now(), now())
 ON CONFLICT (category_id, locale) DO NOTHING;
 
 -- ============================================================================
--- 4. BÀI VIẾT BLOG — STATUS DRAFT
+-- 4. BÀI VIẾT BLOG — STATUS DRAFT - SỬA LẠI UUID HỢP LỆ (bb... thay cho bp...)
 -- ============================================================================
 
 -- Bài viết 1: Sofa gỗ óc chó
 INSERT INTO public.blog_posts (id, category_id, author_id, status, featured, created_by, updated_by, created_at, updated_at)
 VALUES (
-  'bp000001-0000-4000-8000-000000000001',
+  'bb000001-0000-4000-8000-000000000001',
   'bc000001-0000-4000-8000-000000000001',
   'a0000000-0000-4000-8000-000000000001',
   'draft', true,
@@ -308,13 +308,13 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.blog_post_translations (id, post_id, locale, slug, title, excerpt, body_json, created_at, updated_at) VALUES
-('bp000001-0000-4000-8000-000000000101', 'bp000001-0000-4000-8000-000000000001', 'vi',
+('bb000001-0000-4000-8000-000000000101', 'bb000001-0000-4000-8000-000000000001', 'vi',
   'sofa-go-oc-cho-lua-chon-sang-trong-cho-phong-khach',
   'Sofa gỗ óc chó – Lựa chọn sang trọng cho phòng khách hiện đại',
   'Gỗ óc chó Bắc Mỹ được mệnh danh là "vua của các loại gỗ" nhờ vân gỗ đẹp và độ bền vượt trội. Cùng khám phá tại sao sofa gỗ óc chó là đầu tư thông minh cho không gian phòng khách của bạn.',
   '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Gỗ óc chó (Walnut) là một trong những loại gỗ cao cấp nhất thế giới, được ưa chuộng trong sản xuất đồ nội thất cao cấp nhờ vân gỗ tự nhiên đẹp mắt và độ bền bỉ theo thời gian.","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"Đặc điểm nổi bật của gỗ óc chó","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"heading","tag":"h2","version":1},{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Gỗ óc chó có màu nâu chocolate ấm áp, vân gỗ thẳng hoặc xoắn đặc trưng, rất cứng và ổn định theo thời gian. Đặc biệt, gỗ óc chó ít co ngót hơn nhiều loại gỗ khác, phù hợp với khí hậu nhiệt đới như Việt Nam.","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
   now(), now()),
-('bp000001-0000-4000-8000-000000000102', 'bp000001-0000-4000-8000-000000000001', 'en',
+('bb000001-0000-4000-8000-000000000102', 'bb000001-0000-4000-8000-000000000001', 'en',
   'walnut-sofa-elegant-choice-for-modern-living-room',
   'Walnut Sofa – The Elegant Choice for a Modern Living Room',
   'North American walnut is dubbed the "king of woods" for its beautiful grain and outstanding durability. Discover why a walnut sofa is a smart investment for your living space.',
@@ -325,7 +325,7 @@ ON CONFLICT (post_id, locale) DO NOTHING;
 -- Bài viết 2: Hướng dẫn chọn bồn cầu
 INSERT INTO public.blog_posts (id, category_id, author_id, status, featured, created_by, updated_by, created_at, updated_at)
 VALUES (
-  'bp000002-0000-4000-8000-000000000001',
+  'bb000002-0000-4000-8000-000000000001',
   'bc000003-0000-4000-8000-000000000001',
   'a0000000-0000-4000-8000-000000000001',
   'draft', false,
@@ -336,13 +336,13 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.blog_post_translations (id, post_id, locale, slug, title, excerpt, body_json, created_at, updated_at) VALUES
-('bp000002-0000-4000-8000-000000000101', 'bp000002-0000-4000-8000-000000000001', 'vi',
+('bb000002-0000-4000-8000-000000000101', 'bb000002-0000-4000-8000-000000000001', 'vi',
   'huong-dan-chon-bon-cau-phu-hop-cho-nha-viet',
   'Hướng dẫn chọn bồn cầu phù hợp cho nhà người Việt',
   'Bồn cầu 1 khối hay 2 khối? Treo tường hay đặt sàn? Công nghệ xả nào tiết kiệm nhất? Bài viết này giúp bạn chọn đúng bồn cầu cho phòng tắm nhà mình.',
   '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Chọn bồn cầu không chỉ là vấn đề thẩm mỹ mà còn ảnh hưởng đến trải nghiệm sử dụng hàng ngày và chi phí nước lâu dài.","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"Các loại bồn cầu phổ biến","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"heading","tag":"h2","version":1},{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Bồn cầu 1 khối (one-piece): thân và bể chứa nước liền khối, dễ vệ sinh, thiết kế hiện đại. Bồn cầu 2 khối (two-piece): thân và bể chứa rời, dễ vận chuyển, giá thường mềm hơn. Bồn cầu treo tường: không có chân, treo lên tường, không gian sàn thông thoáng hơn.","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
   now(), now()),
-('bp000002-0000-4000-8000-000000000102', 'bp000002-0000-4000-8000-000000000001', 'en',
+('bb000002-0000-4000-8000-000000000102', 'bb000002-0000-4000-8000-000000000001', 'en',
   'how-to-choose-the-right-toilet-for-your-home',
   'How to Choose the Right Toilet for Your Home',
   'One-piece or two-piece? Wall-hung or floor-standing? Which flush technology saves the most water? This guide helps you choose the right toilet for your bathroom.',
@@ -353,7 +353,7 @@ ON CONFLICT (post_id, locale) DO NOTHING;
 -- Bài viết 3: Xu hướng nội thất 2026
 INSERT INTO public.blog_posts (id, category_id, author_id, status, featured, created_by, updated_by, created_at, updated_at)
 VALUES (
-  'bp000003-0000-4000-8000-000000000001',
+  'bb000003-0000-4000-8000-000000000001',
   'bc000002-0000-4000-8000-000000000001',
   'a0000000-0000-4000-8000-000000000001',
   'draft', true,
@@ -364,13 +364,13 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.blog_post_translations (id, post_id, locale, slug, title, excerpt, body_json, created_at, updated_at) VALUES
-('bp000003-0000-4000-8000-000000000101', 'bp000003-0000-4000-8000-000000000001', 'vi',
+('bb000003-0000-4000-8000-000000000101', 'bb000003-0000-4000-8000-000000000001', 'vi',
   'xu-huong-noi-that-2026-toi-gian-am-ap-thien-nhien',
   'Xu hướng nội thất 2026: Tối giản, ấm áp và gần gũi thiên nhiên',
   'Năm 2026, xu hướng nội thất toàn cầu tiếp tục hướng đến sự tối giản, sử dụng vật liệu tự nhiên và màu sắc đất. Biophilic design – thiết kế gắn kết với thiên nhiên – đang trở thành ngôn ngữ thiết kế chủ đạo.',
   '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Xu hướng nội thất 2026 tập trung vào 3 giá trị cốt lõi: tối giản (minimalism), ấm áp (warmth) và kết nối thiên nhiên (biophilic design).","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"1. Màu sắc đất – Earthy Tones","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"heading","tag":"h2","version":1},{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"Các tông màu nâu đất, kem, xanh rêu, terracotta và be đang thống trị bảng màu nội thất 2026. Những màu sắc này tạo cảm giác ấm cúng, gần gũi và bền với thời gian.","type":"text","version":1}],"direction":"ltr","format":"","indent":0,"type":"paragraph","version":1}],"direction":"ltr","format":"","indent":0,"type":"root","version":1}}'::jsonb,
   now(), now()),
-('bp000003-0000-4000-8000-000000000102', 'bp000003-0000-4000-8000-000000000001', 'en',
+('bb000003-0000-4000-8000-000000000102', 'bb000003-0000-4000-8000-000000000001', 'en',
   'interior-design-trends-2026-minimal-warm-natural',
   'Interior Design Trends 2026: Minimal, Warm and Close to Nature',
   'In 2026, global interior design trends continue to embrace minimalism, natural materials and earthy colors. Biophilic design — connecting spaces with nature — is becoming the dominant design language.',
@@ -379,7 +379,7 @@ INSERT INTO public.blog_post_translations (id, post_id, locale, slug, title, exc
 ON CONFLICT (post_id, locale) DO NOTHING;
 
 -- ============================================================================
--- 5. SHOWROOM
+-- 5. SHOWROOM - SỬA LẠI UUID HỢP LỆ (da... thay cho sr...)
 -- ============================================================================
 
 INSERT INTO public.showrooms (
@@ -390,7 +390,7 @@ INSERT INTO public.showrooms (
   status, sort_order, published_at,
   created_by, updated_by, created_at, updated_at
 ) VALUES (
-  'sr000001-0000-4000-8000-000000000001',
+  'da000001-0000-4000-8000-000000000001',
   'HN-01',
   '1900 1234',
   'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0!2d105.8!3d21.0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDAw!5e0!3m2!1svi!2svn!4v1234567890',
@@ -406,12 +406,12 @@ INSERT INTO public.showrooms (
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.showroom_translations (id, showroom_id, locale, name, address, opening_hours, created_at, updated_at) VALUES
-('sr000001-0000-4000-8000-000000000101', 'sr000001-0000-4000-8000-000000000001', 'vi',
+('da000001-0000-4000-8000-000000000101', 'da000001-0000-4000-8000-000000000001', 'vi',
   'Showroom Nội Thất Phương Đông – Hà Nội',
   '123 Nguyễn Trãi, Phường Thanh Xuân Trung, Quận Thanh Xuân, Hà Nội',
   'Thứ 2 – Thứ 7: 8:00 – 20:00 | Chủ nhật: 9:00 – 18:00',
   now(), now()),
-('sr000001-0000-4000-8000-000000000102', 'sr000001-0000-4000-8000-000000000001', 'en',
+('da000001-0000-4000-8000-000000000102', 'da000001-0000-4000-8000-000000000001', 'en',
   'Phuong Dong Furniture Showroom – Hanoi',
   '123 Nguyen Trai, Thanh Xuan Trung Ward, Thanh Xuan District, Hanoi',
   'Mon – Sat: 8:00 AM – 8:00 PM | Sun: 9:00 AM – 6:00 PM',
