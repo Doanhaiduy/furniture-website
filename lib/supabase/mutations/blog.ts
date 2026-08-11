@@ -13,14 +13,65 @@ function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
   }
 
   const body = typeof value === "string" ? value.trim() : "";
+  
+  // Try to parse H2 and H3 headings to split into sections
+  const headingRegex = /<h([23])[^>]*>(.*?)<\/h\1>/gi;
+  const sections: any[] = [];
+
+  let match;
+  let lastIndex = 0;
+  let sectionIndex = 1;
+  let currentTitle = fallbackTitle;
+  let currentId = "noi-dung";
+
+  const matches: Array<{ title: string; index: number; length: number }> = [];
+  while ((match = headingRegex.exec(body)) !== null) {
+    matches.push({
+      title: match[2].replace(/<[^>]*>/g, "").trim(), // Strip any nested HTML tags inside the heading
+      index: match.index,
+      length: match[0].length,
+    });
+  }
+
+  if (matches.length > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      const currentMatch = matches[i];
+      const previousBody = body.substring(lastIndex, currentMatch.index).trim();
+
+      // Only add the section if it is the first section or if it has non-empty body text
+      if (previousBody || sections.length === 0) {
+        sections.push({
+          id: currentId,
+          title: currentTitle,
+          body: previousBody,
+        });
+      }
+
+      currentTitle = currentMatch.title;
+      // Convert Vietnamese title to a clean slug/id
+      currentId = slugifyVi(currentTitle) || `phan-${sectionIndex}`;
+      lastIndex = currentMatch.index + currentMatch.length;
+      sectionIndex++;
+    }
+
+    // Add the final section after the last heading
+    const finalBody = body.substring(lastIndex).trim();
+    sections.push({
+      id: currentId,
+      title: currentTitle,
+      body: finalBody,
+    });
+  } else {
+    // Fallback to a single section if no H2/H3 tags are found
+    sections.push({
+      id: "noi-dung",
+      title: fallbackTitle,
+      body,
+    });
+  }
+
   return {
-    sections: [
-      {
-        id: "noi-dung",
-        title: fallbackTitle,
-        body,
-      },
-    ],
+    sections,
   };
 }
 
