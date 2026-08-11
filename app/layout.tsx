@@ -15,8 +15,10 @@ export const metadata: Metadata = {
   description:
     "Website doanh nghiệp đồ gỗ nội thất và thiết bị vệ sinh song ngữ Việt Anh.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/logo-final.jpg",
+    icon: [
+      { url: "/logo-final.svg", type: "image/svg+xml" }
+    ],
+    apple: "/logo-final.svg",
   },
 };
 
