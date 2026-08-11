@@ -23,10 +23,12 @@ function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
   let sectionIndex = 1;
   let currentTitle = fallbackTitle;
   let currentId = "noi-dung";
+  let currentTag: string | null = null;
 
-  const matches: Array<{ title: string; index: number; length: number }> = [];
+  const matches: Array<{ tag: string; title: string; index: number; length: number }> = [];
   while ((match = headingRegex.exec(body)) !== null) {
     matches.push({
+      tag: match[1].toLowerCase(),
       title: match[2].replace(/<[^>]*>/g, "").trim(), // Strip any nested HTML tags inside the heading
       index: match.index,
       length: match[0].length,
@@ -44,12 +46,14 @@ function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
           id: currentId,
           title: currentTitle,
           body: previousBody,
+          tag: currentTag,
         });
       }
 
       currentTitle = currentMatch.title;
       // Convert Vietnamese title to a clean slug/id
       currentId = slugifyVi(currentTitle) || `phan-${sectionIndex}`;
+      currentTag = currentMatch.tag;
       lastIndex = currentMatch.index + currentMatch.length;
       sectionIndex++;
     }
@@ -60,6 +64,7 @@ function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
       id: currentId,
       title: currentTitle,
       body: finalBody,
+      tag: currentTag,
     });
   } else {
     // Fallback to a single section if no H2/H3 tags are found
@@ -67,6 +72,7 @@ function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
       id: "noi-dung",
       title: fallbackTitle,
       body,
+      tag: null,
     });
   }
 
@@ -89,12 +95,30 @@ function bodyJsonToEditorText(value: unknown) {
         if (!section || typeof section !== "object") return "";
         const sectionRecord = section as Record<string, unknown>;
         const body = sectionRecord.body;
-        if (typeof body === "string") return body;
-        if (body && typeof body === "object") {
+        const tag = sectionRecord.tag;
+        const title = sectionRecord.title;
+
+        let bodyHtml = "";
+        if (typeof body === "string") {
+          bodyHtml = body;
+        } else if (body && typeof body === "object") {
           const localizedBody = body as Record<string, unknown>;
-          return String(localizedBody.vi ?? localizedBody.en ?? "");
+          bodyHtml = String(localizedBody.vi ?? localizedBody.en ?? "");
         }
-        return "";
+
+        // Reconstruct heading HTML if tag (h2/h3) exists
+        if (tag === "h2" || tag === "h3") {
+          let titleText = "";
+          if (typeof title === "string") {
+            titleText = title;
+          } else if (title && typeof title === "object") {
+            const localizedTitle = title as Record<string, unknown>;
+            titleText = String(localizedTitle.vi ?? localizedTitle.en ?? "");
+          }
+          return `<${tag}>${titleText}</${tag}>\n${bodyHtml}`;
+        }
+
+        return bodyHtml;
       })
       .filter(Boolean)
       .join("\n\n");

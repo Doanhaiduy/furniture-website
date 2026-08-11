@@ -125,6 +125,7 @@ export default async function BlogDetailPage({
           en: typeof section.body === "object" ? (section.body.en || section.body.vi || "") : (section.body || ""),
         },
         image: section.image,
+        tag: section.tag || null,
       })),
     };
   } else {
@@ -168,10 +169,13 @@ export default async function BlogDetailPage({
       .slice(0, 2);
   }
 
-  const tocItems = article.sections.map((section: any) => ({
-    id: section.id,
-    title: localized(section.title, locale),
-  }));
+  const tocItems = article.sections
+    .filter((section: any) => section.id !== "noi-dung" || section.tag === "h2" || section.tag === "h3")
+    .map((section: any) => ({
+      id: section.id,
+      title: localized(section.title, locale),
+      level: section.tag === "h3" ? 3 : 2,
+    }));
 
   return (
     <main>
@@ -270,38 +274,67 @@ export default async function BlogDetailPage({
             )}
 
             <div className="mt-12 space-y-12">
-              {article.sections.map((section: any, index: number) => (
-                <section key={section.id} aria-labelledby={section.id} className="scroll-mt-28">
-                  <div className="flex items-center gap-4">
-                    <span className="font-heading text-2xl font-semibold text-primary/28">
-                      0{index + 1}
-                    </span>
-                    <div className="h-px flex-1 bg-outline-variant/45" />
-                  </div>
-                  <h2
-                    id={section.id}
-                    className="type-section-title mt-5 text-primary md:text-3xl"
-                  >
-                    {localized(section.title, locale)}
-                  </h2>
-                  <div
-                    className="rich-content mt-4 text-base leading-8 text-secondary md:text-[1.05rem]"
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(localized(section.body, locale)),
-                    }}
-                  />
-                  {"image" in section && section.image ? (
-                    <figure className="public-image-panel mt-7">
-                      <RemoteImage
-                        src={section.image}
-                        alt={localized(section.title, locale)}
-                        className="h-[280px] w-full object-cover md:h-[340px]"
-                        sizes="(min-width: 1024px) 760px, 100vw"
+              {(() => {
+                let h2Count = 0;
+                return article.sections.map((section: any) => {
+                  const isIntro = section.id === "noi-dung" && !section.tag;
+                  const isH3 = section.tag === "h3";
+                  
+                  if (!isIntro && !isH3) {
+                    h2Count++;
+                  }
+                  
+                  return (
+                    <section key={section.id} aria-labelledby={section.id} className="scroll-mt-28">
+                      {!isIntro && (
+                        <>
+                          {isH3 ? (
+                            <h3
+                              id={section.id}
+                              className="font-heading text-xl font-bold text-primary mt-8 mb-3 md:text-2xl"
+                            >
+                              {localized(section.title, locale)}
+                            </h3>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-4">
+                                <span className="font-heading text-2xl font-semibold text-primary/28">
+                                  0{h2Count}
+                                </span>
+                                <div className="h-px flex-1 bg-outline-variant/45" />
+                              </div>
+                              <h2
+                                id={section.id}
+                                className="type-section-title mt-5 text-primary md:text-3xl"
+                              >
+                                {localized(section.title, locale)}
+                              </h2>
+                            </>
+                          )}
+                        </>
+                      )}
+                      
+                      <div
+                        className="rich-content mt-4 text-base leading-8 text-secondary md:text-[1.05rem]"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(localized(section.body, locale)),
+                        }}
                       />
-                    </figure>
-                  ) : null}
-                </section>
-              ))}
+                      
+                      {"image" in section && section.image ? (
+                        <figure className="public-image-panel mt-7">
+                          <RemoteImage
+                            src={section.image}
+                            alt={localized(section.title, locale)}
+                            className="h-[280px] w-full object-cover md:h-[340px]"
+                            sizes="(min-width: 1024px) 760px, 100vw"
+                          />
+                        </figure>
+                      ) : null}
+                    </section>
+                  );
+                });
+              })()}
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export type ArticleTocItem = {
   id: string;
   title: string;
+  level?: number;
 };
 
 export function ArticleToc({
@@ -51,14 +52,19 @@ export function ArticleToc({
       <ol className="mt-4 grid gap-1.5">
         {items.map((item, index) => {
           const active = item.id === activeId;
+          const isH3 = item.level === 3;
           return (
-            <li key={item.id}>
+            <li key={item.id} className={isH3 ? "pl-5" : ""}>
               <a
                 href={`#${item.id}`}
                 aria-current={active ? "location" : undefined}
                 className="public-toc-link"
               >
-                <span className="text-xs text-outline">0{index + 1}</span>
+                {isH3 ? (
+                  <span className="text-xs text-outline mr-1.5">—</span>
+                ) : (
+                  <span className="text-xs text-outline">0{index + 1}</span>
+                )}
                 <span>{item.title}</span>
               </a>
             </li>

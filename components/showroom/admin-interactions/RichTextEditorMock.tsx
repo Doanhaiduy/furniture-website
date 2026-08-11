@@ -96,6 +96,7 @@ export function RichTextEditorMock({
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [, setSelectionTime] = useState(0); // Dummy state to force React re-renders on selection changes
   // Holds the latest upload-and-insert function so paste/drop handlers (captured in the
   // editor config) can call it once the editor instance exists.
   const uploadInsertRef = useRef<((file: File) => void) | null>(null);
@@ -168,6 +169,9 @@ export function RichTextEditorMock({
         }
         return false;
       },
+    },
+    onSelectionUpdate() {
+      setSelectionTime(Date.now());
     },
     onUpdate({ editor }) {
       if (onChange) {
