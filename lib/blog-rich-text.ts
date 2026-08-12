@@ -101,7 +101,7 @@ function normalizeMarks(value: unknown): BlogRichTextMark[] | undefined {
       }
     }
     if (type === "link") {
-      const href = safeHref(asRecord(mark.attrs)?.href);
+      const href = safeHref(asRecord(mark?.attrs)?.href);
       if (href && !seen.has(`link:${href}`)) {
         marks.push({ type: "link", attrs: { href } });
         seen.add(`link:${href}`);
@@ -271,11 +271,11 @@ function lexicalInlineNodes(value: unknown): BlogRichTextNode[] {
     } else if (node.type === "link") {
       const href = safeHref(node.url);
       const children = lexicalInlineNodes(node.children);
-      nodes.push(...children.map((child) => {
+      nodes.push(...children.map((child): BlogRichTextNode => {
         if (child.type !== "text" || !href) return child;
         return {
           ...child,
-          marks: [...(child.marks ?? []), { type: "link", attrs: { href } }],
+          marks: [...(child.marks ?? []), { type: "link" as const, attrs: { href } }],
         };
       }));
     } else {
