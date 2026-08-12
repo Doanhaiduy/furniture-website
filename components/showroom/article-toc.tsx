@@ -48,10 +48,21 @@ export function ArticleToc({
   }, [items]);
 
   let h2Number = 0;
-  const displayItems = items.map((item) => ({
-    ...item,
-    number: item.level === 3 ? null : ++h2Number,
-  }));
+  let h3Number = 0;
+  const displayItems = items.map((item) => {
+    if (item.level === 3) {
+      return {
+        ...item,
+        number: h2Number > 0 ? `${h2Number}.${++h3Number}` : undefined,
+      };
+    }
+
+    h3Number = 0;
+    return {
+      ...item,
+      number: String(++h2Number).padStart(2, "0"),
+    };
+  });
 
   if (displayItems.length === 0) return null;
 
@@ -69,7 +80,7 @@ export function ArticleToc({
                 aria-current={active ? "location" : undefined}
                 className="public-toc-link"
               >
-                {isH3 ? (
+                {isH3 && !item.number ? (
                   <span className="text-xs text-outline mr-1.5">—</span>
                 ) : (
                   <span className="text-xs text-outline">{String(item.number).padStart(2, "0")}</span>

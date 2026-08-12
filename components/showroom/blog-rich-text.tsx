@@ -97,6 +97,16 @@ export function BlogRichTextRenderer({
   );
 }
 
-export function getBlogTocItems(document: BlogRichTextDocument | unknown) {
-  return getBlogRichTextHeadings(normalizeBlogRichText(document));
+export type BlogTocItem = {
+  id: string;
+  title: string;
+  level: 2 | 3;
+};
+
+export function getBlogTocItems(document: BlogRichTextDocument | unknown): BlogTocItem[] {
+  return getBlogRichTextHeadings(normalizeBlogRichText(document)).map((heading) => ({
+    id: heading.id,
+    title: heading.text,
+    level: heading.level,
+  }));
 }
