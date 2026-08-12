@@ -6,125 +6,14 @@ import { requireEditorOrAdmin } from "../auth";
 import { writeAuditLog } from "../audit";
 import { blogPostSchema, type BlogPostInput } from "../../validations/admin";
 import { triggerRevalidation, getOrCreateMediaAssetId, isUuid, validationMessages, localizedText } from "./helpers";
+import { normalizeBlogRichText, validateBlogRichText } from "../../blog-rich-text";
 
-function bodyJsonFromEditor(value: unknown, fallbackTitle: string) {
-  if (value && typeof value === "object") {
-    return value;
-  }
-
-  const body = typeof value === "string" ? value.trim() : "";
-  
-  // Try to parse H2 and H3 headings to split into sections
-  const headingRegex = /<h([23])[^>]*>(.*?)<\/h\1>/gi;
-  const sections: any[] = [];
-
-  let match;
-  let lastIndex = 0;
-  let sectionIndex = 1;
-  let currentTitle = fallbackTitle;
-  let currentId = "noi-dung";
-  let currentTag: string | null = null;
-
-  const matches: Array<{ tag: string; title: string; index: number; length: number }> = [];
-  while ((match = headingRegex.exec(body)) !== null) {
-    matches.push({
-      tag: match[1].toLowerCase(),
-      title: match[2].replace(/<[^>]*>/g, "").trim(), // Strip any nested HTML tags inside the heading
-      index: match.index,
-      length: match[0].length,
-    });
-  }
-
-  if (matches.length > 0) {
-    for (let i = 0; i < matches.length; i++) {
-      const currentMatch = matches[i];
-      const previousBody = body.substring(lastIndex, currentMatch.index).trim();
-
-      // Only add the section if it is the first section or if it has non-empty body text
-      if (previousBody || sections.length === 0) {
-        sections.push({
-          id: currentId,
-          title: currentTitle,
-          body: previousBody,
-          tag: currentTag,
-        });
-      }
-
-      currentTitle = currentMatch.title;
-      // Convert Vietnamese title to a clean slug/id
-      currentId = slugifyVi(currentTitle) || `phan-${sectionIndex}`;
-      currentTag = currentMatch.tag;
-      lastIndex = currentMatch.index + currentMatch.length;
-      sectionIndex++;
-    }
-
-    // Add the final section after the last heading
-    const finalBody = body.substring(lastIndex).trim();
-    sections.push({
-      id: currentId,
-      title: currentTitle,
-      body: finalBody,
-      tag: currentTag,
-    });
-  } else {
-    // Fallback to a single section if no H2/H3 tags are found
-    sections.push({
-      id: "noi-dung",
-      title: fallbackTitle,
-      body,
-      tag: null,
-    });
-  }
-
+function validateBodyForSave(value: unknown, locale: "vi" | "en", required: boolean) {
+  const result = validateBlogRichText(normalizeBlogRichText(value, locale));
   return {
-    sections,
+    document: result.document,
+    errors: required ? result.errors : result.errors.filter((error) => !error.includes("không được để trống")),
   };
-}
-
-function bodyJsonToEditorText(value: unknown) {
-  if (!value) return "";
-  if (typeof value === "string" ? true : false) return value as string; // safe casting/typecheck
-  if (typeof value !== "object") return String(value);
-
-  const record = value as Record<string, unknown>;
-  if (typeof record.html === "string") return record.html;
-
-  if (Array.isArray(record.sections)) {
-    return record.sections
-      .map((section) => {
-        if (!section || typeof section !== "object") return "";
-        const sectionRecord = section as Record<string, unknown>;
-        const body = sectionRecord.body;
-        const tag = sectionRecord.tag || (sectionRecord.id !== "noi-dung" ? "h2" : null);
-        const title = sectionRecord.title;
-
-        let bodyHtml = "";
-        if (typeof body === "string") {
-          bodyHtml = body;
-        } else if (body && typeof body === "object") {
-          const localizedBody = body as Record<string, unknown>;
-          bodyHtml = String(localizedBody.vi ?? localizedBody.en ?? "");
-        }
-
-        // Reconstruct heading HTML if tag (h2/h3) exists
-        if (tag === "h2" || tag === "h3") {
-          let titleText = "";
-          if (typeof title === "string") {
-            titleText = title;
-          } else if (title && typeof title === "object") {
-            const localizedTitle = title as Record<string, unknown>;
-            titleText = String(localizedTitle.vi ?? localizedTitle.en ?? "");
-          }
-          return `<${tag}>${titleText}</${tag}>\n${bodyHtml}`;
-        }
-
-        return bodyHtml;
-      })
-      .filter(Boolean)
-      .join("\n\n");
-  }
-
-  return JSON.stringify(value);
 }
 
 // Vietnamese-aware slug generator for inline blog-category creation.
@@ -313,8 +202,9 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
     title_en: string;
     excerpt_vi: string;
     excerpt_en: string;
-    body_json_vi: string;
-    body_json_en: string;
+    slug_en: string;
+    body_json_vi: ReturnType<typeof normalizeBlogRichText>;
+    body_json_en: ReturnType<typeof normalizeBlogRichText>;
     category_id: string;
     status: "draft" | "published" | "archived";
     featured: boolean;
@@ -372,12 +262,13 @@ export async function getAdminBlogPostByIdOrSlug(idOrSlug: string): Promise<{
       data: {
         id: post.id,
         slug: localizedText(viTrans?.slug, localizedText(enTrans?.slug)),
+        slug_en: localizedText(enTrans?.slug, localizedText(viTrans?.slug)),
         title_vi: localizedText(viTrans?.title),
         title_en: localizedText(enTrans?.title),
         excerpt_vi: localizedText(viTrans?.excerpt),
         excerpt_en: localizedText(enTrans?.excerpt),
-        body_json_vi: bodyJsonToEditorText(viTrans?.body_json),
-        body_json_en: bodyJsonToEditorText(enTrans?.body_json),
+        body_json_vi: normalizeBlogRichText(viTrans?.body_json, "vi"),
+        body_json_en: normalizeBlogRichText(enTrans?.body_json, "en"),
         category_id: post.category_id,
         status: post.status as "draft" | "published" | "archived",
         featured: Boolean(post.featured),
@@ -402,6 +293,16 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
   }
 
   const values = validation.data;
+  const viBody = validateBodyForSave(values.body_json_vi, "vi", values.status === "published");
+  const enBody = validateBodyForSave(
+    values.body_json_en ?? values.body_json_vi,
+    "en",
+    values.status === "published" && Boolean(values.title_en),
+  );
+  const bodyErrors = [...viBody.errors, ...enBody.errors];
+  if (bodyErrors.length > 0) {
+    return { success: false, error: bodyErrors.join(" ") };
+  }
 
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
@@ -434,24 +335,24 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
       return { success: false, error: postError?.message || "Failed to create blog post" };
     }
 
-    const buildTranslations = (slug: string) => [
+    const buildTranslations = (viSlug: string, enSlug: string) => [
       {
         post_id: post.id,
         locale: "vi",
-        slug,
+        slug: viSlug,
         title: values.title_vi,
         excerpt: values.excerpt_vi,
-        body_json: bodyJsonFromEditor(values.body_json_vi, values.title_vi),
+        body_json: viBody.document,
         seo_title: values.seo_title_vi,
         seo_description: values.seo_description_vi,
       },
       {
         post_id: post.id,
         locale: "en",
-        slug,
+        slug: enSlug,
         title: values.title_en || values.title_vi,
         excerpt: values.excerpt_en || values.excerpt_vi,
-        body_json: bodyJsonFromEditor(values.body_json_en || values.body_json_vi, values.title_en || values.title_vi),
+        body_json: enBody.document,
         seo_title: values.seo_title_en || values.seo_title_vi,
         seo_description: values.seo_description_en || values.seo_description_vi,
       },
@@ -460,15 +361,18 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
     // The (locale, slug) unique index is global with no soft-delete predicate, so a
     // duplicate title — or a slug left by a soft-deleted post — would collide. Retry
     // with a short suffix instead of hard-failing on a duplicate-key error.
-    let slug = values.slug;
+    let viSlug = values.slug;
+    let enSlug = values.slug_en || values.slug;
     let transError: { message: string } | null = null;
     for (let attempt = 0; attempt < 4; attempt++) {
-      const { error } = await supabase.from("blog_post_translations").insert(buildTranslations(slug));
+      const { error } = await supabase.from("blog_post_translations").insert(buildTranslations(viSlug, enSlug));
       transError = error;
       if (!error) break;
       const isDuplicate = /duplicate key|unique constraint/i.test(error.message || "");
       if (!isDuplicate || attempt === 3) break;
-      slug = `${values.slug}-${Math.random().toString(36).slice(2, 6)}`;
+      const suffix = Math.random().toString(36).slice(2, 6);
+      viSlug = `${values.slug}-${suffix}`;
+      enSlug = `${values.slug_en || values.slug}-${suffix}`;
     }
     if (transError) {
       await supabase.from("blog_posts").delete().eq("id", post.id);
@@ -498,7 +402,7 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
         action: "create",
         entityType: "blog_post",
         entityId: post.id,
-        metadata: { title: values.title_vi, slug },
+        metadata: { title: values.title_vi, slug: viSlug, slug_en: enSlug },
       });
     } catch (auditError) {
       await supabase.from("blog_posts").delete().eq("id", post.id);
@@ -520,6 +424,16 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
   }
 
   const values = validation.data;
+  const viBody = validateBodyForSave(values.body_json_vi, "vi", values.status === "published");
+  const enBody = validateBodyForSave(
+    values.body_json_en ?? values.body_json_vi,
+    "en",
+    values.status === "published" && Boolean(values.title_en),
+  );
+  const bodyErrors = [...viBody.errors, ...enBody.errors];
+  if (bodyErrors.length > 0) {
+    return { success: false, error: bodyErrors.join(" ") };
+  }
 
   const supabase = createAdminClient();
   const category = await resolveBlogCategoryId(supabase, values.category_id);
@@ -537,7 +451,7 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
         slug: values.slug,
         title: values.title_vi,
         excerpt: values.excerpt_vi,
-        body_json: bodyJsonFromEditor(values.body_json_vi, values.title_vi),
+        body_json: viBody.document,
         seo_title: values.seo_title_vi,
         seo_description: values.seo_description_vi,
         updated_at: new Date().toISOString(),
@@ -545,10 +459,10 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
       {
         post_id: id,
         locale: "en",
-        slug: values.slug,
+        slug: values.slug_en || values.slug,
         title: values.title_en || values.title_vi,
         excerpt: values.excerpt_en || values.excerpt_vi,
-        body_json: bodyJsonFromEditor(values.body_json_en || values.body_json_vi, values.title_en || values.title_vi),
+        body_json: enBody.document,
         seo_title: values.seo_title_en || values.seo_title_vi,
         seo_description: values.seo_description_en || values.seo_description_vi,
         updated_at: new Date().toISOString(),
@@ -585,7 +499,7 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
       action: values.status === "archived" ? "archive" : "update",
       entityType: "blog_post",
       entityId: id,
-      metadata: { title: values.title_vi, slug: values.slug },
+      metadata: { title: values.title_vi, slug: values.slug, slug_en: values.slug_en || values.slug },
     });
 
     triggerRevalidation();

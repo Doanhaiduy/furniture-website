@@ -20,6 +20,7 @@ export function ArticleToc({
   const [activeId, setActiveId] = useState(items[0]?.id);
 
   useEffect(() => {
+    setActiveId(items[0]?.id);
     const headings = items
       .map((item) => document.getElementById(item.id))
       .filter((element): element is HTMLElement => Boolean(element));
@@ -46,11 +47,19 @@ export function ArticleToc({
     return () => observer.disconnect();
   }, [items]);
 
+  let h2Number = 0;
+  const displayItems = items.map((item) => ({
+    ...item,
+    number: item.level === 3 ? null : ++h2Number,
+  }));
+
+  if (displayItems.length === 0) return null;
+
   return (
     <nav aria-label={title} className={className}>
       <p className="label-pd">{title}</p>
       <ol className="mt-4 grid gap-1.5">
-        {items.map((item, index) => {
+        {displayItems.map((item) => {
           const active = item.id === activeId;
           const isH3 = item.level === 3;
           return (
@@ -63,7 +72,7 @@ export function ArticleToc({
                 {isH3 ? (
                   <span className="text-xs text-outline mr-1.5">—</span>
                 ) : (
-                  <span className="text-xs text-outline">0{index + 1}</span>
+                  <span className="text-xs text-outline">{String(item.number).padStart(2, "0")}</span>
                 )}
                 <span>{item.title}</span>
               </a>

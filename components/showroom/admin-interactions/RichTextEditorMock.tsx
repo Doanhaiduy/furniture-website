@@ -11,6 +11,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
+import { normalizeBlogRichText, type BlogRichTextDocument } from "@/lib/blog-rich-text";
 
 // Uploads an image file via the signed Cloudinary flow and returns its public URL.
 async function uploadEditorImage(file: File): Promise<string> {
@@ -71,9 +72,12 @@ import {
   AlignRight,
   Heading2,
   Heading3,
+  Pilcrow,
   Quote,
+  RemoveFormatting,
   Undo2,
   Redo2,
+  Unlink,
 } from "lucide-react";
 
 
@@ -86,13 +90,13 @@ export function RichTextEditorMock({
   placeholder,
   disabled,
 }: {
-  defaultValue?: string;
-  value?: string;
-  onChange?: (val: string) => void;
+  defaultValue?: BlogRichTextDocument | unknown;
+  value?: BlogRichTextDocument | unknown;
+  onChange?: (val: BlogRichTextDocument) => void;
   placeholder?: string;
   disabled?: boolean;
 }) {
-  const initialContent = value !== undefined ? value : (defaultValue ?? "");
+  const initialContent = normalizeBlogRichText(value ?? defaultValue);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -138,7 +142,7 @@ export function RichTextEditorMock({
         placeholder: placeholder || "Nhập chi tiết nội dung ở đây. Hỗ trợ Ctrl+B (đậm), Ctrl+I (nghiêng), dán ảnh trực tiếp...",
       }),
     ],
-    content: initialContent,
+    content: initialContent as any,
     editable: !disabled,
     editorProps: {
       handlePaste: (_view, event) => {
@@ -175,7 +179,7 @@ export function RichTextEditorMock({
     },
     onUpdate({ editor }) {
       if (onChange) {
-        onChange(editor.getHTML());
+        onChange(normalizeBlogRichText(editor.getJSON()));
       }
     },
   });
@@ -183,11 +187,12 @@ export function RichTextEditorMock({
   // Sync external value changes into editor (e.g. AI fill)
   useEffect(() => {
     if (!editor) return;
-    const currentHtml = editor.getHTML();
-    const newVal = value ?? "";
-    // Only update if meaningfully different to avoid cursor jumps
-    if (newVal !== currentHtml && newVal !== "<p></p>") {
-      editor.commands.setContent(newVal, { emitUpdate: false } as any);
+    const currentDocument = normalizeBlogRichText(editor.getJSON());
+    const nextDocument = normalizeBlogRichText(value);
+    // Compare document semantics, not serialized HTML. This keeps headings intact
+    // after an edit reload and still prevents cursor jumps on normal typing.
+    if (JSON.stringify(nextDocument) !== JSON.stringify(currentDocument)) {
+      editor.commands.setContent(nextDocument as any, { emitUpdate: false } as any);
     }
      
   }, [value, editor]);
@@ -230,6 +235,7 @@ export function RichTextEditorMock({
       <button
         type="button"
         title={title}
+        aria-label={title}
         onClick={onClick}
         className={`flex items-center justify-center rounded p-1.5 text-slate-600 transition-all hover:bg-slate-200 ${
           active ? "bg-slate-900 text-white hover:bg-slate-800" : ""
@@ -299,6 +305,13 @@ export function RichTextEditorMock({
 
         {/* Headings */}
         <ToolbarBtn
+          title="Đoạn văn thường"
+          active={editor.isActive("paragraph")}
+          onClick={() => editor.chain().focus().setParagraph().run()}
+        >
+          <Pilcrow className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
           title="Tiêu đề H2"
           active={editor.isActive("heading", { level: 2 })}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -311,6 +324,12 @@ export function RichTextEditorMock({
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
         >
           <Heading3 className="size-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn
+          title="Xóa định dạng"
+          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+        >
+          <RemoveFormatting className="size-3.5" />
         </ToolbarBtn>
 
         <div className="w-px h-5 bg-slate-200 mx-1 self-center" />
@@ -373,6 +392,12 @@ export function RichTextEditorMock({
         >
           <Link2 className="size-3.5" />
         </ToolbarBtn>
+        <ToolbarBtn
+          title="Xóa liên kết"
+          onClick={() => editor.chain().focus().unsetLink().run()}
+        >
+          <Unlink className="size-3.5" />
+        </ToolbarBtn>
 
         {/* Image upload (also supports paste / drag-drop) */}
         <ToolbarBtn
@@ -412,4 +437,3 @@ export function RichTextEditorMock({
     </div>
   );
 }
-

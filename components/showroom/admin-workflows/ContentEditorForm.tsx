@@ -6,6 +6,14 @@ import { friendlySaveError } from "@/lib/admin-error-messages";
 import { DateTimePickerField } from "@/components/ui/datetime-picker";
 import { useCallback, useEffect, useState } from "react";
 import {
+  blogRichTextToHtml,
+  hasMeaningfulBlogRichText,
+  normalizeBlogRichText,
+  validateBlogRichText,
+  type BlogRichTextDocument,
+} from "@/lib/blog-rich-text";
+import { BlogRichTextRenderer } from "@/components/showroom/blog-rich-text";
+import {
   AlertTriangle,
   BadgeCheck,
   Bot,
@@ -49,17 +57,7 @@ import {
   DetailPreviewModal,
 } from "../admin-workflows";
 
-const isBodyEmpty = (val: any) => {
-  if (!val) return true;
-  if (typeof val === "string") return !val.trim();
-  if (typeof val === "object") {
-    if (val.type === "doc" && Array.isArray(val.content)) {
-      return val.content.length === 0;
-    }
-    return Object.keys(val).length === 0;
-  }
-  return false;
-};
+const isBodyEmpty = (val: unknown) => !hasMeaningfulBlogRichText(val);
 
 export function ContentEditorForm({
   kind,
@@ -89,8 +87,8 @@ export function ContentEditorForm({
   const [viSummary, setViSummary] = useState(mode === "edit" ? (isProduct ? "Sofa cao cấp bọc vải Velour với đường cong tinh tế, khung gỗ sồi tự nhiên." : "Nhận biết vân gỗ, độ ẩm và quy trình xử lý bề mặt trước khi đầu tư cho nội thất cao cấp.") : "");
   const [enSummary, setEnSummary] = useState(mode === "edit" ? (isProduct ? "Premium velour sofa with a soft curved silhouette and natural oak frame." : "Understand grain, moisture and finishing process before investing in premium interiors.") : "");
 
-  const [viBody, setViBody] = useState(mode === "edit" ? "Nội dung chi tiết tiếng Việt. Đây là trường nguồn để biên tập viên kiểm duyệt trước khi dịch sang tiếng Anh." : "");
-  const [enBody, setEnBody] = useState(mode === "edit" ? "English body draft appears here only when English authoring is enabled." : "");
+  const [viBody, setViBody] = useState<BlogRichTextDocument>(() => normalizeBlogRichText(""));
+  const [enBody, setEnBody] = useState<BlogRichTextDocument>(() => normalizeBlogRichText(""));
 
   const [englishEnabled, setEnglishEnabled] = useState(mode === "edit");
 
@@ -239,8 +237,8 @@ export function ContentEditorForm({
               setEnSlug(p.slug || "");
               setViSummary(p.summary_vi || "");
               setEnSummary(p.summary_en || "");
-              setViBody(p.description_json_vi || "");
-              setEnBody(p.description_json_en || "");
+              setViBody(normalizeBlogRichText(p.description_json_vi, "vi"));
+              setEnBody(normalizeBlogRichText(p.description_json_en, "en"));
               setEnglishEnabled(!!p.name_en);
               
               setPrice(p.price_min ? String(p.price_min) : "");
@@ -311,11 +309,11 @@ export function ContentEditorForm({
               setViTitle(b.title_vi || "");
               setEnTitle(b.title_en || "");
               setViSlug(b.slug || "");
-              setEnSlug(b.slug || "");
+              setEnSlug(b.slug_en || b.slug || "");
               setViSummary(b.excerpt_vi || "");
               setEnSummary(b.excerpt_en || "");
-              setViBody(b.body_json_vi || "");
-              setEnBody(b.body_json_en || "");
+              setViBody(normalizeBlogRichText(b.body_json_vi, "vi"));
+              setEnBody(normalizeBlogRichText(b.body_json_en, "en"));
               setEnglishEnabled(!!b.title_en);
               
               setCategory(b.category_id || "insights");
@@ -351,7 +349,7 @@ export function ContentEditorForm({
   }, [mode, editSlug, isProduct, kind]);
 
   useEffect(() => {
-    if (mode === "create" && (viTitle || viSummary || viBody)) {
+    if (mode === "create" && (viTitle || viSummary || hasMeaningfulBlogRichText(viBody))) {
       const draftData = {
         viTitle,
         enTitle,
@@ -380,6 +378,14 @@ export function ContentEditorForm({
    
   }, [viTitle, mode]);
 
+  // English uses its own localized route. Seed it when translation is first
+  // entered, but never overwrite a slug an editor has deliberately changed.
+  useEffect(() => {
+    if (mode === "create" && enTitle) {
+      setEnSlug((current) => current || slugify(enTitle));
+    }
+  }, [enTitle, mode]);
+
   // Auto-generate slug from English title
   useEffect(() => {
     if (mode === "create" && enTitle) {
@@ -399,8 +405,8 @@ export function ContentEditorForm({
         setEnSlug(parsed.enSlug || "");
         setViSummary(parsed.viSummary || "");
         setEnSummary(parsed.enSummary || "");
-        setViBody(parsed.viBody || "");
-        setEnBody(parsed.enBody || "");
+        setViBody(normalizeBlogRichText(parsed.viBody));
+        setEnBody(normalizeBlogRichText(parsed.enBody));
         setEnglishEnabled(parsed.englishEnabled || false);
         setSeoTitleVi(parsed.seoTitleVi || "");
         setSeoTitleEn(parsed.seoTitleEn || "");
@@ -418,16 +424,28 @@ export function ContentEditorForm({
 
   // --- Validation Logic ---
   const validationErrors: string[] = [];
+  const viBodyValidation = validateBlogRichText(viBody);
+  const enBodyValidation = validateBlogRichText(enBody);
+  if (!viSlug.trim()) validationErrors.push("Cần nhập đường dẫn tiếng Việt.");
   if (!viTitle.trim()) validationErrors.push("Cần nhập tiêu đề tiếng Việt.");
   if (!viSummary.trim()) validationErrors.push("Cần nhập mô tả ngắn hoặc trích đoạn tiếng Việt.");
-  if (isBodyEmpty(viBody)) validationErrors.push("Cần nhập nội dung tiếng Việt.");
+  if (isBodyEmpty(viBody)) {
+    validationErrors.push("Cần nhập nội dung tiếng Việt.");
+  } else {
+    validationErrors.push(...viBodyValidation.errors);
+  }
   if (!seoTitleVi.trim()) validationErrors.push("Cần nhập tiêu đề SEO tiếng Việt.");
   if (!seoDescVi.trim()) validationErrors.push("Cần nhập mô tả meta tiếng Việt.");
 
   if (englishEnabled) {
     if (!enTitle.trim()) validationErrors.push("Cần nhập tiêu đề tiếng Anh khi đã bật tiếng Anh.");
+    if (!enSlug.trim()) validationErrors.push("Cần nhập đường dẫn tiếng Anh khi đã bật tiếng Anh.");
     if (!enSummary.trim()) validationErrors.push("Cần nhập mô tả ngắn hoặc trích đoạn tiếng Anh khi đã bật tiếng Anh.");
-    if (isBodyEmpty(enBody)) validationErrors.push("Cần nhập nội dung tiếng Anh khi đã bật tiếng Anh.");
+    if (isBodyEmpty(enBody)) {
+      validationErrors.push("Cần nhập nội dung tiếng Anh khi đã bật tiếng Anh.");
+    } else {
+      validationErrors.push(...enBodyValidation.errors.map((error) => `Tiếng Anh: ${error}`));
+    }
     if (!seoTitleEn.trim()) validationErrors.push("Cần nhập tiêu đề SEO tiếng Anh khi đã bật tiếng Anh.");
     if (!seoDescEn.trim()) validationErrors.push("Cần nhập mô tả meta tiếng Anh khi đã bật tiếng Anh.");
   }
@@ -460,7 +478,7 @@ export function ContentEditorForm({
     if (!aiTopic.trim()) return;
     
     // Check if form contains entered content to warning user about overwrite
-    const isFormDirty = viTitle !== "" || viSummary !== "" || viBody !== "";
+    const isFormDirty = viTitle !== "" || viSummary !== "" || hasMeaningfulBlogRichText(viBody);
     if (isFormDirty) {
       setShowOverwriteWarning(true);
     } else {
@@ -504,8 +522,8 @@ export function ContentEditorForm({
     setEnSlug(aiResult.enSlug);
     setViSummary(aiResult.viSummary);
     setEnSummary(aiResult.enSummary);
-    setViBody(aiResult.viBody);
-    setEnBody(aiResult.enBody);
+    setViBody(normalizeBlogRichText(aiResult.viBody, "vi"));
+    setEnBody(normalizeBlogRichText(aiResult.enBody, "en"));
     setSeoTitleVi(aiResult.seoTitleVi);
     setSeoTitleEn(aiResult.seoTitleEn);
     setSeoDescVi(aiResult.seoDescVi);
@@ -575,7 +593,7 @@ export function ContentEditorForm({
       ] = await Promise.all([
         translateToEnglish(viTitle),
         translateToEnglish(viSummary),
-        translateToEnglish(viBody),
+        translateToEnglish(blogRichTextToHtml(viBody)),
         translateToEnglish(seoTitleVi),
         translateToEnglish(seoDescVi),
         translateToEnglish(materialsVi),
@@ -597,7 +615,7 @@ export function ContentEditorForm({
 
       if (enTitleT) setEnTitle(enTitleT);
       if (enSummaryT) setEnSummary(enSummaryT);
-      if (enBodyT) setEnBody(enBodyT);
+      if (enBodyT) setEnBody(normalizeBlogRichText(enBodyT, "en"));
       if (seoTitleT) setSeoTitleEn(seoTitleT);
       if (seoDescT) setSeoDescEn(seoDescT);
       if (materialsT) setMaterialsEn(materialsT);
@@ -659,8 +677,11 @@ export function ContentEditorForm({
           name_en: enTitle || null,
           summary_vi: viSummary,
           summary_en: enSummary || null,
-          description_json_vi: viBody,
-          description_json_en: enBody || null,
+          // Product persistence still uses its legacy HTML contract. The blog
+          // editor writes canonical JSON; convert only at this boundary so the
+          // shared editor cannot change product rendering behaviour.
+          description_json_vi: blogRichTextToHtml(viBody),
+          description_json_en: hasMeaningfulBlogRichText(enBody) ? blogRichTextToHtml(enBody) : null,
           material_vi: materialsVi || null,
           material_en: materialsEn || null,
           price_display_text_vi: quoteOnly 
@@ -752,12 +773,13 @@ export function ContentEditorForm({
         const { createAdminBlogPost, updateAdminBlogPost } = await import("@/lib/supabase/mutations");
         const blogData = {
           slug: viSlug,
+          slug_en: enSlug || null,
           title_vi: viTitle,
           title_en: enTitle || null,
           excerpt_vi: viSummary,
           excerpt_en: enSummary || null,
           body_json_vi: viBody,
-          body_json_en: enBody || null,
+          body_json_en: hasMeaningfulBlogRichText(enBody) ? enBody : null,
           category_id: category || "insights",
           status: statusToSave,
           featured: featured,
@@ -850,8 +872,8 @@ export function ContentEditorForm({
               >
                 Khôi phục bản nháp
               </button>
-            </div>
-          </div>
+               </div>
+             </div>
         )}
         
         {/* --- AI GENERATOR WORKSPACE (Elevated Business Assistant) --- */}
@@ -1131,6 +1153,24 @@ export function ContentEditorForm({
                   </div>
                 </div>
               </div>
+              {kind === "blog" && (
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-semibold text-primary text-sm">Xem trước phần nội dung</h5>
+                    <span className="text-[11px] text-secondary">H1, mục lục và số thứ tự do trang bài viết tạo</span>
+                  </div>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="rounded-xl border bg-slate-50 p-4">
+                      <p className="label-pd mb-3">Tiếng Việt</p>
+                      <BlogRichTextRenderer document={aiResult.viBody} className="text-sm leading-7 text-secondary" />
+                    </div>
+                    <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
+                      <p className="label-pd mb-3">English</p>
+                      <BlogRichTextRenderer document={aiResult.enBody} className="text-sm leading-7 text-secondary" />
+                    </div>
+                  </div>
+                </section>
+              )}
             </div>
 
             <div className="border-t bg-slate-50 px-6 py-4 flex justify-between items-center">
@@ -1217,10 +1257,10 @@ function BilingualAuthoringFields({
   setViSummary: (val: string) => void;
   enSummary: string;
   setEnSummary: (val: string) => void;
-  viBody: string;
-  setViBody: (val: string) => void;
-  enBody: string;
-  setEnBody: (val: string) => void;
+  viBody: BlogRichTextDocument;
+  setViBody: (val: BlogRichTextDocument) => void;
+  enBody: BlogRichTextDocument;
+  setEnBody: (val: BlogRichTextDocument) => void;
   englishEnabled: boolean;
   setEnglishEnabled: (val: boolean) => void;
   aiTranslating: boolean;
@@ -1232,8 +1272,10 @@ function BilingualAuthoringFields({
   const summaryLabel = kind === "product" ? "Mô tả ngắn / tóm tắt" : "Trích đoạn";
 
   // Calculate inline error counts
-  const viErrorsCount = [viTitle, viSummary].filter(val => !val.trim()).length + (isBodyEmpty(viBody) ? 1 : 0);
-  const enErrorsCount = englishEnabled ? ([enTitle, enSummary].filter(val => !val.trim()).length + (isBodyEmpty(enBody) ? 1 : 0)) : 0;
+  const viErrorsCount = [viTitle, viSlug, viSummary].filter(val => !val.trim()).length + (isBodyEmpty(viBody) ? 1 : 0);
+  const enErrorsCount = englishEnabled ? ([enTitle, enSlug, enSummary].filter(val => !val.trim()).length + (isBodyEmpty(enBody) ? 1 : 0)) : 0;
+  const viBodyStructureErrors = validateBlogRichText(viBody).errors.filter((error) => !error.includes("không được để trống"));
+  const enBodyStructureErrors = validateBlogRichText(enBody).errors.filter((error) => !error.includes("không được để trống"));
 
   return (
     <section className="surface-soft p-4">
@@ -1368,12 +1410,18 @@ function BilingualAuthoringFields({
 
           <div className="grid gap-2">
             <span className="label-pd">Nội dung chi tiết - Tiếng Việt *</span>
+            {kind === "blog" && (
+              <p className="text-xs leading-5 text-secondary">
+                Tiêu đề bài viết là H1 tự động. Dùng H2 cho phần chính; chỉ dùng H3 dưới một H2. Không tự đánh số tiêu đề vì mục lục sẽ tự tạo số và liên kết.
+              </p>
+            )}
             <RichTextEditorMock 
               value={viBody}
               onChange={setViBody}
               placeholder="Nhập chi tiết nội dung tiếng Việt ở đây..."
             />
             {isBodyEmpty(viBody) && <p className="text-red-500 text-xs mt-1">Vui lòng điền nội dung chi tiết.</p>}
+            {viBodyStructureErrors.map((error) => <p key={error} className="text-red-500 text-xs mt-1">{error}</p>)}
           </div>
         </div>
       )}
@@ -1447,12 +1495,18 @@ function BilingualAuthoringFields({
 
           <div className="grid gap-2">
             <span className="label-pd">Nội dung chi tiết - Tiếng Anh *</span>
+            {kind === "blog" && (
+              <p className="text-xs leading-5 text-secondary">
+                The article title is the automatic H1. Use H2 for main sections and H3 only beneath an H2; the table of contents creates numbering and anchors.
+              </p>
+            )}
             <RichTextEditorMock 
               value={enBody}
               onChange={setEnBody}
               placeholder="Nhập nội dung tiếng Anh..."
             />
             {isBodyEmpty(enBody) && <p className="text-red-500 text-xs mt-1">Cần nhập nội dung tiếng Anh.</p>}
+            {enBodyStructureErrors.map((error) => <p key={error} className="text-red-500 text-xs mt-1">{error}</p>)}
           </div>
         </div>
       )}
@@ -2745,8 +2799,8 @@ export interface PreviewData {
   enTitle?: string;
   viSummary?: string;
   enSummary?: string;
-  viBody?: string;
-  enBody?: string;
+  viBody?: BlogRichTextDocument | string;
+  enBody?: BlogRichTextDocument | string;
   price?: string;
   quoteOnly?: boolean;
   refCode?: string;

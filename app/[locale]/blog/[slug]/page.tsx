@@ -18,6 +18,8 @@ import {
 import { SocialShare } from "@/components/showroom/social-share";
 import { RemoteImage } from "@/components/showroom/remote-image";
 import { ArticleToc } from "@/components/showroom/article-toc";
+import { BlogRichTextRenderer, getBlogTocItems } from "@/components/showroom/blog-rich-text";
+import { normalizeBlogRichText, type BlogRichTextDocument } from "@/lib/blog-rich-text";
 import { createPublicClient } from "@/lib/supabase/server";
 import { getBlogBySlug as getDBBlogBySlug, getBlogPosts } from "@/lib/supabase/queries";
 import { generatePageMetadata } from "@/lib/seo";
@@ -92,6 +94,7 @@ export default async function BlogDetailPage({
 
   let post: any = null;
   let article: any = null;
+  let richTextDocument: BlogRichTextDocument | null = null;
 
   if (dbPost) {
     post = {
@@ -105,6 +108,7 @@ export default async function BlogDetailPage({
     };
 
     const body = dbPost.bodyJson || {};
+    richTextDocument = normalizeBlogRichText(body, locale);
     article = {
       takeaways: (body.takeaways || []).map((item: any) => ({
         vi: typeof item === "object" ? (item.vi || item.en || "") : item,
@@ -169,7 +173,9 @@ export default async function BlogDetailPage({
       .slice(0, 2);
   }
 
-  const tocItems = article.sections
+  const tocItems = richTextDocument
+    ? getBlogTocItems(richTextDocument)
+    : article.sections
     .filter((section: any) => section.id !== "noi-dung" || section.tag === "h2" || section.tag === "h3")
     .map((section: any) => {
       const rawTitle = String(localized(section.title, locale) || "");
@@ -242,12 +248,14 @@ export default async function BlogDetailPage({
 
         <div className="container-pd grid gap-10 py-12 lg:grid-cols-[minmax(0,760px)_320px] lg:items-start lg:justify-center">
           <div className="min-w-0">
-            <details className="surface-soft mb-8 p-5 lg:hidden">
-              <summary className="cursor-pointer font-heading text-lg font-semibold text-primary">
-                {t("toc")}
-              </summary>
-              <ArticleToc items={tocItems} title={t("toc")} className="mt-5" />
-            </details>
+            {tocItems.length > 0 && (
+              <details className="surface-soft mb-8 p-5 lg:hidden">
+                <summary className="cursor-pointer font-heading text-lg font-semibold text-primary">
+                  {t("toc")}
+                </summary>
+                <ArticleToc items={tocItems} title={t("toc")} className="mt-5" />
+              </details>
+            )}
 
             {/* Only render when the post actually has takeaways (CMS posts usually
                 don't) — otherwise an empty "Key Takeaways" block shows on every post. */}
@@ -278,7 +286,12 @@ export default async function BlogDetailPage({
             )}
 
             <div className="mt-12 space-y-12">
-              {(() => {
+              {richTextDocument ? (
+                <BlogRichTextRenderer
+                  document={richTextDocument}
+                  className="text-base leading-8 text-secondary md:text-[1.05rem]"
+                />
+              ) : (() => {
                 let h2Count = 0;
                 return article.sections.map((section: any) => {
                   const isIntro = section.id === "noi-dung" && !section.tag;
@@ -343,9 +356,11 @@ export default async function BlogDetailPage({
           </div>
 
           <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-5 w-[320px] shrink-0">
-            <div className="public-content-card p-5">
-              <ArticleToc items={tocItems} title={t("toc")} />
-            </div>
+            {tocItems.length > 0 && (
+              <div className="public-content-card p-5">
+                <ArticleToc items={tocItems} title={t("toc")} />
+              </div>
+            )}
             <div className="public-content-card p-5">
               <p className="label-pd">{t("related")}</p>
               <div className="mt-4 grid gap-4">

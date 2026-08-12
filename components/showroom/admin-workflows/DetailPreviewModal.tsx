@@ -34,6 +34,9 @@ import {
   showrooms,
 } from "@/tests/fixtures/showroom-data-fixture";
 import viMessages from "@/messages/vi.json";
+import { blogRichTextToHtml, normalizeBlogRichText } from "@/lib/blog-rich-text";
+import { BlogRichTextRenderer, getBlogTocItems } from "@/components/showroom/blog-rich-text";
+import { ArticleToc } from "@/components/showroom/article-toc";
 
 
 import {
@@ -63,6 +66,10 @@ export function DetailPreviewModal({
   if (!isOpen) return null;
 
   const t = (vi: string | undefined, en: string | undefined) => locale === "vi" ? (vi || "") : (en || vi || "");
+  const tBody = (vi: PreviewData["viBody"], en: PreviewData["enBody"]) => {
+    const selected = locale === "vi" ? vi : (en || vi);
+    return typeof selected === "string" ? selected : blogRichTextToHtml(selected);
+  };
 
   const tabs = [
     { id: "overview", label: locale === "vi" ? "Mô tả chi tiết" : "Overview" },
@@ -422,8 +429,8 @@ export function DetailPreviewModal({
           <div className="py-6 min-h-[160px]">
             {activeTab === "overview" && (
               <div className="prose prose-slate max-w-none text-sm leading-relaxed text-slate-600">
-                {t(data.viBody, data.enBody) ? (
-                  <div dangerouslySetInnerHTML={{ __html: t(data.viBody, data.enBody) || "" }} />
+            {tBody(data.viBody, data.enBody) ? (
+              <div dangerouslySetInnerHTML={{ __html: tBody(data.viBody, data.enBody) }} />
                 ) : (
                   <p className="italic text-slate-400">{locale === "vi" ? "Thông tin mô tả chi tiết sản phẩm đang được biên soạn..." : "Detailed product description is currently being compiled..."}</p>
                 )}
@@ -746,6 +753,11 @@ export function DetailPreviewModal({
   };
 
   const renderBlogPreview = () => {
+    const body = normalizeBlogRichText(
+      locale === "vi" ? data.viBody : (data.enBody || data.viBody),
+      locale,
+    );
+    const tocItems = getBlogTocItems(body);
     return (
       <div className="space-y-0 text-left">
         {/* Breadcrumb */}
@@ -757,18 +769,6 @@ export function DetailPreviewModal({
             <ChevronRight className="size-3" />
             <span className="text-slate-800 font-bold">{t(data.viTitle || data.nameVi, data.enTitle || data.nameEn) || (locale === "vi" ? "Xem trước" : "Preview")}</span>
           </div>
-        </div>
-
-        {/* Cover photo */}
-        <div className="relative h-72 sm:h-96 overflow-hidden w-full bg-slate-100">
-          {data.coverImage ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={data.coverImage} alt="Blog Cover" className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center text-slate-300">
-              <ImageUp className="size-16 stroke-[1.5]" />
-            </div>
-          )}
         </div>
 
         {/* Article content */}
@@ -792,11 +792,40 @@ export function DetailPreviewModal({
             </div>
           )}
 
-          <div className="prose prose-slate max-w-none text-sm sm:text-base leading-relaxed text-slate-600 pt-4">
-            {t(data.viBody, data.enBody) ? (
-              <div dangerouslySetInnerHTML={{ __html: t(data.viBody, data.enBody) || "" }} />
+          <div className="public-image-panel overflow-hidden bg-slate-100">
+            {data.coverImage ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={data.coverImage} alt={t(data.viTitle || data.nameVi, data.enTitle || data.nameEn) || "Blog cover"} className="h-[300px] w-full object-cover sm:h-[420px] lg:h-[500px]" />
+            ) : (
+              <div className="flex h-[300px] w-full items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50 text-slate-300 sm:h-[420px] lg:h-[500px]">
+                <ImageUp className="size-16 stroke-[1.5]" />
+              </div>
+            )}
+          </div>
+
+          {tocItems.length > 0 && (
+            <details className="surface-soft p-5 lg:hidden">
+              <summary className="cursor-pointer font-heading text-lg font-semibold text-primary">
+                {locale === "vi" ? "Mục lục" : "Table of contents"}
+              </summary>
+              <ArticleToc items={tocItems} title={locale === "vi" ? "Mục lục" : "Table of contents"} className="mt-5" />
+            </details>
+          )}
+
+          <div className="grid gap-10 pt-4 lg:grid-cols-[minmax(0,760px)_320px] lg:items-start lg:justify-center">
+            <div className="prose prose-slate min-w-0 max-w-none text-sm leading-relaxed text-slate-600 sm:text-base">
+            {body.content.length > 0 ? (
+              <BlogRichTextRenderer document={body} className="text-base leading-8 text-secondary md:text-[1.05rem]" />
             ) : (
               <p className="italic text-slate-400">{locale === "vi" ? "Nội dung bài viết đang được soạn thảo..." : "Article body content is currently being drafted..."}</p>
+            )}
+            </div>
+            {tocItems.length > 0 && (
+              <aside className="hidden w-[320px] shrink-0 lg:sticky lg:top-24 lg:block lg:self-start">
+                <div className="public-content-card p-5">
+                  <ArticleToc items={tocItems} title={locale === "vi" ? "Mục lục" : "Table of contents"} />
+                </div>
+              </aside>
             )}
           </div>
         </article>

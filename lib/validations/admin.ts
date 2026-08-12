@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hasMeaningfulBlogRichText } from "../blog-rich-text";
 
 const slugRegex = /^[a-z0-9-]+$/;
 // Vietnamese-friendly phone/hotline: only digits and + - ( ) . and spaces, with
@@ -51,15 +52,7 @@ const optionalUuid = z
 // body/description that is null, {}, [], or an empty TipTap doc is rejected the same
 // way server-side as it already visually blocks the Publish button client-side.
 const hasMeaningfulJson = (value: unknown): boolean => {
-  if (value === null || value === undefined) return false;
-  if (typeof value === "string") return value.trim().length > 0;
-  if (typeof value === "object") {
-    const v = value as Record<string, unknown>;
-    if (Array.isArray(v)) return v.length > 0;
-    if (v.type === "doc" && Array.isArray(v.content)) return (v.content as unknown[]).length > 0;
-    return Object.keys(v).length > 0;
-  }
-  return false;
+  return hasMeaningfulBlogRichText(value);
 };
 const slugSchema = z.string().trim().min(1, "Slug không được để trống").regex(slugRegex, "Slug chỉ được chứa ký tự thường, số và dấu gạch ngang (e.g. sofa-curve)");
 // Shared phone validator used for hotlines / contact numbers.
@@ -186,6 +179,7 @@ export const categorySchema = z.object({
 
 export const blogPostSchema = z.object({
   slug: slugSchema,
+  slug_en: slugSchema.nullish().transform((value) => value || null),
   title_vi: requiredText("Tiêu đề tiếng Việt là bắt buộc"),
   title_en: optionalText,
   excerpt_vi: requiredText("Trích dẫn tiếng Việt là bắt buộc"),
