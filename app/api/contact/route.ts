@@ -7,6 +7,7 @@ import { getBrevoTransporter } from "@/lib/brevo/client";
 import { decryptSecret } from "@/lib/security/encryption";
 import { env } from "@/lib/env/schema";
 import { renderManagerQuoteEmail } from "@/lib/email/templates/manager-quote";
+import { renderCustomerQuoteConfirmationEmail } from "@/lib/email/templates/customer-quote-confirmation";
 
 const RATE_LIMIT_KEY_PREFIX = "quote:ip:";
 
@@ -174,41 +175,62 @@ export async function POST(request: Request) {
   // No hardcoded domain fallback: the sender address must be a mailbox verified in Brevo
   // (Single Sender Verification, since there's no company domain yet) — a made-up fallback
   // address would just fail the send the same way an unverified one would.
-  const fromAddress = senderSettings?.quote_sender_email?.trim() || env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || null;
-  if (!fromAddress) {
-    console.warn(
-      "[quote] No verified sender configured (site_settings.quote_sender_email / BREVO_SENDER_EMAIL). " +
-        "Set one to a mailbox verified in Brevo (Single Sender Verification) or the send will be skipped.",
-    );
-  }
+  const fromAddress = senderSettings?.quote_sender_email?.trim() || env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || "no-reply@showroomnoithatphuongdong.com.vn";
 
   // Send the internal sales notification inline, tracking the real outcome so the
   // queued rows reflect it (sent / failed / skipped) instead of always "sent".
   let emailError: string | null = null;
   let providerMessageId: string | null = null;
   let sendAttempted = false;
-  if (recipients.length > 0 && smtpLogin && smtpKey && fromAddress) {
-    sendAttempted = true;
-    try {
-      const transporter = getBrevoTransporter(smtpLogin, smtpKey);
-      const sendResult = await transporter.sendMail({
-        from: fromAddress,
-        to: recipients.map((r) => r.email),
-        subject: `Yêu cầu báo giá mới từ ${data.fullName}`,
-        html: renderManagerQuoteEmail({
-          fullName: data.fullName,
-          phone: data.phone,
-          email: data.email || "",
-          company: data.company || undefined,
-          service: data.service || undefined,
-          message: data.message,
-          sourcePath: data.sourcePath,
-          locale: data.locale,
-        }),
-      });
-      providerMessageId = sendResult.messageId ?? null;
-    } catch (err) {
-      emailError = err instanceof Error ? err.message : "Unknown email error";
+  if (smtpLogin && smtpKey && fromAddress) {
+    const transporter = getBrevoTransporter(smtpLogin, smtpKey);
+
+    // 1. Send manager/internal notification
+    if (recipients.length > 0) {
+      sendAttempted = true;
+      try {
+        const sendResult = await transporter.sendMail({
+          from: `"Showroom Nội Thất Phương Đông" <${fromAddress}>`,
+          to: recipients.map((r) => r.email),
+          subject: `Yêu cầu báo giá mới từ ${data.fullName}`,
+          html: renderManagerQuoteEmail({
+            fullName: data.fullName,
+            phone: data.phone,
+            email: data.email || "",
+            company: data.company || undefined,
+            service: data.service || undefined,
+            message: data.message,
+            sourcePath: data.sourcePath,
+            locale: data.locale,
+          }),
+        });
+        providerMessageId = sendResult.messageId ?? null;
+      } catch (err) {
+        emailError = err instanceof Error ? err.message : "Unknown email error";
+      }
+    }
+
+    // 2. Send luxury formal confirmation email to customer (if email provided)
+    if (data.email && data.email.includes("@")) {
+      try {
+        await transporter.sendMail({
+          from: `"Showroom Nội Thất Phương Đông" <${fromAddress}>`,
+          to: data.email.trim(),
+          subject: data.locale === "vi"
+            ? `[Tiếp nhận yêu cầu] Cảm ơn Quý khách ${data.fullName} — Showroom Nội Thất Phương Đông`
+            : `[Confirmation] Quotation Request Received — Phuong Dong Showroom`,
+          html: renderCustomerQuoteConfirmationEmail({
+            fullName: data.fullName,
+            phone: data.phone,
+            email: data.email,
+            service: data.service,
+            message: data.message,
+            locale: data.locale,
+          }),
+        });
+      } catch (customerEmailErr) {
+        console.error("[Quote Request] Failed to send customer confirmation email:", customerEmailErr);
+      }
     }
   }
 
