@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
         "103.211.206.66",
         "showroomnoithatphuongdong.com",
         "www.showroomnoithatphuongdong.com",
+        "showroomnoithatphuongdong.com.vn",
+        "www.showroomnoithatphuongdong.com.vn",
       ],
     },
   },
