@@ -1,5 +1,8 @@
 import "server-only";
 import { getBrevoTransporter } from "@/lib/brevo/client";
+import { createAdminClient } from "@/lib/supabase/server";
+import { decryptSecret } from "@/lib/security/encryption";
+import { env } from "@/lib/env/schema";
 
 export async function sendPasswordResetEmail({
   toEmail,
@@ -9,14 +12,51 @@ export async function sendPasswordResetEmail({
   toEmail: string;
   recipientName: string;
   resetUrl: string;
-}) {
-  const login = process.env.BREVO_SMTP_LOGIN;
-  const key = process.env.BREVO_SMTP_KEY;
-  const sender = process.env.BREVO_SENDER_EMAIL || "showroomnoithatphuongdong@gmail.com";
+}): Promise<{ success: boolean; error?: string }> {
+  let login = env.BREVO_SMTP_LOGIN || process.env.BREVO_SMTP_LOGIN || null;
+  let key = env.BREVO_SMTP_KEY || process.env.BREVO_SMTP_KEY || null;
+  let sender = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || "showroomnoithatphuongdong@gmail.com";
+
+  // Check integration_secrets in database (AES-GCM encrypted)
+  try {
+    const supabase = createAdminClient();
+    const encryptionKey = env.AI_SECRET_ENCRYPTION_KEY || process.env.AI_SECRET_ENCRYPTION_KEY;
+    const { data: smtpSecrets } = await supabase
+      .from("integration_secrets")
+      .select("key_name, encrypted_value")
+      .in("key_name", ["brevo_smtp_login", "brevo_smtp_key"]);
+
+    if (smtpSecrets && encryptionKey) {
+      for (const secret of smtpSecrets) {
+        try {
+          const decrypted = decryptSecret(secret.encrypted_value, encryptionKey);
+          if (secret.key_name === "brevo_smtp_login" && decrypted) login = decrypted;
+          if (secret.key_name === "brevo_smtp_key" && decrypted) key = decrypted;
+        } catch (err) {
+          console.error(`[Password Reset] Failed to decrypt ${secret.key_name}:`, err);
+        }
+      }
+    }
+
+    const { data: senderSettings } = await supabase
+      .from("site_settings")
+      .select("quote_sender_email")
+      .limit(1)
+      .maybeSingle();
+
+    if (senderSettings?.quote_sender_email?.trim()) {
+      sender = senderSettings.quote_sender_email.trim();
+    }
+  } catch (err) {
+    console.error("[Password Reset] Error resolving DB settings:", err);
+  }
 
   if (!login || !key) {
     console.warn("[Password Reset] Brevo SMTP credentials not configured. Reset URL:", resetUrl);
-    return { success: false, error: "SMTP not configured" };
+    return {
+      success: false,
+      error: "Hệ thống chưa được cấu hình thông tin Brevo SMTP (BREVO_SMTP_LOGIN / BREVO_SMTP_KEY). Vui lòng cấu hình trong phần Cài đặt hệ thống.",
+    };
   }
 
   const transporter = getBrevoTransporter(login, key);
@@ -76,12 +116,19 @@ export async function sendPasswordResetEmail({
     </html>
   `;
 
-  await transporter.sendMail({
-    from: `"Showroom Nội Thất Phương Đông" <${sender}>`,
-    to: toEmail,
-    subject: "Yêu cầu đặt lại mật khẩu quản trị — Showroom Nội Thất Phương Đông",
-    html,
-  });
-
-  return { success: true };
+  try {
+    await transporter.sendMail({
+      from: `"Showroom Nội Thất Phương Đông" <${sender}>`,
+      to: toEmail,
+      subject: "Yêu cầu đặt lại mật khẩu quản trị — Showroom Nội Thất Phương Đông",
+      html,
+    });
+    return { success: true };
+  } catch (err: any) {
+    console.error("[Password Reset] Error sending email via transporter:", err);
+    return {
+      success: false,
+      error: `Lỗi gửi mail qua SMTP (${err?.message || "Không thể kết nối máy chủ gửi mail"}). Vui lòng kiểm tra lại cấu hình Brevo.`,
+    };
+  }
 }

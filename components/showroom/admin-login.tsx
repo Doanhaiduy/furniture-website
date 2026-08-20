@@ -69,21 +69,29 @@ export function AdminLoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#211816] via-[#211816]/58 to-transparent" />
         <div className="absolute bottom-0 p-12">
-          <p className="label-pd text-white/65">CMS quản trị</p>
-          <h1 className="mt-4 max-w-xl font-heading text-5xl font-bold leading-tight">
-            Quản lý nội dung showroom như một phòng điều phối vận hành.
+          <p className="label-pd text-white/65">Showroom Phương Đông</p>
+          <h1 className="mt-4 max-w-xl font-heading text-4xl xl:text-5xl font-bold leading-tight">
+            Hệ thống quản trị & điều phối vận hành Showroom Nội Thất Phương Đông.
           </h1>
         </div>
       </section>
       <section className="grid place-items-center rounded-[2rem] bg-[#eef6fa] p-6">
         <div className="state-card w-full max-w-md rounded-3xl border border-white/80 bg-white/88 p-8 shadow-[0_28px_80px_rgba(0,0,0,0.18)]">
-          <p className="label-pd">CMS quản trị</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold text-primary">
-            Đăng nhập
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-900/10 p-2 border border-amber-900/15">
+              <img src="/logo-final.svg" alt="Phương Đông" className="size-full object-contain" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900/70">Showroom Nội Thất</p>
+              <h2 className="font-heading text-lg font-black text-amber-950 tracking-wide">PHƯƠNG ĐÔNG</h2>
+            </div>
+          </div>
+
+          <h1 className="font-heading text-2xl font-bold text-slate-900">
+            Đăng nhập hệ thống
           </h1>
-          <p className="mt-3 text-sm leading-6 text-secondary">
-            Truy cập nội dung, yêu cầu báo giá, quản trị tệp, cài đặt và quy
-            trình bản nháp AI.
+          <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            Cổng quản lý sản phẩm, danh mục, bài viết và xử lý báo giá khách hàng.
           </p>
 
           {error ? (

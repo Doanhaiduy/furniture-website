@@ -89,9 +89,9 @@ export function FilterBar({
   ).length;
 
   return (
-    <div className={cn("card-pd p-5 space-y-4 shadow-sm border border-slate-100", className)}>
-      <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-        <span className="text-sm font-semibold text-slate-700">Bộ lọc tìm kiếm</span>
+    <div className={cn("card-pd p-4 sm:p-5 space-y-4 shadow-xs border border-slate-100/90 bg-white rounded-2xl", className)}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <span className="text-sm font-bold text-slate-800">Bộ lọc tìm kiếm</span>
         {totalCount !== undefined && (
           <span className="text-xs text-slate-500 font-medium">
             Hiển thị {currentCount ?? 0} trên {totalCount} kết quả
@@ -99,15 +99,15 @@ export function FilterBar({
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3.5 items-end">
         {/* Search */}
-        <div className="flex flex-col gap-1.5 sm:col-span-2 w-full">
+        <div className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1 2xl:col-span-1 w-full min-w-0">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tìm kiếm</span>
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <div className="relative w-full min-w-0">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400 shrink-0" />
             <input
               type="search"
-              className="input-pd w-full bg-white pl-9 pr-8 text-sm h-9 border border-slate-200 rounded-lg focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary"
+              className="input-pd w-full bg-white pl-9 pr-8 text-xs sm:text-sm h-9 border border-slate-200 rounded-lg focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary min-w-0"
               placeholder={searchPlaceholder}
               value={localSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -115,7 +115,7 @@ export function FilterBar({
             {localSearch && (
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded"
                 onClick={() => handleSearchChange("")}
                 aria-label="Xóa tìm kiếm"
               >
@@ -129,20 +129,21 @@ export function FilterBar({
         {filters
           .filter((f) => f.key !== "dateFrom" && f.key !== "dateTo")
           .map((filter) => (
-            <FilterControl
-              key={filter.key}
-              filter={filter}
-              value={values[filter.key] ?? ""}
-              onChange={(value) => onFilterChange(filter.key, value)}
-            />
+            <div key={filter.key} className="w-full min-w-0">
+              <FilterControl
+                filter={filter}
+                value={values[filter.key] ?? ""}
+                onChange={(value) => onFilterChange(filter.key, value)}
+              />
+            </div>
           ))}
 
         {/* Date From & Date To pair */}
         {filters.some((f) => f.key === "dateFrom") && filters.some((f) => f.key === "dateTo") && (
-          <div className="flex flex-col gap-1.5 sm:col-span-2 w-full">
+          <div className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-2 2xl:col-span-2 w-full min-w-0">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Khoảng thời gian</span>
-            <div className="flex items-center gap-2 w-full">
-              <div className="flex-1 min-w-[120px]">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 w-full min-w-0">
+              <div className="w-full min-w-0">
                 <DatePickerField
                   value={values.dateFrom ?? ""}
                   onChange={(v) => onFilterChange("dateFrom", v)}
@@ -150,8 +151,8 @@ export function FilterBar({
                   ariaLabel="Từ ngày"
                 />
               </div>
-              <span className="text-slate-400 text-xs shrink-0">—</span>
-              <div className="flex-1 min-w-[120px]">
+              <span className="text-slate-400 text-xs shrink-0 px-0.5 text-center select-none">—</span>
+              <div className="w-full min-w-0">
                 <DatePickerField
                   value={values.dateTo ?? ""}
                   onChange={(v) => onFilterChange("dateTo", v)}
@@ -165,7 +166,7 @@ export function FilterBar({
 
         {/* Sort Select */}
         {sortableColumns && sortableColumns.length > 0 && onSortChange && (
-          <div className="flex flex-col gap-1.5 w-full">
+          <div className="flex flex-col gap-1.5 w-full min-w-0">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sắp xếp theo</span>
             <Select
               value={currentSort && currentDir && sortableColumns.some((c) => c.key === currentSort) ? `${currentSort}-${currentDir}` : "default"}
@@ -178,7 +179,7 @@ export function FilterBar({
                 }
               }}
             >
-              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 w-full">
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 w-full min-w-0">
                 <SelectValue placeholder="Sắp xếp" />
               </SelectTrigger>
               <SelectContent>
@@ -198,18 +199,18 @@ export function FilterBar({
 
         {/* Clear Filters Button */}
         {activeFiltersCount > 0 && (
-          <div className="flex items-end h-9 w-full">
+          <div className="flex items-end h-9 w-full min-w-0">
             <button
               type="button"
-              className="flex items-center justify-center gap-1.5 h-9 px-4 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100 transition w-full"
+              className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100 transition w-full min-w-0 cursor-pointer"
               onClick={() => {
                 filters.forEach((f) => {
                   if (values[f.key]) onFilterChange(f.key, "");
                 });
               }}
             >
-              <X className="size-4" />
-              Xóa bộ lọc
+              <X className="size-3.5 shrink-0" />
+              <span className="truncate">Xóa bộ lọc</span>
             </button>
           </div>
         )}

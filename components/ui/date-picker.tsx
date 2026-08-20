@@ -71,12 +71,12 @@ export function DatePickerField({
           type="button"
           aria-label={ariaLabel || placeholder}
           className={cn(
-            "relative flex h-9 w-full items-center gap-2 rounded-lg border border-slate-200 bg-white pl-8 pr-2 text-xs font-medium text-slate-600 outline-none transition hover:border-primary/40 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary",
+            "relative flex h-9 w-full min-w-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-white pl-7 pr-2 text-xs font-medium text-slate-600 outline-none transition hover:border-primary/40 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary overflow-hidden text-left",
             className
           )}
         >
-          <CalendarIcon className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
-          <span className={cn("truncate", !selected && "text-slate-400")}>
+          <CalendarIcon className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-slate-400 shrink-0" />
+          <span className={cn("truncate min-w-0 block", !selected && "text-slate-400")}>
             {selected ? formatDisplay(selected) : placeholder}
           </span>
           {selected && (
@@ -88,7 +88,7 @@ export function DatePickerField({
                 e.stopPropagation();
                 onChange("");
               }}
-              className="ml-auto rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="ml-auto shrink-0 rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               <X className="size-3.5" />
             </span>

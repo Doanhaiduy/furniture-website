@@ -75,9 +75,9 @@ export async function getAdminDashboardStats(role: string): Promise<AdminDashboa
     ] = isAdmin
       ? await Promise.all([
           supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null),
-          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("status", "pending"),
-          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).in("status", ["in_progress", "contacted", "quoted"]),
-          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).eq("status", "completed"),
+          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).in("status", ["new", "pending"]),
+          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).in("status", ["contacted", "qualified", "in_progress", "quoted"]),
+          supabase.from("quote_requests").select("*", { count: "exact", head: true }).is("deleted_at", null).in("status", ["closed", "completed"]),
           supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null),
         ])
       : [

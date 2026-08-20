@@ -415,25 +415,14 @@ function FeaturedProductsShowcase({ products = [] }: { products?: DashboardFeatu
 function InteractiveQuoteTable({ quotes = [] }: { quotes?: AdminQuote[] }) {
   const { toast } = useToast();
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [localQuotes, setLocalQuotes] = useState(quotes);
 
-  const handleCopyPhone = (id: string, phone: string) => {
+  const handleCopyPhone = (e: React.MouseEvent, id: string, phone: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigator.clipboard.writeText(phone);
     setCopiedId(id);
     toast.success("Đã sao chép số điện thoại");
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleStatusChange = async (quoteId: string, newStatus: string) => {
-    const res = await updateQuoteStatus(quoteId, newStatus);
-    if (res.success) {
-      setLocalQuotes((prev) =>
-        prev.map((q) => (q.id === quoteId ? { ...q, status: newStatus } : q))
-      );
-      toast.success("Đã cập nhật trạng thái báo giá");
-    } else {
-      toast.error(res.error || "Không thể cập nhật trạng thái");
-    }
   };
 
   return (
@@ -453,33 +442,33 @@ function InteractiveQuoteTable({ quotes = [] }: { quotes?: AdminQuote[] }) {
         </Link>
       </div>
 
-      {localQuotes.length === 0 ? (
+      {quotes.length === 0 ? (
         <div className="p-8 text-center">
           <MessageSquare className="size-8 text-slate-300 mx-auto mb-2" />
           <p className="text-xs text-slate-400 font-medium">Chưa có yêu cầu báo giá nào gần đây.</p>
         </div>
       ) : (
         <div className="divide-y divide-slate-100 overflow-x-auto">
-          {localQuotes.slice(0, 6).map((quote) => (
-            <div
+          {quotes.slice(0, 6).map((quote) => (
+            <Link
               key={quote.id}
-              className="grid gap-3 items-center px-5 py-3.5 transition-colors hover:bg-slate-50 md:grid-cols-[1.2fr_1fr_110px_130px]"
+              href={`/admin/quotes?id=${quote.id}`}
+              className="group grid gap-3 items-center px-5 py-3.5 transition-colors hover:bg-slate-50/80 md:grid-cols-[1.2fr_1fr_110px_130px] cursor-pointer"
             >
               {/* Customer Info */}
               <div className="min-w-0">
-                <p className="font-bold text-slate-800 text-sm truncate">{quote.full_name}</p>
+                <p className="font-bold text-slate-800 text-sm truncate group-hover:text-primary transition-colors">
+                  {quote.full_name}
+                </p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <a
-                    href={`tel:${quote.phone}`}
-                    className="inline-flex items-center gap-1 text-xs text-primary font-bold hover:underline"
-                  >
-                    <Phone className="size-3" />
+                  <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-semibold">
+                    <Phone className="size-3 text-slate-400" />
                     <span>{quote.phone}</span>
-                  </a>
+                  </span>
                   <button
                     type="button"
-                    onClick={() => handleCopyPhone(quote.id, quote.phone)}
-                    className="p-1 text-slate-400 hover:text-slate-600 transition"
+                    onClick={(e) => handleCopyPhone(e, quote.id, quote.phone)}
+                    className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition"
                     title="Sao chép SĐT"
                   >
                     {copiedId === quote.id ? (
@@ -506,22 +495,12 @@ function InteractiveQuoteTable({ quotes = [] }: { quotes?: AdminQuote[] }) {
                 {new Date(quote.created_at).toLocaleDateString("vi-VN")}
               </p>
 
-              {/* Status Quick Switch */}
-              <div className="justify-self-start md:justify-self-end">
-                <select
-                  value={quote.status}
-                  onChange={(e) => handleStatusChange(quote.id, e.target.value)}
-                  className="text-xs font-semibold rounded-lg border border-slate-200 bg-white px-2 py-1 text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
-                >
-                  <option value="pending">Chờ xử lý</option>
-                  <option value="in_progress">Đang tư vấn</option>
-                  <option value="contacted">Đã liên hệ</option>
-                  <option value="quoted">Đã gửi giá</option>
-                  <option value="completed">Đã chốt</option>
-                  <option value="archived">Lưu trữ</option>
-                </select>
+              {/* Status Badge & Open Arrow */}
+              <div className="flex items-center justify-between md:justify-end gap-2">
+                <StatusBadge status={quote.status} />
+                <ArrowRight className="size-4 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

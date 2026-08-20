@@ -110,6 +110,7 @@ export function AdminShell({
           <AdminSidebar
             active={resolvedActive}
             role={resolvedRole}
+            user={user}
             sidebarCollapsed={sidebarCollapsed}
             setSidebarCollapsed={setSidebarCollapsed}
             handleLogout={handleLogout}
