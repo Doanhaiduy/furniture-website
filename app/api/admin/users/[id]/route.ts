@@ -27,14 +27,49 @@ export async function DELETE(
 
     const supabase = createAdminClient();
 
-    // Fetch user profile email for audit logs
+    // Fetch user profile email and role
     const { data: profile } = await supabase
       .from("profiles")
-      .select("email")
+      .select("id, email, role, is_active, deleted_at")
       .eq("id", id)
       .maybeSingle();
 
-    // 1. Delete user from profiles table
+    if (!profile) {
+      return NextResponse.json({ error: "Người dùng không tồn tại." }, { status: 404 });
+    }
+
+    // Last-admin guard
+    if (profile.role === "admin" && profile.is_active && !profile.deleted_at) {
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin")
+        .eq("is_active", true)
+        .is("deleted_at", null)
+        .neq("id", id);
+
+      if ((count ?? 0) === 0) {
+        return NextResponse.json(
+          { error: "Không thể xóa quản trị viên cuối cùng của hệ thống." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Reassign foreign key restricted records to actor before deletion so deletion never fails
+    // 1. Reassign blog posts author_id to the acting admin
+    await supabase
+      .from("blog_posts")
+      .update({ author_id: actor.id })
+      .eq("author_id", id);
+
+    // 2. Reassign ai_drafts requested_by to the acting admin
+    await supabase
+      .from("ai_drafts")
+      .update({ requested_by: actor.id })
+      .eq("requested_by", id);
+
+    // 3. Delete user from profiles table
     const { error: profileError } = await supabase
       .from("profiles")
       .delete()

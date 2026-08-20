@@ -104,7 +104,15 @@ export function AdminLoginPage() {
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-sm font-semibold">Mật khẩu</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Mật khẩu</span>
+                <Link
+                  href="/admin/forgot-password"
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Quên mật khẩu?
+                </Link>
+              </div>
               <input
                 className="input-pd"
                 type="password"

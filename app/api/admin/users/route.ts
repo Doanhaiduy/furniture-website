@@ -110,7 +110,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { id, role, isActive } = body;
+    const { id, email, fullName, role, isActive } = body;
 
     if (!id || !role) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -129,19 +129,23 @@ export async function PUT(request: Request) {
 
     const supabase = createAdminClient();
 
+    // Fetch existing profile
+    const { data: target } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, role, is_active, deleted_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!target) {
+      return NextResponse.json({ error: "Người dùng không tồn tại." }, { status: 404 });
+    }
+
     // Last-admin guard (self-discovered CRITICAL). If this change strips admin rights
     // (role change or deactivation) from a user who is currently an active admin,
-    // ensure at least one OTHER active admin remains. The DB trigger enforces this
-    // hard; this pre-check returns a clean, localized message. See the
-    // prevent_last_admin_lockout trigger in migration 0002_business_logic.sql.
+    // ensure at least one OTHER active admin remains.
     const losesAdminRights = role !== "admin" || isActive === false;
     if (losesAdminRights) {
-      const { data: target } = await supabase
-        .from("profiles")
-        .select("role, is_active, deleted_at")
-        .eq("id", id)
-        .maybeSingle();
-      const wasActiveAdmin = target?.role === "admin" && target?.is_active && !target?.deleted_at;
+      const wasActiveAdmin = target.role === "admin" && target.is_active && !target.deleted_at;
       if (wasActiveAdmin) {
         const { count } = await supabase
           .from("profiles")
@@ -159,14 +163,52 @@ export async function PUT(request: Request) {
       }
     }
 
+    // If email is changed, check for conflict and update Auth user
+    const nextEmail = email ? email.trim().toLowerCase() : target.email;
+    if (nextEmail !== target.email) {
+      const { data: conflict } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", nextEmail)
+        .neq("id", id)
+        .maybeSingle();
+
+      if (conflict) {
+        return NextResponse.json(
+          { error: "Địa chỉ email này đã được sử dụng bởi một tài khoản khác." },
+          { status: 400 }
+        );
+      }
+
+      // Update in Supabase Auth
+      const { error: authError } = await supabase.auth.admin.updateUserById(id, {
+        email: nextEmail,
+        email_confirm: true,
+        user_metadata: { full_name: fullName ?? target.full_name },
+      });
+
+      if (authError) {
+        console.error("Auth updateUserById error:", authError);
+        return NextResponse.json({ error: authError.message || "Failed to update auth email" }, { status: 400 });
+      }
+    } else if (fullName !== undefined && fullName !== target.full_name) {
+      await supabase.auth.admin.updateUserById(id, {
+        user_metadata: { full_name: fullName },
+      });
+    }
+
     // 1. Cập nhật bảng profiles
+    const updatePayload: Record<string, any> = {
+      role,
+      is_active: isActive ?? target.is_active,
+      updated_at: new Date().toISOString(),
+    };
+    if (nextEmail) updatePayload.email = nextEmail;
+    if (fullName !== undefined) updatePayload.full_name = fullName;
+
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({
-        role,
-        is_active: isActive,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", id);
 
     if (profileError) {
@@ -181,7 +223,7 @@ export async function PUT(request: Request) {
         action: "update",
         entityType: "profile",
         entityId: id,
-        metadata: { role, is_active: isActive },
+        metadata: { email: nextEmail, full_name: fullName, role, is_active: isActive },
       });
     } catch (auditErr) {
       console.warn("Audit log failed for user update, continuing anyway:", auditErr);

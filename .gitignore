@@ -93,6 +93,8 @@ deploy.prod.sh
 /test-excel-files/
 
 /ban-giao-khach-hang
-/delivery_customer
 /scripts
 /supabase/seed.production.sql
+.codegraph/
+.*mjs
+/delivery_customer
