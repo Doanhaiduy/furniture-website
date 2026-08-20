@@ -42,14 +42,14 @@ export function AdminSidebar({
     >
       {/* Brand Header */}
       <div className={`mb-5 flex items-center gap-2 ${sidebarCollapsed ? "justify-center" : "justify-between px-2"}`}>
-        <Link href="/admin" className={`group flex min-w-0 items-center gap-2.5 ${sidebarCollapsed ? "justify-center" : ""}`}>
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 p-1.5 ring-1 ring-white/15 transition group-hover:bg-white/20">
-            <img src="/logo-final.svg" alt="Phương Đông" className="size-full object-contain brightness-0 invert" />
+        <Link href="/admin" className={`group flex min-w-0 flex-1 items-center gap-2.5 ${sidebarCollapsed ? "justify-center" : ""}`}>
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-white/20">
+            <img src="/logo-final.svg" alt="Phương Đông" className="size-full object-contain" />
           </div>
           {!sidebarCollapsed ? (
-            <div className="min-w-0">
-              <p className="font-heading text-sm font-extrabold tracking-wide text-white truncate">PHƯƠNG ĐÔNG</p>
-              <p className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Hệ thống CMS</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-sm font-extrabold tracking-wide text-white whitespace-nowrap">PHƯƠNG ĐÔNG</p>
+              <p className="text-[10px] font-medium text-white/50 uppercase tracking-wider whitespace-nowrap">Hệ thống CMS</p>
             </div>
           ) : null}
         </Link>

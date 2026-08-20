@@ -854,17 +854,6 @@ export function SettingsOperationsPanel({ role }: { role?: string } = {}) {
                   <p className="text-xs text-slate-500">Vừa hiển thị trên trang Liên hệ, vừa là nơi <strong>nhận email thông báo</strong> mỗi khi khách gửi yêu cầu báo giá. Lưu cài đặt sẽ cập nhật luôn địa chỉ nhận này.</p>
                 </div>
               </div>
-              <div className="grid gap-1">
-                <AdminField
-                  label="Email người gửi thông báo (tuỳ chọn)"
-                  name="quote-sender-email"
-                  value={quoteSenderEmail}
-                  onChange={(val) => { setQuoteSenderEmail(val); markDirty(); }}
-                  placeholder="Email đã xác minh trong Brevo (Single Sender), vd: ban@vidu.com"
-                  inputType="email"
-                />
-                <p className="text-xs text-slate-500">Là địa chỉ <strong>người gửi</strong> đứng tên trên email hệ thống tự gửi (ô trên là địa chỉ <strong>người nhận</strong>). Lưu ý: hộp thư này phải được <strong>xác minh trong Brevo</strong> (mục Senders → Add a Sender) trước, nếu không email sẽ không gửi được. Chưa có domain riêng thì xác minh trực tiếp một địa chỉ email (Single Sender) — không cần DNS; sau này có domain có thể xác thực cả domain (SPF/DKIM) để gửi chuyên nghiệp hơn.</p>
-              </div>
               <div className="grid gap-4">
                 <VietnamAddressPicker
                   label="Địa chỉ trụ sở chính (Tỉnh/Thành phố → Phường/Xã)"
