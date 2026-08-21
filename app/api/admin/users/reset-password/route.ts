@@ -27,10 +27,51 @@ export async function POST(request: Request) {
 
     const supabase = createAdminClient();
 
-    const { error } = await supabase.auth.admin.updateUserById(id, { password });
-    if (error) {
-      console.error("Reset password error:", error);
-      return NextResponse.json({ error: error.message || "Không thể đặt lại mật khẩu" }, { status: 400 });
+    // 1. Fetch profile to know email and details
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, email, full_name")
+      .eq("id", id)
+      .maybeSingle();
+
+    // 2. Try direct update by id
+    const { error: directUpdateError } = await supabase.auth.admin.updateUserById(id, { password });
+
+    if (directUpdateError) {
+      console.warn("Direct updateUserById failed, attempting email-based sync:", directUpdateError.message);
+      
+      if (profile?.email) {
+        const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+        const authUser = userList?.users?.find(
+          (u) => u.email?.toLowerCase() === profile.email.toLowerCase()
+        );
+
+        if (authUser) {
+          const { error: authUpdateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+            password,
+          });
+          if (authUpdateError) {
+            console.error("Auth updateUserById by email error:", authUpdateError);
+            return NextResponse.json({ error: authUpdateError.message || "Không thể đặt lại mật khẩu" }, { status: 400 });
+          }
+        } else {
+          // User exists in profiles but not yet in auth.users (seed user) -> create in auth.users
+          const { error: createError } = await supabase.auth.admin.createUser({
+            id: profile.id,
+            email: profile.email,
+            password,
+            email_confirm: true,
+            user_metadata: { full_name: profile.full_name || profile.email },
+          });
+          if (createError) {
+            console.error("Auth createUser fallback error:", createError);
+            return NextResponse.json({ error: createError.message || "Không thể tạo tài khoản xác thực mới" }, { status: 400 });
+          }
+        }
+      } else {
+        console.error("Reset password error:", directUpdateError);
+        return NextResponse.json({ error: directUpdateError.message || "Không thể đặt lại mật khẩu" }, { status: 400 });
+      }
     }
 
     try {
