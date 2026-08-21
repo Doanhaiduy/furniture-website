@@ -172,10 +172,12 @@ export async function POST(request: Request) {
     .select("quote_sender_email")
     .limit(1)
     .maybeSingle();
-  // No hardcoded domain fallback: the sender address must be a mailbox verified in Brevo
-  // (Single Sender Verification, since there's no company domain yet) — a made-up fallback
-  // address would just fail the send the same way an unverified one would.
-  const fromAddress = senderSettings?.quote_sender_email?.trim() || env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || "no-reply@showroomnoithatphuongdong.com.vn";
+
+  const configuredSender = senderSettings?.quote_sender_email?.trim();
+  const fromAddress =
+    env.BREVO_SENDER_EMAIL ||
+    process.env.BREVO_SENDER_EMAIL ||
+    (configuredSender && !configuredSender.endsWith("@gmail.com") ? configuredSender : "no-reply@showroomnoithatphuongdong.com.vn");
 
   // Send the internal sales notification inline, tracking the real outcome so the
   // queued rows reflect it (sent / failed / skipped) instead of always "sent".

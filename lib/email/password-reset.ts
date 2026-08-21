@@ -45,8 +45,9 @@ export async function sendPasswordResetEmail({
       .limit(1)
       .maybeSingle();
 
-    if (senderSettings?.quote_sender_email?.trim()) {
-      sender = senderSettings.quote_sender_email.trim();
+    const configuredSender = senderSettings?.quote_sender_email?.trim();
+    if (configuredSender && !configuredSender.endsWith("@gmail.com")) {
+      sender = configuredSender;
     }
   } catch (err) {
     console.error("[Password Reset] Error resolving DB settings:", err);
