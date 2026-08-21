@@ -5,6 +5,10 @@ export interface BaseEmailLayoutOptions {
   preheaderDisclaimer?: string;
   contentHtml: string;
   locale?: "vi" | "en";
+  brandName?: string;
+  contactAddress?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 export function formatVietnamDateTime(date: Date = new Date(), locale: "vi" | "en" = "vi"): {
@@ -51,11 +55,17 @@ export function renderBaseEmailLayout({
   preheaderDisclaimer,
   contentHtml,
   locale = "vi",
+  brandName,
+  contactAddress,
+  contactPhone,
+  contactEmail,
 }: BaseEmailLayoutOptions): string {
   const isVi = locale === "vi";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://showroomnoithatphuongdong.com.vn";
-  const hotline = "0912 345 678";
-  const supportEmail = process.env.BREVO_SENDER_EMAIL || "cskh@showroomnoithatphuongdong.com.vn";
+  const hotline = contactPhone || "0912 345 678";
+  const supportEmail = contactEmail || process.env.BREVO_SENDER_EMAIL || "showroomnoithatphuongdong@gmail.com";
+  const address = contactAddress || (isVi ? "Hà Nội, Việt Nam" : "Hanoi, Vietnam");
+  const displayBrand = brandName || (isVi ? "CÔNG TY TNHH NỘI THẤT & THIẾT BỊ VỆ SINH PHƯƠNG ĐÔNG" : "PHUONG DONG LUXURY FURNITURE & SANITARY");
   const logoUrl = `${siteUrl}/logo-final.jpg`;
 
   const { formattedDate } = formatVietnamDateTime(new Date(), locale);
@@ -127,7 +137,7 @@ export function renderBaseEmailLayout({
                   </td>
                   <td align="right" style="vertical-align: middle;">
                     <p style="margin: 0; font-size: 13px; font-weight: bold; color: #8B5E3C; text-transform: uppercase; letter-spacing: 0.5px;">
-                      CÔNG TY TNHH NỘI THẤT &amp; THIẾT BỊ VỆ SINH PHƯƠNG ĐÔNG
+                      ${escapeHtml(displayBrand)}
                     </p>
                     <p style="margin: 3px 0 0 0; font-size: 11px; color: #6b7280; text-transform: uppercase;">
                       ${defaultSubTitle}
@@ -155,9 +165,9 @@ export function renderBaseEmailLayout({
                     <p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">Showroom &amp; Thiết bị</p>
                   </td>
                   <td style="vertical-align: top; font-size: 12px; color: #4b5563; line-height: 1.6;">
-                    <strong>Trụ sở chính &amp; Showroom:</strong> Hà Nội, Việt Nam<br>
-                    <strong>Hotline:</strong> ${hotline} • <strong>Email hỗ trợ:</strong> ${supportEmail}<br>
-                    <strong>Website chính thức:</strong> <a href="${siteUrl}" style="color: #8B5E3C; text-decoration: none; font-weight: bold;">${siteUrl.replace(/^https?:\/\//, "")}</a>
+                    <p style="margin: 0 0 4px 0;"><strong>Trụ sở chính &amp; Showroom:</strong> ${escapeHtml(address)}</p>
+                    <p style="margin: 0 0 4px 0;"><strong>Hotline:</strong> ${escapeHtml(hotline)} • <strong>Email hỗ trợ:</strong> <a href="mailto:${escapeHtml(supportEmail)}" style="color: #0284c7; text-decoration: none;">${escapeHtml(supportEmail)}</a></p>
+                    <p style="margin: 0;"><strong>Website chính thức:</strong> <a href="${siteUrl}" style="color: #8B5E3C; text-decoration: none; font-weight: bold;">${siteUrl.replace(/^https?:\/\//, "")}</a></p>
                   </td>
                 </tr>
               </table>

@@ -17,6 +17,10 @@ export async function sendPasswordResetEmail({
   let login = env.BREVO_SMTP_LOGIN || process.env.BREVO_SMTP_LOGIN || null;
   let key = env.BREVO_SMTP_KEY || process.env.BREVO_SMTP_KEY || null;
   let sender = env.BREVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || "no-reply@showroomnoithatphuongdong.com.vn";
+  let dbBrandName: string | undefined;
+  let dbContactAddress: string | undefined;
+  let dbContactPhone: string | undefined;
+  let dbContactEmail: string | undefined;
 
   // Check integration_secrets in database (AES-GCM encrypted)
   try {
@@ -39,83 +43,104 @@ export async function sendPasswordResetEmail({
       }
     }
 
-    const { data: senderSettings } = await supabase
+    const { data: dbSettings } = await supabase
       .from("site_settings")
-      .select("quote_sender_email")
-      .limit(1)
+      .select(`
+        contact_phone,
+        contact_email,
+        quote_sender_email,
+        site_setting_translations (
+          locale,
+          brand_name,
+          contact_address
+        )
+      `)
+      .eq("singleton_key", "default")
       .maybeSingle();
 
-    const configuredSender = senderSettings?.quote_sender_email?.trim();
+    const configuredSender = dbSettings?.quote_sender_email?.trim();
     if (configuredSender && !configuredSender.endsWith("@gmail.com")) {
       sender = configuredSender;
     }
+
+    const translations = Array.isArray(dbSettings?.site_setting_translations) ? dbSettings.site_setting_translations : [];
+    const trans = (translations as any[]).find((t: any) => t.locale === "vi") || translations[0];
+
+    dbBrandName = trans?.brand_name || undefined;
+    dbContactAddress = trans?.contact_address || undefined;
+    dbContactPhone = dbSettings?.contact_phone || undefined;
+    dbContactEmail = dbSettings?.contact_email || undefined;
   } catch (err) {
-    console.error("[Password Reset] Error resolving DB settings:", err);
+    console.error("[Password Reset] Error resolving DB secrets/settings:", err);
   }
 
-  if (!login || !key) {
-    console.warn("[Password Reset] Brevo SMTP credentials not configured. Reset URL:", resetUrl);
-    return {
-      success: false,
-      error: "Hệ thống chưa được cấu hình thông tin Brevo SMTP (BREVO_SMTP_LOGIN / BREVO_SMTP_KEY). Vui lòng cấu hình trong phần Cài đặt hệ thống.",
-    };
-  }
+    if (!login || !key) {
+      console.warn("[Password Reset] Brevo SMTP credentials not configured. Reset URL:", resetUrl);
+      return {
+        success: false,
+        error: "Hệ thống chưa được cấu hình thông tin Brevo SMTP (BREVO_SMTP_LOGIN / BREVO_SMTP_KEY). Vui lòng cấu hình trong phần Cài đặt hệ thống.",
+      };
+    }
 
-  const transporter = getBrevoTransporter(login, key);
+    const transporter = getBrevoTransporter(login, key);
 
-  const contentHtml = `
-    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1f2937;">
-      Kính chào <strong>${escapeHtml(recipientName || toEmail)}</strong>,
-    </p>
-    <p style="margin: 0 0 20px 0; font-size: 13px; color: #374151; line-height: 1.6;">
-      Hệ thống bảo mật vừa tiếp nhận yêu cầu đặt lại mật khẩu cho tài khoản quản trị CMS của bạn tại <strong>Showroom Nội Thất Phương Đông</strong>.
-    </p>
+    const contentHtml = `
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #1f2937;">
+        Kính chào <strong>${escapeHtml(recipientName || toEmail)}</strong>,
+      </p>
+      <p style="margin: 0 0 20px 0; font-size: 13px; color: #374151; line-height: 1.6;">
+        Hệ thống bảo mật vừa tiếp nhận yêu cầu đặt lại mật khẩu cho tài khoản quản trị CMS của bạn tại <strong>Showroom Nội Thất Phương Đông</strong>.
+      </p>
 
-    <!-- Table: Security Request Info -->
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; border: 1px solid #d1d5db; border-collapse: collapse;">
-      <tr>
-        <td colspan="2" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
-          Thông tin yêu cầu bảo mật:
-        </td>
-      </tr>
-      <tr>
-        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Tài khoản yêu cầu</td>
-        <td width="70%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(toEmail)}</td>
-      </tr>
-      <tr>
-        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Thời hạn liên kết</td>
-        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #dc2626;">15 phút (Tính từ lúc nhận thư)</td>
-      </tr>
-      <tr>
-        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Hành động</td>
-        <td style="padding: 12px 14px; border: 1px solid #e5e7eb;">
-          <a href="${resetUrl}" style="display: inline-block; background-color: #8B5E3C; color: #ffffff; text-decoration: none; padding: 8px 20px; font-size: 13px; font-weight: bold; border-radius: 4px;">
-            Đặt lại mật khẩu ngay
-          </a>
-        </td>
-      </tr>
-    </table>
+      <!-- Table: Security Request Info -->
+      <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; border: 1px solid #d1d5db; border-collapse: collapse;">
+        <tr>
+          <td colspan="2" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+            Thông tin yêu cầu bảo mật:
+          </td>
+        </tr>
+        <tr>
+          <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Tài khoản yêu cầu</td>
+          <td width="70%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(toEmail)}</td>
+        </tr>
+        <tr>
+          <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Thời hạn liên kết</td>
+          <td width="70%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #dc2626;">15 phút (Tính từ lúc nhận thư)</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Hành động</td>
+          <td style="padding: 12px 14px; border: 1px solid #e5e7eb;">
+            <a href="${resetUrl}" style="display: inline-block; background-color: #8B5E3C; color: #ffffff; text-decoration: none; padding: 8px 20px; font-size: 13px; font-weight: bold; border-radius: 4px;">
+              Đặt lại mật khẩu ngay
+            </a>
+          </td>
+        </tr>
+      </table>
 
-    <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #111827;">
-      * Lưu ý bảo mật:
-    </p>
-    <ul style="margin: 0 0 20px 0; padding-left: 20px; font-size: 12px; color: #4b5563; line-height: 1.7;">
-      <li>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua thư. Mật khẩu hiện tại của bạn vẫn được bảo vệ an toàn.</li>
-      <li>Không chia sẻ liên kết này cho bất kỳ ai để đảm bảo an toàn tuyệt đối cho hệ thống dữ liệu showroom.</li>
-    </ul>
+      <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #111827;">
+        * Lưu ý bảo mật:
+      </p>
+      <ul style="margin: 0 0 20px 0; padding-left: 20px; font-size: 12px; color: #4b5563; line-height: 1.7;">
+        <li>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua thư. Mật khẩu hiện tại của bạn vẫn được bảo vệ an toàn.</li>
+        <li>Không chia sẻ liên kết này cho bất kỳ ai để đảm bảo an toàn tuyệt đối cho hệ thống dữ liệu showroom.</li>
+      </ul>
 
-    <p style="margin: 0; font-size: 11px; color: #9ca3af; word-break: break-all;">
-      Liên kết trực tiếp: <a href="${resetUrl}" style="color: #8B5E3C;">${resetUrl}</a>
-    </p>
-  `;
+      <p style="margin: 0; font-size: 11px; color: #9ca3af; word-break: break-all;">
+        Liên kết trực tiếp: <a href="${resetUrl}" style="color: #8B5E3C;">${resetUrl}</a>
+      </p>
+    `;
 
-  const html = renderBaseEmailLayout({
-    topUtilityRight: "BẢO MẬT HỆ THỐNG CMS",
-    headerSubTitle: "HỆ THỐNG QUẢN TRỊ NỘI BỘ • ĐẶT LẠI MẬT KHẨU",
-    preheaderDisclaimer: "Thư xác thực bảo mật tài khoản quản trị viên Showroom Phương Đông.",
-    contentHtml,
-    locale: "vi",
-  });
+    const html = renderBaseEmailLayout({
+      topUtilityRight: "BẢO MẬT HỆ THỐNG CMS",
+      headerSubTitle: "HỆ THỐNG QUẢN TRỊ NỘI BỘ • ĐẶT LẠI MẬT KHẨU",
+      preheaderDisclaimer: "Thư xác thực bảo mật tài khoản quản trị viên Showroom Phương Đông.",
+      contentHtml,
+      locale: "vi",
+      brandName: dbBrandName,
+      contactAddress: dbContactAddress,
+      contactPhone: dbContactPhone,
+      contactEmail: dbContactEmail,
+    });
 
   try {
     await transporter.sendMail({

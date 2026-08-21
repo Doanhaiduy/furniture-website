@@ -9,6 +9,10 @@ export function renderManagerQuoteEmail(data: {
   message: string;
   sourcePath: string;
   locale: "vi" | "en";
+  brandName?: string;
+  contactAddress?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }): string {
   const isVi = data.locale === "vi";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://showroomnoithatphuongdong.com.vn";
@@ -105,5 +109,9 @@ export function renderManagerQuoteEmail(data: {
       : "Automated internal notification for Phuong Dong Showroom management.",
     locale: data.locale,
     contentHtml,
+    brandName: data.brandName,
+    contactAddress: data.contactAddress,
+    contactPhone: data.contactPhone,
+    contactEmail: data.contactEmail,
   });
 }

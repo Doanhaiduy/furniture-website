@@ -8,11 +8,16 @@ export function renderCustomerQuoteConfirmationEmail(data: {
   service?: string;
   message?: string;
   locale: "vi" | "en";
+  brandName?: string;
+  contactAddress?: string;
+  contactPhone?: string;
+  contactEmail?: string;
 }): string {
   const isVi = data.locale === "vi";
   const now = new Date();
   const { fullDateTimeString } = formatVietnamDateTime(now, data.locale);
   const quoteRefCode = `PD-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const hotline = data.contactPhone || "0912 345 678";
 
   const contentHtml = `
     <p style="margin: 0 0 8px 0; font-size: 14px; color: #1f2937;">
@@ -94,13 +99,13 @@ export function renderCustomerQuoteConfirmationEmail(data: {
           ? `
         <li>Thông tin yêu cầu của Quý khách đã được chuyển trực tiếp tới chuyên viên tư vấn của Showroom Phương Đông.</li>
         <li>Chuyên viên phụ trách sẽ liên hệ lại trực tiếp qua số điện thoại <strong>${escapeHtml(data.phone)}</strong> trong vòng <strong>15 - 30 phút</strong> (trong giờ làm việc: 8h00 - 21h00 hàng ngày) để giải đáp chi tiết và gửi bảng dự toán tối ưu.</li>
-        <li>Nếu cần hỗ trợ tư vấn khẩn cấp hoặc khảo sát trực tiếp tại công trình, Quý khách vui lòng liên hệ Tổng đài Hotline: <strong style="color: #8B5E3C;">0912 345 678</strong>.</li>
+        <li>Nếu cần hỗ trợ tư vấn khẩn cấp hoặc khảo sát trực tiếp tại công trình, Quý khách vui lòng liên hệ Tổng đài Hotline: <strong style="color: #8B5E3C;">${escapeHtml(hotline)}</strong>.</li>
         <li>Quý khách có thể xem thêm các bộ sưu tập mẫu mã mới nhất tại website: <a href="https://showroomnoithatphuongdong.com.vn" style="color: #0284c7; text-decoration: none;">showroomnoithatphuongdong.com.vn</a>.</li>
       `
           : `
         <li>Your request has been routed to our showroom specialist team.</li>
         <li>Our specialist will contact you directly at <strong>${escapeHtml(data.phone)}</strong> within <strong>15 - 30 minutes</strong> during business hours (8:00 AM - 9:00 PM).</li>
-        <li>For urgent assistance, please call our 24/7 Hotline: <strong style="color: #8B5E3C;">0912 345 678</strong>.</li>
+        <li>For urgent assistance, please call our 24/7 Hotline: <strong style="color: #8B5E3C;">${escapeHtml(hotline)}</strong>.</li>
       `
       }
     </ul>
@@ -113,5 +118,9 @@ export function renderCustomerQuoteConfirmationEmail(data: {
   return renderBaseEmailLayout({
     locale: data.locale,
     contentHtml,
+    brandName: data.brandName,
+    contactAddress: data.contactAddress,
+    contactPhone: data.contactPhone,
+    contactEmail: data.contactEmail,
   });
 }

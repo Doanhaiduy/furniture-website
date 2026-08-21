@@ -201,13 +201,30 @@ export async function POST(request: Request) {
     }
   }
 
-  const { data: senderSettings } = await supabase
+  const { data: dbSettings } = await supabase
     .from("site_settings")
-    .select("quote_sender_email")
-    .limit(1)
+    .select(`
+      contact_phone,
+      contact_email,
+      quote_sender_email,
+      site_setting_translations (
+        locale,
+        brand_name,
+        contact_address
+      )
+    `)
+    .eq("singleton_key", "default")
     .maybeSingle();
 
-  const configuredSender = senderSettings?.quote_sender_email?.trim();
+  const translations = Array.isArray(dbSettings?.site_setting_translations) ? dbSettings.site_setting_translations : [];
+  const trans = (translations as any[]).find((t: any) => t.locale === data.locale) || (translations as any[]).find((t: any) => t.locale === "vi") || translations[0];
+
+  const dbBrandName = trans?.brand_name || undefined;
+  const dbContactAddress = trans?.contact_address || undefined;
+  const dbContactPhone = dbSettings?.contact_phone || undefined;
+  const dbContactEmail = dbSettings?.contact_email || undefined;
+
+  const configuredSender = dbSettings?.quote_sender_email?.trim();
   const fromAddress =
     env.BREVO_SENDER_EMAIL ||
     process.env.BREVO_SENDER_EMAIL ||
@@ -238,6 +255,10 @@ export async function POST(request: Request) {
             message: data.message,
             sourcePath: data.sourcePath,
             locale: data.locale,
+            brandName: dbBrandName,
+            contactAddress: dbContactAddress,
+            contactPhone: dbContactPhone,
+            contactEmail: dbContactEmail,
           }),
         });
         providerMessageId = sendResult.messageId ?? null;
@@ -262,6 +283,10 @@ export async function POST(request: Request) {
             service: cleanServiceName,
             message: data.message,
             locale: data.locale,
+            brandName: dbBrandName,
+            contactAddress: dbContactAddress,
+            contactPhone: dbContactPhone,
+            contactEmail: dbContactEmail,
           }),
         });
       } catch (customerEmailErr) {
