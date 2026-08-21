@@ -304,27 +304,25 @@ export function QuotesPage({
           />
 
           <div className="surface-soft overflow-hidden rounded-xl border bg-white shadow-sm">
-            <div className="grid grid-cols-[1.2fr_1fr_1fr_100px_130px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            {/* Desktop Table Header (Hidden on mobile) */}
+            <div className="hidden md:grid md:grid-cols-[1.2fr_1fr_1fr_100px_130px] bg-slate-50 px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
               <span>Khách hàng</span>
               <span>Doanh nghiệp / Dịch vụ</span>
               <span>Người phụ trách</span>
               <span>Ngày yêu cầu</span>
               <span>Trạng thái</span>
             </div>
+
             {localQuotes.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-400">Không tìm thấy yêu cầu báo giá nào khớp điều kiện.</p>
             ) : (
               localQuotes.map((quote) => (
-                // Row is a div (not a button): it contains the AssigneePopover trigger, which is
-                // itself a <button>, and a <button> inside a <button> is invalid HTML — it caused a
-                // hydration error and made the browser reparent the pagination + detail column out
-                // to <body> (duplicate detail panel). role/tabIndex/keydown keep it keyboard-usable.
                 <div
                   key={quote.id}
                   role="button"
                   tabIndex={0}
-                  className={`w-full cursor-pointer text-left grid grid-cols-[1.2fr_1fr_1fr_100px_130px] items-center border-t border-slate-100 px-4 py-3.5 transition-colors hover:bg-slate-50/50 ${
-                    selectedQuote?.id === quote.id ? "bg-indigo-50/30" : ""
+                  className={`w-full cursor-pointer text-left border-t border-slate-100 p-4 transition-colors hover:bg-slate-50/50 ${
+                    selectedQuote?.id === quote.id ? "bg-indigo-50/40 ring-1 ring-inset ring-indigo-200" : ""
                   }`}
                   onClick={() => setSelectedQuoteId(quote.id)}
                   onKeyDown={(e) => {
@@ -334,53 +332,111 @@ export function QuotesPage({
                     }
                   }}
                 >
-                  <div className="min-w-0 pr-2">
-                    <p className="font-semibold text-slate-800 truncate">{quote.full_name}</p>
-                    <p className="text-xs text-slate-500 font-mono">{quote.phone}</p>
-                    {quote.email && <p className="text-[10px] text-slate-400 truncate">{quote.email}</p>}
+                  {/* MOBILE VIEW (Card Layout for screen < md) */}
+                  <div className="flex md:hidden flex-col gap-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 text-sm truncate">{quote.full_name}</p>
+                        <p className="text-xs font-mono font-semibold text-sky-700 mt-0.5">{quote.phone}</p>
+                      </div>
+                      <span className={`status-pill shrink-0 text-[11px] font-medium leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
+                        {statusLabels[quote.status] ?? quote.status}
+                      </span>
+                    </div>
+
+                    <div className="bg-slate-50/80 rounded-lg p-2 text-xs space-y-1 border border-slate-100">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span className="font-semibold text-slate-700 truncate">{quote.company || "Khách hàng cá nhân"}</span>
+                        <span suppressHydrationWarning>{new Date(quote.created_at).toLocaleDateString("vi-VN")}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 font-medium line-clamp-2">{quote.service ?? "Yêu cầu tư vấn"}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-[11px] text-slate-400 font-medium">Phụ trách:</span>
+                      <AssigneePopover
+                        quote={quote}
+                        staffOptions={staffOptions}
+                        onAssigneeChange={async (newAssigneeId) => {
+                          const res = await updateQuoteAssignee(quote.id, newAssigneeId);
+                          if (res.success) {
+                            toast.success("Phân công nhân sự thành công!");
+                            setLocalQuotes((prev) =>
+                              prev.map((q) =>
+                                q.id === quote.id
+                                  ? {
+                                      ...q,
+                                      assigned_to: newAssigneeId,
+                                      assignee: newAssigneeId
+                                        ? {
+                                            id: newAssigneeId,
+                                            full_name: staffOptions.find((opt) => opt.value === newAssigneeId)?.label || "Nhân viên",
+                                            email: ""
+                                          }
+                                        : null
+                                    }
+                                  : q
+                              )
+                            );
+                            router.refresh();
+                          } else {
+                            toast.error("Lỗi phân công: " + (res.error ?? "Không xác định"));
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="min-w-0 pr-2">
-                    <p className="text-xs font-semibold text-slate-700 truncate">{quote.company || "Cá nhân"}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{quote.service ?? "Yêu cầu tư vấn"}</p>
+
+                  {/* DESKTOP VIEW (Table Grid for screen >= md) */}
+                  <div className="hidden md:grid md:grid-cols-[1.2fr_1fr_1fr_100px_130px] items-center">
+                    <div className="min-w-0 pr-2">
+                      <p className="font-semibold text-slate-800 truncate">{quote.full_name}</p>
+                      <p className="text-xs text-slate-500 font-mono">{quote.phone}</p>
+                      {quote.email && <p className="text-[10px] text-slate-400 truncate">{quote.email}</p>}
+                    </div>
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-semibold text-slate-700 truncate">{quote.company || "Cá nhân"}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{quote.service ?? "Yêu cầu tư vấn"}</p>
+                    </div>
+                    <div className="min-w-0 pr-2" onClick={(e) => e.stopPropagation()}>
+                      <AssigneePopover
+                        quote={quote}
+                        staffOptions={staffOptions}
+                        onAssigneeChange={async (newAssigneeId) => {
+                          const res = await updateQuoteAssignee(quote.id, newAssigneeId);
+                          if (res.success) {
+                            toast.success("Phân công nhân sự thành công!");
+                            setLocalQuotes((prev) =>
+                              prev.map((q) =>
+                                q.id === quote.id
+                                  ? {
+                                      ...q,
+                                      assigned_to: newAssigneeId,
+                                      assignee: newAssigneeId
+                                        ? {
+                                            id: newAssigneeId,
+                                            full_name: staffOptions.find((opt) => opt.value === newAssigneeId)?.label || "Nhân viên",
+                                            email: ""
+                                          }
+                                        : null
+                                    }
+                                  : q
+                              )
+                            );
+                            router.refresh();
+                          } else {
+                            toast.error("Lỗi phân công: " + (res.error ?? "Không xác định"));
+                          }
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs text-slate-500" suppressHydrationWarning>
+                      {new Date(quote.created_at).toLocaleDateString("vi-VN")}
+                    </span>
+                    <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
+                      {statusLabels[quote.status] ?? quote.status}
+                    </span>
                   </div>
-                  <div className="min-w-0 pr-2" onClick={(e) => e.stopPropagation()}>
-                    <AssigneePopover
-                      quote={quote}
-                      staffOptions={staffOptions}
-                      onAssigneeChange={async (newAssigneeId) => {
-                        const res = await updateQuoteAssignee(quote.id, newAssigneeId);
-                        if (res.success) {
-                          toast.success("Phân công nhân sự thành công!");
-                          setLocalQuotes((prev) =>
-                            prev.map((q) =>
-                              q.id === quote.id
-                                ? {
-                                    ...q,
-                                    assigned_to: newAssigneeId,
-                                    assignee: newAssigneeId
-                                      ? {
-                                          id: newAssigneeId,
-                                          full_name: staffOptions.find((opt) => opt.value === newAssigneeId)?.label || "Nhân viên",
-                                          email: ""
-                                        }
-                                      : null
-                                  }
-                                : q
-                            )
-                          );
-                          router.refresh();
-                        } else {
-                          toast.error("Lỗi phân công: " + (res.error ?? "Không xác định"));
-                        }
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs text-slate-500" suppressHydrationWarning>
-                    {new Date(quote.created_at).toLocaleDateString("vi-VN")}
-                  </span>
-                  <span className={`status-pill w-fit text-[11px] leading-none ${statusColors[quote.status] ?? "status-muted"}`}>
-                    {statusLabels[quote.status] ?? quote.status}
-                  </span>
                 </div>
               ))
             )}
