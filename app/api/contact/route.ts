@@ -53,42 +53,76 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient();
 
-  // Resolve product UUID from slug if it is not a valid UUID format
+  // Resolve product UUID and Name from slug/UUID
   let resolvedProductId: string | null = null;
+  let resolvedProductName: string | null = null;
   if (data.productId) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.productId);
     if (isUuid) {
       resolvedProductId = data.productId;
+      const { data: prod } = await supabase
+        .from("product_translations")
+        .select("name")
+        .eq("product_id", data.productId)
+        .eq("locale", data.locale)
+        .limit(1)
+        .maybeSingle();
+      if (prod?.name) resolvedProductName = prod.name;
     } else {
       const { data: prod } = await supabase
         .from("product_translations")
-        .select("product_id")
+        .select("product_id, name")
         .eq("slug", data.productId)
         .limit(1)
         .maybeSingle();
       if (prod) {
         resolvedProductId = prod.product_id;
+        resolvedProductName = prod.name;
       }
     }
   }
 
-  // Resolve category UUID from slug if it is not a valid UUID format
+  // Resolve category UUID and Name from slug/UUID
   let resolvedCategoryId: string | null = null;
-  if (data.categoryId) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.categoryId);
+  let resolvedCategoryName: string | null = null;
+  const targetCategoryIdentifier = data.categoryId || (data.service && data.service !== "interior-consulting" ? data.service : null);
+  
+  if (targetCategoryIdentifier) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetCategoryIdentifier);
     if (isUuid) {
-      resolvedCategoryId = data.categoryId;
+      resolvedCategoryId = targetCategoryIdentifier;
+      const { data: cat } = await supabase
+        .from("product_category_translations")
+        .select("name")
+        .eq("category_id", targetCategoryIdentifier)
+        .eq("locale", data.locale)
+        .limit(1)
+        .maybeSingle();
+      if (cat?.name) resolvedCategoryName = cat.name;
     } else {
       const { data: cat } = await supabase
         .from("product_category_translations")
-        .select("category_id")
-        .eq("slug", data.categoryId)
+        .select("category_id, name")
+        .eq("slug", targetCategoryIdentifier)
         .limit(1)
         .maybeSingle();
       if (cat) {
         resolvedCategoryId = cat.category_id;
+        resolvedCategoryName = cat.name;
       }
     }
+  }
+
+  // Compute clean, human-readable service title (not slug)
+  let cleanServiceName = data.locale === "vi" ? "Thiết kế & Tư vấn nội thất trọn gói" : "Full Interior Consulting";
+  if (resolvedProductName && resolvedCategoryName) {
+    cleanServiceName = `${resolvedProductName} (Danh mục: ${resolvedCategoryName})`;
+  } else if (resolvedProductName) {
+    cleanServiceName = resolvedProductName;
+  } else if (resolvedCategoryName) {
+    cleanServiceName = `Danh mục: ${resolvedCategoryName}`;
+  } else if (data.service && data.service !== "interior-consulting") {
+    cleanServiceName = data.service;
   }
 
   const { data: quote, error: insertError } = await supabase
@@ -98,7 +132,7 @@ export async function POST(request: Request) {
       phone: data.phone,
       email: data.email || null,
       company: data.company || null,
-      service: data.service || null,
+      service: cleanServiceName,
       message: data.message,
       preferred_locale: data.locale,
       product_id: resolvedProductId,
@@ -200,7 +234,7 @@ export async function POST(request: Request) {
             phone: data.phone,
             email: data.email || "",
             company: data.company || undefined,
-            service: data.service || undefined,
+            service: cleanServiceName,
             message: data.message,
             sourcePath: data.sourcePath,
             locale: data.locale,
@@ -225,7 +259,7 @@ export async function POST(request: Request) {
             fullName: data.fullName,
             phone: data.phone,
             email: data.email,
-            service: data.service,
+            service: cleanServiceName,
             message: data.message,
             locale: data.locale,
           }),

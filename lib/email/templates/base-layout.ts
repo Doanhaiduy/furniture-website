@@ -7,6 +7,43 @@ export interface BaseEmailLayoutOptions {
   locale?: "vi" | "en";
 }
 
+export function formatVietnamDateTime(date: Date = new Date(), locale: "vi" | "en" = "vi"): {
+  formattedDate: string;
+  formattedTime: string;
+  fullDateTimeString: string;
+} {
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  };
+  const formatter = new Intl.DateTimeFormat("en-GB", options);
+  const parts = formatter.formatToParts(date);
+  const p = Object.fromEntries(parts.map((item) => [item.type, item.value]));
+
+  const dayOfWeekFormatter = new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    weekday: "long",
+  });
+  const dayOfWeek = dayOfWeekFormatter.format(date);
+  const capitalizedDay = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+
+  const formattedDate =
+    locale === "vi"
+      ? `${capitalizedDay}, Ngày ${p.day}/${p.month}/${p.year}`
+      : `${capitalizedDay}, ${p.day}/${p.month}/${p.year}`;
+
+  const formattedTime = `${p.hour}:${p.minute}`;
+  const fullDateTimeString = `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
+
+  return { formattedDate, formattedTime, fullDateTimeString };
+}
+
 export function renderBaseEmailLayout({
   topUtilityLeft,
   topUtilityRight,
@@ -21,14 +58,7 @@ export function renderBaseEmailLayout({
   const supportEmail = process.env.BREVO_SENDER_EMAIL || "cskh@showroomnoithatphuongdong.com.vn";
   const logoUrl = `${siteUrl}/logo-final.jpg`;
 
-  // Format current date e.g. "Thứ Sáu, Ngày 21/08/2026"
-  const now = new Date();
-  const daysVi = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-  const daysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const dayName = isVi ? daysVi[now.getDay()] : daysEn[now.getDay()];
-  const formattedDate = isVi
-    ? `${dayName}, Ngày ${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`
-    : `${dayName}, ${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
+  const { formattedDate } = formatVietnamDateTime(new Date(), locale);
 
   const defaultTopLeft = topUtilityLeft || formattedDate;
   const defaultTopRight = topUtilityRight || (isVi ? `Hotline: ${hotline}` : `Hotline: ${hotline}`);

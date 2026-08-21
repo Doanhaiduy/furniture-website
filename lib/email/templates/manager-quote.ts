@@ -1,4 +1,4 @@
-import { renderBaseEmailLayout, escapeHtml } from "./base-layout";
+import { renderBaseEmailLayout, escapeHtml, formatVietnamDateTime } from "./base-layout";
 
 export function renderManagerQuoteEmail(data: {
   fullName: string;
@@ -13,7 +13,7 @@ export function renderManagerQuoteEmail(data: {
   const isVi = data.locale === "vi";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://showroomnoithatphuongdong.com.vn";
   const now = new Date();
-  const timeString = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const { fullDateTimeString } = formatVietnamDateTime(now, data.locale);
 
   const contentHtml = `
     <p style="margin: 0 0 16px 0; font-size: 13px; color: #374151; line-height: 1.6;">
@@ -43,7 +43,7 @@ export function renderManagerQuoteEmail(data: {
         <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Email</td>
         <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #374151;">${escapeHtml(data.email || "Không cung cấp")}</td>
         <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Thời gian gửi" : "Time"}</td>
-        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827;">${timeString}</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827;">${fullDateTimeString}</td>
       </tr>
       ${
         data.company
