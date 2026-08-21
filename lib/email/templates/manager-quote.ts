@@ -12,113 +12,98 @@ export function renderManagerQuoteEmail(data: {
 }): string {
   const isVi = data.locale === "vi";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://showroomnoithatphuongdong.com.vn";
-
-  const alertBarHtml = `
-    <div style="background-color: #fffbeb; border-radius: 8px; padding: 10px 16px; border: 1px solid #fef3c7;">
-      <p style="margin: 0; color: #92400e; font-size: 13px; font-weight: 600;">
-        🔔 ${isVi ? "Hệ thống vừa tiếp nhận yêu cầu tư vấn báo giá trực tuyến từ khách hàng." : "A new quotation request has been submitted online."}
-      </p>
-    </div>
-  `;
+  const now = new Date();
+  const timeString = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
   const contentHtml = `
-    <h2 style="margin: 0 0 20px 0; color: #0f172a; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-left: 4px solid #d97706; padding-left: 12px;">
-      ${isVi ? "Thông Tin Khách Hàng" : "Customer Details"}
-    </h2>
-
-    <!-- Details Table -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 24px;">
-      <tr>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; width: 140px; color: #64748b; font-size: 13px; font-weight: 600;">
-          ${isVi ? "Họ và tên" : "Full Name"}
-        </td>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-size: 14px; font-weight: 700;">
-          ${escapeHtml(data.fullName)}
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; font-weight: 600;">
-          ${isVi ? "Số điện thoại" : "Phone"}
-        </td>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #0284c7; font-size: 15px; font-weight: 700;">
-          <a href="tel:${escapeHtml(data.phone)}" style="color: #0284c7; text-decoration: none;">
-            📞 ${escapeHtml(data.phone)}
-          </a>
-        </td>
-      </tr>
+    <p style="margin: 0 0 16px 0; font-size: 13px; color: #374151; line-height: 1.6;">
       ${
-        data.email
-          ? `<tr>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; font-weight: 600;">
-          Email
-        </td>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 13px; font-weight: 500;">
-          <a href="mailto:${escapeHtml(data.email)}" style="color: #475569; text-decoration: underline;">
-            ${escapeHtml(data.email)}
-          </a>
-        </td>
-      </tr>`
-          : ""
+        isVi
+          ? "Hệ thống website vừa tiếp nhận <strong>01 yêu cầu tư vấn báo giá trực tuyến mới</strong> từ khách hàng. Đề nghị bộ phận kinh doanh kiểm tra và liên hệ ngay:"
+          : "A new quotation inquiry has been submitted online. Please review and contact the lead:"
       }
+    </p>
+
+    <!-- Table 1: Customer Information -->
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 20px; border: 1px solid #d1d5db; border-collapse: collapse;">
+      <tr>
+        <td colspan="4" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+          ${isVi ? "Thông tin khách hàng:" : "Customer Details:"}
+        </td>
+      </tr>
+      <tr>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Khách hàng" : "Full Name"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(data.fullName)}</td>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Điện thoại" : "Phone"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 14px; font-weight: bold; color: #0284c7;">
+          <a href="tel:${escapeHtml(data.phone)}" style="color: #0284c7; text-decoration: none;">${escapeHtml(data.phone)}</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Email</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #374151;">${escapeHtml(data.email || "Không cung cấp")}</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Thời gian gửi" : "Time"}</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827;">${timeString}</td>
+      </tr>
       ${
         data.company
           ? `<tr>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; font-weight: 600;">
-          ${isVi ? "Đơn vị / Công ty" : "Company"}
-        </td>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 13px; font-weight: 600;">
-          ${escapeHtml(data.company)}
-        </td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Công ty / Đơn vị" : "Company"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(data.company)}</td>
       </tr>`
           : ""
       }
-      ${
-        data.service
-          ? `<tr>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 13px; font-weight: 600;">
-          ${isVi ? "Dịch vụ quan tâm" : "Service"}
-        </td>
-        <td style="padding: 12px 18px; border-bottom: 1px solid #e2e8f0; color: #7c2d12; font-size: 13px; font-weight: 600;">
-          ${escapeHtml(data.service)}
-        </td>
-      </tr>`
-          : ""
-      }
+    </table>
+
+    <!-- Table 2: Request Details -->
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; border: 1px solid #d1d5db; border-collapse: collapse;">
       <tr>
-        <td style="padding: 12px 18px; color: #64748b; font-size: 13px; font-weight: 600; vertical-align: top;">
-          ${isVi ? "Nội dung yêu cầu" : "Message"}
+        <td colspan="4" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+          ${isVi ? "Chi tiết yêu cầu tư vấn:" : "Inquiry Details:"}
         </td>
-        <td style="padding: 12px 18px; color: #1e293b; font-size: 13px; font-weight: 500; line-height: 1.6; white-space: pre-wrap;">
-          ${escapeHtml(data.message || (isVi ? "Khách hàng mong muốn nhận báo giá và tư vấn danh mục sản phẩm." : "Requested quotation."))}
+      </tr>
+      <tr>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Hạng mục quan tâm" : "Category"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #8B5E3C;">
+          ${escapeHtml(data.service || (isVi ? "Tư vấn & Báo giá Nội thất / Thiết bị vệ sinh" : "General Consultation"))}
         </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Nguồn trang gửi" : "Source Path"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #4b5563; font-family: monospace;">
+          ${escapeHtml(data.sourcePath)}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563; vertical-align: top;">${isVi ? "Lời nhắn của khách" : "Message"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(data.message || (isVi ? "Khách hàng mong muốn nhận báo giá và tư vấn danh mục sản phẩm." : "Requested quotation."))}</td>
       </tr>
     </table>
 
     <!-- Action Buttons -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 24px;">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 20px;">
       <tr>
         <td align="center">
-          <a href="tel:${escapeHtml(data.phone)}" style="display: inline-block; background-color: #059669; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 10px; margin-right: 12px; box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2);">
-            📞 ${isVi ? "Gọi Cho Khách Ngay" : "Call Customer"}
+          <a href="tel:${escapeHtml(data.phone)}" style="display: inline-block; background-color: #059669; color: #ffffff; text-decoration: none; padding: 10px 22px; font-size: 13px; font-weight: bold; border-radius: 4px; margin-right: 10px;">
+            ${isVi ? "Gọi điện thoại cho khách" : "Call Customer"}
           </a>
-          <a href="${siteUrl}/admin/quotes" style="display: inline-block; background-color: #1e293b; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(30, 41, 59, 0.2);">
-            💻 ${isVi ? "Mở Bảng Quản Trị CMS" : "Open Admin CRM"}
+          <a href="${siteUrl}/admin/quotes" style="display: inline-block; background-color: #292524; color: #ffffff; text-decoration: none; padding: 10px 22px; font-size: 13px; font-weight: bold; border-radius: 4px;">
+            ${isVi ? "Mở quản trị CMS" : "Open Admin CRM"}
           </a>
         </td>
       </tr>
     </table>
-
-    <p style="margin: 28px 0 0 0; font-size: 12px; color: #94a3b8; text-align: center; line-height: 1.5;">
-      ${isVi ? "Nguồn gửi yêu cầu:" : "Submitted from:"} <code style="background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b;">${escapeHtml(data.sourcePath)}</code>
-    </p>
   `;
 
   return renderBaseEmailLayout({
-    badgeText: isVi ? "⚡ Khách Hàng Mới" : "⚡ New Lead",
-    badgeBg: "rgba(245, 158, 11, 0.2)",
-    badgeColor: "#fef3c7",
-    alertBarHtml,
-    contentHtml,
+    topUtilityRight: isVi ? "Trạng thái: KHÁCH HÀNG MỚI" : "Status: NEW LEAD",
+    headerSubTitle: isVi
+      ? "HỆ THỐNG QUẢN TRỊ NỘI BỘ (CMS CRM) • TIẾP NHẬN BÁO GIÁ"
+      : "INTERNAL CMS CRM • QUOTE INQUIRY ALERT",
+    preheaderDisclaimer: isVi
+      ? "Hệ thống thông báo nội bộ tự động dành cho Ban Quản trị & Kinh doanh Showroom Phương Đông."
+      : "Automated internal notification for Phuong Dong Showroom management.",
     locale: data.locale,
+    contentHtml,
   });
 }

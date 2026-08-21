@@ -63,52 +63,56 @@ export async function sendPasswordResetEmail({
 
   const transporter = getBrevoTransporter(login, key);
 
-  const alertBarHtml = `
-    <div style="background-color: #fef2f2; border-radius: 8px; padding: 10px 16px; border: 1px solid #fee2e2;">
-      <p style="margin: 0; color: #991b1b; font-size: 13px; font-weight: 600;">
-        🔒 Yêu cầu bảo mật: Đặt lại mật khẩu tài khoản quản trị CMS.
-      </p>
-    </div>
-  `;
-
   const contentHtml = `
-    <h2 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 16px 0; border-left: 4px solid #d97706; padding-left: 12px;">
-      Yêu cầu đặt lại mật khẩu quản trị
-    </h2>
-    
-    <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 12px 0;">
-      Xin chào <strong>${escapeHtml(recipientName || toEmail)}</strong>,
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1f2937;">
+      Kính chào <strong>${escapeHtml(recipientName || toEmail)}</strong>,
     </p>
-    <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 16px 0;">
-      Hệ thống vừa tiếp nhận yêu cầu đặt lại mật khẩu cho tài khoản quản trị CMS của bạn tại <strong>Showroom Nội Thất Phương Đông</strong>.
+    <p style="margin: 0 0 20px 0; font-size: 13px; color: #374151; line-height: 1.6;">
+      Hệ thống bảo mật vừa tiếp nhận yêu cầu đặt lại mật khẩu cho tài khoản quản trị CMS của bạn tại <strong>Showroom Nội Thất Phương Đông</strong>.
     </p>
-    <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 24px 0;">
-      Vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới. Liên kết bảo mật này có hiệu lực trong <strong>15 phút</strong>:
-    </p>
-    
-    <div style="text-align: center; margin: 32px 0;">
-      <a href="${resetUrl}" style="display: inline-block; background-color: #92400e; color: #ffffff; text-decoration: none; padding: 14px 36px; font-size: 14px; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 10px -2px rgba(146, 64, 14, 0.3);">
-        🔑 Đặt Lại Mật Khẩu Ngay
-      </a>
-    </div>
-    
-    <div style="background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 10px; padding: 14px 18px; margin-top: 28px;">
-      <p style="font-size: 12px; color: #92400e; margin: 0; line-height: 1.5;">
-        ⚠️ <strong>Lưu ý bảo mật:</strong> Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email. Mật khẩu hiện tại của bạn vẫn được bảo vệ an toàn.
-      </p>
-    </div>
 
-    <p style="font-size: 12px; color: #94a3b8; margin-top: 24px; line-height: 1.5; word-break: break-all;">
-      Nếu nút bấm không hoạt động, bạn có thể copy liên kết sau dán vào trình duyệt:<br>
-      <a href="${resetUrl}" style="color: #b45309;">${resetUrl}</a>
+    <!-- Table: Security Request Info -->
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; border: 1px solid #d1d5db; border-collapse: collapse;">
+      <tr>
+        <td colspan="2" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+          Thông tin yêu cầu bảo mật:
+        </td>
+      </tr>
+      <tr>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Tài khoản yêu cầu</td>
+        <td width="70%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(toEmail)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Thời hạn liên kết</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #dc2626;">15 phút (Tính từ lúc nhận thư)</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Hành động</td>
+        <td style="padding: 12px 14px; border: 1px solid #e5e7eb;">
+          <a href="${resetUrl}" style="display: inline-block; background-color: #8B5E3C; color: #ffffff; text-decoration: none; padding: 8px 20px; font-size: 13px; font-weight: bold; border-radius: 4px;">
+            Đặt lại mật khẩu ngay
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #111827;">
+      * Lưu ý bảo mật:
+    </p>
+    <ul style="margin: 0 0 20px 0; padding-left: 20px; font-size: 12px; color: #4b5563; line-height: 1.7;">
+      <li>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua thư. Mật khẩu hiện tại của bạn vẫn được bảo vệ an toàn.</li>
+      <li>Không chia sẻ liên kết này cho bất kỳ ai để đảm bảo an toàn tuyệt đối cho hệ thống dữ liệu showroom.</li>
+    </ul>
+
+    <p style="margin: 0; font-size: 11px; color: #9ca3af; word-break: break-all;">
+      Liên kết trực tiếp: <a href="${resetUrl}" style="color: #8B5E3C;">${resetUrl}</a>
     </p>
   `;
 
   const html = renderBaseEmailLayout({
-    badgeText: "🔒 Bảo Mật CMS",
-    badgeBg: "rgba(220, 38, 38, 0.15)",
-    badgeColor: "#dc2626",
-    alertBarHtml,
+    topUtilityRight: "BẢO MẬT HỆ THỐNG CMS",
+    headerSubTitle: "HỆ THỐNG QUẢN TRỊ NỘI BỘ • ĐẶT LẠI MẬT KHẨU",
+    preheaderDisclaimer: "Thư xác thực bảo mật tài khoản quản trị viên Showroom Phương Đông.",
     contentHtml,
     locale: "vi",
   });

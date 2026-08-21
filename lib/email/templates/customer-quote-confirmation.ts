@@ -4,110 +4,114 @@ export function renderCustomerQuoteConfirmationEmail(data: {
   fullName: string;
   phone: string;
   email?: string;
+  company?: string;
   service?: string;
   message?: string;
   locale: "vi" | "en";
 }): string {
   const isVi = data.locale === "vi";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://showroomnoithatphuongdong.com.vn";
-
-  const alertBarHtml = `
-    <div style="background-color: #ecfdf5; border-radius: 8px; padding: 10px 16px; border: 1px solid #d1fae5;">
-      <p style="margin: 0; color: #065f46; font-size: 13px; font-weight: 600;">
-        ✨ ${isVi ? "Yêu cầu tư vấn báo giá của Quý khách đã được tiếp nhận thành công." : "Your quote request has been successfully received."}
-      </p>
-    </div>
-  `;
+  const now = new Date();
+  const timeString = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const quoteRefCode = `PD-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
   const contentHtml = `
-    <h2 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 16px 0; border-left: 4px solid #d97706; padding-left: 12px;">
-      ${isVi ? "Kính gửi Quý khách " + escapeHtml(data.fullName) + "," : "Dear " + escapeHtml(data.fullName) + ","}
-    </h2>
-
-    <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 14px 0;">
+    <p style="margin: 0 0 8px 0; font-size: 14px; color: #1f2937;">
+      ${isVi ? `Kính chào Quý khách <strong>${escapeHtml(data.fullName)}</strong>,` : `Dear <strong>${escapeHtml(data.fullName)}</strong>,`}
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 13px; color: #374151; line-height: 1.6;">
       ${
         isVi
-          ? "Showroom Nội Thất Phương Đông xin trân trọng cảm ơn Quý khách đã quan tâm và gửi yêu cầu tư vấn báo giá sản phẩm & dịch vụ qua hệ thống trực tuyến của chúng tôi."
-          : "Thank you for your interest and for submitting a quotation request to Phuong Dong Interior Showroom."
+          ? "Cảm ơn Quý khách đã quan tâm và gửi yêu cầu tư vấn báo giá tại <strong>Showroom Nội Thất Phương Đông</strong>."
+          : "Thank you for contacting and submitting your quotation request to <strong>Phuong Dong Showroom</strong>."
       }
     </p>
 
-    <p style="font-size: 14px; line-height: 1.7; color: #475569; margin: 0 0 24px 0;">
+    <!-- Table 1: Customer Information -->
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 20px; border: 1px solid #d1d5db; border-collapse: collapse;">
+      <tr>
+        <td colspan="4" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+          ${isVi ? "Thông tin khách hàng:" : "Customer Information:"}
+        </td>
+      </tr>
+      <tr>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Khách hàng" : "Full Name"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(data.fullName)}</td>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Điện thoại" : "Phone"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(data.phone)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">Email</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #0284c7; font-weight: 500;">${escapeHtml(data.email || "Không cung cấp")}</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Thời gian gửi" : "Submitted At"}</td>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827;">${timeString}</td>
+      </tr>
+      ${
+        data.company
+          ? `<tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Công ty / Đơn vị" : "Company"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">${escapeHtml(data.company)}</td>
+      </tr>`
+          : ""
+      }
+    </table>
+
+    <!-- Table 2: Quote Request Details -->
+    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 24px; border: 1px solid #d1d5db; border-collapse: collapse;">
+      <tr>
+        <td colspan="4" style="background-color: #292524; color: #ffffff; font-size: 13px; font-weight: bold; padding: 8px 14px; text-transform: uppercase;">
+          ${isVi ? "Thông tin yêu cầu báo giá:" : "Quotation Request Details:"}
+        </td>
+      </tr>
+      <tr>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Mã tiếp nhận" : "Reference Code"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #8B5E3C; font-family: monospace;">${quoteRefCode}</td>
+        <td width="20%" style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Tình trạng" : "Status"}</td>
+        <td width="30%" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #059669;">${isVi ? "Đã tiếp nhận" : "Received"}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563;">${isVi ? "Hạng mục quan tâm" : "Service Category"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: bold; color: #111827;">
+          ${escapeHtml(data.service || (isVi ? "Tư vấn & Báo giá Nội thất / Thiết bị vệ sinh" : "Consultation & Quotation"))}
+        </td>
+      </tr>
+      ${
+        data.message
+          ? `<tr>
+        <td style="padding: 8px 14px; border: 1px solid #e5e7eb; background-color: #f9fafb; font-size: 13px; color: #4b5563; vertical-align: top;">${isVi ? "Ghi chú / Nhu cầu" : "Notes"}</td>
+        <td colspan="3" style="padding: 8px 14px; border: 1px solid #e5e7eb; font-size: 13px; color: #374151; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(data.message)}</td>
+      </tr>`
+          : ""
+      }
+    </table>
+
+    <!-- Notice & Next Steps -->
+    <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: bold; color: #111827;">
+      * ${isVi ? "Lưu ý:" : "Important Notes:"}
+    </p>
+    <ul style="margin: 0 0 20px 0; padding-left: 20px; font-size: 12px; color: #4b5563; line-height: 1.7;">
       ${
         isVi
-          ? "Hệ thống đã ghi nhận thông tin của Quý khách. Chuyên viên tư vấn của Showroom sẽ liên hệ trực tiếp qua số điện thoại <strong style=\"color: #0284c7;\">" +
-            escapeHtml(data.phone) +
-            "</strong> trong thời gian sớm nhất (thường từ 15 – 30 phút trong giờ làm việc) để lắng nghe nhu cầu và gửi bảng dự toán tối ưu nhất."
-          : "Our showroom specialist will review your request and contact you directly via phone <strong style=\"color: #0284c7;\">" +
-            escapeHtml(data.phone) +
-            "</strong> shortly."
+          ? `
+        <li>Thông tin yêu cầu của Quý khách đã được chuyển trực tiếp tới chuyên viên tư vấn của Showroom Phương Đông.</li>
+        <li>Chuyên viên phụ trách sẽ liên hệ lại trực tiếp qua số điện thoại <strong>${escapeHtml(data.phone)}</strong> trong vòng <strong>15 - 30 phút</strong> (trong giờ làm việc: 8h00 - 21h00 hàng ngày) để giải đáp chi tiết và gửi bảng dự toán tối ưu.</li>
+        <li>Nếu cần hỗ trợ tư vấn khẩn cấp hoặc khảo sát trực tiếp tại công trình, Quý khách vui lòng liên hệ Tổng đài Hotline: <strong style="color: #8B5E3C;">0912 345 678</strong>.</li>
+        <li>Quý khách có thể xem thêm các bộ sưu tập mẫu mã mới nhất tại website: <a href="https://showroomnoithatphuongdong.com.vn" style="color: #0284c7; text-decoration: none;">showroomnoithatphuongdong.com.vn</a>.</li>
+      `
+          : `
+        <li>Your request has been routed to our showroom specialist team.</li>
+        <li>Our specialist will contact you directly at <strong>${escapeHtml(data.phone)}</strong> within <strong>15 - 30 minutes</strong> during business hours (8:00 AM - 9:00 PM).</li>
+        <li>For urgent assistance, please call our 24/7 Hotline: <strong style="color: #8B5E3C;">0912 345 678</strong>.</li>
+      `
       }
-    </p>
+    </ul>
 
-    <!-- Request Summary Box -->
-    <div style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 24px;">
-      <h3 style="margin: 0 0 14px 0; font-size: 13px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
-        ${isVi ? "Tóm tắt thông tin đã gửi" : "Summary of Your Request"}
-      </h3>
-      <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13px;">
-        <tr>
-          <td style="padding: 6px 0; color: #64748b; width: 140px; font-weight: 600;">${isVi ? "Họ tên:" : "Full Name:"}</td>
-          <td style="padding: 6px 0; color: #1e293b; font-weight: 700;">${escapeHtml(data.fullName)}</td>
-        </tr>
-        <tr>
-          <td style="padding: 6px 0; color: #64748b; font-weight: 600;">${isVi ? "Số điện thoại:" : "Phone:"}</td>
-          <td style="padding: 6px 0; color: #0284c7; font-weight: 700;">${escapeHtml(data.phone)}</td>
-        </tr>
-        ${
-          data.service
-            ? `<tr>
-          <td style="padding: 6px 0; color: #64748b; font-weight: 600;">${isVi ? "Hạng mục quan tâm:" : "Service:"}</td>
-          <td style="padding: 6px 0; color: #92400e; font-weight: 600;">${escapeHtml(data.service)}</td>
-        </tr>`
-            : ""
-        }
-        ${
-          data.message
-            ? `<tr>
-          <td style="padding: 6px 0; color: #64748b; font-weight: 600; vertical-align: top;">${isVi ? "Nội dung ghi chú:" : "Notes:"}</td>
-          <td style="padding: 6px 0; color: #334155; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(data.message)}</td>
-        </tr>`
-            : ""
-        }
-      </table>
-    </div>
-
-    <!-- Need Immediate Support Callout -->
-    <div style="background-color: #fffbeb; border-radius: 12px; border: 1px solid #fef3c7; padding: 20px; text-align: center; margin-bottom: 28px;">
-      <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 700; color: #92400e;">
-        ${isVi ? "Cần hỗ trợ tư vấn gấp hoặc đặt lịch tham quan showroom?" : "Need urgent assistance?"}
-      </p>
-      <p style="margin: 0 0 14px 0; font-size: 12px; color: #78350f;">
-        ${isVi ? "Quý khách có thể liên hệ trực tiếp tổng đài hotline 24/7 của chúng tôi:" : "Feel free to call our hotline:"}
-      </p>
-      <a href="tel:0912345678" style="display: inline-block; background-color: #92400e; color: #ffffff; text-decoration: none; padding: 10px 24px; font-size: 13px; font-weight: 700; border-radius: 8px; box-shadow: 0 2px 6px rgba(146, 64, 14, 0.2);">
-        📞 Hotline: 0912 345 678
-      </a>
-    </div>
-
-    <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0; line-height: 1.6;">
-      ${
-        isVi
-          ? "Trân trọng kính chúc Quý khách nhiều sức khỏe và có trải nghiệm tuyệt vời cùng Showroom Phương Đông!"
-          : "We wish you a wonderful day and look forward to serving you!"
-      }
-    </p>
-    <p style="font-size: 13px; font-weight: 700; color: #1e293b; margin: 0;">
-      ${isVi ? "Đội ngũ Showroom Nội Thất & Thiết Bị Vệ Sinh Phương Đông" : "Phuong Dong Showroom Team"}
+    <p style="margin: 0; font-size: 13px; font-weight: bold; color: #111827;">
+      ${isVi ? "Trân trọng cảm ơn!" : "Sincerely,"}
     </p>
   `;
 
   return renderBaseEmailLayout({
-    badgeText: isVi ? "✨ Xác Nhận Tiếp Nhận" : "✨ Confirmation",
-    badgeBg: "rgba(5, 150, 105, 0.15)",
-    badgeColor: "#059669",
-    alertBarHtml,
-    contentHtml,
     locale: data.locale,
+    contentHtml,
   });
 }
