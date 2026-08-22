@@ -160,13 +160,14 @@ export function renderBaseEmailLayout({
             <td style="background-color: #f9fafb; border-top: 1px solid #e5e7eb; padding: 20px 28px;">
               <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
-                  <td width="160" style="vertical-align: top;">
-                    <img src="${logoUrl}" alt="Phương Đông" height="38" style="display: block; height: 38px; max-width: 130px; object-fit: contain; border: 0;" />
-                    <p style="margin: 4px 0 0 0; font-size: 11px; color: #9ca3af;">Showroom &amp; Thiết bị</p>
+                  <td width="130" style="vertical-align: top; padding-right: 16px;">
+                    <img src="${logoUrl}" alt="Phương Đông" height="38" style="display: block; height: 38px; max-width: 120px; object-fit: contain; border: 0;" />
+                    <p style="margin: 6px 0 0 0; font-size: 11px; color: #9ca3af; line-height: 1.3;">Showroom Nội Thất &amp; Thiết Bị</p>
                   </td>
-                  <td style="vertical-align: top; font-size: 12px; color: #4b5563; line-height: 1.6;">
+                  <td style="vertical-align: top; font-size: 12px; color: #4b5563; line-height: 1.7;">
                     <p style="margin: 0 0 4px 0;"><strong>Trụ sở chính &amp; Showroom:</strong> ${escapeHtml(address)}</p>
-                    <p style="margin: 0 0 4px 0;"><strong>Hotline:</strong> ${escapeHtml(hotline)} • <strong>Email hỗ trợ:</strong> <a href="mailto:${escapeHtml(supportEmail)}" style="color: #0284c7; text-decoration: none;">${escapeHtml(supportEmail)}</a></p>
+                    <p style="margin: 0 0 4px 0;"><strong>Hotline tư vấn:</strong> <a href="tel:${escapeHtml(hotline)}" style="color: #111827; text-decoration: none; font-weight: bold; white-space: nowrap;">${escapeHtml(hotline)}</a></p>
+                    <p style="margin: 0 0 4px 0;"><strong>Email hỗ trợ:</strong> <a href="mailto:${escapeHtml(supportEmail)}" style="color: #0284c7; text-decoration: none; font-weight: 500; white-space: nowrap;">${escapeHtml(supportEmail)}</a></p>
                     <p style="margin: 0;"><strong>Website chính thức:</strong> <a href="${siteUrl}" style="color: #8B5E3C; text-decoration: none; font-weight: bold;">${siteUrl.replace(/^https?:\/\//, "")}</a></p>
                   </td>
                 </tr>
