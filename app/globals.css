@@ -292,8 +292,12 @@
     @apply scroll-smooth font-sans;
   }
   ::selection {
-    background: color-mix(in srgb, var(--primary-container), transparent 78%);
-    color: var(--primary);
+    background-color: #8B5E3C;
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background-color: #8B5E3C;
+    color: #ffffff;
   }
   h1,
   h2,

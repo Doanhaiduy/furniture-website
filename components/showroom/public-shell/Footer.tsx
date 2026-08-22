@@ -38,7 +38,52 @@ export function Footer({
   navItems,
   linkHref,
 }: FooterProps) {
+  const [emailInput, setEmailInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleSubmitNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !emailInput.includes("@")) {
+      setFeedback({
+        type: "error",
+        text: locale === "vi" ? "Vui lòng nhập địa chỉ email hợp lệ." : "Please enter a valid email address.",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailInput.trim(), locale }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setNewsletterSent(true);
+        setEmailInput("");
+        setFeedback({
+          type: "success",
+          text: data.message || (locale === "vi" ? "Đăng ký nhận bản tin thành công!" : "Subscribed successfully!"),
+        });
+      } else {
+        setFeedback({
+          type: "error",
+          text: data.error || (locale === "vi" ? "Có lỗi xảy ra. Vui lòng thử lại." : "An error occurred. Please try again."),
+        });
+      }
+    } catch {
+      setFeedback({
+        type: "error",
+        text: locale === "vi" ? "Không thể kết nối máy chủ. Vui lòng thử lại." : "Could not connect to server.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const logoSrc = siteSettings?.logoUrl
     ? siteSettings.logoUrl.startsWith("http://local-assets")
@@ -144,24 +189,38 @@ export function Footer({
           </p>
           <form
             className="mt-4 flex"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setNewsletterSent(true);
-            }}
+            onSubmit={handleSubmitNewsletter}
           >
             <input
               aria-label="Email"
-              className="public-footer-field"
-              placeholder="Email"
+              className="public-footer-field disabled:opacity-60"
+              placeholder="Email của bạn..."
               type="email"
+              required
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              disabled={isSubmitting}
             />
-            <button className="public-footer-button inline-flex items-center gap-1.5" type="submit">
+            <button
+              className="public-footer-button inline-flex items-center gap-1.5 disabled:opacity-60"
+              type="submit"
+              disabled={isSubmitting}
+            >
               <Send className="size-3.5" />
-              {locale === "vi" ? "Gửi" : "Send"}
+              {isSubmitting ? (locale === "vi" ? "..." : "...") : locale === "vi" ? "Gửi" : "Send"}
             </button>
           </form>
-          {newsletterSent ? (
-            <p className="mt-3 text-xs font-semibold text-white/70">
+
+          {feedback ? (
+            <p
+              className={`mt-3 text-xs font-medium ${
+                feedback.type === "success" ? "text-emerald-400" : "text-rose-400"
+              }`}
+            >
+              {feedback.text}
+            </p>
+          ) : newsletterSent ? (
+            <p className="mt-3 text-xs font-semibold text-emerald-400">
               {labels.common.newsletterSent}
             </p>
           ) : null}
