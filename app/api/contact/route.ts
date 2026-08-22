@@ -245,6 +245,10 @@ export async function POST(request: Request) {
         const sendResult = await transporter.sendMail({
           from: `"Showroom Nội Thất Phương Đông" <${fromAddress}>`,
           to: recipients.map((r) => r.email),
+          replyTo: data.email && data.email.includes("@") ? data.email.trim() : (dbContactEmail || "info@showroomnoithatphuongdong.com.vn"),
+          headers: {
+            "X-Mailin-Track-Clicks": "0",
+          },
           subject: `Yêu cầu báo giá mới từ ${data.fullName}`,
           html: renderManagerQuoteEmail({
             fullName: data.fullName,
@@ -273,6 +277,10 @@ export async function POST(request: Request) {
         await transporter.sendMail({
           from: `"Showroom Nội Thất Phương Đông" <${fromAddress}>`,
           to: data.email.trim(),
+          replyTo: dbContactEmail || "info@showroomnoithatphuongdong.com.vn",
+          headers: {
+            "X-Mailin-Track-Clicks": "0",
+          },
           subject: data.locale === "vi"
             ? `[Tiếp nhận yêu cầu] Cảm ơn Quý khách ${data.fullName} — Showroom Nội Thất Phương Đông`
             : `[Confirmation] Quotation Request Received — Phuong Dong Showroom`,

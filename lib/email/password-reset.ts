@@ -146,6 +146,10 @@ export async function sendPasswordResetEmail({
     await transporter.sendMail({
       from: `"Showroom Nội Thất Phương Đông" <${sender}>`,
       to: toEmail,
+      replyTo: dbContactEmail || "info@showroomnoithatphuongdong.com.vn",
+      headers: {
+        "X-Mailin-Track-Clicks": "0",
+      },
       subject: "Yêu cầu đặt lại mật khẩu quản trị — Showroom Nội Thất Phương Đông",
       html,
     });
