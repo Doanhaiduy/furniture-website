@@ -449,6 +449,18 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
   }
 
   const supabase = createAdminClient();
+
+  // Check if post was previously published to prevent sending duplicate emails on edits
+  const { data: existingPost } = await supabase
+    .from("blog_posts")
+    .select("status, published_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  const isFirstPublish =
+    values.status === "published" &&
+    (!existingPost?.published_at || existingPost?.status !== "published");
+
   const category = await resolveBlogCategoryId(supabase, values.category_id);
   if (!category.id) return { success: false, error: category.error };
 
@@ -517,7 +529,7 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
 
     triggerRevalidation();
 
-    if (values.status === "published") {
+    if (isFirstPublish) {
       broadcastToSubscribers({
         type: "blog",
         title: values.title_vi,
@@ -623,6 +635,16 @@ export async function updateBlogPostStatus(id: string, status: string): Promise<
   try {
     const supabase = createAdminClient();
 
+    const { data: existingPost } = await supabase
+      .from("blog_posts")
+      .select("status, published_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    const isFirstPublish =
+      status === "published" &&
+      (!existingPost?.published_at || existingPost?.status !== "published");
+
     if (status === "published") {
       const { data: post } = await supabase.from("blog_posts").select("featured, cover_media_id").eq("id", id).maybeSingle();
       if (!post?.cover_media_id) {
@@ -655,7 +677,7 @@ export async function updateBlogPostStatus(id: string, status: string): Promise<
     });
     triggerRevalidation();
 
-    if (status === "published") {
+    if (isFirstPublish) {
       (async () => {
         try {
           const { data: viTrans } = await supabase

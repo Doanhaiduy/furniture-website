@@ -375,6 +375,17 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
   try {
     const supabase = createAdminClient();
 
+    // Check if this product was already published to prevent re-sending emails on edits
+    const { data: existingProduct } = await supabase
+      .from("products")
+      .select("status, published_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    const isFirstPublish =
+      data.status === "published" &&
+      (!existingProduct?.published_at || existingProduct?.status !== "published");
+
     if (data.featured) {
       const limitCheck = await checkFeaturedLimit(supabase, id);
       if (!limitCheck.success) {
@@ -529,6 +540,18 @@ export async function updateAdminProduct(id: string, data: ProductInput): Promis
     });
 
     triggerRevalidation();
+
+    if (isFirstPublish) {
+      broadcastToSubscribers({
+        type: "product",
+        title: data.name_vi,
+        summary: data.summary_vi,
+        imageUrl: data.cover_image || undefined,
+        slugUrl: `/vi/products/${data.slug}`,
+        locale: "vi",
+      }).catch((err) => console.error("[Broadcast Product Error]:", err));
+    }
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
@@ -633,6 +656,15 @@ export async function updateProductStatus(id: string, status: string): Promise<{
   const user = await requireEditorOrAdmin();
   try {
     const supabase = createAdminClient();
+    const { data: existingProduct } = await supabase
+      .from("products")
+      .select("status, published_at")
+      .eq("id", id)
+      .maybeSingle();
+
+    const isFirstPublish =
+      status === "published" &&
+      (!existingProduct?.published_at || existingProduct?.status !== "published");
 
     if (status === "published") {
       // Friendly pre-check mirroring require_publish_translations, so quick-publishing
@@ -674,7 +706,7 @@ export async function updateProductStatus(id: string, status: string): Promise<{
     });
     triggerRevalidation();
 
-    if (status === "published") {
+    if (isFirstPublish) {
       (async () => {
         try {
           const { data: viTrans } = await supabase
