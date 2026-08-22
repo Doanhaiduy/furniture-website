@@ -7,6 +7,7 @@ import { writeAuditLog } from "../audit";
 import { blogPostSchema, type BlogPostInput } from "../../validations/admin";
 import { triggerRevalidation, getOrCreateMediaAssetId, isUuid, validationMessages, localizedText } from "./helpers";
 import { normalizeBlogRichText, validateBlogRichText } from "../../blog-rich-text";
+import { broadcastToSubscribers } from "@/lib/email/broadcast";
 
 function validateBodyForSave(value: unknown, locale: "vi" | "en", required: boolean) {
   const result = validateBlogRichText(normalizeBlogRichText(value, locale));
@@ -410,6 +411,18 @@ export async function createAdminBlogPost(data: BlogPostInput): Promise<{ succes
     }
 
     triggerRevalidation();
+
+    if (values.status === "published") {
+      broadcastToSubscribers({
+        type: "blog",
+        title: values.title_vi,
+        summary: values.excerpt_vi,
+        imageUrl: values.cover_image || undefined,
+        slugUrl: `/vi/blog/${viSlug}`,
+        locale: "vi",
+      }).catch((err) => console.error("[Broadcast Blog Error]:", err));
+    }
+
     return { success: true, id: post.id };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
@@ -503,6 +516,18 @@ export async function updateAdminBlogPost(id: string, data: BlogPostInput): Prom
     });
 
     triggerRevalidation();
+
+    if (values.status === "published") {
+      broadcastToSubscribers({
+        type: "blog",
+        title: values.title_vi,
+        summary: values.excerpt_vi,
+        imageUrl: values.cover_image || undefined,
+        slugUrl: `/vi/blog/${values.slug}`,
+        locale: "vi",
+      }).catch((err) => console.error("[Broadcast Blog Update Error]:", err));
+    }
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
@@ -629,6 +654,35 @@ export async function updateBlogPostStatus(id: string, status: string): Promise<
       metadata: { status },
     });
     triggerRevalidation();
+
+    if (status === "published") {
+      (async () => {
+        try {
+          const { data: viTrans } = await supabase
+            .from("blog_post_translations")
+            .select("title, excerpt, slug, post:blog_posts(cover_media:media_assets(public_url))")
+            .eq("post_id", id)
+            .eq("locale", "vi")
+            .maybeSingle();
+
+          if (viTrans?.title && viTrans?.slug) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const coverImg = (viTrans as any)?.post?.cover_media?.public_url;
+            await broadcastToSubscribers({
+              type: "blog",
+              title: viTrans.title,
+              summary: viTrans.excerpt || undefined,
+              imageUrl: coverImg,
+              slugUrl: `/vi/blog/${viTrans.slug}`,
+              locale: "vi",
+            });
+          }
+        } catch (broadcastErr) {
+          console.error("[Broadcast Blog Query Error]:", broadcastErr);
+        }
+      })();
+    }
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };

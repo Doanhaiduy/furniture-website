@@ -6,6 +6,7 @@ import { requireEditorOrAdmin } from "../auth";
 import { writeAuditLog } from "../audit";
 import { productSchema, type ProductInput } from "../../validations/admin";
 import { triggerRevalidation, getOrCreateMediaAssetId, validationMessages } from "./helpers";
+import { broadcastToSubscribers } from "@/lib/email/broadcast";
 
 // The editor works with an HTML/text string. description_json may be a plain string
 // (form-authored), a `{}` empty default, a `{html}` object, or a `{sections:[…]}` doc.
@@ -343,6 +344,19 @@ export async function createAdminProduct(data: ProductInput): Promise<{ success:
     }
 
     triggerRevalidation();
+
+    // Trigger newsletter broadcast asynchronously on publish
+    if (data.status === "published") {
+      broadcastToSubscribers({
+        type: "product",
+        title: data.name_vi,
+        summary: data.summary_vi,
+        imageUrl: data.cover_image || undefined,
+        slugUrl: `/vi/products/${data.slug}`,
+        locale: "vi",
+      }).catch((err) => console.error("[Broadcast Product Error]:", err));
+    }
+
     return { success: true, id: product.id };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
@@ -659,6 +673,35 @@ export async function updateProductStatus(id: string, status: string): Promise<{
       metadata: { status },
     });
     triggerRevalidation();
+
+    if (status === "published") {
+      (async () => {
+        try {
+          const { data: viTrans } = await supabase
+            .from("product_translations")
+            .select("name, summary, slug, product:products(product_media(media_assets(public_url)))")
+            .eq("product_id", id)
+            .eq("locale", "vi")
+            .maybeSingle();
+
+          if (viTrans?.name && viTrans?.slug) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const coverImg = (viTrans as any)?.product?.product_media?.[0]?.media_assets?.public_url;
+            await broadcastToSubscribers({
+              type: "product",
+              title: viTrans.name,
+              summary: viTrans.summary || undefined,
+              imageUrl: coverImg,
+              slugUrl: `/vi/products/${viTrans.slug}`,
+              locale: "vi",
+            });
+          }
+        } catch (broadcastErr) {
+          console.error("[Broadcast Product Query Error]:", broadcastErr);
+        }
+      })();
+    }
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Internal server error" };
